@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Form, Input, DatePicker, Select, Button, Radio, message, Row, Col } from 'antd';
+import { Card, Form, Input, DatePicker, Select, Button, Radio, message } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -51,39 +51,24 @@ export default function QuickBookingForm() {
   };
 
   return (
-    <Card style={{ height: 'fit-content' }}>
-      <Row style={{ marginBottom: '24px' }}>
-        <Col span={24}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-            Quick Booking
-          </h2>
-          <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>
-            Get started with your group travel booking
-          </p>
-        </Col>
-      </Row>
+    <Card className="h-fit">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Quick Booking</h2>
+        <p className="text-sm text-gray-600">Get started with your group travel booking</p>
+      </div>
 
       {/* Trip Type Selection */}
-      <Row style={{ marginBottom: '24px' }}>
-        <Col span={24}>
-          <Radio.Group 
-            value={tripType} 
-            onChange={(e) => setTripType(e.target.value)}
-          >
-            <Row gutter={24}>
-              <Col>
-                <Radio value="oneWay" style={{ fontSize: '14px' }}>One way</Radio>
-              </Col>
-              <Col>
-                <Radio value="roundTrip" style={{ fontSize: '14px' }}>Round trip</Radio>
-              </Col>
-              <Col>
-                <Radio value="multiCity" style={{ fontSize: '14px' }}>Multi city</Radio>
-              </Col>
-            </Row>
-          </Radio.Group>
-        </Col>
-      </Row>
+      <div className="mb-6">
+        <Radio.Group 
+          value={tripType} 
+          onChange={(e) => setTripType(e.target.value)}
+          className="flex gap-6"
+        >
+          <Radio value="oneWay" className="text-sm">One way</Radio>
+          <Radio value="roundTrip" className="text-sm">Round trip</Radio>
+          <Radio value="multiCity" className="text-sm">Multi city</Radio>
+        </Radio.Group>
+      </div>
 
       <Form
         form={form}
@@ -92,94 +77,81 @@ export default function QuickBookingForm() {
         requiredMark={false}
       >
         {/* Origin and Destination */}
-        <Row gutter={16} style={{ marginBottom: '16px' }}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Origin *"
-              name="origin"
-              rules={[{ required: true, message: 'Please enter origin' }]}
-            >
-              <Input placeholder="City / Airport" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Destination *"
-              name="destination"
-              rules={[{ required: true, message: 'Please enter destination' }]}
-            >
-              <Input placeholder="City / Airport" />
-            </Form.Item>
-          </Col>
-        </Row>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Form.Item
+            label="Origin *"
+            name="origin"
+            rules={[{ required: true, message: 'Please enter origin' }]}
+          >
+            <Input placeholder="City / Airport" />
+          </Form.Item>
+          
+          <Form.Item
+            label="Destination *"
+            name="destination"
+            rules={[{ required: true, message: 'Please enter destination' }]}
+          >
+            <Input placeholder="City / Airport" />
+          </Form.Item>
+        </div>
 
         {/* Dates */}
-        <Row gutter={16} style={{ marginBottom: '16px' }}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Departure date *"
-              name="departureDate"
-              rules={[{ required: true, message: 'Please select departure date' }]}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-          </Col>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Form.Item
+            label="Departure date *"
+            name="departureDate"
+            rules={[{ required: true, message: 'Please select departure date' }]}
+          >
+            <DatePicker className="w-full" />
+          </Form.Item>
+          
           {tripType !== 'oneWay' && (
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Return date"
-                name="returnDate"
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
+            <Form.Item
+              label="Return date"
+              name="returnDate"
+            >
+              <DatePicker className="w-full" />
+            </Form.Item>
           )}
-        </Row>
+        </div>
 
         {/* Passengers and Cabin */}
-        <Row gutter={16} style={{ marginBottom: '24px' }}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Passengers"
-              name="passengers"
-              initialValue="15"
-            >
-              <Select placeholder="Select passengers">
-                <Option value="15">Adults 15+ years</Option>
-                <Option value="20">20 Adults</Option>
-                <Option value="25">25 Adults</Option>
-                <Option value="30">30 Adults</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Cabin"
-              name="cabin"
-              initialValue="economy"
-            >
-              <Select placeholder="Select cabin class">
-                <Option value="economy">Economy</Option>
-                <Option value="business">Business</Option>
-                <Option value="first">First Class</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <Form.Item
+            label="Passengers"
+            name="passengers"
+            initialValue="15"
+          >
+            <Select placeholder="Select passengers">
+              <Option value="15">Adults 15+ years</Option>
+              <Option value="20">20 Adults</Option>
+              <Option value="25">25 Adults</Option>
+              <Option value="30">30 Adults</Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            label="Cabin"
+            name="cabin"
+            initialValue="economy"
+          >
+            <Select placeholder="Select cabin class">
+              <Option value="economy">Economy</Option>
+              <Option value="business">Business</Option>
+              <Option value="first">First Class</Option>
+            </Select>
+          </Form.Item>
+        </div>
 
-        <Row>
-          <Col span={24}>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              size="large"
-              loading={searchMutation.isPending}
-              style={{ width: '100%' }}
-            >
-              Get Fares
-            </Button>
-          </Col>
-        </Row>
+        <Button 
+          type="primary" 
+          htmlType="submit" 
+          size="large"
+          loading={searchMutation.isPending}
+          className="w-full infiniti-btn-primary"
+        >
+          Get Fares
+        </Button>
       </Form>
     </Card>
   );

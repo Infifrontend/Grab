@@ -1,4 +1,4 @@
-import { Table, Tag, Card, Row, Col } from 'antd';
+import { Table, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import type { Booking } from '@shared/schema';
@@ -41,7 +41,7 @@ export default function RecentBookingsSection() {
       dataIndex: 'bookingId',
       key: 'bookingId',
       render: (text) => (
-        <span style={{ fontWeight: '600', color: '#133769' }}>{text}</span>
+        <span className="font-semibold text-[var(--infiniti-primary)]">{text}</span>
       ),
     },
     {
@@ -66,7 +66,7 @@ export default function RecentBookingsSection() {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <span className={`${getStatusClassName(status)}`} style={{ textTransform: 'capitalize' }}>
+        <span className={`${getStatusClassName(status)} capitalize`}>
           {status}
         </span>
       ),
@@ -77,16 +77,10 @@ export default function RecentBookingsSection() {
       render: (_, record) => (
         <a 
           href="#" 
-          style={{ color: '#133769', fontWeight: '500', textDecoration: 'none' }}
+          className="text-[var(--infiniti-primary)] font-medium hover:underline"
           onClick={(e) => {
             e.preventDefault();
             console.log('Manage booking:', record.id);
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.textDecoration = 'underline';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.textDecoration = 'none';
           }}
         >
           Manage booking
@@ -96,28 +90,24 @@ export default function RecentBookingsSection() {
   ];
 
   return (
-    <Card style={{ padding: 0, overflow: 'hidden' }}>
+    <div className="deal-card">
       {/* Header */}
       <div className="section-header">
-        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>Recent Bookings</h2>
-        <p style={{ fontSize: '14px', opacity: 0.9, margin: 0 }}>View your latest group travel bookings</p>
+        <h2 className="text-xl font-semibold mb-1">Recent Bookings</h2>
+        <p className="text-sm opacity-90">View your latest group travel bookings</p>
       </div>
 
-      <Row>
-        <Col span={24}>
-          <div style={{ padding: '24px' }}>
-            <Table
-              columns={columns}
-              dataSource={bookings}
-              loading={isLoading}
-              rowKey="id"
-              pagination={false}
-              size="middle"
-              style={{ width: '100%' }}
-            />
-          </div>
-        </Col>
-      </Row>
-    </Card>
+      <div className="p-6">
+        <Table
+          columns={columns}
+          dataSource={bookings}
+          loading={isLoading}
+          rowKey="id"
+          pagination={false}
+          size="middle"
+          className="w-full"
+        />
+      </div>
+    </div>
   );
 }
