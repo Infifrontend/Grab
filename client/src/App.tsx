@@ -14,6 +14,7 @@ import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
 import PaymentDetails from "@/pages/payment-details";
+import bids from "@/pages/bids";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/payments" component={Payments} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route path="/settings" component={Settings} />
+      <Route path="/bids" component={bids} />
       <Route component={NotFound} />
     </Switch>
   );
