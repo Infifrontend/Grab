@@ -1,7 +1,10 @@
-import { Badge, Dropdown, Avatar } from 'antd';
-import { BellOutlined, DownOutlined, UserOutlined } from '@ant-design/icons';
+import { Badge, Dropdown, Avatar, Modal, Typography, Empty } from 'antd';
+import { BellOutlined, DownOutlined, UserOutlined, CloseOutlined } from '@ant-design/icons';
 import { Link, useLocation } from 'wouter';
+import { useState } from 'react';
 import type { MenuProps } from 'antd';
+
+const { Title, Text } = Typography;
 
 const navigationItems = [
   { key: 'home', label: 'Home', path: '/' },
@@ -30,6 +33,15 @@ const userMenuItems: MenuProps['items'] = [
 
 export default function Header() {
   const [location] = useLocation();
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
+  const handleNotificationClick = () => {
+    setIsNotificationModalOpen(true);
+  };
+
+  const handleNotificationModalClose = () => {
+    setIsNotificationModalOpen(false);
+  };
 
   return (
     <header className="infiniti-header">
@@ -56,7 +68,10 @@ export default function Header() {
           {/* User Profile */}
           <div className="flex items-center space-x-4">
             <Badge count={5} size="small">
-              <BellOutlined className="text-lg text-gray-600" />
+              <BellOutlined 
+                className="text-lg text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" 
+                onClick={handleNotificationClick}
+              />
             </Badge>
 
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
@@ -69,6 +84,40 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Notification Modal */}
+      <Modal
+        title={
+          <div className="flex items-center justify-between">
+            <Title level={4} className="!mb-0">Notification</Title>
+            <CloseOutlined 
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              onClick={handleNotificationModalClose}
+            />
+          </div>
+        }
+        open={isNotificationModalOpen}
+        onCancel={handleNotificationModalClose}
+        footer={null}
+        closable={false}
+        width={400}
+        className="notification-modal"
+      >
+        <div className="py-8">
+          <Empty
+            image={
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <BellOutlined className="text-2xl text-gray-400" />
+                </div>
+              </div>
+            }
+            description={
+              <Text className="text-gray-500">No Notifications</Text>
+            }
+          />
+        </div>
+      </Modal>
     </header>
   );
 }
