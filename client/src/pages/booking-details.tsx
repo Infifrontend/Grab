@@ -53,19 +53,10 @@ export default function BookingDetails() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Page Header */}
         <div className="flex justify-between items-start mb-6">
-          <div className="flex items-center gap-4">
-            <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={() => setLocation('/dashboard')}
-              className="flex items-center"
-            >
-              Back
-            </Button>
-            <div>
-              <Title level={2} className="!mb-1">Booking Details</Title>
-              <Text className="text-gray-600">Booking ID: {booking.bookingId}</Text>
-            </div>
-          </div>
+          <div>
+            <Title level={2} className="!mb-1">Booking Details</Title>
+            <Text className="text-gray-600">Booking ID: {booking.bookingId}</Text>
+          </div></div>
           <Space>
             <Button 
               icon={<DownloadOutlined />} 
