@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Form, Input, DatePicker, Select, Button, Row, Col } from 'antd';
+import { Card, Form, Input, DatePicker, Select, Button, Row, Col, Skeleton, Space } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle } from 'lucide-react';
 import type { Package } from '@shared/schema';
@@ -28,119 +28,138 @@ export default function MarketplaceSection() {
   };
 
   return (
-    <div className="deal-card">
+    <Card style={{ padding: 0, overflow: 'hidden' }}>
       {/* Header */}
       <div className="section-header">
-        <h2 className="text-xl font-semibold mb-1">Your Marketplace</h2>
-        <p className="text-sm opacity-90">Discover exclusive travel packages and deals</p>
+        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>Your Marketplace</h2>
+        <p style={{ fontSize: '14px', opacity: 0.9, margin: 0 }}>Discover exclusive travel packages and deals</p>
       </div>
 
-      <div className="p-6">
+      <div style={{ padding: '24px' }}>
         {/* Search Section */}
-        <div className="mb-6">
-          <Row gutter={16} align="bottom">
-            <Col xs={24} sm={6}>
-              <Form.Item label="Destination" className="mb-0">
-                <Input 
-                  placeholder="Search destination" 
-                  value={searchDestination}
-                  onChange={(e) => setSearchDestination(e.target.value)}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={5}>
-              <Form.Item label="Travel Date" className="mb-0">
-                <DatePicker className="w-full" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={5}>
-              <Form.Item label="Passengers" className="mb-0">
-                <Select placeholder="How many?" defaultValue="">
-                  <Option value="">How many?</Option>
-                  <Option value="2-5">2-5 people</Option>
-                  <Option value="6-15">6-15 people</Option>
-                  <Option value="16-30">16-30 people</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={5}>
-              <Form.Item label="Package Type" className="mb-0">
-                <Select placeholder="All packages" defaultValue="">
-                  <Option value="">All packages</Option>
-                  <Option value="business">Business</Option>
-                  <Option value="leisure">Leisure</Option>
-                  <Option value="adventure">Adventure</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={3}>
-              <Button 
-                type="primary" 
-                onClick={handleSearch}
-                className="infiniti-btn-primary w-full"
-              >
-                Search Packages
-              </Button>
-            </Col>
-          </Row>
-        </div>
+        <Row gutter={16} align="bottom" style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={6}>
+            <Form.Item label="Destination" style={{ marginBottom: 0 }}>
+              <Input 
+                placeholder="Search destination" 
+                value={searchDestination}
+                onChange={(e) => setSearchDestination(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={5}>
+            <Form.Item label="Travel Date" style={{ marginBottom: 0 }}>
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={5}>
+            <Form.Item label="Passengers" style={{ marginBottom: 0 }}>
+              <Select placeholder="How many?" defaultValue="">
+                <Option value="">How many?</Option>
+                <Option value="2-5">2-5 people</Option>
+                <Option value="6-15">6-15 people</Option>
+                <Option value="16-30">16-30 people</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={5}>
+            <Form.Item label="Package Type" style={{ marginBottom: 0 }}>
+              <Select placeholder="All packages" defaultValue="">
+                <Option value="">All packages</Option>
+                <Option value="business">Business</Option>
+                <Option value="leisure">Leisure</Option>
+                <Option value="adventure">Adventure</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={3}>
+            <Button 
+              type="primary" 
+              onClick={handleSearch}
+              style={{ width: '100%' }}
+            >
+              Search Packages
+            </Button>
+          </Col>
+        </Row>
 
         {/* Packages Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Row gutter={24}>
             {[...Array(4)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                </div>
-              </Card>
+              <Col xs={24} sm={12} md={8} lg={6} key={i}>
+                <Card>
+                  <Skeleton active />
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Row gutter={24}>
             {packages?.map((pkg) => (
-              <Card key={pkg.id} className="package-card">
-                {/* Package Header */}
-                <div className="p-4 border-b border-gray-100">
-                  <div className="text-xs text-gray-500 mb-1">{pkg.location}</div>
-                  <div className="text-base font-semibold text-gray-800 mb-3">{pkg.title}</div>
-                  <div className="package-price">${pkg.price}</div>
-                  {pkg.originalPrice && (
-                    <div className="text-sm text-gray-400 line-through">${pkg.originalPrice}</div>
-                  )}
-                </div>
+              <Col xs={24} sm={12} md={8} lg={6} key={pkg.id}>
+                <Card 
+                  style={{ 
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    transition: 'box-shadow 0.3s',
+                    height: '100%'
+                  }}
+                  bodyStyle={{ padding: 0 }}
+                >
+                  {/* Package Header */}
+                  <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
+                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                      {pkg.location}
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>
+                      {pkg.title}
+                    </div>
+                    <div className="package-price">${pkg.price}</div>
+                    {pkg.originalPrice && (
+                      <div style={{ fontSize: '14px', color: '#999', textDecoration: 'line-through' }}>
+                        ${pkg.originalPrice}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Package Features */}
-                <div className="p-4 bg-gray-50">
-                  <ul className="space-y-1">
-                    {pkg.features?.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-xs text-gray-600">
-                        <CheckCircle className="w-3 h-3 mt-0.5 infiniti-success-text flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  {/* Package Features */}
+                  <div style={{ padding: '16px', backgroundColor: '#f8f9fa' }}>
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      {pkg.features?.map((feature, index) => (
+                        <Space key={index} align="start" size={8}>
+                          <CheckCircle 
+                            style={{ 
+                              width: '12px', 
+                              height: '12px', 
+                              marginTop: '2px',
+                              color: '#52c41a',
+                              flexShrink: 0
+                            }} 
+                          />
+                          <span style={{ fontSize: '12px', color: '#666' }}>{feature}</span>
+                        </Space>
+                      ))}
+                    </Space>
+                  </div>
 
-                {/* Package Footer */}
-                <div className="p-4">
-                  <Button 
-                    type="primary" 
-                    className="w-full infiniti-btn-primary"
-                    onClick={() => handleBookPackage(pkg.id)}
-                  >
-                    Book now
-                  </Button>
-                </div>
-              </Card>
+                  {/* Package Footer */}
+                  <div style={{ padding: '16px' }}>
+                    <Button 
+                      type="primary" 
+                      style={{ width: '100%' }}
+                      onClick={() => handleBookPackage(pkg.id)}
+                    >
+                      Book now
+                    </Button>
+                  </div>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

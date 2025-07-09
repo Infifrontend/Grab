@@ -7,6 +7,8 @@ This is a full-stack travel booking application built with React and Express.js 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI Framework: Ant Design only (no Tailwind CSS)
+Layout Structure: All components must use Ant Design Row and Col layout system
 
 ## System Architecture
 

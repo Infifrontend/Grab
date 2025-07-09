@@ -1,4 +1,4 @@
-import { Badge, Dropdown, Avatar } from 'antd';
+import { Row, Col, Badge, Dropdown, Avatar, Space } from 'antd';
 import { BellOutlined, DownOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
@@ -29,43 +29,48 @@ const userMenuItems: MenuProps['items'] = [
 
 export default function Header() {
   return (
-    <header className="infiniti-header">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <header className="infiniti-header" style={{ padding: '0 24px' }}>
+      <Row align="middle" justify="space-between" style={{ height: '64px' }}>
+        {/* Logo */}
+        <Col>
           <div className="infiniti-logo">
             INFINITI
           </div>
+        </Col>
 
-          {/* Navigation */}
-          <nav className="hidden lg:flex space-x-8">
+        {/* Navigation */}
+        <Col flex="auto">
+          <Row justify="center" gutter={32}>
             {navigationItems.map((item) => (
-              <a
-                key={item.key}
-                href="#"
-                className={`infiniti-nav-item ${item.active ? 'active' : ''}`}
-              >
-                {item.label}
-              </a>
+              <Col key={item.key}>
+                <a
+                  href="#"
+                  className={`infiniti-nav-item ${item.active ? 'active' : ''}`}
+                >
+                  {item.label}
+                </a>
+              </Col>
             ))}
-          </nav>
+          </Row>
+        </Col>
 
-          {/* User Profile */}
-          <div className="flex items-center space-x-4">
+        {/* User Profile */}
+        <Col>
+          <Space size={16}>
             <Badge count={5} size="small">
-              <BellOutlined className="text-lg text-gray-600" />
+              <BellOutlined style={{ fontSize: '18px', color: '#666' }} />
             </Badge>
             
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <div className="flex items-center space-x-2 cursor-pointer">
+              <Space style={{ cursor: 'pointer' }}>
                 <Avatar size="small" icon={<UserOutlined />} />
-                <span className="text-gray-600 font-medium">John Smith</span>
-                <DownOutlined className="text-xs text-gray-600" />
-              </div>
+                <span style={{ color: '#666', fontWeight: 500 }}>John Smith</span>
+                <DownOutlined style={{ fontSize: '12px', color: '#666' }} />
+              </Space>
             </Dropdown>
-          </div>
-        </div>
-      </div>
+          </Space>
+        </Col>
+      </Row>
     </header>
   );
 }

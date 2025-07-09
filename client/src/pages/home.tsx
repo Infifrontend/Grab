@@ -3,52 +3,60 @@ import QuickBookingForm from "@/components/booking/quick-booking-form";
 import HotDealsSection from "@/components/deals/hot-deals-section";
 import MarketplaceSection from "@/components/marketplace/marketplace-section";
 import RecentBookingsSection from "@/components/bookings/recent-bookings-section";
-import { Alert } from "antd";
+import { Alert, Row, Col } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       <Header />
       
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
         {/* Top Banner */}
-        <Alert
-          message={
-            <span>
-              <strong>Exclusive 60% Prices Offer:</strong> Submit your bid for your preferred dates and number of seats. 
-              If accepted, enjoy a special discounted rate tailored just for you!
-            </span>
-          }
-          type="warning"
-          icon={<InfoCircleOutlined />}
-          showIcon
-          className="mb-6 border-l-4 border-orange-500"
-          style={{ 
-            backgroundColor: '#FFF4E6',
-            borderColor: '#FFE7D1'
-          }}
-        />
+        <Row style={{ marginBottom: '24px' }}>
+          <Col span={24}>
+            <Alert
+              message={
+                <span>
+                  <strong>Exclusive 60% Prices Offer:</strong> Submit your bid for your preferred dates and number of seats. 
+                  If accepted, enjoy a special discounted rate tailored just for you!
+                </span>
+              }
+              type="warning"
+              icon={<InfoCircleOutlined />}
+              showIcon
+              style={{ 
+                backgroundColor: '#FFF4E6',
+                borderColor: '#FFE7D1',
+                borderLeft: '4px solid #ff7f40'
+              }}
+            />
+          </Col>
+        </Row>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          <div className="lg:col-span-5">
+        <Row gutter={24} style={{ marginBottom: '32px' }}>
+          <Col xs={24} lg={10}>
             <QuickBookingForm />
-          </div>
-          <div className="lg:col-span-7">
+          </Col>
+          <Col xs={24} lg={14}>
             <HotDealsSection />
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         {/* Marketplace Section */}
-        <div className="mb-8">
-          <MarketplaceSection />
-        </div>
+        <Row style={{ marginBottom: '32px' }}>
+          <Col span={24}>
+            <MarketplaceSection />
+          </Col>
+        </Row>
 
         {/* Recent Bookings Section */}
-        <div>
-          <RecentBookingsSection />
-        </div>
+        <Row>
+          <Col span={24}>
+            <RecentBookingsSection />
+          </Col>
+        </Row>
       </div>
     </div>
   );
