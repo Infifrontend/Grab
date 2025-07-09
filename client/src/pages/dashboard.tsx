@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table } from 'antd';
 import { DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { BookOpen, TrendingUp, Users, Plane } from 'lucide-react';
 import Header from "@/components/layout/header";
@@ -57,10 +58,19 @@ const recentActivities = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [, setLocation] = useLocation();
   
   const { data: bookings } = useQuery<Booking[]>({
     queryKey: ['/api/bookings'],
   });
+
+  const handleViewBooking = (bookingId: string) => {
+    // Extract the numeric part of the booking ID or use a mapping
+    const id = bookingId === 'GR-2024-1001' ? '1' : 
+               bookingId === 'GR-2024-1002' ? '2' : 
+               bookingId === 'GR-2024-1003' ? '3' : '1';
+    setLocation(`/booking-details/${id}`);
+  };
 
   const totalBookings = bookings?.length || 0;
   const activeBookings = bookings?.filter(b => b.status === 'confirmed').length || 0;
@@ -174,8 +184,12 @@ export default function Dashboard() {
     {
       title: 'ACTIONS',
       key: 'actions',
-      render: () => (
-        <Button type="link" className="text-gray-600 p-0">
+      render: (_, record) => (
+        <Button 
+          type="link" 
+          className="text-gray-600 p-0"
+          onClick={() => handleViewBooking(record.bookingId)}
+        >
           View
         </Button>
       ),
@@ -452,7 +466,11 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <Button type="link" className="text-gray-600 p-0">
+                          <Button 
+                            type="link" 
+                            className="text-gray-600 p-0"
+                            onClick={() => handleViewBooking(booking.bookingId)}
+                          >
                             View
                           </Button>
                         </td>
