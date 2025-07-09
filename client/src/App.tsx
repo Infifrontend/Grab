@@ -5,15 +5,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConfigProvider } from 'antd';
 import { antdTheme } from "./lib/antd-theme";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
+import Home from "@/pages/home";
+import ManageBooking from "@/pages/manage-booking";
+import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/manage-booking" component={ManageBooking} />
       <Route component={NotFound} />
     </Switch>
   );
