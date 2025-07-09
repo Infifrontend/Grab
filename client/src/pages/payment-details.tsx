@@ -47,13 +47,7 @@ export default function PaymentDetails() {
         {/* Page Header */}
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-center gap-4">
-            <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={handleBackToPayments}
-              className="flex items-center"
-            >
-              Back to Payments
-            </Button>
+           
             <div>
               <Title level={2} className="!mb-0">Payment Details</Title>
             </div>
