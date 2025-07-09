@@ -9,7 +9,7 @@ const navigationItems = [
   { key: 'manage-booking', label: 'Manage Booking', path: '/manage-booking' },
   { key: 'new-booking', label: 'New Booking', path: '/new-booking' },
   { key: 'payments', label: 'Payments', path: '/payments' },
-  { key: 'sets', label: 'Sets', path: '/sets' },
+  { key: 'bids', label: 'Bids', path: '/bids' },
   { key: 'settings', label: 'Settings', path: '/settings' },
 ];
 
