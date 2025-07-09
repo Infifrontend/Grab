@@ -10,7 +10,7 @@ import Home from "@/pages/home";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
-import BookingDetails from "@/pages/booking-details";
+import PaymentDetails from "@/pages/payment-details";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,7 +21,7 @@ function Router() {
       <Route path="/manage-booking" component={ManageBooking} />
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
-      <Route path="/booking-details/:id" component={BookingDetails} />
+      <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route component={NotFound} />
     </Switch>
   );

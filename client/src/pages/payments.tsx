@@ -2,17 +2,23 @@
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
+import { useLocation } from 'wouter';
 import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function Payments() {
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("payment-history");
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [paymentForm] = Form.useForm();
+
+  const handleViewPayment = (paymentId: string) => {
+    setLocation(`/payment-details/${paymentId}`);
+  };
 
   // Mock payment data
   const paymentData = [
@@ -121,9 +127,14 @@ export default function Payments() {
     {
       title: 'ACTIONS',
       key: 'actions',
-      render: () => (
+      render: (record: any) => (
         <Space>
-          <Button type="link" icon={<EyeOutlined />} className="text-gray-500 p-0">
+          <Button 
+            type="link" 
+            icon={<EyeOutlined />} 
+            className="text-gray-500 p-0"
+            onClick={() => handleViewPayment(record.paymentId)}
+          >
             View
           </Button>
           <Button type="link" icon={<FileTextOutlined />} className="text-gray-500 p-0">
