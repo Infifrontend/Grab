@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic } from 'antd';
+import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table } from 'antd';
 import { DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
@@ -83,6 +83,135 @@ export default function Dashboard() {
     {
       key: 'insights',
       label: 'Insights',
+    },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return '#1890ff';
+      case 'pending':
+        return '#faad14';
+      case 'cancelled':
+        return '#ff4d4f';
+      default:
+        return '#d9d9d9';
+    }
+  };
+
+  const bookingsColumns = [
+    {
+      title: 'BOOKING ID',
+      dataIndex: 'bookingId',
+      key: 'bookingId',
+      render: (text: string) => (
+        <span className="font-medium text-gray-900">{text}</span>
+      ),
+    },
+    {
+      title: 'GROUP TYPE',
+      dataIndex: 'groupType',
+      key: 'groupType',
+      render: (type: string) => (
+        <span className="text-gray-600 capitalize">{type}</span>
+      ),
+    },
+    {
+      title: 'ROUTE',
+      dataIndex: 'route',
+      key: 'route',
+      render: (route: string) => (
+        <span className="text-gray-900">{route}</span>
+      ),
+    },
+    {
+      title: 'DEPARTURE',
+      dataIndex: 'date',
+      key: 'departure',
+      render: (date: string) => (
+        <span className="text-gray-600">{new Date(date).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        })}</span>
+      ),
+    },
+    {
+      title: 'RETURN',
+      dataIndex: 'returnDate',
+      key: 'return',
+      render: (date: string) => (
+        <span className="text-gray-600">
+          {date ? new Date(date).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          }) : '-'}
+        </span>
+      ),
+    },
+    {
+      title: 'PASSENGERS',
+      dataIndex: 'passengers',
+      key: 'passengers',
+      render: (passengers: number) => (
+        <span className="text-gray-600">{passengers}</span>
+      ),
+    },
+    {
+      title: 'STATUS',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <span 
+          className="px-3 py-1 rounded-full text-xs font-medium text-white capitalize"
+          style={{ backgroundColor: getStatusColor(status) }}
+        >
+          {status}
+        </span>
+      ),
+    },
+    {
+      title: 'ACTIONS',
+      key: 'actions',
+      render: () => (
+        <Button type="link" className="text-gray-600 p-0">
+          View
+        </Button>
+      ),
+    },
+  ];
+
+  const mockBookingsData = [
+    {
+      key: 1,
+      bookingId: 'GR-2024-1001',
+      groupType: 'Corporate',
+      route: 'New York to London',
+      date: '2024-06-15',
+      returnDate: '2024-06-22',
+      passengers: 32,
+      status: 'confirmed',
+    },
+    {
+      key: 2,
+      bookingId: 'GR-2024-1002',
+      groupType: 'Leisure',
+      route: 'Los Angeles to Tokyo',
+      date: '2024-07-01',
+      returnDate: '2024-07-10',
+      passengers: 15,
+      status: 'pending',
+    },
+    {
+      key: 3,
+      bookingId: 'GR-2024-1003',
+      groupType: 'Educational',
+      route: 'Chicago to Rome',
+      date: '2024-08-10',
+      returnDate: '2024-08-20',
+      passengers: 45,
+      status: 'confirmed',
     },
   ];
 
@@ -189,62 +318,164 @@ export default function Dashboard() {
           </Col>
         </Row>
 
-        {/* Main Content */}
-        <Row gutter={[24, 24]}>
-          {/* Overview Chart */}
-          <Col xs={24} lg={14}>
-            <Card>
-              <Title level={4} className="!mb-4">Overview</Title>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <XAxis 
-                      dataKey="month" 
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-                    <YAxis hide />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#FF6B47"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          </Col>
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <Row gutter={[24, 24]}>
+            {/* Overview Chart */}
+            <Col xs={24} lg={14}>
+              <Card>
+                <Title level={4} className="!mb-4">Overview</Title>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        className="text-xs"
+                      />
+                      <YAxis hide />
+                      <Bar 
+                        dataKey="value" 
+                        fill="#FF6B47"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+            </Col>
 
-          {/* Recent Activity */}
-          <Col xs={24} lg={10}>
-            <Card>
-              <Title level={4} className="!mb-2">Recent Activity</Title>
-              <Text className="text-gray-500 text-sm mb-4 block">
-                Your recent booking activity and updates.
-              </Text>
-              
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <Text className="font-medium text-sm">{activity.title}</Text>
-                          <Text className="text-gray-500 text-xs block mt-1">
-                            {activity.description}
-                          </Text>
+            {/* Recent Activity */}
+            <Col xs={24} lg={10}>
+              <Card>
+                <Title level={4} className="!mb-2">Recent Activity</Title>
+                <Text className="text-gray-500 text-sm mb-4 block">
+                  Your recent booking activity and updates.
+                </Text>
+                
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <Text className="font-medium text-sm">{activity.title}</Text>
+                            <Text className="text-gray-500 text-xs block mt-1">
+                              {activity.description}
+                            </Text>
+                          </div>
+                          <Text className="text-gray-400 text-xs">{activity.time}</Text>
                         </div>
-                        <Text className="text-gray-400 text-xs">{activity.time}</Text>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {activeTab === 'bookings' && (
+          <div>
+            {/* Bookings Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <Title level={3} className="!mb-0">Bookings</Title>
+              </div>
+              <Button 
+                type="primary" 
+                className="infiniti-btn-primary"
+              >
+                New Booking
+              </Button>
+            </div>
+
+            {/* Bookings Table */}
+            <Card className="w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      {bookingsColumns.map((column) => (
+                        <th 
+                          key={column.key} 
+                          className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {column.title}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {mockBookingsData.map((booking) => (
+                      <tr key={booking.key} className="hover:bg-gray-50">
+                        <td className="py-4 px-4">
+                          <span className="font-medium text-gray-900">{booking.bookingId}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-gray-600 capitalize">{booking.groupType}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-gray-900">{booking.route}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-gray-600">
+                            {new Date(booking.date).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-gray-600">
+                            {booking.returnDate ? new Date(booking.returnDate).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            }) : '-'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-gray-600">{booking.passengers}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span 
+                            className="px-3 py-1 rounded-full text-xs font-medium text-white capitalize"
+                            style={{ backgroundColor: getStatusColor(booking.status) }}
+                          >
+                            {booking.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Button type="link" className="text-gray-600 p-0">
+                            View
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </Card>
-          </Col>
-        </Row>
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="text-center py-12">
+            <Title level={4}>Payments</Title>
+            <Text className="text-gray-500">Payments content coming soon...</Text>
+          </div>
+        )}
+
+        {activeTab === 'insights' && (
+          <div className="text-center py-12">
+            <Title level={4}>Insights</Title>
+            <Text className="text-gray-500">Insights content coming soon...</Text>
+          </div>
+        )}
       </div>
     </div>
   );
