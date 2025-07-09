@@ -12,6 +12,7 @@ import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
 import PaymentDetails from "@/pages/payment-details";
 import NotFound from "@/pages/not-found";
+import Settings from "@/pages/settings";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );
