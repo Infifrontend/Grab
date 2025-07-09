@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Card, Row, Col, Input, Button, Typography, Space, Badge } from 'antd';
 import { SearchOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 import Header from "@/components/layout/header";
 import type { Booking } from '@shared/schema';
@@ -12,6 +13,7 @@ const { Title, Text } = Typography;
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState('');
   const [email, setEmail] = useState('');
+  const [, setLocation] = useLocation();
 
   const { data: bookings } = useQuery<Booking[]>({
     queryKey: ['/api/bookings'],
@@ -23,8 +25,7 @@ export default function ManageBooking() {
   };
 
   const handleManageBooking = (booking: Booking) => {
-    console.log('Managing booking:', booking.id);
-    // Implement manage booking logic
+    setLocation(`/manage-booking/${booking.id}`);
   };
 
   const getStatusColor = (status: string) => {
