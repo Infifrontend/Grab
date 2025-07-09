@@ -9,6 +9,9 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Bids from "@/pages/bids";
+import ManageBooking from "@/pages/manage-booking";
+import Payments from "@/pages/payments";
+import Settings from "@/pages/settings";
 
 function Router() {
   return (
@@ -16,6 +19,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/bids" component={Bids} />
+      <Route path="/manage-booking" component={ManageBooking} />
+      <Route path="/payments" component={Payments} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );
