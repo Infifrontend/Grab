@@ -1,18 +1,19 @@
+
 import type { ThemeConfig } from 'antd';
 
 export const antdTheme: ThemeConfig = {
   token: {
-    colorPrimary: '#133769',
-    colorLink: '#133769',
+    colorPrimary: '#2a0a22',
+    colorLink: '#2a0a22',
     colorSuccess: '#52C41A',
     colorWarning: '#faad14',
     colorError: '#ff4d4f',
     borderRadius: 8,
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontFamily: "'Lato', -apple-system, BlinkMacSystemFont, sans-serif",
   },
   components: {
     Button: {
-      colorPrimary: '#133769',
+      colorPrimary: '#2a0a22',
       algorithm: true,
     },
     Input: {
