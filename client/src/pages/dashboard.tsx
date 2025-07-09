@@ -464,16 +464,243 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'payments' && (
-          <div className="text-center py-12">
-            <Title level={4}>Payments</Title>
-            <Text className="text-gray-500">Payments content coming soon...</Text>
+          <div>
+            {/* Payment History Header */}
+            <div className="mb-6">
+              <Title level={3} className="!mb-1">Payment History</Title>
+              <Text className="text-gray-500">View and manage your payment history.</Text>
+            </div>
+
+            {/* Payment History List */}
+            <Card className="w-full">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 border-b border-gray-100">
+                  <div>
+                    <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1001</Text>
+                    <Text className="text-sm text-gray-500">For booking GR-2024-1001</Text>
+                  </div>
+                  <div className="text-right">
+                    <Text className="font-semibold text-lg">$5,280.00</Text>
+                    <Text className="text-sm text-gray-500 block">May 15, 2024</Text>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center p-4 border-b border-gray-100">
+                  <div>
+                    <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1002</Text>
+                    <Text className="text-sm text-gray-500">For booking GR-2024-1002</Text>
+                  </div>
+                  <div className="text-right">
+                    <Text className="font-semibold text-lg">$3,750.00</Text>
+                    <Text className="text-sm text-gray-500 block">Jun 01, 2024</Text>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center p-4">
+                  <div>
+                    <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1003</Text>
+                    <Text className="text-sm text-gray-500">For booking GR-2024-1003</Text>
+                  </div>
+                  <div className="text-right">
+                    <Text className="font-semibold text-lg">$11,250.00</Text>
+                    <Text className="text-sm text-gray-500 block">Jul 10, 2024</Text>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
 
         {activeTab === 'insights' && (
-          <div className="text-center py-12">
-            <Title level={4}>Insights</Title>
-            <Text className="text-gray-500">Insights content coming soon...</Text>
+          <div>
+            {/* Travel Insights Header */}
+            <div className="mb-6">
+              <Title level={3} className="!mb-0">Travel Insights</Title>
+            </div>
+
+            {/* Insights Grid */}
+            <Row gutter={[24, 24]} className="mb-8">
+              {/* Booking Patterns */}
+              <Col xs={24} lg={12}>
+                <Card className="h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <Text className="font-semibold text-gray-900">Booking Patterns</Text>
+                        <Badge className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded">
+                          MEDIUM IMPACT
+                        </Badge>
+                      </div>
+                      <Text className="text-sm text-gray-600">
+                        Your group bookings increase by 40% during June-August. Consider booking early for better rates.
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+
+              {/* Payment Insights */}
+              <Col xs={24} lg={12}>
+                <Card className="h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <span className="text-green-600 text-lg font-bold">$</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <Text className="font-semibold text-gray-900">Payment Insights</Text>
+                        <Badge className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
+                          HIGH IMPACT
+                        </Badge>
+                      </div>
+                      <Text className="text-sm text-gray-600">
+                        Early payments (45+ days before travel) save an average of 12% on total booking costs.
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+
+              {/* Bid Performance */}
+              <Col xs={24} lg={12}>
+                <Card className="h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <Text className="font-semibold text-gray-900">Bid Performance</Text>
+                        <Badge className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded">
+                          MEDIUM IMPACT
+                        </Badge>
+                      </div>
+                      <Text className="text-sm text-gray-600">
+                        Your bid success rate is 62.5%. Consider bidding on off-peak routes for better acceptance rates.
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+
+              {/* Market Trends */}
+              <Col xs={24} lg={12}>
+                <Card className="h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <Text className="font-semibold text-gray-900">Market Trends</Text>
+                        <Badge className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded">
+                          MEDIUM IMPACT
+                        </Badge>
+                      </div>
+                      <Text className="text-sm text-gray-600">
+                        Las Vegas packages are trending in your searches. Current deals available with 15% group discounts.
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Top Routes Section */}
+            <Card className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Plane className="w-5 h-5 text-gray-600" />
+                <Title level={4} className="!mb-0">Top Routes</Title>
+              </div>
+              <Text className="text-sm text-gray-500 mb-6">Your most frequently booked destinations</Text>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">ROUTE</th>
+                      <th className="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">BOOKINGS</th>
+                      <th className="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">AVG COST</th>
+                      <th className="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">SAVINGS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    <tr>
+                      <td className="py-4 text-gray-900">New York → London</td>
+                      <td className="py-4 text-center text-gray-600">4</td>
+                      <td className="py-4 text-center text-gray-600">$1,250</td>
+                      <td className="py-4 text-center text-green-600 font-semibold">$320</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-gray-900">Los Angeles → Las Vegas</td>
+                      <td className="py-4 text-center text-gray-600">3</td>
+                      <td className="py-4 text-center text-gray-600">$450</td>
+                      <td className="py-4 text-center text-green-600 font-semibold">$120</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-gray-900">Chicago → Paris</td>
+                      <td className="py-4 text-center text-gray-600">2</td>
+                      <td className="py-4 text-center text-gray-600">$1,180</td>
+                      <td className="py-4 text-center text-green-600 font-semibold">$240</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Recommendations Section */}
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-gray-600" />
+                <Title level={4} className="!mb-0">Recommendations</Title>
+              </div>
+              <Text className="text-sm text-gray-500 mb-6">Suggestions based on your booking patterns</Text>
+              
+              <Row gutter={[24, 24]}>
+                <Col xs={24} lg={12}>
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <Text className="font-semibold text-gray-900">Optimize Booking Timing</Text>
+                      <Badge className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded">
+                        high
+                      </Badge>
+                    </div>
+                    <Text className="text-sm text-gray-600 mb-4">
+                      Book your next group trip 60 days in advance to save an estimated $450 per booking.
+                    </Text>
+                    <div className="flex justify-between items-center">
+                      <Text className="text-sm text-green-600 font-medium">Potential savings: $450</Text>
+                      <Button type="link" className="text-gray-600 p-0 text-sm">
+                        Schedule earlier
+                      </Button>
+                    </div>
+                  </div>
+                </Col>
+                
+                <Col xs={24} lg={12}>
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <Text className="font-semibold text-gray-900">Las Vegas Package Deal</Text>
+                      <Badge className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                        medium
+                      </Badge>
+                    </div>
+                    <Text className="text-sm text-gray-600 mb-4">
+                      Based on your searches, our Las Vegas weekend package offers 15% savings for groups of 10+.
+                    </Text>
+                    <div className="flex justify-between items-center">
+                      <Text className="text-sm text-green-600 font-medium">Potential savings: $200</Text>
+                      <Button type="link" className="text-gray-600 p-0 text-sm">
+                        View package
+                      </Button>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
           </div>
         )}
       </div>
