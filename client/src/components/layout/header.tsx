@@ -1,15 +1,16 @@
 import { Badge, Dropdown, Avatar } from 'antd';
 import { BellOutlined, DownOutlined, UserOutlined } from '@ant-design/icons';
+import { Link, useLocation } from 'wouter';
 import type { MenuProps } from 'antd';
 
 const navigationItems = [
-  { key: 'home', label: 'Home', active: true },
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'manage-booking', label: 'Manage Booking' },
-  { key: 'new-booking', label: 'New Booking' },
-  { key: 'payments', label: 'Payments' },
-  { key: 'sets', label: 'Sets' },
-  { key: 'settings', label: 'Settings' },
+  { key: 'home', label: 'Home', path: '/' },
+  { key: 'dashboard', label: 'Dashboard', path: '/dashboard' },
+  { key: 'manage-booking', label: 'Manage Booking', path: '/manage-booking' },
+  { key: 'new-booking', label: 'New Booking', path: '/new-booking' },
+  { key: 'payments', label: 'Payments', path: '/payments' },
+  { key: 'sets', label: 'Sets', path: '/sets' },
+  { key: 'settings', label: 'Settings', path: '/settings' },
 ];
 
 const userMenuItems: MenuProps['items'] = [
@@ -28,25 +29,27 @@ const userMenuItems: MenuProps['items'] = [
 ];
 
 export default function Header() {
+  const [location] = useLocation();
+
   return (
     <header className="infiniti-header">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="infiniti-logo">
+          <Link href="/" className="infiniti-logo">
             INFINITI
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="hidden lg:flex space-x-8">
             {navigationItems.map((item) => (
-              <a
+              <Link
                 key={item.key}
-                href="#"
-                className={`infiniti-nav-item ${item.active ? 'active' : ''}`}
+                href={item.path}
+                className={`infiniti-nav-item ${location === item.path ? 'active' : ''}`}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
