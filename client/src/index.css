@@ -25,7 +25,7 @@
   --radius: 0.5rem;
 
   /* Custom airline booking colors */
-  --infiniti-primary: #80206a;
+  --infiniti-primary: #2a0a22;
   --infiniti-secondary: #a12885;
   --infiniti-orange: hsl(18, 100%, 62%);
   --infiniti-success: hsl(102, 69%, 49%);
@@ -59,11 +59,20 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif !important;
   }
 
   body {
     @apply font-sans antialiased bg-gray-50 text-foreground;
-    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+
+  html {
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+
+  input, textarea, select, button {
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif !important;
   }
 }
 
