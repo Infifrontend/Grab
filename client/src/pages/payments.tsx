@@ -281,11 +281,112 @@ export default function Payments() {
           <Card>
             <div className="mb-6">
               <Title level={4} className="!mb-2 text-gray-900">Payment Schedule</Title>
-              <Text className="text-gray-600">Manage scheduled payments and payment plans.</Text>
+              <Text className="text-gray-600">Manage scheduled payments for your bookings.</Text>
             </div>
-            <div className="text-center py-12">
-              <Text className="text-gray-500">Payment schedule feature coming soon...</Text>
-            </div>
+
+            {/* Payment Schedule Table */}
+            <Table
+              columns={[
+                {
+                  title: 'PAYMENT ID',
+                  dataIndex: 'paymentId',
+                  key: 'paymentId',
+                  render: (text: string) => <Text className="font-medium text-gray-900">{text}</Text>,
+                },
+                {
+                  title: 'BOOKING ID',
+                  dataIndex: 'bookingId',
+                  key: 'bookingId',
+                  render: (text: string) => <Text className="text-gray-600">{text}</Text>,
+                },
+                {
+                  title: 'DUE DATE',
+                  dataIndex: 'dueDate',
+                  key: 'dueDate',
+                  render: (text: string) => <Text className="text-gray-600">{text}</Text>,
+                },
+                {
+                  title: 'AMOUNT',
+                  dataIndex: 'amount',
+                  key: 'amount',
+                  render: (text: string) => <Text className="font-semibold text-gray-900">{text}</Text>,
+                },
+                {
+                  title: 'STATUS',
+                  dataIndex: 'status',
+                  key: 'status',
+                  render: (status: string) => {
+                    let color = 'blue';
+                    let text = status;
+                    if (status === 'Due') {
+                      color = 'red';
+                      text = 'Due';
+                    } else if (status === 'Upcoming') {
+                      color = 'blue';
+                      text = 'Upcoming';
+                    } else if (status === 'Overdue') {
+                      color = 'red';
+                      text = 'Overdue';
+                    }
+                    
+                    return <Badge color={color} text={text} />;
+                  },
+                },
+                {
+                  title: 'ACTIONS',
+                  key: 'actions',
+                  render: (record: any) => (
+                    <Space>
+                      {(record.status === 'Due' || record.status === 'Overdue') ? (
+                        <Button type="primary" size="small" className="infiniti-btn-primary">
+                          Pay Now
+                        </Button>
+                      ) : (
+                        <Button type="link" size="small" className="text-gray-500">
+                          Pay Early
+                        </Button>
+                      )}
+                    </Space>
+                  ),
+                },
+              ]}
+              dataSource={[
+                {
+                  key: '1',
+                  paymentId: 'SCH-1001',
+                  bookingId: 'GR-5678',
+                  dueDate: '2023-06-15',
+                  amount: '$1,800.00',
+                  status: 'Due',
+                },
+                {
+                  key: '2',
+                  paymentId: 'SCH-1002',
+                  bookingId: 'GR-5678',
+                  dueDate: '2023-07-15',
+                  amount: '$1,800.00',
+                  status: 'Upcoming',
+                },
+                {
+                  key: '3',
+                  paymentId: 'SCH-1003',
+                  bookingId: 'GR-5679',
+                  dueDate: '2023-06-01',
+                  amount: '$2,500.00',
+                  status: 'Overdue',
+                },
+                {
+                  key: '4',
+                  paymentId: 'SCH-1004',
+                  bookingId: 'GR-5680',
+                  dueDate: '2023-08-01',
+                  amount: '$3,200.00',
+                  status: 'Upcoming',
+                },
+              ]}
+              pagination={false}
+              scroll={{ x: 800 }}
+            />
           </Card>
         )}
 
@@ -294,11 +395,74 @@ export default function Payments() {
           <Card>
             <div className="mb-6">
               <Title level={4} className="!mb-2 text-gray-900">Payment Methods</Title>
-              <Text className="text-gray-600">Manage your saved payment methods and preferences.</Text>
+              <Text className="text-gray-600">Manage your saved payment methods.</Text>
             </div>
-            <div className="text-center py-12">
-              <Text className="text-gray-500">Payment methods management coming soon...</Text>
-            </div>
+
+            <Row gutter={[24, 24]}>
+              {/* Existing Payment Method 1 */}
+              <Col xs={24} md={12} lg={8}>
+                <Card className="border border-gray-200">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">💳</span>
+                      </div>
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">Credit Card</Text>
+                        <Text className="text-gray-600 text-sm">Visa ending in 4242</Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <Text className="text-gray-900 font-medium">John Doe</Text>
+                    <Text className="text-gray-600 text-sm block">Expires 05/2025</Text>
+                  </div>
+                  <Button type="link" className="text-blue-600 p-0" icon={<EyeOutlined />}>
+                    Edit
+                  </Button>
+                </Card>
+              </Col>
+
+              {/* Existing Payment Method 2 */}
+              <Col xs={24} md={12} lg={8}>
+                <Card className="border border-gray-200">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-6 bg-orange-600 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">💳</span>
+                      </div>
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">Credit Card</Text>
+                        <Text className="text-gray-600 text-sm">Mastercard ending in 5555</Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <Text className="text-gray-900 font-medium">John Doe</Text>
+                    <Text className="text-gray-600 text-sm block">Expires 08/2026</Text>
+                  </div>
+                  <Button type="link" className="text-blue-600 p-0" icon={<EyeOutlined />}>
+                    Edit
+                  </Button>
+                </Card>
+              </Col>
+
+              {/* Add New Payment Method */}
+              <Col xs={24} md={12} lg={8}>
+                <Card className="border-2 border-dashed border-gray-300 h-full">
+                  <div className="flex flex-col items-center justify-center text-center h-32">
+                    <div className="w-12 h-12 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center mb-3">
+                      <PlusOutlined className="text-gray-400 text-xl" />
+                    </div>
+                    <Text className="font-semibold text-gray-700 block mb-1">Add Payment Method</Text>
+                    <Text className="text-gray-500 text-sm mb-3">Add a new payment method to your account</Text>
+                    <Button type="primary" icon={<PlusOutlined />} size="small" className="infiniti-btn-primary">
+                      Add Method
+                    </Button>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
           </Card>
         )}
       </div>
