@@ -8,7 +8,7 @@ import { antdTheme } from "./lib/antd-theme";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
-
+import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
@@ -20,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/booking-details/:id" component={BookingDetails} />
       <Route path="/manage-booking" component={ManageBooking} />
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
