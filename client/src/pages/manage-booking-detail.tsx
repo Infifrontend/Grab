@@ -1,24 +1,29 @@
 
 import { useState } from 'react';
-import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message } from 'antd';
-import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider } from 'antd';
+import { DownloadOutlined, PlusOutlined, UploadOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import Header from "@/components/layout/header";
 import type { Booking } from '@shared/schema';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 export default function ManageBookingDetail() {
   const [, params] = useRoute("/manage-booking/:id");
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState("services");
+  const [activeTab, setActiveTab] = useState("basic-info");
   const [groupSize, setGroupSize] = useState(32);
   const [passengers, setPassengers] = useState([
     { firstName: 'John', lastName: 'Smith' },
     { firstName: 'Jane', lastName: 'Doe' },
     { firstName: 'Mike', lastName: 'Johnson' },
+    { firstName: '', lastName: '' },
   ]);
+  const [paymentAmount, setPaymentAmount] = useState('4500.00');
+  const [paymentMethod, setPaymentMethod] = useState('Credit Card');
 
   const { data: bookings } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -52,7 +57,23 @@ export default function ManageBookingDetail() {
     setLocation('/manage-booking');
   };
 
+  const handleSaveChanges = () => {
+    message.success('Changes saved successfully');
+  };
+
+  const handleMakePayment = () => {
+    message.success('Payment processed successfully');
+  };
+
+  const handleSetupPaymentPlan = () => {
+    message.info('Payment plan setup initiated');
+  };
+
   const tabItems = [
+    {
+      key: "basic-info",
+      label: "Basic Info",
+    },
     {
       key: "services",
       label: "Services",
@@ -85,8 +106,8 @@ export default function ManageBookingDetail() {
           className="mb-6"
         />
 
-        {/* Tab Content */}
-        {activeTab === "services" && (
+        {/* Basic Info Tab */}
+        {activeTab === "basic-info" && (
           <Row gutter={[24, 24]}>
             {/* Booking Information */}
             <Col xs={24} lg={12}>
@@ -210,7 +231,7 @@ export default function ManageBookingDetail() {
                           showUploadList={false}
                           beforeUpload={() => false}
                         >
-                          <Button icon={<UploadOutlined />}>Choose file</Button>
+                          <Button>Choose file</Button>
                         </Upload>
                         <Text className="text-gray-500 text-sm">No file chosen</Text>
                         <Button type="primary" size="small">Browse</Button>
@@ -258,43 +279,379 @@ export default function ManageBookingDetail() {
           </Row>
         )}
 
+        {/* Services Tab */}
+        {activeTab === "services" && (
+          <div className="space-y-6">
+            {/* Special Bundles */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Special Bundles</Title>
+                <Text className="text-gray-600">Add flexible booking and payment options</Text>
+              </div>
+
+              <div className="space-y-4">
+                {/* FlexPay Plus */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">FlexPay Plus</Title>
+                      <Text className="text-gray-600 block mb-2">Pay your way with flexible payment options</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$29</Text>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Pay 50% now, 50% later</li>
+                        <li>• No interest charges</li>
+                        <li>• Automatic payment reminders</li>
+                      </ul>
+                    </div>
+                    <Button type="primary">Add Bundle</Button>
+                  </div>
+                </div>
+
+                {/* Schedule Shield */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Schedule Shield</Title>
+                      <Text className="text-gray-600 block mb-2">Change your travel dates with confidence</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$45</Text>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• One free date change per booking</li>
+                        <li>• Waived change fees</li>
+                      </ul>
+                    </div>
+                    <Button type="primary">Add Bundle</Button>
+                  </div>
+                </div>
+
+                {/* Worry-Free Cancellation */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Worry-Free Cancellation</Title>
+                      <Text className="text-gray-600 block mb-2">Get refund protection for unexpected changes</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$65</Text>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• 100% refund if cancelled 48+ hours before</li>
+                        <li>• No questions asked policy</li>
+                      </ul>
+                    </div>
+                    <Button type="primary">Add Bundle</Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Current Services & Bundles */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Current Services & Bundles</Title>
+                <Text className="text-gray-600">Manage your existing ancillary services</Text>
+              </div>
+
+              <div className="space-y-4">
+                {/* Comfort Plus Bundle */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Comfort Plus Bundle</Title>
+                      <Text className="text-gray-600 block mb-2">Enhanced comfort for your journey</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$89</Text>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Priority boarding</li>
+                        <li>• Extra legroom seat</li>
+                        <li>• Premium meal</li>
+                        <li>• Expedited checked bag</li>
+                      </ul>
+                    </div>
+                    <Button danger icon={<DeleteOutlined />}>Remove</Button>
+                  </div>
+                </div>
+
+                {/* Extra Checked Bag */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Extra Checked Bag</Title>
+                      <Text className="text-gray-600 block mb-2">Additional 23kg checked baggage</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$45</Text>
+                      <Text className="text-sm text-gray-600">Quantity: 2</Text>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button icon={<MinusOutlined />} size="small"></Button>
+                      <span className="mx-2">2</span>
+                      <Button icon={<PlusOutlined />} size="small"></Button>
+                      <Button danger icon={<DeleteOutlined />} className="ml-2">Remove</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Add More Services */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Add More Services</Title>
+                <Text className="text-gray-600">Enhance your journey with additional services</Text>
+              </div>
+
+              <div className="space-y-4">
+                {/* Business Essentials */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Business Essentials</Title>
+                      <Text className="text-gray-600 block mb-2">Everything you need for business travel</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$149</Text>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Lounge access</li>
+                        <li>• Fast track security</li>
+                        <li>• Premium seat selection</li>
+                        <li>• Wi-Fi access</li>
+                      </ul>
+                    </div>
+                    <Button type="primary">Add Service</Button>
+                  </div>
+                </div>
+
+                {/* Premium Meal */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Premium Meal</Title>
+                      <Text className="text-gray-600 block mb-2">Upgrade to premium dining experience</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$35</Text>
+                    </div>
+                    <Button type="primary">Add Service</Button>
+                  </div>
+                </div>
+
+                {/* Airport Lounge Access */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Title level={5} className="!mb-1">Airport Lounge Access</Title>
+                      <Text className="text-gray-600 block mb-2">Access to premium airport lounges</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">$55</Text>
+                    </div>
+                    <Button type="primary">Add Service</Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Changes Tab */}
         {activeTab === "changes" && (
           <Card>
-            <Title level={4} className="!mb-4">Change Requests</Title>
-            <Text className="text-gray-500 block mb-6">
-              Request changes to your booking such as dates, destinations, or services
-            </Text>
-            <div className="text-center py-8">
-              <Text className="text-gray-500">Change request functionality coming soon</Text>
+            <div className="mb-6">
+              <Title level={4} className="!mb-2 text-gray-900">Flight Modifications</Title>
+              <Text className="text-gray-600">Request changes to your flight details</Text>
+            </div>
+
+            <Row gutter={[24, 24]}>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="block mb-2 text-gray-700 font-medium">Departure Date</Text>
+                  <DatePicker 
+                    defaultValue={dayjs('15/06/2024', 'DD/MM/YYYY')}
+                    format="DD/MM/YYYY"
+                    className="w-full"
+                    placeholder="15/06/2024"
+                  />
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="block mb-2 text-gray-700 font-medium">Return Date</Text>
+                  <DatePicker 
+                    defaultValue={dayjs('22/06/2024', 'DD/MM/YYYY')}
+                    format="DD/MM/YYYY"
+                    className="w-full"
+                    placeholder="22/06/2024"
+                  />
+                </div>
+              </Col>
+            </Row>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <Text className="text-blue-700">
+                <strong>Note:</strong> Date changes are subject to availability and may incur additional fees. We'll check availability and provide you with options.
+              </Text>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button size="large" onClick={handleCancelChanges}>
+                Cancel Changes
+              </Button>
+              <Button 
+                type="primary" 
+                size="large"
+                className="infiniti-btn-primary"
+                onClick={handleSaveChanges}
+              >
+                Save Changes
+              </Button>
             </div>
           </Card>
         )}
 
+        {/* Payment Tab */}
         {activeTab === "payment" && (
-          <Card>
-            <Title level={4} className="!mb-4">Payment Management</Title>
-            <Text className="text-gray-500 block mb-6">
-              View payment status and make additional payments
-            </Text>
-            <div className="text-center py-8">
-              <Text className="text-gray-500">Payment management functionality coming soon</Text>
-            </div>
-          </Card>
+          <div className="space-y-6">
+            {/* Payment Status */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Payment Status</Title>
+                <Text className="text-gray-600">Current payment status and transaction history</Text>
+              </div>
+
+              <Row gutter={[24, 16]}>
+                <Col xs={24} md={8}>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <Text className="text-blue-600 font-medium block mb-1">Total Booking Amount</Text>
+                    <Text className="text-2xl font-bold text-blue-600">$8,500.00</Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <Text className="text-green-600 font-medium block mb-1">Amount Paid</Text>
+                    <Text className="text-2xl font-bold text-green-600">$4,000.00</Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                    <Text className="text-orange-600 font-medium block mb-1">Remaining Balance</Text>
+                    <Text className="text-2xl font-bold text-orange-600">$4,500.00</Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Payment History */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Payment History</Title>
+                <Text className="text-gray-600">All payments made for this booking</Text>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">$2,500.00</Text>
+                        <Text className="text-gray-600 text-sm">May 15, 2024</Text>
+                      </div>
+                      <div>
+                        <Text className="text-gray-900">Credit Card</Text>
+                        <Text className="text-gray-600 text-sm">ID: PAY-1234</Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge status="success" text="Completed" />
+                    <Button type="link">View Details</Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">$1,500.00</Text>
+                        <Text className="text-gray-600 text-sm">May 20, 2024</Text>
+                      </div>
+                      <div>
+                        <Text className="text-gray-900">Bank Transfer</Text>
+                        <Text className="text-gray-600 text-sm">ID: PAY-1235</Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge status="success" text="Completed" />
+                    <Button type="link">View Details</Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Make Payment */}
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-2 text-gray-900">Make Payment</Title>
+                <Text className="text-gray-600">Pay your remaining balance or make a partial payment</Text>
+              </div>
+
+              <Row gutter={[24, 16]}>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Payment Amount</Text>
+                    <Input
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      prefix="$"
+                      className="w-full"
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Payment Method</Text>
+                    <Select
+                      value={paymentMethod}
+                      onChange={setPaymentMethod}
+                      className="w-full"
+                    >
+                      <Option value="Credit Card">Credit Card</Option>
+                      <Option value="Bank Transfer">Bank Transfer</Option>
+                      <Option value="PayPal">PayPal</Option>
+                    </Select>
+                  </div>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]} className="mt-6">
+                <Col xs={24} md={12}>
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    className="w-full infiniti-btn-primary"
+                    onClick={handleMakePayment}
+                  >
+                    Make Payment
+                  </Button>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Button 
+                    size="large" 
+                    className="w-full"
+                    onClick={handleSetupPaymentPlan}
+                  >
+                    Set Up Payment Plan
+                  </Button>
+                </Col>
+              </Row>
+            </Card>
+          </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 mt-8">
-          <Button size="large" onClick={handleCancelChanges}>
-            Cancel Changes
-          </Button>
-          <Button 
-            type="primary" 
-            size="large"
-            className="infiniti-btn-primary"
-          >
-            Save Changes
-          </Button>
-        </div>
+        {/* Action Buttons - Only show for non-payment tabs */}
+        {activeTab !== "payment" && (
+          <div className="flex justify-end gap-3 mt-8">
+            <Button size="large" onClick={handleCancelChanges}>
+              Cancel Changes
+            </Button>
+            <Button 
+              type="primary" 
+              size="large"
+              className="infiniti-btn-primary"
+              onClick={handleSaveChanges}
+            >
+              Save Changes
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
