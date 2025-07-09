@@ -247,82 +247,83 @@ export default function Dashboard() {
           className="mb-6"
         />
 
-        {/* Stats Cards */}
-        <Row gutter={[24, 24]} className="mb-6">
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Text className="text-gray-500 text-sm">Total Bookings</Text>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Text className="text-2xl font-bold">{totalBookings}</Text>
-                    <Badge count={`+2 from last month`} className="text-xs text-green-600 bg-green-50" />
-                  </div>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <BookOpen className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </Card>
-          </Col>
-          
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Text className="text-gray-500 text-sm">Active Bookings</Text>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Text className="text-2xl font-bold">{activeBookings}</Text>
-                    <Badge count={`+1 from last month`} className="text-xs text-green-600 bg-green-50" />
-                  </div>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </Card>
-          </Col>
-          
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Text className="text-gray-500 text-sm">Total Passengers</Text>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Text className="text-2xl font-bold">{totalPassengers}</Text>
-                    <Badge count={`+24 from last month`} className="text-xs text-green-600 bg-green-50" />
-                  </div>
-                </div>
-                <div className="p-3 bg-orange-50 rounded-lg">
-                  <Users className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </Card>
-          </Col>
-          
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Text className="text-gray-500 text-sm">Upcoming Trips</Text>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Text className="text-2xl font-bold">{upcomingTrips}</Text>
-                    <Badge count={`+2 from last month`} className="text-xs text-green-600 bg-green-50" />
-                  </div>
-                </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <Plane className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </Card>
-          </Col>
-        </Row>
-
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <Row gutter={[24, 24]}>
-            {/* Overview Chart */}
-            <Col xs={24} lg={14}>
+          <>
+            {/* Stats Cards */}
+            <Row gutter={[24, 24]} className="mb-6">
+              <Col xs={24} sm={12} lg={6}>
+                <Card>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text className="text-gray-500 text-sm">Total Bookings</Text>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Text className="text-2xl font-bold">{totalBookings}</Text>
+                        <Badge count={`+2 from last month`} className="text-xs text-green-600 bg-green-50" />
+                      </div>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <BookOpen className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              
+              <Col xs={24} sm={12} lg={6}>
+                <Card>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text className="text-gray-500 text-sm">Active Bookings</Text>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Text className="text-2xl font-bold">{activeBookings}</Text>
+                        <Badge count={`+1 from last month`} className="text-xs text-green-600 bg-green-50" />
+                      </div>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <TrendingUp className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              
+              <Col xs={24} sm={12} lg={6}>
+                <Card>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text className="text-gray-500 text-sm">Total Passengers</Text>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Text className="text-2xl font-bold">{totalPassengers}</Text>
+                        <Badge count={`+24 from last month`} className="text-xs text-green-600 bg-green-50" />
+                      </div>
+                    </div>
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <Users className="w-6 h-6 text-orange-600" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              
+              <Col xs={24} sm={12} lg={6}>
+                <Card>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text className="text-gray-500 text-sm">Upcoming Trips</Text>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Text className="text-2xl font-bold">{upcomingTrips}</Text>
+                        <Badge count={`+2 from last month`} className="text-xs text-green-600 bg-green-50" />
+                      </div>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <Plane className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+
+            <Row gutter={[24, 24]}>
+              {/* Overview Chart */}
+              <Col xs={24} lg={14}>
               <Card>
                 <Title level={4} className="!mb-4">Overview</Title>
                 <div className="h-80">
@@ -375,6 +376,7 @@ export default function Dashboard() {
               </Card>
             </Col>
           </Row>
+          </>
         )}
 
         {activeTab === 'bookings' && (
