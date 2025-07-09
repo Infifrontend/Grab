@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs } from 'antd';
+import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
 import Header from "@/components/layout/header";
 
@@ -11,6 +11,8 @@ export default function Payments() {
   const [activeTab, setActiveTab] = useState("payment-history");
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [paymentForm] = Form.useForm();
 
   // Mock payment data
   const paymentData = [
@@ -131,6 +133,22 @@ export default function Payments() {
       ),
     },
   ];
+
+  const handleMakePayment = () => {
+    setIsPaymentModalVisible(true);
+  };
+
+  const handlePaymentModalCancel = () => {
+    setIsPaymentModalVisible(false);
+    paymentForm.resetFields();
+  };
+
+  const handlePaymentSubmit = (values: any) => {
+    console.log('Payment details:', values);
+    message.success('Payment processed successfully!');
+    setIsPaymentModalVisible(false);
+    paymentForm.resetFields();
+  };
 
   const tabItems = [
     {
@@ -255,7 +273,7 @@ export default function Payments() {
               
               <div className="flex gap-3">
                 <Button icon={<ExportOutlined />}>Export</Button>
-                <Button type="primary" icon={<PlusOutlined />} className="infiniti-btn-primary">
+                <Button type="primary" icon={<PlusOutlined />} className="infiniti-btn-primary" onClick={handleMakePayment}>
                   Make Payment
                 </Button>
               </div>
@@ -465,6 +483,149 @@ export default function Payments() {
             </Row>
           </Card>
         )}
+
+        {/* Payment Modal */}
+        <Modal
+          title="Make a Payment"
+          open={isPaymentModalVisible}
+          onCancel={handlePaymentModalCancel}
+          footer={null}
+          width={500}
+        >
+          <div className="mb-4">
+            <Text className="text-gray-600">
+              Enter the payment details below to complete your payment for the selected booking.
+            </Text>
+          </div>
+
+          <Form
+            form={paymentForm}
+            layout="vertical"
+            onFinish={handlePaymentSubmit}
+            initialValues={{
+              bookingId: "Select booking",
+              paymentType: "Full Payment",
+              paymentMethod: "creditCard"
+            }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Booking ID"
+                  name="bookingId"
+                  rules={[{ required: true, message: 'Please select a booking' }]}
+                >
+                  <Select placeholder="Select booking">
+                    <Select.Option value="GR-2024-1001">GR-2024-1001</Select.Option>
+                    <Select.Option value="GR-2024-1002">GR-2024-1002</Select.Option>
+                    <Select.Option value="GR-2024-1003">GR-2024-1003</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Payment Type"
+                  name="paymentType"
+                  rules={[{ required: true, message: 'Please select payment type' }]}
+                >
+                  <Select>
+                    <Select.Option value="Full Payment">Full Payment</Select.Option>
+                    <Select.Option value="Partial Payment">Partial Payment</Select.Option>
+                    <Select.Option value="Deposit">Deposit</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item label="Full Payment: $4,500.00 (remaining balance)">
+              <div className="text-blue-600 font-medium">Full Payment: $4,500.00 (remaining balance)</div>
+            </Form.Item>
+
+            <Form.Item
+              label="Payment Method"
+              name="paymentMethod"
+              rules={[{ required: true, message: 'Please select payment method' }]}
+            >
+              <Radio.Group className="w-full">
+                <div className="space-y-3">
+                  <Radio value="creditCard" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
+                    <div className="flex items-center gap-3">
+                      <span className="text-blue-600">💳</span>
+                      <span>Credit Card</span>
+                    </div>
+                  </Radio>
+                  <Radio value="bankTransfer" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-600">🏦</span>
+                      <span>Bank Transfer</span>
+                    </div>
+                  </Radio>
+                  <Radio value="paypal" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
+                    <div className="flex items-center gap-3">
+                      <span className="text-blue-500">💰</span>
+                      <span>PayPal</span>
+                    </div>
+                  </Radio>
+                </div>
+              </Radio.Group>
+            </Form.Item>
+
+            <Form.Item
+              label="Card Number"
+              name="cardNumber"
+              rules={[
+                { required: true, message: 'Please enter card number' },
+                { pattern: /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, message: 'Please enter valid card number format (1234 5678 9012 3456)' }
+              ]}
+            >
+              <Input placeholder="1234 5678 9012 3456" maxLength={19} />
+            </Form.Item>
+
+            <Form.Item
+              label="Name on Card"
+              name="nameOnCard"
+              rules={[{ required: true, message: 'Please enter name on card' }]}
+            >
+              <Input placeholder="John Doe" />
+            </Form.Item>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Expiry Date"
+                  name="expiryDate"
+                  rules={[
+                    { required: true, message: 'Please enter expiry date' },
+                    { pattern: /^(0[1-9]|1[0-2])\/\d{2}$/, message: 'Please enter valid expiry date (MM/YY)' }
+                  ]}
+                >
+                  <Input placeholder="MM/YY" maxLength={5} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="CVV"
+                  name="cvv"
+                  rules={[
+                    { required: true, message: 'Please enter CVV' },
+                    { pattern: /^\d{3,4}$/, message: 'Please enter valid CVV' }
+                  ]}
+                >
+                  <Input placeholder="123" maxLength={4} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button onClick={handlePaymentModalCancel}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" className="infiniti-btn-primary">
+                Make Payment
+              </Button>
+            </div>
+          </Form>
+        </Modal>
       </div>
     </div>
   );
