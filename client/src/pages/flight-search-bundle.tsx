@@ -188,10 +188,24 @@ export default function FlightSearchBundle() {
 
       if (storedFlights) {
         const flights = JSON.parse(storedFlights);
-        // Convert price to string format if it's a number
+        // Convert price to string format if it's a number and format times
         loadedFlights = flights.map((flight: any) => ({
           ...flight,
-          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price
+          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price,
+          departureTime: typeof flight.departureTime === 'string' && flight.departureTime.includes('T') 
+            ? new Date(flight.departureTime).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })
+            : flight.departureTime,
+          arrivalTime: typeof flight.arrivalTime === 'string' && flight.arrivalTime.includes('T')
+            ? new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })
+            : flight.arrivalTime
         }));
         console.log('Loaded flights from localStorage:', loadedFlights);
       }
@@ -430,7 +444,17 @@ export default function FlightSearchBundle() {
         // Convert price to string format and process flights
         const processedFlights = searchResult.flights.map((flight: any) => ({
           ...flight,
-          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price
+          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price,
+          departureTime: new Date(flight.departureTime).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }),
+          arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          })
         }));
 
         console.log('Processed flights:', processedFlights);
