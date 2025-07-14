@@ -13,7 +13,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Get all deals
   app.get("/api/deals", async (_req, res) => {
     try {
@@ -52,17 +52,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Search request received:", req.body);
       const searchData = insertSearchRequestSchema.parse(req.body);
       await storage.createSearchRequest(searchData);
-      
+
       // Search for available flights
       const flights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
         searchData.departureDate
       );
-      
+
       console.log(`Found ${flights.length} flights for ${searchData.origin} to ${searchData.destination}`);
       console.log("Flight data sample:", flights.slice(0, 2));
-      
+
       res.json({ flights, message: "Search completed successfully" });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -94,21 +94,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/flight-bookings", async (req, res) => {
     try {
       const { flightId, passengerCount, passengers } = req.body;
-      
+
       // Get flight details
       const flight = await storage.getFlight(flightId);
       if (!flight) {
         return res.status(404).json({ message: "Flight not found" });
       }
-      
+
       // Check availability
       if (flight.availableSeats < passengerCount) {
         return res.status(400).json({ message: "Not enough seats available" });
       }
-      
+
       // Calculate total amount
       const totalAmount = flight.price * passengerCount;
-      
+
       // Create booking
       const bookingData = {
         bookingReference: `FB-${new Date().getFullYear()}-${nanoid(6)}`,
@@ -118,9 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingStatus: "pending",
         paymentStatus: "pending"
       };
-      
+
       const booking = await storage.createFlightBooking(bookingData);
-      
+
       // Add passengers if provided
       if (passengers && passengers.length > 0) {
         for (const passenger of passengers) {
@@ -130,10 +130,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       // Update flight availability
       await storage.updateFlightSeats(flightId, passengerCount);
-      
+
       res.json({ 
         booking, 
         flight,
@@ -168,10 +168,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Get passengers for this booking
       const passengers = await storage.getPassengersByBooking(booking.id);
-      
+
       res.json({ booking, passengers });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch booking" });
@@ -190,6 +190,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Booking creation failed" });
       }
+    }
+  });
+
+  // Migration endpoint to remove international flights
+  app.post("/api/migrate-domestic", async (_req, res) => {
+    try {
+      await storage.migrateToDomesticFlights();
+
+      res.json({ 
+        success: true, 
+        message: "Successfully migrated to domestic flights only" 
+      });
+    } catch (error) {
+      console.error('Migration error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to migrate flights" 
+      });
     }
   });
 
