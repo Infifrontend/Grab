@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -13,7 +13,7 @@ import {
   Col,
 } from "antd";
 import { EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
@@ -37,6 +37,24 @@ export default function QuickBookingForm() {
     "oneWay" | "roundTrip" | "multiCity"
   >("oneWay");
   const [, setLocation] = useLocation();
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
 
   const searchMutation = useMutation({
     mutationFn: async (searchData: SearchFormData) => {
@@ -182,24 +200,48 @@ export default function QuickBookingForm() {
             <Form.Item
               label="Origin *"
               name="origin"
-              rules={[{ required: true, message: "Please enter origin" }]}
+              rules={[{ required: true, message: "Please select origin" }]}
             >
-              <Input 
-                placeholder="City / Airport" 
-                prefix={<EnvironmentOutlined className="text-gray-400" />}
-              />
+              <Select
+                mode="combobox"
+                placeholder="Search city / airport"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                notFoundContent="No locations found"
+              >
+                {originOptions.map((location) => (
+                  <Option key={location} value={location}>
+                    {location}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
               label="Destination *"
               name="destination"
-              rules={[{ required: true, message: "Please enter destination" }]}
+              rules={[{ required: true, message: "Please select destination" }]}
             >
-              <Input 
-                placeholder="City / Airport" 
-                prefix={<EnvironmentOutlined className="text-gray-400" />}
-              />
+              <Select
+                mode="combobox"
+                placeholder="Search city / airport"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                notFoundContent="No locations found"
+              >
+                {destinationOptions.map((location) => (
+                  <Option key={location} value={location}>
+                    {location}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
         </Row>
