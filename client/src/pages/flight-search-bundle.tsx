@@ -299,20 +299,24 @@ export default function FlightSearchBundle() {
   const [maxDuration, setMaxDuration] = useState('any');
 
   // Get trip type from URL params or localStorage (simulate getting from previous page)
-  const [tripType, setTripType] = useState<string>("roundTrip"); // This would normally come from navigation state
+  const [tripType, setTripType] = useState<string>(() => {
+    // In a real application, this would come from navigation state or URL params
+    // For now, we'll check localStorage or default to roundTrip
+    return localStorage.getItem('selectedTripType') || "roundTrip";
+  });
   
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
   
-  // Modify search form state
-  const [origin, setOrigin] = useState('JFK');
-  const [destination, setDestination] = useState('LHR');
-  const [departureDate, setDepartureDate] = useState('2024-06-22');
-  const [returnDate, setReturnDate] = useState('2024-06-29');
-  const [adults, setAdults] = useState(24);
-  const [kids, setKids] = useState(8);
-  const [infants, setInfants] = useState(0);
-  const [cabin, setCabin] = useState('Economy');
+  // Modify search form state - initialize from localStorage
+  const [origin, setOrigin] = useState(() => localStorage.getItem('searchOrigin') || 'JFK');
+  const [destination, setDestination] = useState(() => localStorage.getItem('searchDestination') || 'LHR');
+  const [departureDate, setDepartureDate] = useState(() => localStorage.getItem('searchDepartureDate') || '2024-06-22');
+  const [returnDate, setReturnDate] = useState(() => localStorage.getItem('searchReturnDate') || '2024-06-29');
+  const [adults, setAdults] = useState(() => parseInt(localStorage.getItem('searchAdults') || '24'));
+  const [kids, setKids] = useState(() => parseInt(localStorage.getItem('searchKids') || '8'));
+  const [infants, setInfants] = useState(() => parseInt(localStorage.getItem('searchInfants') || '0'));
+  const [cabin, setCabin] = useState(() => localStorage.getItem('searchCabin') || 'Economy');
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
@@ -684,7 +688,10 @@ export default function FlightSearchBundle() {
               <div className="mb-4">
                 <Radio.Group
                   value={tripType}
-                  onChange={(e) => setTripType(e.target.value)}
+                  onChange={(e) => {
+                    setTripType(e.target.value);
+                    localStorage.setItem('selectedTripType', e.target.value);
+                  }}
                   className="flex gap-6"
                 >
                   <Radio value="oneWay" className="text-sm">

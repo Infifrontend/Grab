@@ -61,6 +61,17 @@ export default function QuickBookingForm() {
   });
 
   const handleSubmit = (values: any) => {
+    // Save trip type and other search data to localStorage for the Flight Search Bundle page
+    localStorage.setItem('selectedTripType', tripType);
+    localStorage.setItem('searchOrigin', values.origin || '');
+    localStorage.setItem('searchDestination', values.destination || '');
+    localStorage.setItem('searchDepartureDate', values.departureDate?.format('YYYY-MM-DD') || '');
+    localStorage.setItem('searchReturnDate', values.returnDate?.format('YYYY-MM-DD') || '');
+    localStorage.setItem('searchAdults', values.adults?.toString() || '0');
+    localStorage.setItem('searchKids', values.kids?.toString() || '0');
+    localStorage.setItem('searchInfants', values.infants?.toString() || '0');
+    localStorage.setItem('searchCabin', values.cabin || 'Economy');
+
     setLocation("/flight-search-bundle");
 
     // const searchData: SearchFormData = {
