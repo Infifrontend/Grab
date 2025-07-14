@@ -11,6 +11,7 @@ import {
   Space,
   Select,
   Slider,
+  Tabs,
 } from "antd";
 import {
   ArrowRightOutlined,
@@ -735,52 +736,89 @@ export default function FlightSearchBundle() {
 
           {/* Flight Selection */}
           <Col xs={24} lg={18}>
-            <div className="mb-8">
-              <Title
-                level={3}
-                className="!mb-4 text-gray-800 flex items-center gap-2"
-              >
-                <span className="text-blue-600">🛫</span>
-                Outbound Flights - JFK to LHR
-                <Badge
-                  count={`${filteredOutboundFlights.length} flights`}
-                  style={{ backgroundColor: "#52c41a" }}
+            {tripType === "roundTrip" ? (
+              <div className="mb-8">
+                <Tabs
+                  defaultActiveKey="outbound"
+                  items={[
+                    {
+                      key: "outbound",
+                      label: (
+                        <span className="flex items-center gap-2">
+                          <span className="text-blue-600">🛫</span>
+                          Outbound Flights - JFK to LHR
+                          <Badge
+                            count={`${filteredOutboundFlights.length} flights`}
+                            style={{ backgroundColor: "#52c41a" }}
+                          />
+                        </span>
+                      ),
+                      children: (
+                        <div>
+                          {filteredOutboundFlights.map((flight) => (
+                            <FlightCard
+                              key={flight.id}
+                              flight={flight}
+                              isSelected={selectedOutbound === flight.id}
+                              onSelect={() => setSelectedOutbound(flight.id)}
+                              type="outbound"
+                            />
+                          ))}
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "return",
+                      label: (
+                        <span className="flex items-center gap-2">
+                          <span className="text-blue-600">🛬</span>
+                          Return Flights - LHR to JFK
+                          <Badge
+                            count={`${returnFlights.length} flights`}
+                            style={{ backgroundColor: "#52c41a" }}
+                          />
+                        </span>
+                      ),
+                      disabled: !selectedOutbound,
+                      children: (
+                        <div>
+                          {returnFlights.map((flight) => (
+                            <FlightCard
+                              key={flight.id}
+                              flight={flight}
+                              isSelected={selectedReturn === flight.id}
+                              onSelect={() => setSelectedReturn(flight.id)}
+                              type="return"
+                            />
+                          ))}
+                        </div>
+                      ),
+                    },
+                  ]}
+                  className="flight-tabs"
                 />
-              </Title>
-
-              {filteredOutboundFlights.map((flight) => (
-                <FlightCard
-                  key={flight.id}
-                  flight={flight}
-                  isSelected={selectedOutbound === flight.id}
-                  onSelect={() => setSelectedOutbound(flight.id)}
-                  type="outbound"
-                />
-              ))}
-            </div>
-
-            {/* Return Flights Section - Only show for round trip */}
-            {tripType === "roundTrip" && (
+              </div>
+            ) : (
               <div className="mb-8">
                 <Title
                   level={3}
                   className="!mb-4 text-gray-800 flex items-center gap-2"
                 >
-                  <span className="text-blue-600">🛬</span>
-                  Return Flights - LHR to JFK
+                  <span className="text-blue-600">🛫</span>
+                  Outbound Flights - JFK to LHR
                   <Badge
-                    count={`${returnFlights.length} flights`}
+                    count={`${filteredOutboundFlights.length} flights`}
                     style={{ backgroundColor: "#52c41a" }}
                   />
                 </Title>
 
-                {returnFlights.map((flight) => (
+                {filteredOutboundFlights.map((flight) => (
                   <FlightCard
                     key={flight.id}
                     flight={flight}
-                    isSelected={selectedReturn === flight.id}
-                    onSelect={() => setSelectedReturn(flight.id)}
-                    type="return"
+                    isSelected={selectedOutbound === flight.id}
+                    onSelect={() => setSelectedOutbound(flight.id)}
+                    type="outbound"
                   />
                 ))}
               </div>
@@ -846,6 +884,48 @@ export default function FlightSearchBundle() {
           </Button>
         </div>
       </div>
+
+      <style jsx>{`
+        :global(.flight-tabs .ant-tabs-tab) {
+          padding: 16px 24px;
+          border-radius: 8px 8px 0 0;
+        }
+
+        :global(.flight-tabs .ant-tabs-tab-btn) {
+          font-weight: 600;
+          font-size: 16px;
+        }
+
+        :global(.flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+          color: #2a0a22;
+        }
+
+        :global(.flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled) {
+          opacity: 0.5;
+        }
+
+        :global(.flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn) {
+          color: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        :global(.flight-tabs .ant-tabs-ink-bar) {
+          background: #2a0a22;
+          height: 3px;
+        }
+
+        :global(.flight-tabs .ant-tabs-content-holder) {
+          padding: 24px 0 0 0;
+        }
+
+        :global(.flight-tabs .ant-tabs-nav) {
+          margin-bottom: 0;
+        }
+
+        :global(.flight-tabs .ant-badge) {
+          margin-left: 8px;
+        }
+      `}</style>
     </div>
   );
 }
