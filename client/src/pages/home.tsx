@@ -3,10 +3,17 @@ import QuickBookingForm from "@/components/booking/quick-booking-form";
 import HotDealsSection from "@/components/deals/hot-deals-section";
 import MarketplaceSection from "@/components/marketplace/marketplace-section";
 import RecentBookingsSection from "@/components/bookings/recent-bookings-section";
-import { Alert } from "antd";
+import { Alert, Button } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { useLocation } from "wouter";
 
 export default function Home() {
+  const [, setLocation] = useLocation();
+
+  const handleBidsRedirect = () => {
+    setLocation("/bids");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -15,10 +22,22 @@ export default function Home() {
         {/* Top Banner */}
         <Alert
           message={
-            <span>
-              <strong>Exclusive 60% Prices Offer:</strong> Submit your bid for your preferred dates and number of seats. 
-              If accepted, enjoy a special discounted rate tailored just for you!
-            </span>
+            <div className="flex items-center justify-between w-full">
+              <div className="marquee-container flex-1">
+                <div className="marquee-text">
+                  <strong>Exclusive Bid Prices Open!:</strong> Want to travel on a specific route? Submit your bid for your preferred dates and number of seats. If accepted, enjoy a special discounted rate tailored just for you!
+                </div>
+              </div>
+              <Button 
+                type="link" 
+                size="small" 
+                onClick={handleBidsRedirect}
+                className="ml-4 text-orange-600 font-semibold hover:text-orange-700 flex-shrink-0"
+                style={{ padding: '0 8px', textDecoration: 'underline' }}
+              >
+                Click here
+              </Button>
+            </div>
           }
           type="warning"
           icon={<InfoCircleOutlined />}

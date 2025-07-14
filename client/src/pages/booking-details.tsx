@@ -21,6 +21,10 @@ export default function BookingDetails() {
     queryKey: ["/api/bookings"],
   });
 
+  const handleManageBooking = () => {
+    setLocation(`/manage-booking/${params?.id || booking.id}`);
+  };
+
   // Find the booking by ID or use mock data
   const booking = bookings?.find((b) => b.id.toString() === params?.id) || {
     id: 1,
@@ -67,13 +71,18 @@ export default function BookingDetails() {
             </div>
           </div>
           <Space>
-            <Button icon={<DownloadOutlined />} className="flex items-center">
+            <Button 
+              icon={<DownloadOutlined />} 
+              className="flex items-center"
+              onClick={() => setLocation(`/download-itinerary/${params?.id || booking.id}`)}
+            >
               Download Itinerary
             </Button>
             <Button
               type="primary"
               icon={<EditOutlined />}
               className="infiniti-btn-primary flex items-center"
+              onClick={handleManageBooking}
             >
               Manage Booking
             </Button>

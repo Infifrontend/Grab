@@ -1,0 +1,441 @@
+import { useState } from "react";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Card,
+  Row,
+  Col,
+  Typography,
+  Progress,
+  Upload,
+  message,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  UploadOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import { useLocation } from "wouter";
+import Header from "@/components/layout/header";
+import BookingSteps from "@/components/booking/booking-steps";
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
+const { Option } = Select;
+
+interface PassengerInfo {
+  title: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  nationality: string;
+  passportNumber: string;
+  passportExpiry: string;
+  specialRequests: string;
+}
+
+export default function PassengerInfo() {
+  const [form] = Form.useForm();
+  const [, setLocation] = useLocation();
+  const [passengers, setPassengers] = useState<PassengerInfo[]>([
+    {
+      title: "",
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      nationality: "",
+      passportNumber: "",
+      passportExpiry: "",
+      specialRequests: "",
+    },
+  ]);
+
+  const totalPassengers = 32;
+  const completedPassengers = passengers.filter(
+    (p) =>
+      p.title &&
+      p.firstName &&
+      p.lastName &&
+      p.dateOfBirth &&
+      p.nationality &&
+      p.passportNumber &&
+      p.passportExpiry,
+  ).length;
+
+  const handleBack = () => {
+    setLocation("/payment-options");
+  };
+
+  const handleContinue = () => {
+    console.log("Passenger Information:", passengers);
+    // Navigate to next step (Review & Confirmation)
+    setLocation("/review-confirmation");
+  };
+
+  const handleAddPassenger = () => {
+    setPassengers([
+      ...passengers,
+      {
+        title: "",
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        nationality: "",
+        passportNumber: "",
+        passportExpiry: "",
+        specialRequests: "",
+      },
+    ]);
+  };
+
+  const handlePassengerChange = (
+    index: number,
+    field: keyof PassengerInfo,
+    value: string,
+  ) => {
+    const updatedPassengers = [...passengers];
+    updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+    setPassengers(updatedPassengers);
+  };
+
+  const handleBulkEntry = () => {
+    message.info("Bulk entry feature coming soon");
+  };
+
+  const handleCSVUpload = (info: any) => {
+    if (info.file.status === "done") {
+      message.success(`${info.file.name} file uploaded successfully`);
+    } else if (info.file.status === "error") {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Booking Steps */}
+        <div className="mb-8">
+          <div className="overflow-x-auto">
+            <BookingSteps
+              currentStep={5}
+              size="small"
+              className="mb-6 min-w-[800px]"
+            />
+          </div>
+        </div>
+
+        {/* Page Header */}
+        <div className="mb-6">
+          <Title level={2} className="!mb-2 text-gray-900">
+            Passenger Information
+          </Title>
+          <Text className="text-gray-600">
+            Please provide details for all passengers. You need{" "}
+            {totalPassengers} passengers for this group booking.
+          </Text>
+        </div>
+
+        {/* Progress Bar */}
+        <Card className="mb-6">
+          <div className="mb-4">
+            <Text className="text-blue-600 font-medium">
+              Progress: {completedPassengers} of {totalPassengers} passengers
+              added
+            </Text>
+          </div>
+          <Progress
+            percent={Math.round((completedPassengers / totalPassengers) * 100)}
+            strokeColor="#2563eb"
+            className="mb-4"
+          />
+
+          {/* Bulk Entry Options */}
+          <div className="flex gap-4">
+            <Button
+              icon={<PlusOutlined />}
+              onClick={handleBulkEntry}
+              className="flex items-center"
+            >
+              Bulk Entry
+            </Button>
+            <Upload
+              accept=".csv,.xlsx,.xls"
+              showUploadList={false}
+              onChange={handleCSVUpload}
+              beforeUpload={() => false}
+            >
+              <Button icon={<UploadOutlined />} className="flex items-center">
+                Upload CSV
+              </Button>
+            </Upload>
+          </div>
+        </Card>
+
+        {/* Passenger Forms */}
+        <div className="space-y-6">
+          {passengers.map((passenger, index) => (
+            <Card key={index} className="passenger-card">
+              <Title level={4} className="!mb-6 text-gray-800">
+                Passenger {index + 1}
+              </Title>
+
+              <Form layout="vertical" className="passenger-form">
+                <Row gutter={24}>
+                  {/* Title */}
+                  <Col xs={24} md={8}>
+                    <Form.Item label="Title" required>
+                      <Select
+                        size="large"
+                        placeholder="Select"
+                        value={passenger.title}
+                        onChange={(value) =>
+                          handlePassengerChange(index, "title", value)
+                        }
+                      >
+                        <Option value="mr">Mr.</Option>
+                        <Option value="mrs">Mrs.</Option>
+                        <Option value="ms">Ms.</Option>
+                        <Option value="dr">Dr.</Option>
+                        <Option value="prof">Prof.</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+
+                  {/* First Name */}
+                  <Col xs={24} md={8}>
+                    <Form.Item label="First Name" required>
+                      <Input
+                        size="large"
+                        placeholder="First name"
+                        value={passenger.firstName}
+                        onChange={(e) =>
+                          handlePassengerChange(
+                            index,
+                            "firstName",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  {/* Last Name */}
+                  <Col xs={24} md={8}>
+                    <Form.Item label="Last Name" required>
+                      <Input
+                        size="large"
+                        placeholder="Last name"
+                        value={passenger.lastName}
+                        onChange={(e) =>
+                          handlePassengerChange(
+                            index,
+                            "lastName",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={24}>
+                  {/* Date of Birth */}
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Date of Birth" required>
+                      <DatePicker
+                        size="large"
+                        placeholder="dd/mm/yyyy"
+                        format="DD/MM/YYYY"
+                        className="w-full"
+                        value={
+                          passenger.dateOfBirth
+                            ? (new Date(passenger.dateOfBirth) as any)
+                            : null
+                        }
+                        onChange={(date) =>
+                          handlePassengerChange(
+                            index,
+                            "dateOfBirth",
+                            date ? date.toISOString() : "",
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  {/* Nationality */}
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Nationality" required>
+                      <Select
+                        size="large"
+                        placeholder="Select nationality"
+                        showSearch
+                        value={passenger.nationality}
+                        onChange={(value) =>
+                          handlePassengerChange(index, "nationality", value)
+                        }
+                      >
+                        <Option value="us">United States</Option>
+                        <Option value="uk">United Kingdom</Option>
+                        <Option value="ca">Canada</Option>
+                        <Option value="au">Australia</Option>
+                        <Option value="de">Germany</Option>
+                        <Option value="fr">France</Option>
+                        <Option value="jp">Japan</Option>
+                        <Option value="in">India</Option>
+                        <Option value="br">Brazil</Option>
+                        <Option value="mx">Mexico</Option>
+                        <Option value="it">Italy</Option>
+                        <Option value="es">Spain</Option>
+                        <Option value="other">Other</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={24}>
+                  {/* Passport Number */}
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Passport Number" required>
+                      <Input
+                        size="large"
+                        placeholder="Passport number"
+                        value={passenger.passportNumber}
+                        onChange={(e) =>
+                          handlePassengerChange(
+                            index,
+                            "passportNumber",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  {/* Passport Expiry */}
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Passport Expiry" required>
+                      <DatePicker
+                        size="large"
+                        placeholder="dd/mm/yyyy"
+                        format="DD/MM/YYYY"
+                        className="w-full"
+                        value={
+                          passenger.passportExpiry
+                            ? (new Date(passenger.passportExpiry) as any)
+                            : null
+                        }
+                        onChange={(date) =>
+                          handlePassengerChange(
+                            index,
+                            "passportExpiry",
+                            date ? date.toISOString() : "",
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                {/* Special Requests */}
+                <Row gutter={24}>
+                  <Col xs={24}>
+                    <Form.Item label="Special Requests">
+                      <TextArea
+                        rows={4}
+                        placeholder="Any special dietary requirements, accessibility needs, etc."
+                        value={passenger.specialRequests}
+                        onChange={(e) =>
+                          handlePassengerChange(
+                            index,
+                            "specialRequests",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
+            </Card>
+          ))}
+
+          {/* Add Another Passenger Button */}
+          <div className="text-center">
+            <Button
+              type="dashed"
+              icon={<PlusOutlined />}
+              onClick={handleAddPassenger}
+              className="px-8"
+              size="large"
+            >
+              Add Another Passenger
+            </Button>
+          </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center mt-8">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBack}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            Back
+          </Button>
+
+          <Button
+            type="primary"
+            size="large"
+            onClick={handleContinue}
+            className="px-8"
+          >
+            Continue
+          </Button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .passenger-form :global(.ant-form-item-label > label) {
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .passenger-form :global(.ant-form-item-label > label::after) {
+          content: "";
+        }
+
+        .passenger-form
+          :global(.ant-form-item-label > label[title*="required"]) {
+          color: #374151;
+        }
+
+        .passenger-form
+          :global(.ant-form-item-label > label[title*="required"]::before) {
+          display: inline-block;
+          margin-right: 4px;
+          color: #ef4444;
+          font-size: 14px;
+          font-family: inherit;
+          line-height: 1;
+          content: "*";
+        }
+
+        .passenger-card {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+
+        .passenger-card:hover {
+          border-color: #d1d5db;
+        }
+      `}</style>
+    </div>
+  );
+}

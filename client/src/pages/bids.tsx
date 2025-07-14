@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Button, Space, Badge, Tabs, Table, Tag, Input, Select, DatePicker } from 'antd';
 import { SearchOutlined, FilterOutlined, InfoCircleOutlined, CheckCircleOutlined, DollarOutlined, CreditCardOutlined, UndoOutlined } from '@ant-design/icons';
+import { useLocation } from 'wouter';
 import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
@@ -9,6 +10,7 @@ const { RangePicker } = DatePicker;
 
 export default function Bids() {
   const [activeTab, setActiveTab] = useState("management");
+  const [, setLocation] = useLocation();
 
   // Mock data for bids
   const bidsData = [
@@ -260,8 +262,14 @@ export default function Bids() {
       title: 'Actions',
       dataIndex: 'actions',
       key: 'actions',
-      render: () => (
-        <Button type="link" size="small">View Details</Button>
+      render: (_, record) => (
+        <Button 
+          type="link" 
+          size="small"
+          onClick={() => setLocation(`/bid-details/${record.bidId}`)}
+        >
+          View Details
+        </Button>
       ),
     },
   ];

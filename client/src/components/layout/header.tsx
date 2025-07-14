@@ -54,7 +54,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="infiniti-logo">
-            <img src="./src/images/Logo.png" alt="Volaris" title="Volaris" />
+            <img src="/src/images/Logo.png" alt="Volaris" title="Volaris" />
           </Link>
 
           {/* Navigation */}

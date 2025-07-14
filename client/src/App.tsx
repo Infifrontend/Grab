@@ -15,6 +15,16 @@ import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
 import PaymentDetails from "@/pages/payment-details";
 import bids from "@/pages/bids";
+import BidDetails from "@/pages/bid-details";
+import FlightSearchResults from "@/pages/flight-search-results";
+import FlightSearchBundle from "@/pages/flight-search-bundle";
+import AddServicesBundles from "./pages/add-services-bundles";
+import NewBooking from "./pages/new-booking";
+import GroupLeader from "./pages/group-leader";
+import PassengerInfo from "./pages/passenger-info";
+import PaymentOptions from "./pages/payment-options";
+import ReviewConfirmation from "./pages/review-confirmation";
+import DownloadItinerary from "./pages/download-itinerary";
 
 function Router() {
   return (
@@ -28,6 +38,16 @@ function Router() {
       <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route path="/settings" component={Settings} />
       <Route path="/bids" component={bids} />
+      <Route path="/bid-details/:id" component={BidDetails} />
+      <Route path="/flight-search-results" component={FlightSearchResults} />
+      <Route path="/flight-search-bundle" component={FlightSearchBundle} />
+      <Route path="/add-services-bundles" component={AddServicesBundles} />
+      <Route path="/new-booking" component={NewBooking} />
+      <Route path="/group-leader" component={GroupLeader} />
+      <Route path="/payment-options" component={PaymentOptions} />
+      <Route path="/passenger-info" component={PassengerInfo} />
+      <Route path="/review-confirmation" component={ReviewConfirmation} />
+      <Route path="/download-itinerary/:id" component={DownloadItinerary} />
       <Route component={NotFound} />
     </Switch>
   );

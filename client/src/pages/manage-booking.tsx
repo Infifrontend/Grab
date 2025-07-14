@@ -21,7 +21,8 @@ export default function ManageBooking() {
 
   const handleFindBooking = () => {
     console.log('Finding booking:', { bookingId, email });
-    // Implement booking search logic
+    // Navigate to manage-booking/1 after finding booking
+    setLocation('/manage-booking/1');
   };
 
   const handleManageBooking = (booking: Booking) => {

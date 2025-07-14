@@ -69,6 +69,33 @@ export default function ManageBookingDetail() {
     message.info('Payment plan setup initiated');
   };
 
+  const handleDownloadCSVTemplate = () => {
+    const csvContent = `First Name,Last Name,Date of Birth,Passport Number,Nationality,Gender,Special Requirements
+John,Smith,1985-06-15,A12345678,US,Male,Vegetarian meal
+Jane,Doe,1990-03-22,B87654321,US,Female,Wheelchair assistance
+Mike,Johnson,1978-11-08,C11223344,US,Male,None
+Sarah,Williams,1992-07-30,D55667788,US,Female,Kosher meal
+David,Brown,1983-12-05,E99887766,US,Male,Extra legroom
+Lisa,Davis,1988-09-18,F44556677,US,Female,None
+Robert,Miller,1975-04-12,G22334455,US,Male,Diabetic meal
+Emily,Wilson,1995-01-25,H66778899,US,Female,None
+Michael,Moore,1980-08-14,I33445566,US,Male,None
+Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'passenger_list_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    message.success('CSV template downloaded successfully');
+  };
+
   const tabItems = [
     {
       key: "basic-info",
@@ -220,6 +247,7 @@ export default function ManageBookingDetail() {
                       <Button 
                         icon={<DownloadOutlined />}
                         className="mb-3"
+                        onClick={handleDownloadCSVTemplate}
                       >
                         Download CSV Template
                       </Button>
