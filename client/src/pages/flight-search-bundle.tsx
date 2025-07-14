@@ -759,6 +759,33 @@ export default function FlightSearchBundle() {
               ))}
             </div>
 
+            {/* Return Flights Section - Only show for round trip */}
+            {tripType === "roundTrip" && (
+              <div className="mb-8">
+                <Title
+                  level={3}
+                  className="!mb-4 text-gray-800 flex items-center gap-2"
+                >
+                  <span className="text-blue-600">🛬</span>
+                  Return Flights - LHR to JFK
+                  <Badge
+                    count={`${returnFlights.length} flights`}
+                    style={{ backgroundColor: "#52c41a" }}
+                  />
+                </Title>
+
+                {returnFlights.map((flight) => (
+                  <FlightCard
+                    key={flight.id}
+                    flight={flight}
+                    isSelected={selectedReturn === flight.id}
+                    onSelect={() => setSelectedReturn(flight.id)}
+                    type="return"
+                  />
+                ))}
+              </div>
+            )}
+
             {/* Bundle Options */}
             <div className="mb-8">
               <Title level={3} className="!mb-6 text-gray-800">
