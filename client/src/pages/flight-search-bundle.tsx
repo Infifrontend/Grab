@@ -56,8 +56,6 @@ interface BundleOption {
   features: string[];
 }
 
-
-
 const seatOptions: BundleOption[] = [
   {
     id: "standard-economy",
@@ -178,10 +176,10 @@ export default function FlightSearchBundle() {
   // Load flight data from localStorage on component mount
   useEffect(() => {
     const loadFlightData = () => {
-      const storedFlights = localStorage.getItem('searchResults');
-      const storedCriteria = localStorage.getItem('searchCriteria');
-      const storedPassengerCount = localStorage.getItem('passengerCount');
-      const storedBookingData = localStorage.getItem('bookingFormData');
+      const storedFlights = localStorage.getItem("searchResults");
+      const storedCriteria = localStorage.getItem("searchCriteria");
+      const storedPassengerCount = localStorage.getItem("passengerCount");
+      const storedBookingData = localStorage.getItem("bookingFormData");
 
       let loadedFlights: Flight[] = [];
       let loadedCriteria: any = {};
@@ -191,29 +189,36 @@ export default function FlightSearchBundle() {
         // Convert price to string format if it's a number and format times
         loadedFlights = flights.map((flight: any) => ({
           ...flight,
-          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price,
-          departureTime: typeof flight.departureTime === 'string' && flight.departureTime.includes('T') 
-            ? new Date(flight.departureTime).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              })
-            : flight.departureTime,
-          arrivalTime: typeof flight.arrivalTime === 'string' && flight.arrivalTime.includes('T')
-            ? new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              })
-            : flight.arrivalTime
+          price:
+            typeof flight.price === "number"
+              ? flight.price.toString()
+              : flight.price,
+          departureTime:
+            typeof flight.departureTime === "string" &&
+            flight.departureTime.includes("T")
+              ? new Date(flight.departureTime).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })
+              : flight.departureTime,
+          arrivalTime:
+            typeof flight.arrivalTime === "string" &&
+            flight.arrivalTime.includes("T")
+              ? new Date(flight.arrivalTime).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })
+              : flight.arrivalTime,
         }));
-        console.log('Loaded flights from localStorage:', loadedFlights);
+        console.log("Loaded flights from localStorage:", loadedFlights);
       }
 
       if (storedCriteria) {
         loadedCriteria = JSON.parse(storedCriteria);
         setSearchCriteria(loadedCriteria);
-        console.log('Loaded search criteria:', loadedCriteria);
+        console.log("Loaded search criteria:", loadedCriteria);
       }
 
       if (storedPassengerCount) {
@@ -223,18 +228,18 @@ export default function FlightSearchBundle() {
       // Load complete booking form data to ensure consistency
       if (storedBookingData) {
         const bookingData = JSON.parse(storedBookingData);
-        
+
         // Initialize modify search form with original data
-        setOrigin(bookingData.origin || 'JFK');
-        setDestination(bookingData.destination || 'LHR');
-        setDepartureDate(bookingData.departureDate || '2024-06-22');
-        setReturnDate(bookingData.returnDate || '2024-06-29');
+        setOrigin(bookingData.origin || "JFK");
+        setDestination(bookingData.destination || "LHR");
+        setDepartureDate(bookingData.departureDate || "2024-06-22");
+        setReturnDate(bookingData.returnDate || "2024-06-29");
         setAdults(bookingData.adults || 24);
         setKids(bookingData.kids || 8);
         setInfants(bookingData.infants || 0);
-        setCabin(bookingData.cabin || 'Economy');
-        setTripType(bookingData.tripType || 'roundTrip');
-        
+        setCabin(bookingData.cabin || "Economy");
+        setTripType(bookingData.tripType || "roundTrip");
+
         // Update passenger count if needed
         if (bookingData.totalPassengers) {
           setPassengerCount(bookingData.totalPassengers);
@@ -249,7 +254,7 @@ export default function FlightSearchBundle() {
             returnDate: bookingData.returnDate,
             tripType: bookingData.tripType,
             passengers: bookingData.totalPassengers,
-            cabin: bookingData.cabin
+            cabin: bookingData.cabin,
           };
           setSearchCriteria(loadedCriteria);
         }
@@ -257,29 +262,29 @@ export default function FlightSearchBundle() {
 
       // Set flights directly without filtering initially - let user see all available flights
       setAvailableFlights(loadedFlights);
-      
+
       // Set the first flight as selected by default
       if (loadedFlights.length > 0) {
         setSelectedOutbound(loadedFlights[0].id.toString());
       }
 
-      console.log('Final available flights:', loadedFlights);
+      console.log("Final available flights:", loadedFlights);
     };
 
     loadFlightData();
   }, []);
 
   // Filter states
-  const [sortBy, setSortBy] = useState('price-low');
-  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 50000]);
+  const [sortBy, setSortBy] = useState("price-low");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
-  const [departureTime, setDepartureTime] = useState('any');
-  const [maxStops, setMaxStops] = useState('any');
-  const [maxDuration, setMaxDuration] = useState('any');
+  const [departureTime, setDepartureTime] = useState("any");
+  const [maxStops, setMaxStops] = useState("any");
+  const [maxDuration, setMaxDuration] = useState("any");
 
   // Get unique airlines from available flights
   const availableAirlines = useMemo(() => {
-    return [...new Set(availableFlights.map(flight => flight.airline))];
+    return [...new Set(availableFlights.map((flight) => flight.airline))];
   }, [availableFlights]);
 
   // Handle airline filter change
@@ -287,7 +292,7 @@ export default function FlightSearchBundle() {
     if (checked) {
       setSelectedAirlines([...selectedAirlines, airline]);
     } else {
-      setSelectedAirlines(selectedAirlines.filter(a => a !== airline));
+      setSelectedAirlines(selectedAirlines.filter((a) => a !== airline));
     }
   };
 
@@ -297,33 +302,38 @@ export default function FlightSearchBundle() {
 
     // Filter by airlines
     if (selectedAirlines.length > 0) {
-      filtered = filtered.filter(flight => selectedAirlines.includes(flight.airline));
+      filtered = filtered.filter((flight) =>
+        selectedAirlines.includes(flight.airline),
+      );
     }
 
     // Filter by price range
-    filtered = filtered.filter(flight => {
-      const price = typeof flight.price === 'string' ? parseFloat(flight.price) : flight.price;
+    filtered = filtered.filter((flight) => {
+      const price =
+        typeof flight.price === "string"
+          ? parseFloat(flight.price)
+          : flight.price;
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
     // Filter by departure time
-    if (departureTime !== 'any') {
-      filtered = filtered.filter(flight => {
+    if (departureTime !== "any") {
+      filtered = filtered.filter((flight) => {
         const depTime = flight.departureTime;
-        const hour = parseInt(depTime.split(':')[0]);
-        
+        const hour = parseInt(depTime.split(":")[0]);
+
         switch (departureTime) {
-          case 'early-morning':
+          case "early-morning":
             return hour >= 4 && hour < 8;
-          case 'morning':
+          case "morning":
             return hour >= 8 && hour < 12;
-          case 'afternoon':
+          case "afternoon":
             return hour >= 12 && hour < 16;
-          case 'evening':
+          case "evening":
             return hour >= 16 && hour < 20;
-          case 'night':
+          case "night":
             return hour >= 20 && hour < 24;
-          case 'late-night':
+          case "late-night":
             return hour >= 0 && hour < 4;
           default:
             return true;
@@ -332,16 +342,16 @@ export default function FlightSearchBundle() {
     }
 
     // Filter by stops
-    if (maxStops !== 'any') {
-      filtered = filtered.filter(flight => {
+    if (maxStops !== "any") {
+      filtered = filtered.filter((flight) => {
         switch (maxStops) {
-          case 'nonstop':
+          case "nonstop":
             return flight.stops === 0;
-          case '1stop':
+          case "1stop":
             return flight.stops <= 1;
-          case '2stops':
+          case "2stops":
             return flight.stops <= 2;
-          case '3+stops':
+          case "3+stops":
             return flight.stops >= 3;
           default:
             return true;
@@ -352,17 +362,21 @@ export default function FlightSearchBundle() {
     // Sort flights
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'price-low':
-          const priceA = typeof a.price === 'string' ? parseFloat(a.price) : a.price;
-          const priceB = typeof b.price === 'string' ? parseFloat(b.price) : b.price;
+        case "price-low":
+          const priceA =
+            typeof a.price === "string" ? parseFloat(a.price) : a.price;
+          const priceB =
+            typeof b.price === "string" ? parseFloat(b.price) : b.price;
           return priceA - priceB;
-        case 'price-high':
-          const priceA2 = typeof a.price === 'string' ? parseFloat(a.price) : a.price;
-          const priceB2 = typeof b.price === 'string' ? parseFloat(b.price) : b.price;
+        case "price-high":
+          const priceA2 =
+            typeof a.price === "string" ? parseFloat(a.price) : a.price;
+          const priceB2 =
+            typeof b.price === "string" ? parseFloat(b.price) : b.price;
           return priceB2 - priceA2;
-        case 'duration':
+        case "duration":
           return a.duration.localeCompare(b.duration);
-        case 'departure':
+        case "departure":
           return a.departureTime.localeCompare(b.departureTime);
         default:
           return 0;
@@ -370,27 +384,50 @@ export default function FlightSearchBundle() {
     });
 
     return filtered;
-  }, [availableFlights, selectedAirlines, priceRange, sortBy, departureTime, maxStops]);
+  }, [
+    availableFlights,
+    selectedAirlines,
+    priceRange,
+    sortBy,
+    departureTime,
+    maxStops,
+  ]);
 
   // Get trip type from URL params or localStorage (simulate getting from previous page)
   const [tripType, setTripType] = useState<string>(() => {
     // In a real application, this would come from navigation state or URL params
     // For now, we'll check localStorage or default to roundTrip
-    return localStorage.getItem('selectedTripType') || "roundTrip";
+    return localStorage.getItem("selectedTripType") || "roundTrip";
   });
 
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
 
   // Modify search form state - initialize from localStorage
-  const [origin, setOrigin] = useState(() => localStorage.getItem('searchOrigin') || 'JFK');
-  const [destination, setDestination] = useState(() => localStorage.getItem('searchDestination') || 'LHR');
-  const [departureDate, setDepartureDate] = useState(() => localStorage.getItem('searchDepartureDate') || '2024-06-22');
-  const [returnDate, setReturnDate] = useState(() => localStorage.getItem('searchReturnDate') || '2024-06-29');
-  const [adults, setAdults] = useState(() => parseInt(localStorage.getItem('searchAdults') || '24'));
-  const [kids, setKids] = useState(() => parseInt(localStorage.getItem('searchKids') || '8'));
-  const [infants, setInfants] = useState(() => parseInt(localStorage.getItem('searchInfants') || '0'));
-  const [cabin, setCabin] = useState(() => localStorage.getItem('searchCabin') || 'Economy');
+  const [origin, setOrigin] = useState(
+    () => localStorage.getItem("searchOrigin") || "JFK",
+  );
+  const [destination, setDestination] = useState(
+    () => localStorage.getItem("searchDestination") || "LHR",
+  );
+  const [departureDate, setDepartureDate] = useState(
+    () => localStorage.getItem("searchDepartureDate") || "2024-06-22",
+  );
+  const [returnDate, setReturnDate] = useState(
+    () => localStorage.getItem("searchReturnDate") || "2024-06-29",
+  );
+  const [adults, setAdults] = useState(() =>
+    parseInt(localStorage.getItem("searchAdults") || "24"),
+  );
+  const [kids, setKids] = useState(() =>
+    parseInt(localStorage.getItem("searchKids") || "8"),
+  );
+  const [infants, setInfants] = useState(() =>
+    parseInt(localStorage.getItem("searchInfants") || "0"),
+  );
+  const [cabin, setCabin] = useState(
+    () => localStorage.getItem("searchCabin") || "Economy",
+  );
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
@@ -404,7 +441,7 @@ export default function FlightSearchBundle() {
   const handleSearchFlights = async () => {
     try {
       const totalPassengers = adults + kids + infants;
-      
+
       const searchData = {
         origin,
         destination,
@@ -418,13 +455,13 @@ export default function FlightSearchBundle() {
         cabin,
       };
 
-      console.log('Searching for flights with data:', searchData);
+      console.log("Searching for flights with data:", searchData);
 
       // Make API call to search for flights
-      const response = await fetch('/api/search', {
-        method: 'POST',
+      const response = await fetch("/api/search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           origin,
@@ -438,28 +475,37 @@ export default function FlightSearchBundle() {
       });
 
       const searchResult = await response.json();
-      console.log('Search API response:', searchResult);
-      
+      console.log("Search API response:", searchResult);
+
       if (searchResult.flights && searchResult.flights.length > 0) {
         // Convert price to string format and process flights
         const processedFlights = searchResult.flights.map((flight: any) => ({
           ...flight,
-          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price,
-          departureTime: new Date(flight.departureTime).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-          }),
-          arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-          })
+          price:
+            typeof flight.price === "number"
+              ? flight.price.toString()
+              : flight.price,
+          departureTime: new Date(flight.departureTime).toLocaleTimeString(
+            "en-US",
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            },
+          ),
+          arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString(
+            "en-US",
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            },
+          ),
         }));
 
-        console.log('Processed flights:', processedFlights);
+        console.log("Processed flights:", processedFlights);
         setAvailableFlights(processedFlights);
-        
+
         // Set the first flight as selected by default
         if (processedFlights.length > 0) {
           setSelectedOutbound(processedFlights[0].id.toString());
@@ -468,10 +514,10 @@ export default function FlightSearchBundle() {
         }
 
         // Update localStorage with new search results and criteria
-        localStorage.setItem('searchResults', JSON.stringify(processedFlights));
-        localStorage.setItem('searchCriteria', JSON.stringify(searchData));
-        localStorage.setItem('passengerCount', totalPassengers.toString());
-        
+        localStorage.setItem("searchResults", JSON.stringify(processedFlights));
+        localStorage.setItem("searchCriteria", JSON.stringify(searchData));
+        localStorage.setItem("passengerCount", totalPassengers.toString());
+
         // Update booking form data
         const updatedBookingData = {
           origin,
@@ -484,25 +530,29 @@ export default function FlightSearchBundle() {
           infants,
           cabin,
           totalPassengers,
-          searchData
+          searchData,
         };
-        localStorage.setItem('bookingFormData', JSON.stringify(updatedBookingData));
+        localStorage.setItem(
+          "bookingFormData",
+          JSON.stringify(updatedBookingData),
+        );
 
         // Update component state
         setSearchCriteria(searchData);
         setPassengerCount(totalPassengers);
         setShowModifySearch(false);
-        
-        console.log(`Found ${processedFlights.length} flights for ${origin} to ${destination}`);
+
+        console.log(
+          `Found ${processedFlights.length} flights for ${origin} to ${destination}`,
+        );
       } else {
         // No flights found
         setAvailableFlights([]);
         setSelectedOutbound("");
-        console.log('No flights found for the selected route');
+        console.log("No flights found for the selected route");
       }
-      
     } catch (error) {
-      console.error('Error searching flights:', error);
+      console.error("Error searching flights:", error);
       // Keep existing flights if API call fails
     }
   };
@@ -527,20 +577,27 @@ export default function FlightSearchBundle() {
   );
 
   const baseCost =
-    (typeof selectedOutboundFlight?.price === 'string' ? parseFloat(selectedOutboundFlight.price) : (selectedOutboundFlight?.price || 0)) * passengerCount +
-    (tripType === "roundTrip" ? (typeof selectedReturnFlight?.price === 'string' ? parseFloat(selectedReturnFlight.price) : (selectedReturnFlight?.price || 0)) * passengerCount : 0);
+    (typeof selectedOutboundFlight?.price === "string"
+      ? parseFloat(selectedOutboundFlight.price)
+      : selectedOutboundFlight?.price || 0) *
+      passengerCount +
+    (tripType === "roundTrip"
+      ? (typeof selectedReturnFlight?.price === "string"
+          ? parseFloat(selectedReturnFlight.price)
+          : selectedReturnFlight?.price || 0) * passengerCount
+      : 0);
   const bundleCost =
     (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
   const totalCost = baseCost + bundleCost;
 
   // Clear all filters
   const handleClearFilters = () => {
-    setSortBy('price-low');
-    setPriceRange([1000, 50000]);
+    setSortBy("price-low");
+    setPriceRange([0, 50000]);
     setSelectedAirlines([]);
-    setDepartureTime('any');
-    setMaxStops('any');
-    setMaxDuration('any');
+    setDepartureTime("any");
+    setMaxStops("any");
+    setMaxDuration("any");
   };
 
   const FlightCard = ({
@@ -576,7 +633,7 @@ export default function FlightSearchBundle() {
               ) : (
                 <Badge
                   color="orange"
-                  text={`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
+                  text={`${flight.stops} stop${flight.stops > 1 ? "s" : ""}`}
                   className="ml-2"
                 />
               )}
@@ -596,7 +653,9 @@ export default function FlightSearchBundle() {
             </div>
             <div className="text-center">
               <Text className="font-medium text-lg">{flight.arrivalTime}</Text>
-              <Text className="text-xs text-gray-500">{flight.destination}</Text>
+              <Text className="text-xs text-gray-500">
+                {flight.destination}
+              </Text>
             </div>
             <div className="ml-4">
               <Text className="text-gray-600 text-sm">({flight.duration})</Text>
@@ -711,35 +770,50 @@ export default function FlightSearchBundle() {
                     <Col>
                       <div>
                         <Text className="text-gray-600 text-sm">Route</Text>
-                        <Text className="block font-medium">{searchCriteria.origin || origin} → {searchCriteria.destination || destination}</Text>
+                        <Text className="block font-medium">
+                          {searchCriteria.origin || origin} →{" "}
+                          {searchCriteria.destination || destination}
+                        </Text>
                       </div>
                     </Col>
                     <Col>
                       <div>
                         <Text className="text-gray-600 text-sm">Trip Type</Text>
                         <Text className="block font-medium">
-                          {tripType === 'oneWay' ? 'One Way' : tripType === 'roundTrip' ? 'Round Trip' : 'Multi City'}
+                          {tripType === "oneWay"
+                            ? "One Way"
+                            : tripType === "roundTrip"
+                              ? "Round Trip"
+                              : "Multi City"}
                         </Text>
                       </div>
                     </Col>
                     <Col>
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
-                        <Text className="block font-medium">{departureDate}</Text>
+                        <Text className="block font-medium">
+                          {departureDate}
+                        </Text>
                       </div>
                     </Col>
-                    {tripType === 'roundTrip' && (
+                    {tripType === "roundTrip" && (
                       <Col>
                         <div>
                           <Text className="text-gray-600 text-sm">Return</Text>
-                          <Text className="block font-medium">{returnDate}</Text>
+                          <Text className="block font-medium">
+                            {returnDate}
+                          </Text>
                         </div>
                       </Col>
                     )}
                     <Col>
                       <div>
-                        <Text className="text-gray-600 text-sm">Passengers</Text>
-                        <Text className="block font-medium">{adults + kids + infants} passengers</Text>
+                        <Text className="text-gray-600 text-sm">
+                          Passengers
+                        </Text>
+                        <Text className="block font-medium">
+                          {adults + kids + infants} passengers
+                        </Text>
                       </div>
                     </Col>
                     <Col>
@@ -751,8 +825,8 @@ export default function FlightSearchBundle() {
                   </Row>
                 </Col>
                 <Col>
-                  <Button 
-                    type="link" 
+                  <Button
+                    type="link"
                     icon={<EditOutlined />}
                     onClick={() => setShowModifySearch(true)}
                     className="text-blue-600"
@@ -771,7 +845,7 @@ export default function FlightSearchBundle() {
                   value={tripType}
                   onChange={(e) => {
                     setTripType(e.target.value);
-                    localStorage.setItem('selectedTripType', e.target.value);
+                    localStorage.setItem("selectedTripType", e.target.value);
                   }}
                   className="flex gap-6"
                 >
@@ -791,7 +865,9 @@ export default function FlightSearchBundle() {
               <Row gutter={[16, 16]} className="mb-4">
                 <Col xs={24} md={6}>
                   <div>
-                    <Text className="text-gray-600 text-sm block mb-1">Origin</Text>
+                    <Text className="text-gray-600 text-sm block mb-1">
+                      Origin
+                    </Text>
                     <Input
                       value={origin}
                       onChange={(e) => setOrigin(e.target.value)}
@@ -802,7 +878,9 @@ export default function FlightSearchBundle() {
                 </Col>
                 <Col xs={24} md={6}>
                   <div>
-                    <Text className="text-gray-600 text-sm block mb-1">Destination</Text>
+                    <Text className="text-gray-600 text-sm block mb-1">
+                      Destination
+                    </Text>
                     <Input
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
@@ -813,7 +891,9 @@ export default function FlightSearchBundle() {
                 </Col>
                 <Col xs={24} md={6}>
                   <div>
-                    <Text className="text-gray-600 text-sm block mb-1">Departure Date</Text>
+                    <Text className="text-gray-600 text-sm block mb-1">
+                      Departure Date
+                    </Text>
                     <Input
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
@@ -823,12 +903,14 @@ export default function FlightSearchBundle() {
                 </Col>
                 <Col xs={24} md={6}>
                   <div>
-                    <Text className="text-gray-600 text-sm block mb-1">Return Date</Text>
+                    <Text className="text-gray-600 text-sm block mb-1">
+                      Return Date
+                    </Text>
                     <Input
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
                       placeholder="yyyy-mm-dd"
-                      disabled={tripType === 'oneWay'}
+                      disabled={tripType === "oneWay"}
                     />
                   </div>
                 </Col>
@@ -837,11 +919,15 @@ export default function FlightSearchBundle() {
               {/* Passengers and Cabin Row */}
               <Row gutter={[16, 16]} className="mb-4">
                 <Col xs={24} md={18}>
-                  <Text className="text-gray-600 text-sm block mb-2">Passengers</Text>
+                  <Text className="text-gray-600 text-sm block mb-2">
+                    Passengers
+                  </Text>
                   <Row gutter={[16, 8]}>
                     <Col xs={8} md={6}>
                       <div>
-                        <Text className="text-gray-700 text-sm block mb-1">Adults (12+ years)</Text>
+                        <Text className="text-gray-700 text-sm block mb-1">
+                          Adults (12+ years)
+                        </Text>
                         <InputNumber
                           min={0}
                           value={adults}
@@ -852,7 +938,9 @@ export default function FlightSearchBundle() {
                     </Col>
                     <Col xs={8} md={6}>
                       <div>
-                        <Text className="text-gray-700 text-sm block mb-1">Kids (2-11 years)</Text>
+                        <Text className="text-gray-700 text-sm block mb-1">
+                          Kids (2-11 years)
+                        </Text>
                         <InputNumber
                           min={0}
                           value={kids}
@@ -863,7 +951,9 @@ export default function FlightSearchBundle() {
                     </Col>
                     <Col xs={8} md={6}>
                       <div>
-                        <Text className="text-gray-700 text-sm block mb-1">Infants (0-2 years)</Text>
+                        <Text className="text-gray-700 text-sm block mb-1">
+                          Infants (0-2 years)
+                        </Text>
                         <InputNumber
                           min={0}
                           value={infants}
@@ -876,7 +966,9 @@ export default function FlightSearchBundle() {
                 </Col>
                 <Col xs={24} md={6}>
                   <div>
-                    <Text className="text-gray-600 text-sm block mb-1">Cabin</Text>
+                    <Text className="text-gray-600 text-sm block mb-1">
+                      Cabin
+                    </Text>
                     <Select
                       value={cabin}
                       onChange={setCabin}
@@ -894,8 +986,8 @@ export default function FlightSearchBundle() {
               {/* Action Buttons */}
               <Row gutter={16}>
                 <Col>
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     onClick={handleSearchFlights}
                     className="infiniti-btn-primary"
                   >
@@ -903,9 +995,7 @@ export default function FlightSearchBundle() {
                   </Button>
                 </Col>
                 <Col>
-                  <Button onClick={handleCancelModify}>
-                    Cancel
-                  </Button>
+                  <Button onClick={handleCancelModify}>Cancel</Button>
                 </Col>
               </Row>
             </div>
@@ -917,130 +1007,154 @@ export default function FlightSearchBundle() {
           <Col xs={24} lg={6}>
             <div className="sticky top-6">
               <Card>
-              <div className="mb-6">
-                <Title level={4} className="!mb-4 text-gray-800">
-                  🔍 Search & Filters
-                </Title>
-
-                {/* Sort By */}
                 <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-2">Sort By</Text>
-                  <Select 
-                    value={sortBy}
-                    onChange={setSortBy}
-                    className="w-full"
-                    options={[
-                      { value: 'price-low', label: 'Price (Low to High)' },
-                      { value: 'price-high', label: 'Price (High to Low)' },
-                      { value: 'duration', label: 'Duration' },
-                      { value: 'departure', label: 'Departure Time' }
-                    ]}
-                  />
-                </div>
+                  <Title level={4} className="!mb-4 text-gray-800">
+                    🔍 Search & Filters
+                  </Title>
 
-                <Divider />
-
-                {/* Price Range */}
-                <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">💰 Price Range</Text>
-                  <Slider
-                    range
-                    min={1000}
-                    max={50000}
-                    value={priceRange}
-                    onChange={setPriceRange}
-                    className="mb-2"
-                    step={500}
-                  />
-                  <div className="flex justify-between">
-                    <Text className="text-gray-600 text-sm">₹{priceRange[0]}</Text>
-                    <Text className="text-gray-600 text-sm">₹{priceRange[1]}</Text>
+                  {/* Sort By */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-2">
+                      Sort By
+                    </Text>
+                    <Select
+                      value={sortBy}
+                      onChange={setSortBy}
+                      className="w-full"
+                      options={[
+                        { value: "price-low", label: "Price (Low to High)" },
+                        { value: "price-high", label: "Price (High to Low)" },
+                        { value: "duration", label: "Duration" },
+                        { value: "departure", label: "Departure Time" },
+                      ]}
+                    />
                   </div>
+
+                  <Divider />
+
+                  {/* Price Range */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-3">
+                      💰 Price Rang
+                    </Text>
+                    <Slider
+                      range
+                      min={0}
+                      max={50000}
+                      value={priceRange}
+                      onChange={setPriceRange}
+                      className="mb-2"
+                      step={500}
+                    />
+                    <div className="flex justify-between">
+                      <Text className="text-gray-600 text-sm">
+                        ₹{priceRange[0]}
+                      </Text>
+                      <Text className="text-gray-600 text-sm">
+                        ₹{priceRange[1]}
+                      </Text>
+                    </div>
+                  </div>
+
+                  <Divider />
+
+                  {/* Airlines Filter */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-3">
+                      Airlines
+                    </Text>
+                    <Space direction="vertical" className="w-full">
+                      {availableAirlines.map((airline) => (
+                        <Checkbox
+                          key={airline}
+                          checked={selectedAirlines.includes(airline)}
+                          onChange={(e) =>
+                            handleAirlineChange(airline, e.target.checked)
+                          }
+                        >
+                          <Text className="text-sm">{airline}</Text>
+                        </Checkbox>
+                      ))}
+                    </Space>
+                  </div>
+
+                  <Divider />
+
+                  {/* Departure Time */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-3">
+                      🕐 Departure Time
+                    </Text>
+                    <Select
+                      value={departureTime}
+                      onChange={setDepartureTime}
+                      className="w-full"
+                      options={[
+                        { value: "any", label: "Any time" },
+                        {
+                          value: "early-morning",
+                          label: "Early Morning (4AM - 8AM)",
+                        },
+                        { value: "morning", label: "Morning (8AM - 12PM)" },
+                        { value: "afternoon", label: "Afternoon (12PM - 4PM)" },
+                        { value: "evening", label: "Evening (4PM - 8PM)" },
+                        { value: "night", label: "Night (8PM - 12AM)" },
+                        {
+                          value: "late-night",
+                          label: "Late Night (12AM - 4AM)",
+                        },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Max Stops */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-3">
+                      ✈️ Stops
+                    </Text>
+                    <Select
+                      value={maxStops}
+                      onChange={setMaxStops}
+                      className="w-full"
+                      options={[
+                        { value: "any", label: "Any number of stops" },
+                        { value: "nonstop", label: "Non-stop only" },
+                        { value: "1stop", label: "Up to 1 stop" },
+                        { value: "2stops", label: "Up to 2 stops" },
+                        { value: "3+stops", label: "3+ stops" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Max Duration */}
+                  <div className="mb-6">
+                    <Text className="text-gray-700 font-medium block mb-3">
+                      ⏱️ Flight Duration
+                    </Text>
+                    <Select
+                      value={maxDuration}
+                      onChange={setMaxDuration}
+                      className="w-full"
+                      options={[
+                        { value: "any", label: "Any duration" },
+                        { value: "3", label: "Under 3 hours" },
+                        { value: "6", label: "Under 6 hours" },
+                        { value: "12", label: "Under 12 hours" },
+                        { value: "24", label: "Under 24 hours" },
+                        { value: "36", label: "Under 36 hours" },
+                      ]}
+                    />
+                  </div>
+
+                  <Button
+                    type="link"
+                    className="p-0 text-blue-600"
+                    onClick={handleClearFilters}
+                  >
+                    Clear All Filters
+                  </Button>
                 </div>
-
-                <Divider />
-
-                {/* Airlines Filter */}
-                <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">Airlines</Text>
-                  <Space direction="vertical" className="w-full">
-                    {availableAirlines.map(airline => (
-                      <Checkbox 
-                        key={airline}
-                        checked={selectedAirlines.includes(airline)}
-                        onChange={(e) => handleAirlineChange(airline, e.target.checked)}
-                      >
-                        <Text className="text-sm">{airline}</Text>
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </div>
-
-                <Divider />
-
-                {/* Departure Time */}
-                <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">🕐 Departure Time</Text>
-                  <Select 
-                    value={departureTime}
-                    onChange={setDepartureTime}
-                    className="w-full"
-                    options={[
-                      { value: 'any', label: 'Any time' },
-                      { value: 'early-morning', label: 'Early Morning (4AM - 8AM)' },
-                      { value: 'morning', label: 'Morning (8AM - 12PM)' },
-                      { value: 'afternoon', label: 'Afternoon (12PM - 4PM)' },
-                      { value: 'evening', label: 'Evening (4PM - 8PM)' },
-                      { value: 'night', label: 'Night (8PM - 12AM)' },
-                      { value: 'late-night', label: 'Late Night (12AM - 4AM)' }
-                    ]}
-                  />
-                </div>
-
-                {/* Max Stops */}
-                <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">✈️ Stops</Text>
-                  <Select 
-                    value={maxStops}
-                    onChange={setMaxStops}
-                    className="w-full"
-                    options={[
-                      { value: 'any', label: 'Any number of stops' },
-                      { value: 'nonstop', label: 'Non-stop only' },
-                      { value: '1stop', label: 'Up to 1 stop' },
-                      { value: '2stops', label: 'Up to 2 stops' },
-                      { value: '3+stops', label: '3+ stops' }
-                    ]}
-                  />
-                </div>
-
-                {/* Max Duration */}
-                <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">⏱️ Flight Duration</Text>
-                  <Select 
-                    value={maxDuration}
-                    onChange={setMaxDuration}
-                    className="w-full"
-                    options={[
-                      { value: 'any', label: 'Any duration' },
-                      { value: '3', label: 'Under 3 hours' },
-                      { value: '6', label: 'Under 6 hours' },
-                      { value: '12', label: 'Under 12 hours' },
-                      { value: '24', label: 'Under 24 hours' },
-                      { value: '36', label: 'Under 36 hours' }
-                    ]}
-                  />
-                </div>
-
-                <Button 
-                  type="link" 
-                  className="p-0 text-blue-600"
-                  onClick={handleClearFilters}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            </Card>
+              </Card>
             </div>
           </Col>
 
@@ -1048,7 +1162,10 @@ export default function FlightSearchBundle() {
           <Col xs={24} lg={18}>
             <Card>
               <div className="mb-6">
-                <Title level={3} className="!mb-2 text-gray-900 flex items-center gap-2">
+                <Title
+                  level={3}
+                  className="!mb-2 text-gray-900 flex items-center gap-2"
+                >
                   <span className="text-blue-600">✈️</span>
                   Available Flights
                   <Badge
@@ -1057,7 +1174,8 @@ export default function FlightSearchBundle() {
                   />
                 </Title>
                 <Text className="text-gray-600">
-                  {searchCriteria.origin || 'Origin'} → {searchCriteria.destination || 'Destination'}
+                  {searchCriteria.origin || "Origin"} →{" "}
+                  {searchCriteria.destination || "Destination"}
                 </Text>
               </div>
 
@@ -1075,10 +1193,9 @@ export default function FlightSearchBundle() {
                 ) : (
                   <div className="text-center py-8">
                     <Text className="text-gray-500">
-                      {availableFlights.length === 0 
-                        ? "No flights found for your search criteria" 
-                        : "No flights match your current filters"
-                      }
+                      {availableFlights.length === 0
+                        ? "No flights found for your search criteria"
+                        : "No flights match your current filters"}
                     </Text>
                   </div>
                 )}
@@ -1112,7 +1229,9 @@ export default function FlightSearchBundle() {
                   selectedValue={selectedMeals}
                   onSelect={(value) => {
                     if (selectedMeals.includes(value)) {
-                      setSelectedMeals(selectedMeals.filter((m) => m !== value));
+                      setSelectedMeals(
+                        selectedMeals.filter((m) => m !== value),
+                      );
                     } else {
                       setSelectedMeals([...selectedMeals, value]);
                     }
@@ -1130,26 +1249,31 @@ export default function FlightSearchBundle() {
                 </Title>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <Text>Flight ({passengerCount} passenger{passengerCount > 1 ? 's' : ''})</Text>
+                    <Text>
+                      Flight ({passengerCount} passenger
+                      {passengerCount > 1 ? "s" : ""})
+                    </Text>
                     <Text className="font-medium">₹{baseCost.toFixed(2)}</Text>
                   </div>
                   {bundleCost > 0 && (
                     <div className="flex justify-between">
                       <Text>Extras & Services</Text>
-                      <Text className="font-medium">₹{bundleCost.toFixed(2)}</Text>
+                      <Text className="font-medium">
+                        ₹{bundleCost.toFixed(2)}
+                      </Text>
                     </div>
                   )}
                   <Divider />
                   <div className="flex justify-between text-lg font-bold">
                     <Text>Total</Text>
-                    <Text className="text-blue-600">₹{totalCost.toFixed(2)}</Text>
+                    <Text className="text-blue-600">
+                      ₹{totalCost.toFixed(2)}
+                    </Text>
                   </div>
                 </div>
               </Card>
             )}
           </Col>
-
-
         </Row>
 
         {/* Navigation Buttons */}
@@ -1185,7 +1309,9 @@ export default function FlightSearchBundle() {
           font-size: 16px;
         }
 
-        :global(.flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+        :global(
+            .flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn
+          ) {
           color: #2a0a22;
         }
 
@@ -1193,7 +1319,9 @@ export default function FlightSearchBundle() {
           opacity: 0.5;
         }
 
-        :global(.flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn) {
+        :global(
+            .flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn
+          ) {
           color: #9ca3af;
           cursor: not-allowed;
         }
