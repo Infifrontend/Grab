@@ -61,7 +61,7 @@ export default function QuickBookingForm() {
   });
 
   const handleSubmit = (values: any) => {
-    setLocation("/flight-search-results");
+    setLocation("/flight-search-bundle");
 
     // const searchData: SearchFormData = {
     //   tripType,
