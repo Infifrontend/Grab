@@ -15,6 +15,7 @@ import {
   Radio,
   Input,
   InputNumber,
+  DatePicker,
 } from "antd";
 import {
   ArrowRightOutlined,
@@ -22,7 +23,9 @@ import {
   PlusOutlined,
   EditOutlined,
   EnvironmentOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
 import Header from "@/components/layout/header";
 import { useLocation } from "wouter";
 import BookingSteps from "@/components/booking/booking-steps";
@@ -232,8 +235,8 @@ export default function FlightSearchBundle() {
         // Initialize modify search form with original data
         setOrigin(bookingData.origin || "JFK");
         setDestination(bookingData.destination || "LHR");
-        setDepartureDate(bookingData.departureDate || "2024-06-22");
-        setReturnDate(bookingData.returnDate || "2024-06-29");
+        setDepartureDate(bookingData.departureDate ? dayjs(bookingData.departureDate) : dayjs("2024-06-22"));
+        setReturnDate(bookingData.returnDate ? dayjs(bookingData.returnDate) : dayjs("2024-06-29"));
         setAdults(bookingData.adults || 1);
         setKids(bookingData.kids || 0);
         setInfants(bookingData.infants || 0);
@@ -427,17 +430,19 @@ export default function FlightSearchBundle() {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.departureDate || "2024-06-22";
+      return data.departureDate ? dayjs(data.departureDate) : dayjs("2024-06-22");
     }
-    return localStorage.getItem("searchDepartureDate") || "2024-06-22";
+    const storedDate = localStorage.getItem("searchDepartureDate");
+    return storedDate ? dayjs(storedDate) : dayjs("2024-06-22");
   });
   const [returnDate, setReturnDate] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.returnDate || "2024-06-29";
+      return data.returnDate ? dayjs(data.returnDate) : dayjs("2024-06-29");
     }
-    return localStorage.getItem("searchReturnDate") || "2024-06-29";
+    const storedDate = localStorage.getItem("searchReturnDate");
+    return storedDate ? dayjs(storedDate) : dayjs("2024-06-29");
   });
   const [adults, setAdults] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -488,8 +493,8 @@ export default function FlightSearchBundle() {
       const searchData = {
         origin,
         destination,
-        departureDate,
-        returnDate: tripType === "oneWay" ? null : returnDate,
+        departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
+        returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
         tripType,
         passengers: totalPassengers,
         adults,
@@ -509,8 +514,8 @@ export default function FlightSearchBundle() {
         body: JSON.stringify({
           origin,
           destination,
-          departureDate,
-          returnDate: tripType === "oneWay" ? null : returnDate,
+          departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
+          returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
           passengers: totalPassengers,
           cabin,
           tripType,
@@ -565,8 +570,8 @@ export default function FlightSearchBundle() {
         const updatedBookingData = {
           origin,
           destination,
-          departureDate,
-          returnDate,
+          departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
+          returnDate: typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD'),
           tripType,
           adults,
           kids,
@@ -835,7 +840,7 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
                         <Text className="block font-medium">
-                          {departureDate}
+                          {typeof departureDate === 'string' ? departureDate : departureDate?.format('DD/MM/YYYY')}
                         </Text>
                       </div>
                     </Col>
@@ -844,7 +849,7 @@ export default function FlightSearchBundle() {
                         <div>
                           <Text className="text-gray-600 text-sm">Return</Text>
                           <Text className="block font-medium">
-                            {returnDate}
+                            {typeof returnDate === 'string' ? returnDate : returnDate?.format('DD/MM/YYYY')}
                           </Text>
                         </div>
                       </Col>
@@ -937,10 +942,14 @@ export default function FlightSearchBundle() {
                     <Text className="text-gray-600 text-sm block mb-1">
                       Departure Date
                     </Text>
-                    <Input
+                    <DatePicker
                       value={departureDate}
-                      onChange={(e) => setDepartureDate(e.target.value)}
-                      placeholder="yyyy-mm-dd"
+                      onChange={(date) => setDepartureDate(date)}
+                      placeholder="Select departure date"
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                      suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                      disabledDate={(current) => current && current.isBefore(dayjs(), 'day')}
                     />
                   </div>
                 </Col>
@@ -949,11 +958,18 @@ export default function FlightSearchBundle() {
                     <Text className="text-gray-600 text-sm block mb-1">
                       Return Date
                     </Text>
-                    <Input
+                    <DatePicker
                       value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      placeholder="yyyy-mm-dd"
+                      onChange={(date) => setReturnDate(date)}
+                      placeholder="Select return date"
+                      format="DD/MM/YYYY"
+                      className="w-full"
                       disabled={tripType === "oneWay"}
+                      suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                      disabledDate={(current) => {
+                        if (tripType === "oneWay") return true;
+                        return current && (current.isBefore(dayjs(), 'day') || current.isBefore(departureDate, 'day'));
+                      }}
                     />
                   </div>
                 </Col>
