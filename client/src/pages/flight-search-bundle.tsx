@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Card,
   Row,
@@ -30,16 +30,22 @@ import BookingSteps from "@/components/booking/booking-steps";
 const { Title, Text } = Typography;
 
 interface Flight {
-  id: string;
-  airline: string;
+  id: number;
   flightNumber: string;
+  airline: string;
+  aircraft: string;
+  origin: string;
+  destination: string;
   departureTime: string;
   arrivalTime: string;
   duration: string;
-  aircraft: string;
-  price: number;
+  price: string;
+  availableSeats: number;
+  totalSeats: number;
+  cabin: string;
   stops: number;
-  route: string;
+  status: string;
+  createdAt: string;
 }
 
 interface BundleOption {
@@ -50,131 +56,7 @@ interface BundleOption {
   features: string[];
 }
 
-const outboundFlights: Flight[] = [
-  {
-    id: "BA178",
-    airline: "British Airways",
-    flightNumber: "BA178",
-    departureTime: "10:30 AM",
-    arrivalTime: "10:15 PM",
-    duration: "7h 45m",
-    aircraft: "Boeing 777-300ER",
-    price: 1252,
-    stops: 0,
-    route: "JFK to LHR",
-  },
-  {
-    id: "VS45",
-    airline: "Virgin Atlantic",
-    flightNumber: "VS45",
-    departureTime: "08:15 AM",
-    arrivalTime: "07:30 PM",
-    duration: "8h 15m",
-    aircraft: "Airbus A350-1000",
-    price: 1470,
-    stops: 0,
-    route: "JFK to LHR",
-  },
-  {
-    id: "AA100",
-    airline: "American Airlines",
-    flightNumber: "AA100",
-    departureTime: "06:05 PM",
-    arrivalTime: "06:20 AM+1",
-    duration: "7h 15m",
-    aircraft: "Boeing 777-300ER",
-    price: 1180,
-    stops: 0,
-    route: "JFK to LHR",
-  },
-  {
-    id: "LH401",
-    airline: "Lufthansa",
-    flightNumber: "LH401",
-    departureTime: "02:45 PM",
-    arrivalTime: "01:30 PM+1",
-    duration: "8h 45m",
-    aircraft: "Airbus A340-600",
-    price: 1350,
-    stops: 1,
-    route: "JFK to LHR",
-  },
-  {
-    id: "AF007",
-    airline: "Air France",
-    flightNumber: "AF007",
-    departureTime: "11:20 AM",
-    arrivalTime: "10:45 PM",
-    duration: "7h 25m",
-    aircraft: "Boeing 777-200ER",
-    price: 1290,
-    stops: 0,
-    route: "JFK to LHR",
-  },
-];
 
-const returnFlights: Flight[] = [
-  {
-    id: "BA179",
-    airline: "British Airways",
-    flightNumber: "BA179",
-    departureTime: "12:45 PM",
-    arrivalTime: "03:30 PM",
-    duration: "8h 45m",
-    aircraft: "Boeing 777-300ER",
-    price: 1252,
-    stops: 0,
-    route: "LHR to JFK",
-  },
-  {
-    id: "VS46",
-    airline: "Virgin Atlantic",
-    flightNumber: "VS46",
-    departureTime: "02:15 PM",
-    arrivalTime: "05:30 PM",
-    duration: "8h 15m",
-    aircraft: "Airbus A350-1000",
-    price: 1470,
-    stops: 0,
-    route: "LHR to JFK",
-  },
-  {
-    id: "AA101",
-    airline: "American Airlines",
-    flightNumber: "AA101",
-    departureTime: "11:20 AM",
-    arrivalTime: "02:45 PM",
-    duration: "8h 25m",
-    aircraft: "Boeing 777-300ER",
-    price: 2054,
-    stops: 0,
-    route: "LHR to JFK",
-  },
-  {
-    id: "LH402",
-    airline: "Lufthansa",
-    flightNumber: "LH402",
-    departureTime: "09:30 AM",
-    arrivalTime: "12:15 PM",
-    duration: "8h 45m",
-    aircraft: "Airbus A340-600",
-    price: 1350,
-    stops: 1,
-    route: "LHR to JFK",
-  },
-  {
-    id: "AF008",
-    airline: "Air France",
-    flightNumber: "AF008",
-    departureTime: "04:20 PM",
-    arrivalTime: "07:35 PM",
-    duration: "8h 15m",
-    aircraft: "Boeing 777-200ER",
-    price: 1290,
-    stops: 0,
-    route: "LHR to JFK",
-  },
-];
 
 const seatOptions: BundleOption[] = [
   {
@@ -282,21 +164,96 @@ const mealOptions: BundleOption[] = [
 
 export default function FlightSearchBundle() {
   const [, setLocation] = useLocation();
-  const [selectedOutbound, setSelectedOutbound] = useState<string>("BA178");
-  const [selectedReturn, setSelectedReturn] = useState<string>("BA179");
+  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
+  const [searchCriteria, setSearchCriteria] = useState<any>({});
+  const [passengerCount, setPassengerCount] = useState<number>(1);
+  const [selectedOutbound, setSelectedOutbound] = useState<string>("");
+  const [selectedReturn, setSelectedReturn] = useState<string>("");
   const [selectedSeat, setSelectedSeat] = useState<string>("");
   const [selectedBaggage, setSelectedBaggage] = useState<string>("");
   const [selectedMeals, setSelectedMeals] = useState<string[]>([
     "standard-meal",
   ]);
 
+  // Load flight data from localStorage on component mount
+  useEffect(() => {
+    const storedFlights = localStorage.getItem('searchResults');
+    const storedCriteria = localStorage.getItem('searchCriteria');
+    const storedPassengerCount = localStorage.getItem('passengerCount');
+    
+    if (storedFlights) {
+      const flights = JSON.parse(storedFlights);
+      setAvailableFlights(flights);
+      // Set the first flight as selected by default
+      if (flights.length > 0) {
+        setSelectedOutbound(flights[0].id.toString());
+      }
+    }
+    
+    if (storedCriteria) {
+      setSearchCriteria(JSON.parse(storedCriteria));
+    }
+    
+    if (storedPassengerCount) {
+      setPassengerCount(parseInt(storedPassengerCount));
+    }
+  }, []);
+
   // Filter states
   const [sortBy, setSortBy] = useState('price-low');
-  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 3000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 10000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [departureTime, setDepartureTime] = useState('any');
   const [maxStops, setMaxStops] = useState('any');
   const [maxDuration, setMaxDuration] = useState('any');
+
+  // Get unique airlines from available flights
+  const availableAirlines = useMemo(() => {
+    return [...new Set(availableFlights.map(flight => flight.airline))];
+  }, [availableFlights]);
+
+  // Handle airline filter change
+  const handleAirlineChange = (airline: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAirlines([...selectedAirlines, airline]);
+    } else {
+      setSelectedAirlines(selectedAirlines.filter(a => a !== airline));
+    }
+  };
+
+  // Filter and sort flights
+  const filteredFlights = useMemo(() => {
+    let filtered = [...availableFlights];
+    
+    // Filter by airlines
+    if (selectedAirlines.length > 0) {
+      filtered = filtered.filter(flight => selectedAirlines.includes(flight.airline));
+    }
+    
+    // Filter by price range
+    filtered = filtered.filter(flight => {
+      const price = parseFloat(flight.price);
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
+    
+    // Sort flights
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return parseFloat(a.price) - parseFloat(b.price);
+        case 'price-high':
+          return parseFloat(b.price) - parseFloat(a.price);
+        case 'duration':
+          return a.duration.localeCompare(b.duration);
+        case 'departure':
+          return a.departureTime.localeCompare(b.departureTime);
+        default:
+          return 0;
+      }
+    });
+    
+    return filtered;
+  }, [availableFlights, selectedAirlines, priceRange, sortBy]);
 
   // Get trip type from URL params or localStorage (simulate getting from previous page)
   const [tripType, setTripType] = useState<string>(() => {
@@ -341,11 +298,11 @@ export default function FlightSearchBundle() {
     return "✈";
   };
 
-  const selectedOutboundFlight = outboundFlights.find(
-    (f) => f.id === selectedOutbound,
+  const selectedOutboundFlight = availableFlights.find(
+    (f) => f.id.toString() === selectedOutbound,
   );
-  const selectedReturnFlight = returnFlights.find(
-    (f) => f.id === selectedReturn,
+  const selectedReturnFlight = availableFlights.find(
+    (f) => f.id.toString() === selectedReturn,
   );
   const selectedSeatOption = seatOptions.find((s) => s.id === selectedSeat);
   const selectedBaggageOption = baggageOptions.find(
@@ -353,128 +310,30 @@ export default function FlightSearchBundle() {
   );
 
   const baseCost =
-    (selectedOutboundFlight?.price || 0) +
-    (tripType === "roundTrip" ? selectedReturnFlight?.price || 0 : 0);
+    parseFloat(selectedOutboundFlight?.price || "0") * passengerCount +
+    (tripType === "roundTrip" ? parseFloat(selectedReturnFlight?.price || "0") * passengerCount : 0);
   const bundleCost =
     (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
   const totalCost = baseCost + bundleCost;
 
-  // Handle airline selection
-  const handleAirlineChange = (airline: string, checked: boolean) => {
-    if (checked) {
-      setSelectedAirlines([...selectedAirlines, airline]);
-    } else {
-      setSelectedAirlines(selectedAirlines.filter(a => a !== airline));
-    }
-  };
-
   // Clear all filters
   const handleClearFilters = () => {
     setSortBy('price-low');
-    setPriceRange([1000, 3000]);
+    setPriceRange([1000, 10000]);
     setSelectedAirlines([]);
     setDepartureTime('any');
     setMaxStops('any');
     setMaxDuration('any');
   };
 
-  // Get unique airlines for filter
-  const availableAirlines = Array.from(new Set(outboundFlights.map(flight => flight.airline)));
-
-  // Filter and sort flights
-  const filteredOutboundFlights = useMemo(() => {
-    let filtered = outboundFlights.filter(flight => {
-      // Price range filter
-      if (flight.price < priceRange[0] || flight.price > priceRange[1]) {
-        return false;
-      }
-
-      // Airlines filter
-      if (selectedAirlines.length > 0 && !selectedAirlines.includes(flight.airline)) {
-        return false;
-      }
-
-      // Departure time filter
-      if (departureTime !== 'any') {
-        const depTime = parseInt(flight.departureTime.split(':')[0]);
-        const isAM = flight.departureTime.includes('AM');
-        const hour24 = isAM ? (depTime === 12 ? 0 : depTime) : (depTime === 12 ? 12 : depTime + 12);
-
-        switch (departureTime) {
-          case 'morning':
-            if (hour24 < 6 || hour24 >= 12) return false;
-            break;
-          case 'afternoon':
-            if (hour24 < 12 || hour24 >= 18) return false;
-            break;
-          case 'evening':
-            if (hour24 < 18 || hour24 >= 24) return false;
-            break;
-        }
-      }
-
-      // Max stops filter
-      if (maxStops !== 'any') {
-        switch (maxStops) {
-          case 'nonstop':
-            if (flight.stops !== 0) return false;
-            break;
-          case '1stop':
-            if (flight.stops !== 1) return false;
-            break;
-          case '2stops':
-            if (flight.stops < 2) return false;
-            break;
-        }
-      }
-
-      // Max duration filter
-      if (maxDuration !== 'any') {
-        const durationHours = parseInt(flight.duration.split('h')[0]);
-        const maxHours = parseInt(maxDuration);
-        if (durationHours > maxHours) return false;
-      }
-
-      return true;
-    });
-
-    // Sort flights
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'duration':
-        filtered.sort((a, b) => {
-          const aDuration = parseInt(a.duration.split('h')[0]) * 60 + parseInt(a.duration.split('h')[1].split('m')[0]);
-          const bDuration = parseInt(b.duration.split('h')[0]) * 60 + parseInt(b.duration.split('h')[1].split('m')[0]);
-          return aDuration - bDuration;
-        });
-        break;
-      case 'departure':
-        filtered.sort((a, b) => {
-          const aTime = parseInt(a.departureTime.replace(/[^\d]/g, ''));
-          const bTime = parseInt(b.departureTime.replace(/[^\d]/g, ''));
-          return aTime - bTime;
-        });
-        break;
-    }
-
-    return filtered;
-  }, [outboundFlights, sortBy, priceRange, selectedAirlines, departureTime, maxStops, maxDuration]);
-
   const FlightCard = ({
     flight,
     isSelected,
     onSelect,
-    type,
   }: {
     flight: Flight;
     isSelected: boolean;
     onSelect: () => void;
-    type: "outbound" | "return";
   }) => (
     <div
       className={`p-4 border rounded-lg cursor-pointer transition-all mb-3 ${
@@ -500,7 +359,7 @@ export default function FlightSearchBundle() {
               ) : (
                 <Badge
                   color="orange"
-                  text={`${flight.stops} stop`}
+                  text={`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
                   className="ml-2"
                 />
               )}
@@ -511,6 +370,7 @@ export default function FlightSearchBundle() {
               <Text className="font-medium text-lg">
                 {flight.departureTime}
               </Text>
+              <Text className="text-xs text-gray-500">{flight.origin}</Text>
             </div>
             <div className="flex items-center">
               <div className="w-6 h-px bg-gray-300"></div>
@@ -519,6 +379,7 @@ export default function FlightSearchBundle() {
             </div>
             <div className="text-center">
               <Text className="font-medium text-lg">{flight.arrivalTime}</Text>
+              <Text className="text-xs text-gray-500">{flight.destination}</Text>
             </div>
             <div className="ml-4">
               <Text className="text-gray-600 text-sm">({flight.duration})</Text>
@@ -529,9 +390,12 @@ export default function FlightSearchBundle() {
         </Col>
         <Col span={8} className="text-right">
           <Text className="text-xl font-bold text-gray-900">
-            ${flight.price}
+            ₹{flight.price}
           </Text>
           <Text className="text-gray-600 text-sm block">per person</Text>
+          <Text className="text-xs text-green-600">
+            {flight.availableSeats} seats left
+          </Text>
         </Col>
       </Row>
     </div>
@@ -630,7 +494,7 @@ export default function FlightSearchBundle() {
                     <Col>
                       <div>
                         <Text className="text-gray-600 text-sm">Route</Text>
-                        <Text className="block font-medium">{origin} → {destination}</Text>
+                        <Text className="block font-medium">{searchCriteria.origin || origin} → {searchCriteria.destination || destination}</Text>
                       </div>
                     </Col>
                     <Col>
@@ -958,128 +822,107 @@ export default function FlightSearchBundle() {
 
           {/* Flight Selection */}
           <Col xs={24} lg={18}>
-            {tripType === "roundTrip" ? (
-              <div className="mb-8">
-                <Tabs
-                  defaultActiveKey="outbound"
-                  items={[
-                    {
-                      key: "outbound",
-                      label: (
-                        <span className="flex items-center gap-2">
-                          <span className="text-blue-600">🛫</span>
-                          Outbound Flights - JFK to LHR
-                          <Badge
-                            count={`${filteredOutboundFlights.length} flights`}
-                            style={{ backgroundColor: "#52c41a" }}
-                          />
-                        </span>
-                      ),
-                      children: (
-                        <div>
-                          {filteredOutboundFlights.map((flight) => (
-                            <FlightCard
-                              key={flight.id}
-                              flight={flight}
-                              isSelected={selectedOutbound === flight.id}
-                              onSelect={() => setSelectedOutbound(flight.id)}
-                              type="outbound"
-                            />
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "return",
-                      label: (
-                        <span className="flex items-center gap-2">
-                          <span className="text-blue-600">🛬</span>
-                          Return Flights - LHR to JFK
-                          <Badge
-                            count={`${returnFlights.length} flights`}
-                            style={{ backgroundColor: "#52c41a" }}
-                          />
-                        </span>
-                      ),
-                      disabled: !selectedOutbound,
-                      children: (
-                        <div>
-                          {returnFlights.map((flight) => (
-                            <FlightCard
-                              key={flight.id}
-                              flight={flight}
-                              isSelected={selectedReturn === flight.id}
-                              onSelect={() => setSelectedReturn(flight.id)}
-                              type="return"
-                            />
-                          ))}
-                        </div>
-                      ),
-                    },
-                  ]}
-                  className="flight-tabs"
-                />
-              </div>
-            ) : (
-              <div className="mb-8">
-                <Title
-                  level={3}
-                  className="!mb-4 text-gray-800 flex items-center gap-2"
-                >
-                  <span className="text-blue-600">🛫</span>
-                  Outbound Flights - JFK to LHR
+            <Card>
+              <div className="mb-6">
+                <Title level={3} className="!mb-2 text-gray-900 flex items-center gap-2">
+                  <span className="text-blue-600">✈️</span>
+                  Available Flights
                   <Badge
-                    count={`${filteredOutboundFlights.length} flights`}
+                    count={`${filteredFlights.length} flights found`}
                     style={{ backgroundColor: "#52c41a" }}
                   />
                 </Title>
-
-                {filteredOutboundFlights.map((flight) => (
-                  <FlightCard
-                    key={flight.id}
-                    flight={flight}
-                    isSelected={selectedOutbound === flight.id}
-                    onSelect={() => setSelectedOutbound(flight.id)}
-                    type="outbound"
-                  />
-                ))}
+                <Text className="text-gray-600">
+                  {searchCriteria.origin || 'Origin'} → {searchCriteria.destination || 'Destination'}
+                </Text>
               </div>
+
+              {/* Flight Results */}
+              <div className="space-y-4">
+                {filteredFlights.length > 0 ? (
+                  filteredFlights.map((flight) => (
+                    <FlightCard
+                      key={flight.id}
+                      flight={flight}
+                      isSelected={selectedOutbound === flight.id.toString()}
+                      onSelect={() => setSelectedOutbound(flight.id.toString())}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Text className="text-gray-500">
+                      {availableFlights.length === 0 
+                        ? "No flights found for your search criteria" 
+                        : "No flights match your current filters"
+                      }
+                    </Text>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Bundle Selection - Only show if a flight is selected */}
+            {selectedOutbound && (
+              <Card className="mt-6">
+                <Title level={4} className="!mb-6 text-gray-800">
+                  Customize Your Journey
+                </Title>
+
+                <BundleSection
+                  title="Seat Selection"
+                  options={seatOptions}
+                  selectedValue={selectedSeat}
+                  onSelect={setSelectedSeat}
+                />
+
+                <BundleSection
+                  title="Baggage"
+                  options={baggageOptions}
+                  selectedValue={selectedBaggage}
+                  onSelect={setSelectedBaggage}
+                />
+
+                <BundleSection
+                  title="Meals"
+                  options={mealOptions}
+                  selectedValue={selectedMeals}
+                  onSelect={(value) => {
+                    if (selectedMeals.includes(value)) {
+                      setSelectedMeals(selectedMeals.filter((m) => m !== value));
+                    } else {
+                      setSelectedMeals([...selectedMeals, value]);
+                    }
+                  }}
+                  allowMultiple={true}
+                />
+              </Card>
             )}
 
-            {/* Bundle Options */}
-            <div className="mb-8">
-              <Title level={3} className="!mb-6 text-gray-800">
-                Hard Bundles - Essential Add-ons
-              </Title>
-
-              <BundleSection
-                title="Seat Selection"
-                options={seatOptions}
-                selectedValue={selectedSeat}
-                onSelect={setSelectedSeat}
-              />
-
-              <BundleSection
-                title="Baggage"
-                options={baggageOptions}
-                selectedValue={selectedBaggage}
-                onSelect={setSelectedBaggage}
-              />
-
-              <BundleSection
-                title="Meals"
-                options={mealOptions}
-                selectedValue={selectedMeals}
-                onSelect={(value) => {
-                  if (selectedMeals.includes(value)) {
-                    setSelectedMeals(selectedMeals.filter((m) => m !== value));
-                  } else {
-                    setSelectedMeals([...selectedMeals, value]);
-                  }
-                }}
-                allowMultiple={true}
-              />
-            </div>
+            {/* Booking Summary */}
+            {selectedOutbound && (
+              <Card className="mt-6">
+                <Title level={4} className="!mb-4 text-gray-800">
+                  Booking Summary
+                </Title>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <Text>Flight ({passengerCount} passenger{passengerCount > 1 ? 's' : ''})</Text>
+                    <Text className="font-medium">₹{baseCost.toFixed(2)}</Text>
+                  </div>
+                  {bundleCost > 0 && (
+                    <div className="flex justify-between">
+                      <Text>Extras & Services</Text>
+                      <Text className="font-medium">₹{bundleCost.toFixed(2)}</Text>
+                    </div>
+                  )}
+                  <Divider />
+                  <div className="flex justify-between text-lg font-bold">
+                    <Text>Total</Text>
+                    <Text className="text-blue-600">₹{totalCost.toFixed(2)}</Text>
+                  </div>
+                </div>
+              </Card>
+            )}
           </Col>
 
           

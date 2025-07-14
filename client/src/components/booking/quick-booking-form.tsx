@@ -109,17 +109,15 @@ export default function QuickBookingForm() {
         return;
       }
 
-      // Automatically book the first available flight
-      const firstFlight = searchResult.flights[0];
-      message.success(`Found ${searchResult.flights.length} flights! Booking the best option...`);
+      // Store search results and criteria for the flight search bundle page
+      localStorage.setItem('searchResults', JSON.stringify(searchResult.flights));
+      localStorage.setItem('searchCriteria', JSON.stringify(searchData));
+      localStorage.setItem('passengerCount', totalPassengers.toString());
       
-      const bookingData = {
-        flightId: firstFlight.id,
-        passengerCount: totalPassengers,
-        passengers: [] // We'll add passenger details later
-      };
-
-      quickBookMutation.mutate(bookingData);
+      message.success(`Found ${searchResult.flights.length} flights! Redirecting to flight selection...`);
+      
+      // Navigate to flight search bundle page
+      setLocation("/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");
