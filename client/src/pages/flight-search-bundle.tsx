@@ -177,53 +177,100 @@ export default function FlightSearchBundle() {
 
   // Load flight data from localStorage on component mount
   useEffect(() => {
-    const storedFlights = localStorage.getItem('searchResults');
-    const storedCriteria = localStorage.getItem('searchCriteria');
-    const storedPassengerCount = localStorage.getItem('passengerCount');
-    const storedBookingData = localStorage.getItem('bookingFormData');
+    const loadFlightData = () => {
+      const storedFlights = localStorage.getItem('searchResults');
+      const storedCriteria = localStorage.getItem('searchCriteria');
+      const storedPassengerCount = localStorage.getItem('passengerCount');
+      const storedBookingData = localStorage.getItem('bookingFormData');
 
-    if (storedFlights) {
-      const flights = JSON.parse(storedFlights);
-      setAvailableFlights(flights);
-      // Set the first flight as selected by default
-      if (flights.length > 0) {
-        setSelectedOutbound(flights[0].id.toString());
+      let loadedFlights: Flight[] = [];
+      let loadedCriteria: any = {};
+
+      if (storedFlights) {
+        const flights = JSON.parse(storedFlights);
+        loadedFlights = flights;
       }
-    }
 
-    if (storedCriteria) {
-      setSearchCriteria(JSON.parse(storedCriteria));
-    }
-
-    if (storedPassengerCount) {
-      setPassengerCount(parseInt(storedPassengerCount));
-    }
-
-    // Load complete booking form data to ensure consistency
-    if (storedBookingData) {
-      const bookingData = JSON.parse(storedBookingData);
-      
-      // Initialize modify search form with original data
-      setOrigin(bookingData.origin || 'JFK');
-      setDestination(bookingData.destination || 'LHR');
-      setDepartureDate(bookingData.departureDate || '2024-06-22');
-      setReturnDate(bookingData.returnDate || '2024-06-29');
-      setAdults(bookingData.adults || 24);
-      setKids(bookingData.kids || 8);
-      setInfants(bookingData.infants || 0);
-      setCabin(bookingData.cabin || 'Economy');
-      setTripType(bookingData.tripType || 'roundTrip');
-      
-      // Update passenger count if needed
-      if (bookingData.totalPassengers) {
-        setPassengerCount(bookingData.totalPassengers);
+      if (storedCriteria) {
+        loadedCriteria = JSON.parse(storedCriteria);
+        setSearchCriteria(loadedCriteria);
       }
-    }
+
+      if (storedPassengerCount) {
+        setPassengerCount(parseInt(storedPassengerCount));
+      }
+
+      // Load complete booking form data to ensure consistency
+      if (storedBookingData) {
+        const bookingData = JSON.parse(storedBookingData);
+        
+        // Initialize modify search form with original data
+        setOrigin(bookingData.origin || 'JFK');
+        setDestination(bookingData.destination || 'LHR');
+        setDepartureDate(bookingData.departureDate || '2024-06-22');
+        setReturnDate(bookingData.returnDate || '2024-06-29');
+        setAdults(bookingData.adults || 24);
+        setKids(bookingData.kids || 8);
+        setInfants(bookingData.infants || 0);
+        setCabin(bookingData.cabin || 'Economy');
+        setTripType(bookingData.tripType || 'roundTrip');
+        
+        // Update passenger count if needed
+        if (bookingData.totalPassengers) {
+          setPassengerCount(bookingData.totalPassengers);
+        }
+
+        // Use booking data for search criteria if not available
+        if (!loadedCriteria.origin && !loadedCriteria.destination) {
+          loadedCriteria = {
+            origin: bookingData.origin,
+            destination: bookingData.destination,
+            departureDate: bookingData.departureDate,
+            returnDate: bookingData.returnDate,
+            tripType: bookingData.tripType,
+            passengers: bookingData.totalPassengers,
+            cabin: bookingData.cabin
+          };
+          setSearchCriteria(loadedCriteria);
+        }
+      }
+
+      // Filter flights based on origin and destination if criteria is available
+      if (loadedFlights.length > 0 && (loadedCriteria.origin || loadedCriteria.destination)) {
+        const filteredFlights = loadedFlights.filter(flight => {
+          const matchesOrigin = !loadedCriteria.origin || 
+            flight.origin.toLowerCase().includes(loadedCriteria.origin.toLowerCase()) ||
+            loadedCriteria.origin.toLowerCase().includes(flight.origin.toLowerCase());
+            
+          const matchesDestination = !loadedCriteria.destination || 
+            flight.destination.toLowerCase().includes(loadedCriteria.destination.toLowerCase()) ||
+            loadedCriteria.destination.toLowerCase().includes(flight.destination.toLowerCase());
+            
+          return matchesOrigin && matchesDestination;
+        });
+        
+        setAvailableFlights(filteredFlights);
+        
+        // Set the first flight as selected by default
+        if (filteredFlights.length > 0) {
+          setSelectedOutbound(filteredFlights[0].id.toString());
+        }
+      } else {
+        setAvailableFlights(loadedFlights);
+        
+        // Set the first flight as selected by default
+        if (loadedFlights.length > 0) {
+          setSelectedOutbound(loadedFlights[0].id.toString());
+        }
+      }
+    };
+
+    loadFlightData();
   }, []);
 
   // Filter states
   const [sortBy, setSortBy] = useState('price-low');
-  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 10000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([5000, 50000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [departureTime, setDepartureTime] = useState('any');
   const [maxStops, setMaxStops] = useState('any');
@@ -254,17 +301,60 @@ export default function FlightSearchBundle() {
 
     // Filter by price range
     filtered = filtered.filter(flight => {
-      const price = parseFloat(flight.price);
+      const price = parseFloat(flight.price.toString());
       return price >= priceRange[0] && price <= priceRange[1];
     });
+
+    // Filter by departure time
+    if (departureTime !== 'any') {
+      filtered = filtered.filter(flight => {
+        const depTime = flight.departureTime;
+        const hour = parseInt(depTime.split(':')[0]);
+        
+        switch (departureTime) {
+          case 'early-morning':
+            return hour >= 4 && hour < 8;
+          case 'morning':
+            return hour >= 8 && hour < 12;
+          case 'afternoon':
+            return hour >= 12 && hour < 16;
+          case 'evening':
+            return hour >= 16 && hour < 20;
+          case 'night':
+            return hour >= 20 && hour < 24;
+          case 'late-night':
+            return hour >= 0 && hour < 4;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Filter by stops
+    if (maxStops !== 'any') {
+      filtered = filtered.filter(flight => {
+        switch (maxStops) {
+          case 'nonstop':
+            return flight.stops === 0;
+          case '1stop':
+            return flight.stops <= 1;
+          case '2stops':
+            return flight.stops <= 2;
+          case '3+stops':
+            return flight.stops >= 3;
+          default:
+            return true;
+        }
+      });
+    }
 
     // Sort flights
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return parseFloat(a.price) - parseFloat(b.price);
+          return parseFloat(a.price.toString()) - parseFloat(b.price.toString());
         case 'price-high':
-          return parseFloat(b.price) - parseFloat(a.price);
+          return parseFloat(b.price.toString()) - parseFloat(a.price.toString());
         case 'duration':
           return a.duration.localeCompare(b.duration);
         case 'departure':
@@ -275,7 +365,7 @@ export default function FlightSearchBundle() {
     });
 
     return filtered;
-  }, [availableFlights, selectedAirlines, priceRange, sortBy]);
+  }, [availableFlights, selectedAirlines, priceRange, sortBy, departureTime, maxStops]);
 
   // Get trip type from URL params or localStorage (simulate getting from previous page)
   const [tripType, setTripType] = useState<string>(() => {
@@ -323,34 +413,83 @@ export default function FlightSearchBundle() {
         cabin,
       };
 
-      // Update localStorage with new search criteria
-      localStorage.setItem('searchCriteria', JSON.stringify(searchData));
-      localStorage.setItem('passengerCount', totalPassengers.toString());
-      
-      // Update booking form data
-      const updatedBookingData = {
-        origin,
-        destination,
-        departureDate,
-        returnDate,
-        tripType,
-        adults,
-        kids,
-        infants,
-        cabin,
-        totalPassengers,
-        searchData
-      };
-      localStorage.setItem('bookingFormData', JSON.stringify(updatedBookingData));
+      // Make API call to search for flights
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          origin,
+          destination,
+          departureDate,
+          returnDate: tripType === "oneWay" ? null : returnDate,
+          passengers: totalPassengers,
+          cabin,
+          tripType,
+        }),
+      });
 
-      // Update component state
-      setSearchCriteria(searchData);
-      setPassengerCount(totalPassengers);
-      setShowModifySearch(false);
+      const searchResult = await response.json();
       
-      console.log('Search criteria updated:', searchData);
+      if (searchResult.flights && searchResult.flights.length > 0) {
+        // Filter flights based on origin and destination
+        const filteredFlights = searchResult.flights.filter((flight: Flight) => {
+          const matchesOrigin = flight.origin.toLowerCase().includes(origin.toLowerCase()) ||
+            origin.toLowerCase().includes(flight.origin.toLowerCase());
+            
+          const matchesDestination = flight.destination.toLowerCase().includes(destination.toLowerCase()) ||
+            destination.toLowerCase().includes(flight.destination.toLowerCase());
+            
+          return matchesOrigin && matchesDestination;
+        });
+
+        setAvailableFlights(filteredFlights);
+        
+        // Set the first flight as selected by default
+        if (filteredFlights.length > 0) {
+          setSelectedOutbound(filteredFlights[0].id.toString());
+        } else {
+          setSelectedOutbound("");
+        }
+
+        // Update localStorage with new search results and criteria
+        localStorage.setItem('searchResults', JSON.stringify(filteredFlights));
+        localStorage.setItem('searchCriteria', JSON.stringify(searchData));
+        localStorage.setItem('passengerCount', totalPassengers.toString());
+        
+        // Update booking form data
+        const updatedBookingData = {
+          origin,
+          destination,
+          departureDate,
+          returnDate,
+          tripType,
+          adults,
+          kids,
+          infants,
+          cabin,
+          totalPassengers,
+          searchData
+        };
+        localStorage.setItem('bookingFormData', JSON.stringify(updatedBookingData));
+
+        // Update component state
+        setSearchCriteria(searchData);
+        setPassengerCount(totalPassengers);
+        setShowModifySearch(false);
+        
+        console.log(`Found ${filteredFlights.length} flights for ${origin} to ${destination}`);
+      } else {
+        // No flights found
+        setAvailableFlights([]);
+        setSelectedOutbound("");
+        console.log('No flights found for the selected route');
+      }
+      
     } catch (error) {
-      console.error('Error updating search criteria:', error);
+      console.error('Error searching flights:', error);
+      // Keep existing flights if API call fails
     }
   };
 
