@@ -12,11 +12,16 @@ import {
   Select,
   Slider,
   Tabs,
+  Radio,
+  Input,
+  InputNumber,
 } from "antd";
 import {
   ArrowRightOutlined,
   ArrowLeftOutlined,
   PlusOutlined,
+  EditOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 import Header from "@/components/layout/header";
 import { useLocation } from "wouter";
@@ -294,7 +299,20 @@ export default function FlightSearchBundle() {
   const [maxDuration, setMaxDuration] = useState('any');
 
   // Get trip type from URL params or localStorage (simulate getting from previous page)
-  const [tripType] = useState<string>("roundTrip"); // This would normally come from navigation state
+  const [tripType, setTripType] = useState<string>("roundTrip"); // This would normally come from navigation state
+  
+  // Modify search toggle state
+  const [showModifySearch, setShowModifySearch] = useState(false);
+  
+  // Modify search form state
+  const [origin, setOrigin] = useState('JFK');
+  const [destination, setDestination] = useState('LHR');
+  const [departureDate, setDepartureDate] = useState('2024-06-22');
+  const [returnDate, setReturnDate] = useState('2024-06-29');
+  const [adults, setAdults] = useState(24);
+  const [kids, setKids] = useState(8);
+  const [infants, setInfants] = useState(0);
+  const [cabin, setCabin] = useState('Economy');
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
@@ -303,6 +321,16 @@ export default function FlightSearchBundle() {
   const handleContinue = () => {
     console.log("Continue to Add Services & Bundles");
     setLocation("/add-services-bundles");
+  };
+
+  const handleSearchFlights = () => {
+    console.log('Searching flights with modified criteria');
+    setShowModifySearch(false);
+    // Add search logic here
+  };
+
+  const handleCancelModify = () => {
+    setShowModifySearch(false);
   };
 
   const getAirlineIcon = (airline: string) => {
@@ -587,28 +615,213 @@ export default function FlightSearchBundle() {
           Flight Search & Bundle Selection
         </Title>
 
-        {/* Search Summary */}
+        {/* Search Summary / Modify Search Section */}
         <Card className="mb-6">
-          <Row gutter={24}>
-            <Col span={6}>
-              <div>
-                <Text className="text-gray-600 text-sm">Route</Text>
-                <Text className="block font-medium">JFK → LHR</Text>
+          {!showModifySearch ? (
+            /* Compact Search Summary */
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <Row align="middle" justify="space-between">
+                <Col>
+                  <Row gutter={[24, 8]} align="middle">
+                    <Col>
+                      <div>
+                        <Text className="text-gray-600 text-sm">Route</Text>
+                        <Text className="block font-medium">{origin} → {destination}</Text>
+                      </div>
+                    </Col>
+                    <Col>
+                      <div>
+                        <Text className="text-gray-600 text-sm">Trip Type</Text>
+                        <Text className="block font-medium">
+                          {tripType === 'oneWay' ? 'One Way' : tripType === 'roundTrip' ? 'Round Trip' : 'Multi City'}
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col>
+                      <div>
+                        <Text className="text-gray-600 text-sm">Departure</Text>
+                        <Text className="block font-medium">{departureDate}</Text>
+                      </div>
+                    </Col>
+                    {tripType === 'roundTrip' && (
+                      <Col>
+                        <div>
+                          <Text className="text-gray-600 text-sm">Return</Text>
+                          <Text className="block font-medium">{returnDate}</Text>
+                        </div>
+                      </Col>
+                    )}
+                    <Col>
+                      <div>
+                        <Text className="text-gray-600 text-sm">Passengers</Text>
+                        <Text className="block font-medium">{adults + kids + infants} passengers</Text>
+                      </div>
+                    </Col>
+                    <Col>
+                      <div>
+                        <Text className="text-gray-600 text-sm">Cabin</Text>
+                        <Text className="block font-medium">{cabin}</Text>
+                      </div>
+                    </Col>
+                  </Row>
+                </Col>
+                <Col>
+                  <Button 
+                    type="link" 
+                    icon={<EditOutlined />}
+                    onClick={() => setShowModifySearch(true)}
+                    className="text-blue-600"
+                  >
+                    Modify Search
+                  </Button>
+                </Col>
+              </Row>
+            </div>
+          ) : (
+            /* Full Modify Search Form */
+            <div>
+              {/* Trip Type Selection */}
+              <div className="mb-4">
+                <Radio.Group
+                  value={tripType}
+                  onChange={(e) => setTripType(e.target.value)}
+                  className="flex gap-6"
+                >
+                  <Radio value="oneWay" className="text-sm">
+                    One way
+                  </Radio>
+                  <Radio value="roundTrip" className="text-sm">
+                    Round trip
+                  </Radio>
+                  <Radio value="multiCity" className="text-sm">
+                    Multi city
+                  </Radio>
+                </Radio.Group>
               </div>
-            </Col>
-            <Col span={6}>
-              <div>
-                <Text className="text-gray-600 text-sm">Departure</Text>
-                <Text className="block font-medium">2024-06-22</Text>
-              </div>
-            </Col>
-            <Col span={6}>
-              <div>
-                <Text className="text-gray-600 text-sm">Passengers</Text>
-                <Text className="block font-medium">32 passengers</Text>
-              </div>
-            </Col>
-          </Row>
+
+              {/* Origin and Destination Row */}
+              <Row gutter={[16, 16]} className="mb-4">
+                <Col xs={24} md={6}>
+                  <div>
+                    <Text className="text-gray-600 text-sm block mb-1">Origin</Text>
+                    <Input
+                      value={origin}
+                      onChange={(e) => setOrigin(e.target.value)}
+                      prefix={<EnvironmentOutlined className="text-gray-400" />}
+                      placeholder="City / Airport"
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div>
+                    <Text className="text-gray-600 text-sm block mb-1">Destination</Text>
+                    <Input
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      prefix={<EnvironmentOutlined className="text-gray-400" />}
+                      placeholder="City / Airport"
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div>
+                    <Text className="text-gray-600 text-sm block mb-1">Departure Date</Text>
+                    <Input
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      placeholder="yyyy-mm-dd"
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div>
+                    <Text className="text-gray-600 text-sm block mb-1">Return Date</Text>
+                    <Input
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                      placeholder="yyyy-mm-dd"
+                      disabled={tripType === 'oneWay'}
+                    />
+                  </div>
+                </Col>
+              </Row>
+
+              {/* Passengers and Cabin Row */}
+              <Row gutter={[16, 16]} className="mb-4">
+                <Col xs={24} md={18}>
+                  <Text className="text-gray-600 text-sm block mb-2">Passengers</Text>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <Text className="text-gray-700 text-sm block mb-1">Adults (12+ years)</Text>
+                        <InputNumber
+                          min={0}
+                          value={adults}
+                          onChange={(value) => setAdults(value || 0)}
+                          className="w-full"
+                        />
+                      </div>
+                    </Col>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <Text className="text-gray-700 text-sm block mb-1">Kids (2-11 years)</Text>
+                        <InputNumber
+                          min={0}
+                          value={kids}
+                          onChange={(value) => setKids(value || 0)}
+                          className="w-full"
+                        />
+                      </div>
+                    </Col>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <Text className="text-gray-700 text-sm block mb-1">Infants (0-2 years)</Text>
+                        <InputNumber
+                          min={0}
+                          value={infants}
+                          onChange={(value) => setInfants(value || 0)}
+                          className="w-full"
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div>
+                    <Text className="text-gray-600 text-sm block mb-1">Cabin</Text>
+                    <Select
+                      value={cabin}
+                      onChange={setCabin}
+                      className="w-full"
+                      suffixIcon={<span className="text-gray-400">▼</span>}
+                    >
+                      <Select.Option value="Economy">Economy</Select.Option>
+                      <Select.Option value="Business">Business</Select.Option>
+                      <Select.Option value="First">First Class</Select.Option>
+                    </Select>
+                  </div>
+                </Col>
+              </Row>
+
+              {/* Action Buttons */}
+              <Row gutter={16}>
+                <Col>
+                  <Button 
+                    type="primary" 
+                    onClick={handleSearchFlights}
+                    className="infiniti-btn-primary"
+                  >
+                    Search Flights
+                  </Button>
+                </Col>
+                <Col>
+                  <Button onClick={handleCancelModify}>
+                    Cancel
+                  </Button>
+                </Col>
+              </Row>
+            </div>
+          )}
         </Card>
 
         <Row gutter={24}>
