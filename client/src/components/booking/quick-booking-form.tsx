@@ -95,6 +95,7 @@ export default function QuickBookingForm() {
         origin: values.origin,
         destination: values.destination,
         departureDate: values.departureDate.toISOString(),
+        returnDate: values.returnDate?.toISOString() || null,
         passengers: totalPassengers,
         cabin: values.cabin || 'economy',
         tripType: tripType,
