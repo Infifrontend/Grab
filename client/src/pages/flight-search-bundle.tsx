@@ -236,7 +236,7 @@ export default function FlightSearchBundle() {
         setOrigin(bookingData.origin || "JFK");
         setDestination(bookingData.destination || "LHR");
         setDepartureDate(bookingData.departureDate ? dayjs(bookingData.departureDate) : dayjs("2024-06-22"));
-        setReturnDate(bookingData.returnDate ? dayjs(bookingData.returnDate) : dayjs("2024-06-29"));
+        setReturnDate(bookingData.returnDate ? dayjs(bookingData.returnDate) : null);
         setAdults(bookingData.adults || 1);
         setKids(bookingData.kids || 0);
         setInfants(bookingData.infants || 0);
@@ -397,14 +397,7 @@ export default function FlightSearchBundle() {
   ]);
 
   // Get trip type from bookingFormData (from QuickBooking form)
-  const [tripType, setTripType] = useState<string>(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.tripType || "roundTrip";
-    }
-    return localStorage.getItem("selectedTripType") || "roundTrip";
-  });
+  const [tripType, setTripType] = useState<string>("roundTrip");
 
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
@@ -439,10 +432,10 @@ export default function FlightSearchBundle() {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.returnDate ? dayjs(data.returnDate) : dayjs("2024-06-29");
+      return data.returnDate ? dayjs(data.returnDate) : null;
     }
     const storedDate = localStorage.getItem("searchReturnDate");
-    return storedDate ? dayjs(storedDate) : dayjs("2024-06-29");
+    return storedDate ? dayjs(storedDate) : null;
   });
   const [adults, setAdults] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -840,7 +833,7 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
                         <Text className="block font-medium">
-                          {typeof departureDate === 'string' ? departureDate : departureDate?.format('DD/MM/YYYY')}
+                          {searchCriteria.departureDate || (typeof departureDate === 'string' ? departureDate : departureDate?.format('DD/MM/YYYY'))}
                         </Text>
                       </div>
                     </Col>
@@ -849,7 +842,7 @@ export default function FlightSearchBundle() {
                         <div>
                           <Text className="text-gray-600 text-sm">Return</Text>
                           <Text className="block font-medium">
-                            {typeof returnDate === 'string' ? returnDate : returnDate?.format('DD/MM/YYYY')}
+                            {tripType === "oneWay" ? "N/A" : (searchCriteria.returnDate || (typeof returnDate === 'string' ? returnDate : returnDate?.format('DD/MM/YYYY')))}
                           </Text>
                         </div>
                       </Col>
@@ -989,7 +982,7 @@ export default function FlightSearchBundle() {
                       suffixIcon={<CalendarOutlined className="text-gray-400" />}
                       disabledDate={(current) => {
                         if (tripType === "oneWay") return true;
-                        return current && (current.isBefore(dayjs(), 'day') || current.isBefore(departureDate, 'day'));
+                        return current && (current.isBefore(dayjs(), 'day') || (departureDate && current.isBefore(departureDate, 'day')));
                       }}
                     />
                   </div>
