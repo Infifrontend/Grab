@@ -41,16 +41,24 @@ export default function QuickBookingForm() {
   const searchMutation = useMutation({
     mutationFn: async (searchData: SearchFormData) => {
       // Convert Date objects to ISO strings for API
+      const totalPassengers = searchData.adults + searchData.kids + searchData.infants;
       const apiData = {
-        ...searchData,
+        origin: searchData.origin,
+        destination: searchData.destination,
         departureDate: searchData.departureDate.toISOString(),
         returnDate: searchData.returnDate?.toISOString(),
+        passengers: totalPassengers,
+        cabin: searchData.cabin,
+        tripType: searchData.tripType,
       };
       const response = await apiRequest("POST", "/api/search", apiData);
       return response.json();
     },
-    onSuccess: () => {
-      message.success("Search completed successfully!");
+    onSuccess: (data) => {
+      console.log("Search results:", data);
+      // Store search results in localStorage for the results page
+      localStorage.setItem('searchResults', JSON.stringify(data.flights || []));
+      message.success(`Found ${data.flights?.length || 0} flights!`);
       setLocation("/flight-search-results");
     },
     onError: (error) => {
@@ -59,34 +67,65 @@ export default function QuickBookingForm() {
     },
   });
 
-  const handleSubmit = (values: any) => {
-    // Save trip type and other search data to localStorage for the Flight Search Bundle page
-    localStorage.setItem('selectedTripType', tripType);
-    localStorage.setItem('searchOrigin', values.origin || '');
-    localStorage.setItem('searchDestination', values.destination || '');
-    localStorage.setItem('searchDepartureDate', values.departureDate?.format('YYYY-MM-DD') || '');
-    localStorage.setItem('searchReturnDate', values.returnDate?.format('YYYY-MM-DD') || '');
-    localStorage.setItem('searchAdults', values.adults?.toString() || '0');
-    localStorage.setItem('searchKids', values.kids?.toString() || '0');
-    localStorage.setItem('searchInfants', values.infants?.toString() || '0');
-    localStorage.setItem('searchCabin', values.cabin || 'Economy');
+  const quickBookMutation = useMutation({
+    mutationFn: async (bookingData: any) => {
+      const response = await apiRequest("POST", "/api/flight-bookings", bookingData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      message.success(`Booking created! Reference: ${data.booking.bookingReference}`);
+      setLocation(`/booking-details?ref=${data.booking.bookingReference}`);
+    },
+    onError: (error) => {
+      console.error("Booking error:", error);
+      message.error("Booking failed. Please try again.");
+    },
+  });
 
-    setLocation("/flight-search-bundle");
+  const handleSubmit = async (values: any) => {
+    if (!values.origin || !values.destination || !values.departureDate) {
+      message.error("Please fill in origin, destination, and departure date");
+      return;
+    }
 
-    // const searchData: SearchFormData = {
-    //   tripType,
-    //   origin: values.origin,
-    //   destination: values.destination,
-    //   departureDate: values.departureDate.toDate(),
-    //   returnDate: values.returnDate ? values.returnDate.toDate() : undefined,
-    //   adults: values.adults,
-    //   kids: values.kids,
-    //   infants: values.infants,
-    //   cabin: values.cabin,
-    // };
+    try {
+      // First search for available flights from database
+      const totalPassengers = (values.adults || 1) + (values.kids || 0) + (values.infants || 0);
+      const searchData = {
+        origin: values.origin,
+        destination: values.destination,
+        departureDate: values.departureDate.toISOString(),
+        passengers: totalPassengers,
+        cabin: values.cabin || 'economy',
+        tripType: tripType,
+      };
 
-    // searchMutation.mutate(searchData);
+      const searchResponse = await apiRequest("POST", "/api/search", searchData);
+      const searchResult = await searchResponse.json();
+      
+      if (!searchResult.flights || searchResult.flights.length === 0) {
+        message.error("No flights found for your search criteria");
+        return;
+      }
+
+      // Automatically book the first available flight
+      const firstFlight = searchResult.flights[0];
+      message.success(`Found ${searchResult.flights.length} flights! Booking the best option...`);
+      
+      const bookingData = {
+        flightId: firstFlight.id,
+        passengerCount: totalPassengers,
+        passengers: [] // We'll add passenger details later
+      };
+
+      quickBookMutation.mutate(bookingData);
+    } catch (error) {
+      console.error("Search and book error:", error);
+      message.error("Flight search failed. Please try again.");
+    }
   };
+
+
 
   return (
     <Card className="h-fit">
@@ -248,10 +287,10 @@ export default function QuickBookingForm() {
           type="primary"
           htmlType="submit"
           size="large"
-          loading={searchMutation.isPending}
+          loading={searchMutation.isPending || quickBookMutation.isPending}
           className="w-full infiniti-btn-primary"
         >
-          Get Fares
+          {searchMutation.isPending ? "Searching Flights..." : quickBookMutation.isPending ? "Creating Booking..." : "Search & Book Flight"}
         </Button>
       </Form>
     </Card>
