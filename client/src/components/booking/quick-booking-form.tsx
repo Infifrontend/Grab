@@ -94,8 +94,8 @@ export default function QuickBookingForm() {
       const searchData = {
         origin: values.origin,
         destination: values.destination,
-        departureDate: values.departureDate.toISOString(),
-        returnDate: values.returnDate?.toISOString() || null,
+        departureDate: values.departureDate.format('YYYY-MM-DD'),
+        returnDate: values.returnDate?.format('YYYY-MM-DD') || null,
         passengers: totalPassengers,
         cabin: values.cabin || 'economy',
         tripType: tripType,
