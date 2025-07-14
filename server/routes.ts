@@ -49,6 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Search flights
   app.post("/api/search", async (req, res) => {
     try {
+      console.log("Search request received:", req.body);
       const searchData = insertSearchRequestSchema.parse(req.body);
       await storage.createSearchRequest(searchData);
       
@@ -59,9 +60,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         searchData.departureDate
       );
       
+      console.log(`Found ${flights.length} flights for ${searchData.origin} to ${searchData.destination}`);
+      console.log("Flight data sample:", flights.slice(0, 2));
+      
       res.json({ flights, message: "Search completed successfully" });
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Search validation error:", error.errors);
         res.status(400).json({ message: "Invalid search data", errors: error.errors });
       } else {
         console.error("Search error:", error);

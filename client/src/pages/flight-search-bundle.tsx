@@ -188,12 +188,18 @@ export default function FlightSearchBundle() {
 
       if (storedFlights) {
         const flights = JSON.parse(storedFlights);
-        loadedFlights = flights;
+        // Convert price to string format if it's a number
+        loadedFlights = flights.map((flight: any) => ({
+          ...flight,
+          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price
+        }));
+        console.log('Loaded flights from localStorage:', loadedFlights);
       }
 
       if (storedCriteria) {
         loadedCriteria = JSON.parse(storedCriteria);
         setSearchCriteria(loadedCriteria);
+        console.log('Loaded search criteria:', loadedCriteria);
       }
 
       if (storedPassengerCount) {
@@ -235,34 +241,15 @@ export default function FlightSearchBundle() {
         }
       }
 
-      // Filter flights based on origin and destination if criteria is available
-      if (loadedFlights.length > 0 && (loadedCriteria.origin || loadedCriteria.destination)) {
-        const filteredFlights = loadedFlights.filter(flight => {
-          const matchesOrigin = !loadedCriteria.origin || 
-            flight.origin.toLowerCase().includes(loadedCriteria.origin.toLowerCase()) ||
-            loadedCriteria.origin.toLowerCase().includes(flight.origin.toLowerCase());
-            
-          const matchesDestination = !loadedCriteria.destination || 
-            flight.destination.toLowerCase().includes(loadedCriteria.destination.toLowerCase()) ||
-            loadedCriteria.destination.toLowerCase().includes(flight.destination.toLowerCase());
-            
-          return matchesOrigin && matchesDestination;
-        });
-        
-        setAvailableFlights(filteredFlights);
-        
-        // Set the first flight as selected by default
-        if (filteredFlights.length > 0) {
-          setSelectedOutbound(filteredFlights[0].id.toString());
-        }
-      } else {
-        setAvailableFlights(loadedFlights);
-        
-        // Set the first flight as selected by default
-        if (loadedFlights.length > 0) {
-          setSelectedOutbound(loadedFlights[0].id.toString());
-        }
+      // Set flights directly without filtering initially - let user see all available flights
+      setAvailableFlights(loadedFlights);
+      
+      // Set the first flight as selected by default
+      if (loadedFlights.length > 0) {
+        setSelectedOutbound(loadedFlights[0].id.toString());
       }
+
+      console.log('Final available flights:', loadedFlights);
     };
 
     loadFlightData();
@@ -301,7 +288,7 @@ export default function FlightSearchBundle() {
 
     // Filter by price range
     filtered = filtered.filter(flight => {
-      const price = parseFloat(flight.price.toString());
+      const price = typeof flight.price === 'string' ? parseFloat(flight.price) : flight.price;
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
@@ -352,9 +339,13 @@ export default function FlightSearchBundle() {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return parseFloat(a.price.toString()) - parseFloat(b.price.toString());
+          const priceA = typeof a.price === 'string' ? parseFloat(a.price) : a.price;
+          const priceB = typeof b.price === 'string' ? parseFloat(b.price) : b.price;
+          return priceA - priceB;
         case 'price-high':
-          return parseFloat(b.price.toString()) - parseFloat(a.price.toString());
+          const priceA2 = typeof a.price === 'string' ? parseFloat(a.price) : a.price;
+          const priceB2 = typeof b.price === 'string' ? parseFloat(b.price) : b.price;
+          return priceB2 - priceA2;
         case 'duration':
           return a.duration.localeCompare(b.duration);
         case 'departure':
@@ -413,6 +404,8 @@ export default function FlightSearchBundle() {
         cabin,
       };
 
+      console.log('Searching for flights with data:', searchData);
+
       // Make API call to search for flights
       const response = await fetch('/api/search', {
         method: 'POST',
@@ -431,30 +424,27 @@ export default function FlightSearchBundle() {
       });
 
       const searchResult = await response.json();
+      console.log('Search API response:', searchResult);
       
       if (searchResult.flights && searchResult.flights.length > 0) {
-        // Filter flights based on origin and destination
-        const filteredFlights = searchResult.flights.filter((flight: Flight) => {
-          const matchesOrigin = flight.origin.toLowerCase().includes(origin.toLowerCase()) ||
-            origin.toLowerCase().includes(flight.origin.toLowerCase());
-            
-          const matchesDestination = flight.destination.toLowerCase().includes(destination.toLowerCase()) ||
-            destination.toLowerCase().includes(flight.destination.toLowerCase());
-            
-          return matchesOrigin && matchesDestination;
-        });
+        // Convert price to string format and process flights
+        const processedFlights = searchResult.flights.map((flight: any) => ({
+          ...flight,
+          price: typeof flight.price === 'number' ? flight.price.toString() : flight.price
+        }));
 
-        setAvailableFlights(filteredFlights);
+        console.log('Processed flights:', processedFlights);
+        setAvailableFlights(processedFlights);
         
         // Set the first flight as selected by default
-        if (filteredFlights.length > 0) {
-          setSelectedOutbound(filteredFlights[0].id.toString());
+        if (processedFlights.length > 0) {
+          setSelectedOutbound(processedFlights[0].id.toString());
         } else {
           setSelectedOutbound("");
         }
 
         // Update localStorage with new search results and criteria
-        localStorage.setItem('searchResults', JSON.stringify(filteredFlights));
+        localStorage.setItem('searchResults', JSON.stringify(processedFlights));
         localStorage.setItem('searchCriteria', JSON.stringify(searchData));
         localStorage.setItem('passengerCount', totalPassengers.toString());
         
@@ -479,7 +469,7 @@ export default function FlightSearchBundle() {
         setPassengerCount(totalPassengers);
         setShowModifySearch(false);
         
-        console.log(`Found ${filteredFlights.length} flights for ${origin} to ${destination}`);
+        console.log(`Found ${processedFlights.length} flights for ${origin} to ${destination}`);
       } else {
         // No flights found
         setAvailableFlights([]);
@@ -513,8 +503,8 @@ export default function FlightSearchBundle() {
   );
 
   const baseCost =
-    parseFloat(selectedOutboundFlight?.price || "0") * passengerCount +
-    (tripType === "roundTrip" ? parseFloat(selectedReturnFlight?.price || "0") * passengerCount : 0);
+    (typeof selectedOutboundFlight?.price === 'string' ? parseFloat(selectedOutboundFlight.price) : (selectedOutboundFlight?.price || 0)) * passengerCount +
+    (tripType === "roundTrip" ? (typeof selectedReturnFlight?.price === 'string' ? parseFloat(selectedReturnFlight.price) : (selectedReturnFlight?.price || 0)) * passengerCount : 0);
   const bundleCost =
     (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
   const totalCost = baseCost + bundleCost;
