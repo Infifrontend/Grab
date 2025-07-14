@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Steps } from "antd";
 
@@ -16,31 +15,24 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
   const steps = [
     {
       title: "Trip Details",
-      description: "Basic information",
     },
     {
       title: "Flight Search & Bundles",
-      description: "Select flights & add-ons",
     },
     {
       title: "Add Services",
-      description: "Popular bundles & individual services",
     },
     {
       title: "Group Leader Info",
-      description: "Leader details",
     },
     {
       title: "Payments",
-      description: "Payment options",
     },
     {
       title: "Passenger Info",
-      description: "Traveler information",
     },
     {
       title: "Review & Confirmation",
-      description: "Final review",
     },
   ];
 
@@ -99,7 +91,8 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
           font-weight: 700;
         }
 
-        .booking-steps :global(.ant-steps-item-process .ant-steps-item-description) {
+        .booking-steps
+          :global(.ant-steps-item-process .ant-steps-item-description) {
           color: #2a0a22;
           opacity: 0.8;
         }
@@ -112,7 +105,8 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
           color: #9ca3af;
         }
 
-        .booking-steps :global(.ant-steps-item-wait .ant-steps-item-description) {
+        .booking-steps
+          :global(.ant-steps-item-wait .ant-steps-item-description) {
           color: #d1d5db;
         }
 
@@ -154,12 +148,14 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
           height: 2px;
         }
 
-        .booking-steps :global(.ant-steps-item-finish .ant-steps-item-tail)::after {
+        .booking-steps
+          :global(.ant-steps-item-finish .ant-steps-item-tail)::after {
           background-color: #2a0a22;
           height: 2px;
         }
 
-        .booking-steps :global(.ant-steps-item-process .ant-steps-item-tail)::after {
+        .booking-steps
+          :global(.ant-steps-item-process .ant-steps-item-tail)::after {
           background-color: #e5e7eb;
           height: 2px;
         }
@@ -174,7 +170,8 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
           font-weight: 600;
         }
 
-        .booking-steps :global(.ant-steps-item-finish .ant-steps-item-icon .ant-steps-icon) {
+        .booking-steps
+          :global(.ant-steps-item-finish .ant-steps-item-icon .ant-steps-icon) {
           font-size: 16px;
         }
 
