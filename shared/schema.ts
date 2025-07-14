@@ -59,6 +59,100 @@ export const searchRequests = pgTable("search_requests", {
   tripType: text("trip_type").notNull(), // oneWay, roundTrip, multiCity
 });
 
+// Flights table for flight booking functionality
+export const flights = pgTable("flights", {
+  id: serial("id").primaryKey(),
+  flightNumber: text("flight_number").notNull().unique(),
+  airline: text("airline").notNull(),
+  aircraft: text("aircraft").notNull(),
+  origin: text("origin").notNull(),
+  destination: text("destination").notNull(),
+  departureTime: timestamp("departure_time").notNull(),
+  arrivalTime: timestamp("arrival_time").notNull(),
+  duration: text("duration").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  availableSeats: integer("available_seats").notNull(),
+  totalSeats: integer("total_seats").notNull(),
+  cabin: text("cabin").notNull(), // economy, business, first
+  stops: integer("stops").default(0),
+  status: text("status").notNull().default("scheduled"), // scheduled, delayed, cancelled, completed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Enhanced bookings table for managing flight bookings
+export const flightBookings = pgTable("flight_bookings", {
+  id: serial("id").primaryKey(),
+  bookingReference: text("booking_reference").notNull().unique(),
+  userId: integer("user_id").references(() => users.id),
+  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  passengerCount: integer("passenger_count").notNull(),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  bookingStatus: text("booking_status").notNull().default("pending"), // pending, confirmed, cancelled, completed
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, paid, failed, refunded
+  seatNumbers: text("seat_numbers").array(),
+  specialRequests: text("special_requests"),
+  bookedAt: timestamp("booked_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Passenger details for bookings
+export const passengers = pgTable("passengers", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
+  title: text("title").notNull(), // Mr, Mrs, Ms, Dr
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
+  nationality: text("nationality").notNull(),
+  passportNumber: text("passport_number"),
+  passportExpiry: timestamp("passport_expiry"),
+  seatPreference: text("seat_preference"), // window, aisle, middle
+  mealPreference: text("meal_preference"), // vegetarian, vegan, halal, kosher
+  specialAssistance: text("special_assistance"),
+});
+
+// Bids module for flight offers
+export const bids = pgTable("bids", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
+  passengerCount: integer("passenger_count").notNull(),
+  bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
+  validUntil: timestamp("valid_until").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment handling for transactions
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
+  paymentReference: text("payment_reference").notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  paymentMethod: text("payment_method").notNull(), // credit_card, debit_card, paypal, bank_transfer
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, processing, completed, failed, cancelled, refunded
+  transactionId: text("transaction_id"),
+  paymentGateway: text("payment_gateway"), // stripe, paypal, square
+  failureReason: text("failure_reason"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Payment refunds tracking
+export const refunds = pgTable("refunds", {
+  id: serial("id").primaryKey(),
+  paymentId: integer("payment_id").references(() => payments.id).notNull(),
+  refundReference: text("refund_reference").notNull().unique(),
+  refundAmount: decimal("refund_amount", { precision: 10, scale: 2 }).notNull(),
+  refundReason: text("refund_reason").notNull(),
+  refundStatus: text("refund_status").notNull().default("pending"), // pending, processing, completed, failed
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
