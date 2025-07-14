@@ -156,6 +156,8 @@ export const refunds = pgTable("refunds", {
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
+  flightBookings: many(flightBookings),
+  bids: many(bids),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one }) => ({
@@ -165,6 +167,58 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   }),
 }));
 
+export const flightsRelations = relations(flights, ({ many }) => ({
+  flightBookings: many(flightBookings),
+  bids: many(bids),
+}));
+
+export const flightBookingsRelations = relations(flightBookings, ({ one, many }) => ({
+  user: one(users, {
+    fields: [flightBookings.userId],
+    references: [users.id],
+  }),
+  flight: one(flights, {
+    fields: [flightBookings.flightId],
+    references: [flights.id],
+  }),
+  passengers: many(passengers),
+  payments: many(payments),
+}));
+
+export const passengersRelations = relations(passengers, ({ one }) => ({
+  booking: one(flightBookings, {
+    fields: [passengers.bookingId],
+    references: [flightBookings.id],
+  }),
+}));
+
+export const bidsRelations = relations(bids, ({ one }) => ({
+  user: one(users, {
+    fields: [bids.userId],
+    references: [users.id],
+  }),
+  flight: one(flights, {
+    fields: [bids.flightId],
+    references: [flights.id],
+  }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one, many }) => ({
+  booking: one(flightBookings, {
+    fields: [payments.bookingId],
+    references: [flightBookings.id],
+  }),
+  refunds: many(refunds),
+}));
+
+export const refundsRelations = relations(refunds, ({ one }) => ({
+  payment: one(payments, {
+    fields: [refunds.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+// Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -175,14 +229,34 @@ export const insertDealSchema = createInsertSchema(deals);
 export const insertPackageSchema = createInsertSchema(packages);
 export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
 export const insertSearchRequestSchema = createInsertSchema(searchRequests).omit({ id: true });
+export const insertFlightSchema = createInsertSchema(flights).omit({ id: true, createdAt: true });
+export const insertFlightBookingSchema = createInsertSchema(flightBookings).omit({ id: true, bookedAt: true, updatedAt: true });
+export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: true });
+export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
+export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
 
+// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Deal = typeof deals.$inferSelect;
 export type Package = typeof packages.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type SearchRequest = typeof searchRequests.$inferSelect;
+export type Flight = typeof flights.$inferSelect;
+export type FlightBooking = typeof flightBookings.$inferSelect;
+export type Passenger = typeof passengers.$inferSelect;
+export type Bid = typeof bids.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type Refund = typeof refunds.$inferSelect;
+
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertSearchRequest = z.infer<typeof insertSearchRequestSchema>;
+export type InsertFlight = z.infer<typeof insertFlightSchema>;
+export type InsertFlightBooking = z.infer<typeof insertFlightBookingSchema>;
+export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
+export type InsertBid = z.infer<typeof insertBidSchema>;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type InsertRefund = z.infer<typeof insertRefundSchema>;

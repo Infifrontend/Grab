@@ -64,11 +64,37 @@ Preferred communication style: Simple, everyday language.
 4. **POST /api/search** - Create search requests for flights
 
 ### Database Schema
+
+**Core User & Authentication:**
 - **users** - User authentication and profile data
-- **deals** - Flight deals with pricing and availability
+
+**Flight Management:**
+- **flights** - Flight inventory with schedules, pricing, and availability
+- **flightBookings** - Complete flight booking records with status tracking
+- **passengers** - Detailed passenger information for each booking
+
+**Deals & Packages:**
+- **deals** - Flight deals with pricing and availability (legacy)
 - **packages** - Travel packages with features and pricing
-- **bookings** - User bookings with status tracking
+
+**Bidding System:**
+- **bids** - User bids on flights with status management and expiration
+
+**Payment Processing:**
+- **payments** - Payment transactions with gateway integration
+- **refunds** - Refund processing and tracking
+
+**Legacy & Analytics:**
+- **bookings** - Legacy booking system (maintained for compatibility)
 - **searchRequests** - User search history and preferences
+
+**Key Features:**
+- Complete flight booking workflow from search to payment
+- Bid creation and management system
+- Comprehensive payment and refund tracking
+- Passenger manifest management
+- Multi-status booking lifecycle (pending → confirmed → completed)
+- Payment integration ready (Stripe, PayPal, Square)
 
 ## Data Flow
 

@@ -1,229 +1,73 @@
-import { users, deals, packages, bookings, searchRequests, type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest } from "@shared/schema";
+import { 
+  users, deals, packages, bookings, searchRequests, flights, flightBookings, passengers, bids, payments, refunds,
+  type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest,
+  type Flight, type InsertFlight, type FlightBooking, type InsertFlightBooking, type Passenger, type InsertPassenger,
+  type Bid, type InsertBid, type Payment, type InsertPayment, type Refund, type InsertRefund
+} from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, like, or } from "drizzle-orm";
 
 export interface IStorage {
+  // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
+  // Deals
   getDeals(): Promise<Deal[]>;
   getDeal(id: number): Promise<Deal | undefined>;
   
+  // Packages
   getPackages(): Promise<Package[]>;
   searchPackages(destination?: string): Promise<Package[]>;
   
+  // Legacy Bookings
   getBookings(userId?: number): Promise<Booking[]>;
   getBooking(id: number): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   
+  // Search Requests
   createSearchRequest(request: InsertSearchRequest): Promise<void>;
+  
+  // Flights
+  getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]>;
+  getFlight(id: number): Promise<Flight | undefined>;
+  createFlight(flight: InsertFlight): Promise<Flight>;
+  updateFlightSeats(flightId: number, seatsBooked: number): Promise<void>;
+  
+  // Flight Bookings
+  getFlightBookings(userId?: number): Promise<FlightBooking[]>;
+  getFlightBooking(id: number): Promise<FlightBooking | undefined>;
+  getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
+  createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
+  updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
+  
+  // Passengers
+  getPassengersByBooking(bookingId: number): Promise<Passenger[]>;
+  createPassenger(passenger: InsertPassenger): Promise<Passenger>;
+  updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void>;
+  
+  // Bids
+  getBids(userId?: number, flightId?: number): Promise<Bid[]>;
+  getBid(id: number): Promise<Bid | undefined>;
+  createBid(bid: InsertBid): Promise<Bid>;
+  updateBidStatus(id: number, status: string): Promise<void>;
+  deleteBid(id: number): Promise<void>;
+  
+  // Payments
+  getPaymentsByBooking(bookingId: number): Promise<Payment[]>;
+  getPayment(id: number): Promise<Payment | undefined>;
+  getPaymentByReference(reference: string): Promise<Payment | undefined>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void>;
+  
+  // Refunds
+  getRefundsByPayment(paymentId: number): Promise<Refund[]>;
+  createRefund(refund: InsertRefund): Promise<Refund>;
+  updateRefundStatus(id: number, status: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private deals: Map<number, Deal>;
-  private packages: Map<number, Package>;
-  private bookings: Map<number, Booking>;
-  private currentUserId: number;
-  private currentDealId: number;
-  private currentPackageId: number;
-  private currentBookingId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.deals = new Map();
-    this.packages = new Map();
-    this.bookings = new Map();
-    this.currentUserId = 1;
-    this.currentDealId = 1;
-    this.currentPackageId = 1;
-    this.currentBookingId = 1;
-    
-    this.initializeData();
-  }
-
-  private initializeData() {
-    // Initialize sample deals
-    const sampleDeals: Deal[] = [
-      {
-        id: 1,
-        title: "Flash Sale: NYC to Vegas",
-        subtitle: "Limited time offer",
-        discountPercentage: 34,
-        originalPrice: "450.00",
-        discountedPrice: "299.00",
-        origin: "New York",
-        destination: "Las Vegas",
-        rating: "4.8",
-        groupSizeMin: 15,
-        groupSizeMax: 50,
-        availableSeats: 45,
-        isFlashSale: true,
-        isLimitedTime: true,
-      }
-    ];
-
-    // Initialize sample packages
-    const samplePackages: Package[] = [
-      {
-        id: 1,
-        title: "Executive Business Package",
-        location: "NEW YORK — CHICAGO",
-        price: "1299.00",
-        originalPrice: "1699.00",
-        features: ["Round trip business class flights", "3 nights luxury hotel stay", "Airport transfers included", "Daily breakfast included"],
-        category: "business",
-      },
-      {
-        id: 2,
-        title: "European Explorer Package",
-        location: "CHICAGO — PARIS",
-        price: "899.00",
-        originalPrice: "1299.00",
-        features: ["Return trip economy flights", "4 nights boutique hotel", "City walking tours", "Museum passes included"],
-        category: "leisure",
-      },
-      {
-        id: 3,
-        title: "Mediterranean Getaway",
-        location: "MIAMI — SANTORINI",
-        price: "1599.00",
-        originalPrice: "2199.00",
-        features: ["Round trip premium flights", "5 nights oceanview resort", "Island hopping tours", "All meals included"],
-        category: "leisure",
-      },
-      {
-        id: 4,
-        title: "Alpine Adventure Package",
-        location: "DENVER — ASPEN",
-        price: "1189.00",
-        originalPrice: "1599.00",
-        features: ["Round trip flights", "4 nights mountain lodge", "Ski lift passes", "Equipment rental included"],
-        category: "adventure",
-      },
-    ];
-
-    // Initialize sample bookings
-    const sampleBookings: Booking[] = [
-      {
-        id: 1,
-        bookingId: "GR-2024-001",
-        userId: 1,
-        route: "New York → Las Vegas",
-        date: new Date("2024-01-15"),
-        passengers: 23,
-        status: "confirmed",
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        bookingId: "GR-2024-002",
-        userId: 1,
-        route: "Chicago → Paris",
-        date: new Date("2024-01-28"),
-        passengers: 18,
-        status: "cancelled",
-        createdAt: new Date(),
-      },
-      {
-        id: 3,
-        bookingId: "GR-2024-003",
-        userId: 1,
-        route: "New York → Las Vegas",
-        date: new Date("2024-01-15"),
-        passengers: 25,
-        status: "confirmed",
-        createdAt: new Date(),
-      },
-      {
-        id: 4,
-        bookingId: "GR-2024-004",
-        userId: 1,
-        route: "New York → Las Vegas",
-        date: new Date("2024-01-15"),
-        passengers: 19,
-        status: "pending",
-        createdAt: new Date(),
-      },
-    ];
-
-    sampleDeals.forEach(deal => this.deals.set(deal.id, deal));
-    samplePackages.forEach(pkg => this.packages.set(pkg.id, pkg));
-    sampleBookings.forEach(booking => this.bookings.set(booking.id, booking));
-    
-    this.currentDealId = sampleDeals.length + 1;
-    this.currentPackageId = samplePackages.length + 1;
-    this.currentBookingId = sampleBookings.length + 1;
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async getDeals(): Promise<Deal[]> {
-    return Array.from(this.deals.values());
-  }
-
-  async getDeal(id: number): Promise<Deal | undefined> {
-    return this.deals.get(id);
-  }
-
-  async getPackages(): Promise<Package[]> {
-    return Array.from(this.packages.values());
-  }
-
-  async searchPackages(destination?: string): Promise<Package[]> {
-    const allPackages = Array.from(this.packages.values());
-    if (!destination) return allPackages;
-    
-    return allPackages.filter(pkg => 
-      pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
-      pkg.title.toLowerCase().includes(destination.toLowerCase())
-    );
-  }
-
-  async getBookings(userId?: number): Promise<Booking[]> {
-    const allBookings = Array.from(this.bookings.values());
-    if (!userId) return allBookings;
-    
-    return allBookings.filter(booking => booking.userId === userId);
-  }
-
-  async getBooking(id: number): Promise<Booking | undefined> {
-    return this.bookings.get(id);
-  }
-
-  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const id = this.currentBookingId++;
-    const booking: Booking = { 
-      ...insertBooking, 
-      id,
-      userId: insertBooking.userId || null,
-      createdAt: new Date(),
-    };
-    this.bookings.set(id, booking);
-    return booking;
-  }
-
-  async createSearchRequest(request: InsertSearchRequest): Promise<void> {
-    // Store search request for analytics/tracking purposes
-    console.log('Search request:', request);
-  }
-}
+// DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
@@ -292,6 +136,175 @@ export class DatabaseStorage implements IStorage {
 
   async createSearchRequest(request: InsertSearchRequest): Promise<void> {
     await db.insert(searchRequests).values(request);
+  }
+
+  // Flights
+  async getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]> {
+    const conditions = [];
+    if (origin) conditions.push(eq(flights.origin, origin));
+    if (destination) conditions.push(eq(flights.destination, destination));
+    if (departureDate) {
+      const startOfDay = new Date(departureDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(departureDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      conditions.push(gte(flights.departureTime, startOfDay));
+      conditions.push(lte(flights.departureTime, endOfDay));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(flights).where(and(...conditions));
+    }
+    
+    return await db.select().from(flights);
+  }
+
+  async getFlight(id: number): Promise<Flight | undefined> {
+    const [flight] = await db.select().from(flights).where(eq(flights.id, id));
+    return flight || undefined;
+  }
+
+  async createFlight(flight: InsertFlight): Promise<Flight> {
+    const [newFlight] = await db.insert(flights).values(flight).returning();
+    return newFlight;
+  }
+
+  async updateFlightSeats(flightId: number, seatsBooked: number): Promise<void> {
+    const flight = await this.getFlight(flightId);
+    if (flight) {
+      const newAvailableSeats = flight.availableSeats - seatsBooked;
+      await db.update(flights)
+        .set({ availableSeats: newAvailableSeats })
+        .where(eq(flights.id, flightId));
+    }
+  }
+
+  // Flight Bookings
+  async getFlightBookings(userId?: number): Promise<FlightBooking[]> {
+    if (!userId) {
+      return await db.select().from(flightBookings);
+    }
+    return await db.select().from(flightBookings).where(eq(flightBookings.userId, userId));
+  }
+
+  async getFlightBooking(id: number): Promise<FlightBooking | undefined> {
+    const [booking] = await db.select().from(flightBookings).where(eq(flightBookings.id, id));
+    return booking || undefined;
+  }
+
+  async getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined> {
+    const [booking] = await db.select().from(flightBookings).where(eq(flightBookings.bookingReference, reference));
+    return booking || undefined;
+  }
+
+  async createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking> {
+    const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+    return newBooking;
+  }
+
+  async updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void> {
+    const updateData: any = { bookingStatus: status, updatedAt: new Date() };
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    await db.update(flightBookings).set(updateData).where(eq(flightBookings.id, id));
+  }
+
+  // Passengers
+  async getPassengersByBooking(bookingId: number): Promise<Passenger[]> {
+    return await db.select().from(passengers).where(eq(passengers.bookingId, bookingId));
+  }
+
+  async createPassenger(passenger: InsertPassenger): Promise<Passenger> {
+    const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+    return newPassenger;
+  }
+
+  async updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void> {
+    await db.update(passengers).set(passenger).where(eq(passengers.id, id));
+  }
+
+  // Bids
+  async getBids(userId?: number, flightId?: number): Promise<Bid[]> {
+    const conditions = [];
+    if (userId) conditions.push(eq(bids.userId, userId));
+    if (flightId) conditions.push(eq(bids.flightId, flightId));
+    
+    if (conditions.length > 0) {
+      return await db.select().from(bids).where(and(...conditions));
+    }
+    
+    return await db.select().from(bids);
+  }
+
+  async getBid(id: number): Promise<Bid | undefined> {
+    const [bid] = await db.select().from(bids).where(eq(bids.id, id));
+    return bid || undefined;
+  }
+
+  async createBid(bid: InsertBid): Promise<Bid> {
+    const [newBid] = await db.insert(bids).values(bid).returning();
+    return newBid;
+  }
+
+  async updateBidStatus(id: number, status: string): Promise<void> {
+    await db.update(bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(bids.id, id));
+  }
+
+  async deleteBid(id: number): Promise<void> {
+    await db.delete(bids).where(eq(bids.id, id));
+  }
+
+  // Payments
+  async getPaymentsByBooking(bookingId: number): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.bookingId, bookingId));
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    return payment || undefined;
+  }
+
+  async getPaymentByReference(reference: string): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.paymentReference, reference));
+    return payment || undefined;
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db.insert(payments).values(payment).returning();
+    return newPayment;
+  }
+
+  async updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void> {
+    const updateData: any = { paymentStatus: status };
+    if (status === 'completed') {
+      updateData.processedAt = new Date();
+    }
+    if (transactionId) {
+      updateData.transactionId = transactionId;
+    }
+    if (failureReason) {
+      updateData.failureReason = failureReason;
+    }
+    await db.update(payments).set(updateData).where(eq(payments.id, id));
+  }
+
+  // Refunds
+  async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
+    return await db.select().from(refunds).where(eq(refunds.paymentId, paymentId));
+  }
+
+  async createRefund(refund: InsertRefund): Promise<Refund> {
+    const [newRefund] = await db.insert(refunds).values(refund).returning();
+    return newRefund;
+  }
+
+  async updateRefundStatus(id: number, status: string): Promise<void> {
+    const updateData: any = { refundStatus: status };
+    if (status === 'completed') {
+      updateData.processedAt = new Date();
+    }
+    await db.update(refunds).set(updateData).where(eq(refunds.id, id));
   }
 }
 
