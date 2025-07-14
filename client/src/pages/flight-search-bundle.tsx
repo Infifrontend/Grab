@@ -234,8 +234,8 @@ export default function FlightSearchBundle() {
         setDestination(bookingData.destination || "LHR");
         setDepartureDate(bookingData.departureDate || "2024-06-22");
         setReturnDate(bookingData.returnDate || "2024-06-29");
-        setAdults(bookingData.adults || 24);
-        setKids(bookingData.kids || 8);
+        setAdults(bookingData.adults || 1);
+        setKids(bookingData.kids || 0);
         setInfants(bookingData.infants || 0);
         setCabin(bookingData.cabin || "Economy");
         setTripType(bookingData.tripType || "roundTrip");
@@ -393,41 +393,84 @@ export default function FlightSearchBundle() {
     maxStops,
   ]);
 
-  // Get trip type from URL params or localStorage (simulate getting from previous page)
+  // Get trip type from bookingFormData (from QuickBooking form)
   const [tripType, setTripType] = useState<string>(() => {
-    // In a real application, this would come from navigation state or URL params
-    // For now, we'll check localStorage or default to roundTrip
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.tripType || "roundTrip";
+    }
     return localStorage.getItem("selectedTripType") || "roundTrip";
   });
 
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
 
-  // Modify search form state - initialize from localStorage
-  const [origin, setOrigin] = useState(
-    () => localStorage.getItem("searchOrigin") || "JFK",
-  );
-  const [destination, setDestination] = useState(
-    () => localStorage.getItem("searchDestination") || "LHR",
-  );
-  const [departureDate, setDepartureDate] = useState(
-    () => localStorage.getItem("searchDepartureDate") || "2024-06-22",
-  );
-  const [returnDate, setReturnDate] = useState(
-    () => localStorage.getItem("searchReturnDate") || "2024-06-29",
-  );
-  const [adults, setAdults] = useState(() =>
-    parseInt(localStorage.getItem("searchAdults") || "24"),
-  );
-  const [kids, setKids] = useState(() =>
-    parseInt(localStorage.getItem("searchKids") || "8"),
-  );
-  const [infants, setInfants] = useState(() =>
-    parseInt(localStorage.getItem("searchInfants") || "0"),
-  );
-  const [cabin, setCabin] = useState(
-    () => localStorage.getItem("searchCabin") || "Economy",
-  );
+  // Modify search form state - initialize from bookingFormData (from QuickBooking form)
+  const [origin, setOrigin] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.origin || "JFK";
+    }
+    return localStorage.getItem("searchOrigin") || "JFK";
+  });
+  const [destination, setDestination] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.destination || "LHR";
+    }
+    return localStorage.getItem("searchDestination") || "LHR";
+  });
+  const [departureDate, setDepartureDate] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.departureDate || "2024-06-22";
+    }
+    return localStorage.getItem("searchDepartureDate") || "2024-06-22";
+  });
+  const [returnDate, setReturnDate] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.returnDate || "2024-06-29";
+    }
+    return localStorage.getItem("searchReturnDate") || "2024-06-29";
+  });
+  const [adults, setAdults] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.adults || 1;
+    }
+    return parseInt(localStorage.getItem("searchAdults") || "1");
+  });
+  const [kids, setKids] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.kids || 0;
+    }
+    return parseInt(localStorage.getItem("searchKids") || "0");
+  });
+  const [infants, setInfants] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.infants || 0;
+    }
+    return parseInt(localStorage.getItem("searchInfants") || "0");
+  });
+  const [cabin, setCabin] = useState(() => {
+    const bookingData = localStorage.getItem("bookingFormData");
+    if (bookingData) {
+      const data = JSON.parse(bookingData);
+      return data.cabin || "Economy";
+    }
+    return localStorage.getItem("searchCabin") || "Economy";
+  });
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
