@@ -271,7 +271,7 @@ export default function FlightSearchBundle() {
 
   // Filter states
   const [sortBy, setSortBy] = useState('price-low');
-  const [priceRange, setPriceRange] = useState<[number, number]>([5000, 50000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 50000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [departureTime, setDepartureTime] = useState('any');
   const [maxStops, setMaxStops] = useState('any');
@@ -536,7 +536,7 @@ export default function FlightSearchBundle() {
   // Clear all filters
   const handleClearFilters = () => {
     setSortBy('price-low');
-    setPriceRange([1000, 10000]);
+    setPriceRange([1000, 50000]);
     setSelectedAirlines([]);
     setDepartureTime('any');
     setMaxStops('any');
@@ -945,12 +945,12 @@ export default function FlightSearchBundle() {
                   <Text className="text-gray-700 font-medium block mb-3">💰 Price Range</Text>
                   <Slider
                     range
-                    min={5000}
+                    min={1000}
                     max={50000}
                     value={priceRange}
                     onChange={setPriceRange}
                     className="mb-2"
-                    step={1000}
+                    step={500}
                   />
                   <div className="flex justify-between">
                     <Text className="text-gray-600 text-sm">₹{priceRange[0]}</Text>
