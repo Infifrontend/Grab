@@ -11,7 +11,6 @@ import {
   Space,
   Select,
   Slider,
-  Text,
 } from "antd";
 import {
   ArrowRightOutlined,
