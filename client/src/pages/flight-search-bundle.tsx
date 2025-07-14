@@ -495,7 +495,7 @@ export default function FlightSearchBundle() {
         </Card>
 
         <Row gutter={24}>
-          <Col span={16}>
+          <Col span={24}>
             {/* Flight Selection */}
             <div className="mb-8">
               <Title
@@ -557,43 +557,7 @@ export default function FlightSearchBundle() {
             </div>
           </Col>
 
-          {/* Booking Summary Sidebar */}
-          <Col span={8}>
-            <Card className="sticky top-6">
-              <Title level={4} className="!mb-4 text-gray-800">
-                Booking Summary
-              </Title>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <Text>Base Flight Cost (32 passengers)</Text>
-                  <Text className="font-medium">
-                    ${baseCost.toLocaleString()}
-                  </Text>
-                </div>
-
-                {tripType === "oneWay" && (
-                  <div className="text-xs text-gray-500">One-way trip</div>
-                )}
-
-                <div className="flex justify-between items-center">
-                  <Text>Selected Bundles (32 passengers)</Text>
-                  <Text className="font-medium">
-                    ${bundleCost.toLocaleString()}
-                  </Text>
-                </div>
-
-                <Divider />
-
-                <div className="flex justify-between items-center">
-                  <Text className="font-semibold text-lg">Total Cost</Text>
-                  <Text className="font-bold text-xl text-blue-600">
-                    ${totalCost.toLocaleString()}
-                  </Text>
-                </div>
-              </div>
-            </Card>
-          </Col>
+          
         </Row>
 
         {/* Navigation Buttons */}
