@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Row,
@@ -165,6 +165,15 @@ export default function AddServicesBundles() {
   const [individualServiceCounts, setIndividualServiceCounts] = useState<
     Record<string, number>
   >({});
+  const [bookingData, setBookingData] = useState<any>(null);
+
+  // Load booking data from localStorage
+  useEffect(() => {
+    const storedBookingData = localStorage.getItem('bookingFormData');
+    if (storedBookingData) {
+      setBookingData(JSON.parse(storedBookingData));
+    }
+  }, []);
 
   const handleBack = () => {
     setLocation("/flight-search-bundle");

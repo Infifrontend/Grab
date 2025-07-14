@@ -32,7 +32,7 @@ export default function NewBooking() {
 
   const handleContinueToFlightSearch = () => {
     console.log("Continuing to flight search...");
-    
+
     // Get form values and save to localStorage for the Flight Search Bundle page
     const formValues = form.getFieldsValue();
     localStorage.setItem('selectedTripType', tripType);
@@ -44,7 +44,7 @@ export default function NewBooking() {
     localStorage.setItem('searchKids', formValues.kids?.toString() || '0');
     localStorage.setItem('searchInfants', formValues.infants?.toString() || '0');
     localStorage.setItem('searchCabin', formValues.cabin || 'Economy');
-    
+
     // Navigate to flight search bundle page
     setLocation("/flight-search-bundle");
   };

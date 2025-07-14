@@ -114,6 +114,20 @@ export default function QuickBookingForm() {
       localStorage.setItem('searchCriteria', JSON.stringify(searchData));
       localStorage.setItem('passengerCount', totalPassengers.toString());
       
+      // Store all form data for consistent booking flow
+      localStorage.setItem('bookingFormData', JSON.stringify({
+        origin: values.origin,
+        destination: values.destination,
+        departureDate: values.departureDate,
+        returnDate: values.returnDate,
+        tripType: values.tripType,
+        adults: values.adults,
+        kids: values.kids,
+        infants: values.infants,
+        cabin: values.cabin,
+        totalPassengers
+      }));
+      
       message.success(`Found ${searchResult.flights.length} flights! Redirecting to flight selection...`);
       
       // Navigate to flight search bundle page

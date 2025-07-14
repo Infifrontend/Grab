@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -23,6 +23,15 @@ const { Title, Text } = Typography;
 export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+
+  // Load booking data from localStorage
+  useEffect(() => {
+    const storedBookingData = localStorage.getItem('bookingFormData');
+    if (storedBookingData) {
+      setBookingData(JSON.parse(storedBookingData));
+    }
+  }, []);
 
   const handleBack = () => {
     setLocation("/passenger-info");
@@ -91,7 +100,10 @@ export default function ReviewConfirmation() {
                         Trip Type
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        Round-trip
+                        {bookingData ? (
+                          bookingData.tripType === 'oneWay' ? 'One-way' : 
+                          bookingData.tripType === 'roundTrip' ? 'Round-trip' : 'Multi-city'
+                        ) : 'Round-trip'}
                       </Text>
                     </div>
 
@@ -100,7 +112,7 @@ export default function ReviewConfirmation() {
                         Route
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        New York (JFK) → London (LHR)
+                        {bookingData ? `${bookingData.origin} → ${bookingData.destination}` : 'New York (JFK) → London (LHR)'}
                       </Text>
                     </div>
 
@@ -109,7 +121,7 @@ export default function ReviewConfirmation() {
                         Departure Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        June 15, 2024
+                        {bookingData ? bookingData.departureDate : 'June 15, 2024'}
                       </Text>
                     </div>
                   </Space>
@@ -120,10 +132,10 @@ export default function ReviewConfirmation() {
                   <Space direction="vertical" size="large" className="w-full">
                     <div>
                       <Text className="text-gray-500 text-sm block mb-2">
-                        Group Type
+                        Cabin Class
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        Corporate
+                        {bookingData ? bookingData.cabin : 'Economy'}
                       </Text>
                     </div>
 
@@ -132,7 +144,7 @@ export default function ReviewConfirmation() {
                         Total Passengers
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        32 passengers
+                        {bookingData ? `${bookingData.totalPassengers} passengers` : '32 passengers'}
                       </Text>
                     </div>
 
@@ -141,7 +153,7 @@ export default function ReviewConfirmation() {
                         Return Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        June 22, 2024
+                        {bookingData && bookingData.tripType !== 'oneWay' ? bookingData.returnDate : 'N/A (One-way trip)'}
                       </Text>
                     </div>
                   </Space>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -40,20 +40,37 @@ interface PassengerInfo {
 export default function PassengerInfo() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
-  const [passengers, setPassengers] = useState<PassengerInfo[]>([
-    {
-      title: "",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      nationality: "",
-      passportNumber: "",
-      passportExpiry: "",
-      specialRequests: "",
-    },
-  ]);
+  const [totalPassengers, setTotalPassengers] = useState(32);
+  const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
+  const [bookingData, setBookingData] = useState<any>(null);
 
-  const totalPassengers = 32;
+  // Initialize passenger data from localStorage
+  useEffect(() => {
+    const storedBookingData = localStorage.getItem('bookingFormData');
+    const storedPassengerCount = localStorage.getItem('passengerCount');
+
+    if (storedBookingData) {
+      const data = JSON.parse(storedBookingData);
+      setBookingData(data);
+      const count = data.totalPassengers || parseInt(storedPassengerCount || '32');
+      setTotalPassengers(count);
+
+      // Initialize passenger array based on actual passenger count
+      setPassengers(
+        Array.from({ length: count }, (_, index) => ({
+          title: "",
+          firstName: "",
+          lastName: "",
+          dateOfBirth: "",
+          nationality: "",
+          passportNumber: "",
+          passportExpiry: "",
+          specialRequests: "",
+        }))
+      );
+    }
+  }, []);
+
   const completedPassengers = passengers.filter(
     (p) =>
       p.title &&

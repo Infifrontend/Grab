@@ -180,6 +180,7 @@ export default function FlightSearchBundle() {
     const storedFlights = localStorage.getItem('searchResults');
     const storedCriteria = localStorage.getItem('searchCriteria');
     const storedPassengerCount = localStorage.getItem('passengerCount');
+    const storedBookingData = localStorage.getItem('bookingFormData');
 
     if (storedFlights) {
       const flights = JSON.parse(storedFlights);
@@ -196,6 +197,27 @@ export default function FlightSearchBundle() {
 
     if (storedPassengerCount) {
       setPassengerCount(parseInt(storedPassengerCount));
+    }
+
+    // Load complete booking form data to ensure consistency
+    if (storedBookingData) {
+      const bookingData = JSON.parse(storedBookingData);
+      
+      // Initialize modify search form with original data
+      setOrigin(bookingData.origin || 'JFK');
+      setDestination(bookingData.destination || 'LHR');
+      setDepartureDate(bookingData.departureDate || '2024-06-22');
+      setReturnDate(bookingData.returnDate || '2024-06-29');
+      setAdults(bookingData.adults || 24);
+      setKids(bookingData.kids || 8);
+      setInfants(bookingData.infants || 0);
+      setCabin(bookingData.cabin || 'Economy');
+      setTripType(bookingData.tripType || 'roundTrip');
+      
+      // Update passenger count if needed
+      if (bookingData.totalPassengers) {
+        setPassengerCount(bookingData.totalPassengers);
+      }
     }
   }, []);
 
@@ -284,10 +306,52 @@ export default function FlightSearchBundle() {
     setLocation("/add-services-bundles");
   };
 
-  const handleSearchFlights = () => {
-    console.log('Searching flights with modified criteria');
-    setShowModifySearch(false);
-    // Add search logic here
+  const handleSearchFlights = async () => {
+    try {
+      const totalPassengers = adults + kids + infants;
+      
+      const searchData = {
+        origin,
+        destination,
+        departureDate,
+        returnDate: tripType === "oneWay" ? null : returnDate,
+        tripType,
+        passengers: totalPassengers,
+        adults,
+        kids,
+        infants,
+        cabin,
+      };
+
+      // Update localStorage with new search criteria
+      localStorage.setItem('searchCriteria', JSON.stringify(searchData));
+      localStorage.setItem('passengerCount', totalPassengers.toString());
+      
+      // Update booking form data
+      const updatedBookingData = {
+        origin,
+        destination,
+        departureDate,
+        returnDate,
+        tripType,
+        adults,
+        kids,
+        infants,
+        cabin,
+        totalPassengers,
+        searchData
+      };
+      localStorage.setItem('bookingFormData', JSON.stringify(updatedBookingData));
+
+      // Update component state
+      setSearchCriteria(searchData);
+      setPassengerCount(totalPassengers);
+      setShowModifySearch(false);
+      
+      console.log('Search criteria updated:', searchData);
+    } catch (error) {
+      console.error('Error updating search criteria:', error);
+    }
   };
 
   const handleCancelModify = () => {
