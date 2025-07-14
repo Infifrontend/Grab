@@ -64,6 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Invalid search data", errors: error.errors });
       } else {
+        console.error("Search error:", error);
         res.status(500).json({ message: "Search failed" });
       }
     }

@@ -139,3 +139,14 @@ The application uses React Query for efficient data fetching and caching, with o
 - Database: PostgreSQL connection via DATABASE_URL environment variable
 
 The application is structured as a monorepo with clear separation between client and server code, making it easy to develop and deploy as a single unit while maintaining code organization.
+
+## Recent Changes
+
+### July 2025 - Database Integration & Quick Booking
+- **2025-07-14**: Implemented complete flight booking system with PostgreSQL database
+- **Database Schema**: 10+ interconnected tables for flights, bookings, passengers, bids, payments
+- **Quick Booking Form**: Automatically searches and books flights from database based on user input
+- **Flight Search API**: Real-time flight search with origin/destination/date filtering
+- **Sample Data**: Added Chennai-Delhi, NYC-LAX, and international flight routes
+- **Booking Flow**: Complete workflow from search → auto-booking → confirmation with reference numbers
+- **Date Handling**: Fixed ISO string to Date object conversion for proper API validation

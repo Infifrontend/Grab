@@ -228,7 +228,15 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertDealSchema = createInsertSchema(deals);
 export const insertPackageSchema = createInsertSchema(packages);
 export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
-export const insertSearchRequestSchema = createInsertSchema(searchRequests).omit({ id: true });
+export const insertSearchRequestSchema = z.object({
+  origin: z.string(),
+  destination: z.string(),
+  departureDate: z.string().transform((str) => new Date(str)),
+  returnDate: z.string().transform((str) => new Date(str)).nullable().optional(),
+  passengers: z.number(),
+  cabin: z.string(),
+  tripType: z.string(),
+});
 export const insertFlightSchema = createInsertSchema(flights).omit({ id: true, createdAt: true });
 export const insertFlightBookingSchema = createInsertSchema(flightBookings).omit({ id: true, bookedAt: true, updatedAt: true });
 export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: true });
