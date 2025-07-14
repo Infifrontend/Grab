@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **Database Provider**: Neon Database (serverless PostgreSQL)
-- **Data Storage**: In-memory storage for development with interface for easy database migration
+- **Data Storage**: PostgreSQL database with Drizzle ORM (migrated from in-memory storage)
 
 ### Project Structure
 - `client/` - React frontend application

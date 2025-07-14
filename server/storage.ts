@@ -1,4 +1,6 @@
-import { users, deals, packages, bookings, type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest } from "@shared/schema";
+import { users, deals, packages, bookings, searchRequests, type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -223,4 +225,74 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getDeals(): Promise<Deal[]> {
+    return await db.select().from(deals);
+  }
+
+  async getDeal(id: number): Promise<Deal | undefined> {
+    const [deal] = await db.select().from(deals).where(eq(deals.id, id));
+    return deal || undefined;
+  }
+
+  async getPackages(): Promise<Package[]> {
+    return await db.select().from(packages);
+  }
+
+  async searchPackages(destination?: string): Promise<Package[]> {
+    if (!destination) {
+      return await db.select().from(packages);
+    }
+    
+    const allPackages = await db.select().from(packages);
+    return allPackages.filter(pkg => 
+      pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
+      pkg.title.toLowerCase().includes(destination.toLowerCase())
+    );
+  }
+
+  async getBookings(userId?: number): Promise<Booking[]> {
+    if (!userId) {
+      return await db.select().from(bookings);
+    }
+    
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
+  }
+
+  async getBooking(id: number): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking || undefined;
+  }
+
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
+    const [booking] = await db
+      .insert(bookings)
+      .values(insertBooking)
+      .returning();
+    return booking;
+  }
+
+  async createSearchRequest(request: InsertSearchRequest): Promise<void> {
+    await db.insert(searchRequests).values(request);
+  }
+}
+
+export const storage = new DatabaseStorage();
