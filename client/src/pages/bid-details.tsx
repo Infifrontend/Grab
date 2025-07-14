@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Button, Input, Select, DatePicker, Alert, Space, Divider } from 'antd';
 import { ArrowLeftOutlined, InfoCircleOutlined, UserOutlined, DollarOutlined, CalendarOutlined } from '@ant-design/icons';
@@ -56,7 +55,7 @@ export default function BidDetails() {
           >
             Back to Bids
           </Button>
-          
+
           <div className="bg-white rounded-lg p-6 shadow-sm border">
             <div className="flex justify-between items-start">
               <div>
@@ -252,7 +251,7 @@ export default function BidDetails() {
                       value={bidData.bidAmount}
                       placeholder="850"
                       size="large"
-                      prefix={<span className="text-gray-400">$</span>}
+                      prefix={<span className="text-gray-400">₹</span>}
                       className="rounded-md"
                     />
                   </div>
@@ -322,7 +321,7 @@ export default function BidDetails() {
           <Title level={3} className="!mb-6 text-xl font-semibold text-gray-900">
             Bid Summary
           </Title>
-          
+
           <div className="bg-gray-50 rounded-lg p-6 mb-6">
             <Row gutter={[24, 20]}>
               <Col xs={24} sm={12} md={6}>
@@ -340,13 +339,13 @@ export default function BidDetails() {
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Bid per person</Text>
-                  <Text className="text-blue-600 font-bold text-lg">${bidData.bidAmount}</Text>
+                  <Text className="text-blue-600 font-bold text-lg">₹{bidData.bidAmount}</Text>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Total Bid</Text>
-                  <Text className="text-blue-600 font-bold text-2xl">${bidData.totalBid.toLocaleString()}</Text>
+                  <Text className="text-blue-600 font-bold text-2xl">₹{bidData.totalBid.toLocaleString()}</Text>
                 </div>
               </Col>
             </Row>
@@ -356,7 +355,7 @@ export default function BidDetails() {
             <Col xs={24} md={12}>
               <div className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <Text className="text-gray-700 font-medium">Deposit Required (10%)</Text>
-                <Text className="text-orange-600 font-bold text-lg">${bidData.depositRequired.toLocaleString()}</Text>
+                <Text className="text-orange-600 font-bold text-lg">₹{bidData.depositRequired.toLocaleString()}</Text>
               </div>
             </Col>
             <Col xs={24} md={12}>

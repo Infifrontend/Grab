@@ -80,7 +80,7 @@ export default function PaymentDetails() {
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Amount</Text>
-                  <Text className="font-semibold text-gray-900">${paymentData.amount.toFixed(2)}</Text>
+                  <Text className="font-semibold text-gray-900">₹{paymentData.amount.toFixed(2)}</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -151,19 +151,19 @@ export default function PaymentDetails() {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Partial Payment (Deposit)</Text>
-                  <Text className="font-medium text-gray-900">${paymentData.partialPayment.toFixed(2)}</Text>
+                  <Text className="font-medium text-gray-900">₹{paymentData.partialPayment.toFixed(2)}</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Processing Fee</Text>
-                  <Text className="text-gray-900">${paymentData.processingFee.toFixed(2)}</Text>
+                  <Text className="text-gray-900">₹{paymentData.processingFee.toFixed(2)}</Text>
                 </div>
 
                 <Divider />
 
                 <div className="flex justify-between items-center">
                   <Text className="font-semibold text-gray-900 text-lg">Total Paid</Text>
-                  <Text className="font-bold text-gray-900 text-lg">${paymentData.totalPaid.toFixed(2)}</Text>
+                  <Text className="font-bold text-gray-900 text-lg">₹{paymentData.totalPaid.toFixed(2)}</Text>
                 </div>
               </div>
 
@@ -174,17 +174,17 @@ export default function PaymentDetails() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Total Booking Amount:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.totalBookingAmount.toFixed(2)}</Text>
+                    <Text className="font-semibold text-blue-900">₹{paymentData.totalBookingAmount.toFixed(2)}</Text>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Amount Paid:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.amountPaid.toFixed(2)}</Text>
+                    <Text className="font-semibold text-blue-900">₹{paymentData.amountPaid.toFixed(2)}</Text>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Remaining Balance:</Text>
-                    <Text className="font-bold text-blue-900">${paymentData.remainingBalance.toFixed(2)}</Text>
+                    <Text className="font-bold text-blue-900">₹{paymentData.remainingBalance.toFixed(2)}</Text>
                   </div>
                 </div>
               </div>

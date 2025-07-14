@@ -180,7 +180,7 @@ export default function FlightSearchBundle() {
     const storedFlights = localStorage.getItem('searchResults');
     const storedCriteria = localStorage.getItem('searchCriteria');
     const storedPassengerCount = localStorage.getItem('passengerCount');
-    
+
     if (storedFlights) {
       const flights = JSON.parse(storedFlights);
       setAvailableFlights(flights);
@@ -189,11 +189,11 @@ export default function FlightSearchBundle() {
         setSelectedOutbound(flights[0].id.toString());
       }
     }
-    
+
     if (storedCriteria) {
       setSearchCriteria(JSON.parse(storedCriteria));
     }
-    
+
     if (storedPassengerCount) {
       setPassengerCount(parseInt(storedPassengerCount));
     }
@@ -224,18 +224,18 @@ export default function FlightSearchBundle() {
   // Filter and sort flights
   const filteredFlights = useMemo(() => {
     let filtered = [...availableFlights];
-    
+
     // Filter by airlines
     if (selectedAirlines.length > 0) {
       filtered = filtered.filter(flight => selectedAirlines.includes(flight.airline));
     }
-    
+
     // Filter by price range
     filtered = filtered.filter(flight => {
       const price = parseFloat(flight.price);
       return price >= priceRange[0] && price <= priceRange[1];
     });
-    
+
     // Sort flights
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -251,7 +251,7 @@ export default function FlightSearchBundle() {
           return 0;
       }
     });
-    
+
     return filtered;
   }, [availableFlights, selectedAirlines, priceRange, sortBy]);
 
@@ -261,10 +261,10 @@ export default function FlightSearchBundle() {
     // For now, we'll check localStorage or default to roundTrip
     return localStorage.getItem('selectedTripType') || "roundTrip";
   });
-  
+
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
-  
+
   // Modify search form state - initialize from localStorage
   const [origin, setOrigin] = useState(() => localStorage.getItem('searchOrigin') || 'JFK');
   const [destination, setDestination] = useState(() => localStorage.getItem('searchDestination') || 'LHR');
@@ -704,7 +704,7 @@ export default function FlightSearchBundle() {
                 <Title level={4} className="!mb-4 text-gray-800">
                   🔍 Search & Filters
                 </Title>
-                
+
                 {/* Sort By */}
                 <div className="mb-6">
                   <Text className="text-gray-700 font-medium block mb-2">Sort By</Text>
@@ -728,15 +728,16 @@ export default function FlightSearchBundle() {
                   <Text className="text-gray-700 font-medium block mb-3">💰 Price Range</Text>
                   <Slider
                     range
-                    min={1000}
-                    max={3000}
+                    min={5000}
+                    max={50000}
                     value={priceRange}
                     onChange={setPriceRange}
                     className="mb-2"
+                    step={1000}
                   />
                   <div className="flex justify-between">
-                    <Text className="text-gray-600 text-sm">${priceRange[0]}</Text>
-                    <Text className="text-gray-600 text-sm">${priceRange[1]}</Text>
+                    <Text className="text-gray-600 text-sm">₹{priceRange[0]}</Text>
+                    <Text className="text-gray-600 text-sm">₹{priceRange[1]}</Text>
                   </div>
                 </div>
 
@@ -769,41 +770,47 @@ export default function FlightSearchBundle() {
                     className="w-full"
                     options={[
                       { value: 'any', label: 'Any time' },
-                      { value: 'morning', label: 'Morning (6AM - 12PM)' },
-                      { value: 'afternoon', label: 'Afternoon (12PM - 6PM)' },
-                      { value: 'evening', label: 'Evening (6PM - 12AM)' }
+                      { value: 'early-morning', label: 'Early Morning (4AM - 8AM)' },
+                      { value: 'morning', label: 'Morning (8AM - 12PM)' },
+                      { value: 'afternoon', label: 'Afternoon (12PM - 4PM)' },
+                      { value: 'evening', label: 'Evening (4PM - 8PM)' },
+                      { value: 'night', label: 'Night (8PM - 12AM)' },
+                      { value: 'late-night', label: 'Late Night (12AM - 4AM)' }
                     ]}
                   />
                 </div>
 
                 {/* Max Stops */}
                 <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">Max Stops</Text>
+                  <Text className="text-gray-700 font-medium block mb-3">✈️ Stops</Text>
                   <Select 
                     value={maxStops}
                     onChange={setMaxStops}
                     className="w-full"
                     options={[
-                      { value: 'any', label: 'Any' },
-                      { value: 'nonstop', label: 'Non-stop' },
-                      { value: '1stop', label: '1 Stop' },
-                      { value: '2stops', label: '2+ Stops' }
+                      { value: 'any', label: 'Any number of stops' },
+                      { value: 'nonstop', label: 'Non-stop only' },
+                      { value: '1stop', label: 'Up to 1 stop' },
+                      { value: '2stops', label: 'Up to 2 stops' },
+                      { value: '3+stops', label: '3+ stops' }
                     ]}
                   />
                 </div>
 
                 {/* Max Duration */}
                 <div className="mb-6">
-                  <Text className="text-gray-700 font-medium block mb-3">Max Duration (hours)</Text>
+                  <Text className="text-gray-700 font-medium block mb-3">⏱️ Flight Duration</Text>
                   <Select 
                     value={maxDuration}
                     onChange={setMaxDuration}
                     className="w-full"
                     options={[
-                      { value: 'any', label: 'Any' },
-                      { value: '8', label: 'Under 8 hours' },
+                      { value: 'any', label: 'Any duration' },
+                      { value: '3', label: 'Under 3 hours' },
+                      { value: '6', label: 'Under 6 hours' },
                       { value: '12', label: 'Under 12 hours' },
-                      { value: '24', label: 'Under 24 hours' }
+                      { value: '24', label: 'Under 24 hours' },
+                      { value: '36', label: 'Under 36 hours' }
                     ]}
                   />
                 </div>
@@ -925,7 +932,7 @@ export default function FlightSearchBundle() {
             )}
           </Col>
 
-          
+
         </Row>
 
         {/* Navigation Buttons */}

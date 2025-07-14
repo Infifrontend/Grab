@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
@@ -27,7 +26,7 @@ export default function Payments() {
       paymentId: 'PAY-1234',
       bookingId: 'GR-2024-1001',
       date: '2024-05-15',
-      amount: '$2,500.00',
+      amount: '₹2,500.00',
       type: 'Partial Payment',
       status: 'Completed',
       method: 'Credit Card',
@@ -37,7 +36,7 @@ export default function Payments() {
       paymentId: 'PAY-1235',
       bookingId: 'GR-2024-1001',
       date: '2024-04-01',
-      amount: '$1,500.00',
+      amount: '₹1,500.00',
       type: 'Deposit',
       status: 'Completed',
       method: 'Bank Transfer',
@@ -47,7 +46,7 @@ export default function Payments() {
       paymentId: 'PAY-1236',
       bookingId: 'GR-2024-0987',
       date: '2024-05-20',
-      amount: '$3,200.00',
+      amount: '₹3,200.00',
       type: 'Full Payment',
       status: 'Pending',
       method: 'Credit Card',
@@ -57,7 +56,7 @@ export default function Payments() {
       paymentId: 'PAY-1237',
       bookingId: 'GR-2024-0965',
       date: '2024-05-18',
-      amount: '$1,800.00',
+      amount: '₹1,800.00',
       type: 'Split Payment',
       status: 'Completed',
       method: 'PayPal',
@@ -114,7 +113,7 @@ export default function Payments() {
         if (status === 'Completed') color = 'blue';
         if (status === 'Pending') color = 'orange';
         if (status === 'Failed') color = 'red';
-        
+
         return <Badge color={color} text={status} />;
       },
     },
@@ -203,7 +202,7 @@ export default function Payments() {
               <Text className="text-green-600 text-sm">+12% from last month</Text>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
               <div className="flex justify-center mb-3">
@@ -281,7 +280,7 @@ export default function Payments() {
                   <Option value="Failed">Failed</Option>
                 </Select>
               </div>
-              
+
               <div className="flex gap-3">
                 <Button icon={<ExportOutlined />}>Export</Button>
                 <Button type="primary" icon={<PlusOutlined />} className="infiniti-btn-primary" onClick={handleMakePayment}>
@@ -357,7 +356,7 @@ export default function Payments() {
                       color = 'red';
                       text = 'Overdue';
                     }
-                    
+
                     return <Badge color={color} text={text} />;
                   },
                 },

@@ -110,7 +110,7 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          $70,448
+                          ₹70,448
                         </Text>
                       </div>
                     </Radio>
@@ -288,17 +288,17 @@ export default function PaymentOptions() {
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Base Flight Cost</Text>
-                  <Text className="text-gray-900">$78,400</Text>
+                  <Text className="text-gray-900">₹78,400</Text>
                 </div>
 
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Selected Bundles</Text>
-                  <Text className="text-gray-900">$4,480</Text>
+                  <Text className="text-gray-900">₹4,480</Text>
                 </div>
 
                 <div className="flex justify-between">
                   <Text className="text-green-600">Group Discount (15%)</Text>
-                  <Text className="text-green-600">-$12,432</Text>
+                  <Text className="text-green-600">-₹12,432</Text>
                 </div>
 
                 <div className="border-t pt-3">
@@ -307,7 +307,7 @@ export default function PaymentOptions() {
                       Total Amount
                     </Text>
                     <Text className="font-bold text-xl text-gray-900">
-                      $70,448
+                      ₹70,448
                     </Text>
                   </div>
                 </div>
@@ -320,7 +320,7 @@ export default function PaymentOptions() {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <Text className="text-blue-600">Due now:</Text>
-                    <Text className="font-semibold text-blue-700">$70,448</Text>
+                    <Text className="font-semibold text-blue-700">₹70,448</Text>
                   </div>
                 </div>
               </div>

@@ -232,17 +232,17 @@ export default function ReviewConfirmation() {
               <Space direction="vertical" size="middle" className="w-full">
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Base Flight Cost</Text>
-                  <Text className="font-medium">$38,400</Text>
+                  <Text className="font-medium">₹38,400</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Selected Services</Text>
-                  <Text className="font-medium">$9,248</Text>
+                  <Text className="font-medium">₹9,248</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Taxes & Fees</Text>
-                  <Text className="font-medium">$3,200</Text>
+                  <Text className="font-medium">₹3,200</Text>
                 </div>
 
                 <Divider className="!my-3" />
@@ -252,7 +252,7 @@ export default function ReviewConfirmation() {
                     Total Amount
                   </Text>
                   <Text className="text-xl font-bold text-blue-600">
-                    $50,848
+                    ₹50,848
                   </Text>
                 </div>
 

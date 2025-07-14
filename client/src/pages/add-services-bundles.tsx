@@ -239,13 +239,13 @@ export default function AddServicesBundles() {
         <div className="mb-4">
           <div className="flex items-baseline gap-2">
             <Text className="text-2xl font-bold">
-              ${bundle.discountedPrice}
+              ₹{bundle.discountedPrice}
             </Text>
             <Text className="text-gray-500 line-through">
-              ${bundle.originalPrice}
+              ₹{bundle.originalPrice}
             </Text>
             <Text className="text-green-600 font-medium text-sm">
-              Save ${bundle.savings}
+              Save ₹{bundle.savings}
             </Text>
           </div>
         </div>

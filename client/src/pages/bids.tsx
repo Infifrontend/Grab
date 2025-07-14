@@ -18,8 +18,8 @@ export default function Bids() {
       route: 'New York → London',
       passengers: 25,
       travelDate: '2024-07-22',
-      bidAmount: '$850',
-      deposit: '$7125.00',
+      bidAmount: '₹850',
+      deposit: '₹7125.00',
       status: 'Pending',
       payment: 'Paid',
       submitted: '2024-06-15',
@@ -30,8 +30,8 @@ export default function Bids() {
       route: 'Los Angeles → Tokyo',
       passengers: 18,
       travelDate: '2024-08-10',
-      bidAmount: '$1200',
-      deposit: '$2160.00',
+      bidAmount: '₹1200',
+      deposit: '₹2160.00',
       status: 'Under Review',
       payment: 'Paid',
       submitted: '2024-06-18',
@@ -42,8 +42,8 @@ export default function Bids() {
       route: 'Chicago → Paris',
       passengers: 32,
       travelDate: '2024-08-15',
-      bidAmount: '$950',
-      deposit: '$3040.00',
+      bidAmount: '₹950',
+      deposit: '₹3040.00',
       status: 'Accepted',
       payment: 'Converted to Booking',
       submitted: '2024-05-15',
@@ -54,8 +54,8 @@ export default function Bids() {
       route: 'Miami → Barcelona',
       passengers: 15,
       travelDate: '2024-07-28',
-      bidAmount: '$780',
-      deposit: '$1170.00',
+      bidAmount: '₹780',
+      deposit: '₹1170.00',
       status: 'Declined',
       payment: 'Refunded',
       submitted: '2024-04-20',
@@ -66,8 +66,8 @@ export default function Bids() {
       route: 'Seattle → Amsterdam',
       passengers: 22,
       travelDate: '2024-08-05',
-      bidAmount: '$890',
-      deposit: '$1958.00',
+      bidAmount: '₹890',
+      deposit: '₹1958.00',
       status: 'Expired',
       payment: 'Refunded',
       submitted: '2024-03-25',
@@ -78,8 +78,8 @@ export default function Bids() {
       route: 'Denver → London',
       passengers: 28,
       travelDate: '2024-09-12',
-      bidAmount: '$825',
-      deposit: '$2310.00',
+      bidAmount: '₹825',
+      deposit: '₹2310.00',
       status: 'Counter Offer',
       payment: 'Refunded',
       submitted: '2024-02-20',
@@ -90,8 +90,8 @@ export default function Bids() {
       route: 'Boston → Rome',
       passengers: 20,
       travelDate: '2024-09-25',
-      bidAmount: '$920',
-      deposit: '$0.00',
+      bidAmount: '₹920',
+      deposit: '₹0.00',
       status: 'Payment Pending',
       payment: 'Pending',
       submitted: '2024-06-25',
@@ -105,7 +105,7 @@ export default function Bids() {
       paymentId: 'PAY-2024-001',
       bidId: 'BID-2024-001',
       route: 'New York → London',
-      amount: '$2125.00',
+      amount: '₹2125.00',
       type: 'Deposit',
       status: 'Completed',
       paymentMethod: 'Credit Card',
@@ -116,7 +116,7 @@ export default function Bids() {
       paymentId: 'PAY-2024-002',
       bidId: 'BID-2024-002',
       route: 'Los Angeles → Tokyo',
-      amount: '$2160.00',
+      amount: '₹2160.00',
       type: 'Deposit',
       status: 'Completed',
       paymentMethod: 'Bank Transfer',
@@ -127,7 +127,7 @@ export default function Bids() {
       paymentId: 'PAY-2024-003',
       bidId: 'BID-2024-003',
       route: 'Chicago → Paris',
-      amount: '$3040.00',
+      amount: '₹3040.00',
       type: 'Deposit',
       status: 'Converted',
       paymentMethod: 'Credit Card',
@@ -138,7 +138,7 @@ export default function Bids() {
       paymentId: 'REF-2024-001',
       bidId: 'BID-2024-004',
       route: 'Miami → Barcelona',
-      amount: '$1170.00',
+      amount: '₹1170.00',
       type: 'Refund',
       status: 'Completed',
       paymentMethod: 'Credit Card',
@@ -149,7 +149,7 @@ export default function Bids() {
       paymentId: 'REF-2024-002',
       bidId: 'BID-2024-005',
       route: 'Seattle → Amsterdam',
-      amount: '$1958.00',
+      amount: '₹1958.00',
       type: 'Refund',
       status: 'Completed',
       paymentMethod: 'Bank Transfer',
@@ -160,7 +160,7 @@ export default function Bids() {
       paymentId: 'REF-2024-003',
       bidId: 'BID-2024-006',
       route: 'Denver → London',
-      amount: '$2310.00',
+      amount: '₹2310.00',
       type: 'Refund',
       status: 'Completed',
       paymentMethod: 'Credit Card',
@@ -171,7 +171,7 @@ export default function Bids() {
       paymentId: 'PAY-2024-007',
       bidId: 'BID-2024-007',
       route: 'Boston → Rome',
-      amount: '$1840.00',
+      amount: '₹1840.00',
       type: 'Deposit',
       status: 'Pending',
       paymentMethod: 'Pending',
@@ -378,7 +378,7 @@ export default function Bids() {
                 <DollarOutlined className="text-orange-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Total Savings</Text>
               </div>
-              <Title level={2} className="!mb-0 text-orange-600">$30</Title>
+              <Title level={2} className="!mb-0 text-orange-600">₹30</Title>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -387,7 +387,7 @@ export default function Bids() {
                 <CreditCardOutlined className="text-purple-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Deposits Paid</Text>
               </div>
-              <Title level={2} className="!mb-0 text-purple-600">$6,445</Title>
+              <Title level={2} className="!mb-0 text-purple-600">₹6,445</Title>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -396,7 +396,7 @@ export default function Bids() {
                 <UndoOutlined className="text-orange-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Refunds Received</Text>
               </div>
-              <Title level={2} className="!mb-0 text-orange-600">$5,438</Title>
+              <Title level={2} className="!mb-0 text-orange-600">₹5,438</Title>
             </Card>
           </Col>
         </Row>
@@ -465,11 +465,11 @@ export default function Bids() {
                   <DatePicker style={{ width: '100%' }} placeholder="dd/mm/yyyy" />
                 </Col>
                 <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">Min Amount ($)</Text>
+                  <Text className="text-gray-600 text-sm block mb-1">Min Amount (₹)</Text>
                   <Input placeholder="500" />
                 </Col>
                 <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">Max Amount ($)</Text>
+                  <Text className="text-gray-600 text-sm block mb-1">Max Amount (₹)</Text>
                   <Input placeholder="2000" />
                 </Col>
                 <Col xs={24} md={6} className="flex items-end">
@@ -567,25 +567,25 @@ export default function Bids() {
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-green-50 border-green-200">
                   <Text className="text-green-600 text-sm block mb-1">Total Deposits</Text>
-                  <Title level={3} className="!mb-0 text-green-600">$7,165.00</Title>
+                  <Title level={3} className="!mb-0 text-green-600">₹7,165.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-purple-50 border-purple-200">
                   <Text className="text-purple-600 text-sm block mb-1">Total Refunds</Text>
-                  <Title level={3} className="!mb-0 text-purple-600">$5,438.00</Title>
+                  <Title level={3} className="!mb-0 text-purple-600">₹5,438.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-blue-50 border-blue-200">
                   <Text className="text-blue-600 text-sm block mb-1">Net Amount</Text>
-                  <Title level={3} className="!mb-0 text-blue-600">$1,727.00</Title>
+                  <Title level={3} className="!mb-0 text-blue-600">₹1,727.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-orange-50 border-orange-200">
                   <Text className="text-orange-600 text-sm block mb-1">Pending Payments</Text>
-                  <Title level={3} className="!mb-0 text-orange-600">$1,840.00</Title>
+                  <Title level={3} className="!mb-0 text-orange-600">₹1,840.00</Title>
                 </Card>
               </Col>
             </Row>

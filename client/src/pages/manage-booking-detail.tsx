@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider } from 'antd';
 import { DownloadOutlined, PlusOutlined, UploadOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -92,7 +91,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     message.success('CSV template downloaded successfully');
   };
 
@@ -242,7 +241,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Passenger Information Management</Text>
                     <Text className="text-gray-600 text-sm block mb-3">Upload passenger details via CSV file or enter manually</Text>
-                    
+
                     <div className="mb-4">
                       <Button 
                         icon={<DownloadOutlined />}
@@ -252,7 +251,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                         Download CSV Template
                       </Button>
                       <Text className="text-gray-500 text-sm block mb-2">Download template with required passenger information format</Text>
-                      
+
                       <div className="flex items-center gap-3">
                         <Upload
                           accept=".csv,.xlsx,.xls"
@@ -271,7 +270,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div>
                       <Text className="block mb-3 text-gray-700 font-medium">Manual Entry</Text>
                       <Text className="text-gray-600 text-sm block mb-3">Add or update passenger names manually</Text>
-                      
+
                       <div className="space-y-3 max-h-60 overflow-y-auto">
                         {passengers.map((passenger, index) => (
                           <div key={index} className="flex gap-3">
@@ -290,7 +289,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                           </div>
                         ))}
                       </div>
-                      
+
                       <Button
                         type="dashed"
                         icon={<PlusOutlined />}
@@ -324,7 +323,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">FlexPay Plus</Title>
                       <Text className="text-gray-600 block mb-2">Pay your way with flexible payment options</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$29</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹29</Text>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• Pay 50% now, 50% later</li>
                         <li>• No interest charges</li>
@@ -341,7 +340,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Schedule Shield</Title>
                       <Text className="text-gray-600 block mb-2">Change your travel dates with confidence</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$45</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹45</Text>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• One free date change per booking</li>
                         <li>• Waived change fees</li>
@@ -357,7 +356,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Worry-Free Cancellation</Title>
                       <Text className="text-gray-600 block mb-2">Get refund protection for unexpected changes</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$65</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹65</Text>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• 100% refund if cancelled 48+ hours before</li>
                         <li>• No questions asked policy</li>
@@ -383,7 +382,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Comfort Plus Bundle</Title>
                       <Text className="text-gray-600 block mb-2">Enhanced comfort for your journey</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$89</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹89</Text>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• Priority boarding</li>
                         <li>• Extra legroom seat</li>
@@ -401,7 +400,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Extra Checked Bag</Title>
                       <Text className="text-gray-600 block mb-2">Additional 23kg checked baggage</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$45</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹45</Text>
                       <Text className="text-sm text-gray-600">Quantity: 2</Text>
                     </div>
                     <div className="flex items-center gap-2">
@@ -429,7 +428,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Business Essentials</Title>
                       <Text className="text-gray-600 block mb-2">Everything you need for business travel</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$149</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹149</Text>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• Lounge access</li>
                         <li>• Fast track security</li>
@@ -447,7 +446,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Premium Meal</Title>
                       <Text className="text-gray-600 block mb-2">Upgrade to premium dining experience</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$35</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹35</Text>
                     </div>
                     <Button type="primary">Add Service</Button>
                   </div>
@@ -459,7 +458,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <div className="flex-1">
                       <Title level={5} className="!mb-1">Airport Lounge Access</Title>
                       <Text className="text-gray-600 block mb-2">Access to premium airport lounges</Text>
-                      <Text className="text-xl font-bold text-gray-900 block mb-2">$55</Text>
+                      <Text className="text-xl font-bold text-gray-900 block mb-2">₹55</Text>
                     </div>
                     <Button type="primary">Add Service</Button>
                   </div>
@@ -538,19 +537,19 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                 <Col xs={24} md={8}>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                     <Text className="text-blue-600 font-medium block mb-1">Total Booking Amount</Text>
-                    <Text className="text-2xl font-bold text-blue-600">$8,500.00</Text>
+                    <Text className="text-2xl font-bold text-blue-600">₹8,500.00</Text>
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                     <Text className="text-green-600 font-medium block mb-1">Amount Paid</Text>
-                    <Text className="text-2xl font-bold text-green-600">$4,000.00</Text>
+                    <Text className="text-2xl font-bold text-green-600">₹4,000.00</Text>
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                     <Text className="text-orange-600 font-medium block mb-1">Remaining Balance</Text>
-                    <Text className="text-2xl font-bold text-orange-600">$4,500.00</Text>
+                    <Text className="text-2xl font-bold text-orange-600">₹4,500.00</Text>
                   </div>
                 </Col>
               </Row>
@@ -568,7 +567,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div className="flex-1">
                     <div className="flex items-center gap-4">
                       <div>
-                        <Text className="font-semibold text-gray-900 block">$2,500.00</Text>
+                        <Text className="font-semibold text-gray-900 block">₹2,500.00</Text>
                         <Text className="text-gray-600 text-sm">May 15, 2024</Text>
                       </div>
                       <div>
@@ -587,7 +586,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div className="flex-1">
                     <div className="flex items-center gap-4">
                       <div>
-                        <Text className="font-semibold text-gray-900 block">$1,500.00</Text>
+                        <Text className="font-semibold text-gray-900 block">₹1,500.00</Text>
                         <Text className="text-gray-600 text-sm">May 20, 2024</Text>
                       </div>
                       <div>
@@ -618,7 +617,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Input
                       value={paymentAmount}
                       onChange={(e) => setPaymentAmount(e.target.value)}
-                      prefix="$"
+                      prefix="₹"
                       className="w-full"
                     />
                   </div>
