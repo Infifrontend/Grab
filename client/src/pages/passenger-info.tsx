@@ -264,6 +264,7 @@ export default function PassengerInfo() {
                             date ? date.toISOString() : "",
                           )
                         }
+                        disabledDate={(current) => current && current.isAfter(new Date(), 'day')}
                       />
                     </Form.Item>
                   </Col>

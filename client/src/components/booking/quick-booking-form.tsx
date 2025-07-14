@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Card,
@@ -157,19 +156,20 @@ export default function QuickBookingForm() {
         <Row gutter={16} className="mb-4">
           <Col span={12}>
             <Form.Item
-              label="Departure date *"
-              name="departureDate"
-              rules={[
-                { required: true, message: "Please select departure date" },
-              ]}
-            >
-              <DatePicker 
-                className="w-full" 
-                placeholder="dd / mm / yyyy"
-                format="DD / MM / YYYY"
-                suffixIcon={<CalendarOutlined className="text-gray-400" />}
-              />
-            </Form.Item>
+                label="Departure date *"
+                name="departureDate"
+                rules={[
+                  { required: true, message: "Please select departure date" },
+                ]}
+              >
+                <DatePicker 
+                  className="w-full" 
+                  placeholder="dd / mm / yyyy"
+                  format="DD / MM / YYYY"
+                  suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                  disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                />
+              </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="Return date" name="returnDate">

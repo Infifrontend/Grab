@@ -163,6 +163,7 @@ export default function GroupLeader() {
                       placeholder="dd/mm/yyyy"
                       format="DD/MM/YYYY"
                       className="w-full"
+                      disabledDate={(current) => current && current.isAfter(new Date(), 'day')}
                     />
                   </Form.Item>
                 </Col>

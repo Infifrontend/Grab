@@ -189,6 +189,7 @@ export default function BidDetails() {
                       placeholder="Select departure date"
                       size="large"
                       className="w-full rounded-md"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </div>
                 </Col>
@@ -201,6 +202,7 @@ export default function BidDetails() {
                       placeholder="Select return date"
                       size="large"
                       className="w-full rounded-md"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </div>
                 </Col>

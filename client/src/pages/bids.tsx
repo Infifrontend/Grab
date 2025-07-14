@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, Row, Col, Typography, Button, Space, Badge, Tabs, Table, Tag, Input, Select, DatePicker } from 'antd';
 import { SearchOutlined, FilterOutlined, InfoCircleOutlined, CheckCircleOutlined, DollarOutlined, CreditCardOutlined, UndoOutlined } from '@ant-design/icons';
@@ -419,7 +418,7 @@ export default function Bids() {
                 <FilterOutlined className="mr-2" />
                 Search & Filter Bids
               </Title>
-              
+
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Bid ID</Text>
@@ -452,7 +451,11 @@ export default function Bids() {
                 </Col>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Date From</Text>
-                  <DatePicker style={{ width: '100%' }} placeholder="dd/mm/yyyy" />
+                  <DatePicker 
+                    style={{ width: '100%' }} 
+                    placeholder="dd/mm/yyyy" 
+                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                  />
                 </Col>
               </Row>
 

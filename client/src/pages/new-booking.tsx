@@ -139,6 +139,7 @@ export default function NewBooking() {
                     className="w-full"
                     placeholder="dd / mm / yyyy"
                     format="DD / MM / YYYY"
+                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                   />
                 </Form.Item>
               </Col>
@@ -163,6 +164,7 @@ export default function NewBooking() {
                     placeholder="dd / mm / yyyy"
                     format="DD / MM / YYYY"
                     disabled={tripType === "oneWay"}
+                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                   />
                 </Form.Item>
               </Col>
