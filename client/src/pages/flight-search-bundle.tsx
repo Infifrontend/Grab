@@ -834,7 +834,8 @@ export default function FlightSearchBundle() {
         <Row gutter={24}>
           {/* Filters Sidebar */}
           <Col xs={24} lg={6}>
-            <Card>
+            <div className="sticky top-6">
+              <Card>
               <div className="mb-6">
                 <Title level={4} className="!mb-4 text-gray-800">
                   🔍 Search & Filters
@@ -952,6 +953,7 @@ export default function FlightSearchBundle() {
                 </Button>
               </div>
             </Card>
+            </div>
           </Col>
 
           {/* Flight Selection */}
