@@ -889,11 +889,28 @@ export default function FlightSearchBundle() {
             <div>
               {/* Trip Type Selection */}
               <div className="mb-4">
+                <Text className="text-gray-600 text-sm block mb-2">
+                  Trip Type
+                </Text>
                 <Radio.Group
                   value={tripType}
                   onChange={(e) => {
-                    setTripType(e.target.value);
-                    localStorage.setItem("selectedTripType", e.target.value);
+                    const newTripType = e.target.value;
+                    setTripType(newTripType);
+                    localStorage.setItem("selectedTripType", newTripType);
+                    
+                    // Update bookingFormData with new trip type
+                    const bookingData = localStorage.getItem("bookingFormData");
+                    if (bookingData) {
+                      const data = JSON.parse(bookingData);
+                      data.tripType = newTripType;
+                      localStorage.setItem("bookingFormData", JSON.stringify(data));
+                    }
+                    
+                    // Clear return date if switching to one way
+                    if (newTripType === "oneWay") {
+                      setReturnDate(null);
+                    }
                   }}
                   className="flex gap-6"
                 >
@@ -959,9 +976,13 @@ export default function FlightSearchBundle() {
                       Return Date
                     </Text>
                     <DatePicker
-                      value={returnDate}
-                      onChange={(date) => setReturnDate(date)}
-                      placeholder="Select return date"
+                      value={tripType === "oneWay" ? null : returnDate}
+                      onChange={(date) => {
+                        if (tripType !== "oneWay") {
+                          setReturnDate(date);
+                        }
+                      }}
+                      placeholder={tripType === "oneWay" ? "N/A for one way" : "Select return date"}
                       format="DD/MM/YYYY"
                       className="w-full"
                       disabled={tripType === "oneWay"}
