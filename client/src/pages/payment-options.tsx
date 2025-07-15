@@ -181,6 +181,18 @@ export default function PaymentOptions() {
       const discount = selectedOption?.discount || 0;
       const discountedTotal = totalAmount * (1 - discount);
       
+      // Extract form values safely to avoid circular references
+      let creditCardData = null;
+      if (paymentMethod === "creditCard") {
+        const formValues = form.getFieldsValue();
+        creditCardData = {
+          cardNumber: formValues.cardNumber,
+          cardholderName: formValues.cardholderName,
+          expiryDate: formValues.expiryDate,
+          cvv: formValues.cvv,
+        };
+      }
+
       const paymentData = {
         paymentSchedule,
         paymentMethod,
@@ -191,7 +203,7 @@ export default function PaymentOptions() {
                 paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
                 discountedTotal / 3,
         selectedPaymentOption: selectedOption,
-        formData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
+        formData: creditCardData,
         flightData,
         selectedServices,
         bundleData: localStorage.getItem('selectedBundleData') ? JSON.parse(localStorage.getItem('selectedBundleData')) : null,
