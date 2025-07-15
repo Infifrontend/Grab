@@ -24,13 +24,43 @@ export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [flightData, setFlightData] = useState<any>(null);
+  const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [bundleData, setBundleData] = useState<any>(null);
+  const [bookingSummary, setBookingSummary] = useState<any>(null);
   const [createdBooking, setCreatedBooking] = useState<any>(null);
 
-  // Load booking data from localStorage
+  // Load all booking data from localStorage
   useEffect(() => {
     const storedBookingData = localStorage.getItem('bookingFormData');
     if (storedBookingData) {
       setBookingData(JSON.parse(storedBookingData));
+    }
+
+    const storedFlightData = localStorage.getItem('selectedFlightData');
+    if (storedFlightData) {
+      setFlightData(JSON.parse(storedFlightData));
+    }
+
+    const storedGroupLeaderData = localStorage.getItem('groupLeaderData');
+    if (storedGroupLeaderData) {
+      setGroupLeaderData(JSON.parse(storedGroupLeaderData));
+    }
+
+    const storedServices = localStorage.getItem('selectedServices');
+    if (storedServices) {
+      setSelectedServices(JSON.parse(storedServices));
+    }
+
+    const storedBundleData = localStorage.getItem('selectedBundleData');
+    if (storedBundleData) {
+      setBundleData(JSON.parse(storedBundleData));
+    }
+
+    const storedBookingSummary = localStorage.getItem('bookingSummary');
+    if (storedBookingSummary) {
+      setBookingSummary(JSON.parse(storedBookingSummary));
     }
   }, []);
 
@@ -137,7 +167,7 @@ export default function ReviewConfirmation() {
                         {bookingData ? (
                           bookingData.tripType === 'oneWay' ? 'One-way' : 
                           bookingData.tripType === 'roundTrip' ? 'Round-trip' : 'Multi-city'
-                        ) : 'Round-trip'}
+                        ) : 'One-way'}
                       </Text>
                     </div>
 
@@ -146,7 +176,7 @@ export default function ReviewConfirmation() {
                         Route
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? `${bookingData.origin} → ${bookingData.destination}` : 'New York (JFK) → London (LHR)'}
+                        {bookingData ? `${bookingData.origin} → ${bookingData.destination}` : 'Chennai → Delhi'}
                       </Text>
                     </div>
 
@@ -155,7 +185,11 @@ export default function ReviewConfirmation() {
                         Departure Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? bookingData.departureDate : 'June 15, 2024'}
+                        {bookingData ? new Date(bookingData.departureDate).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }) : 'July 21, 2025'}
                       </Text>
                     </div>
                   </Space>
@@ -178,7 +212,7 @@ export default function ReviewConfirmation() {
                         Total Passengers
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? `${bookingData.totalPassengers} passengers` : '32 passengers'}
+                        {bookingData ? `${bookingData.totalPassengers || (bookingData.adults + bookingData.kids + bookingData.infants)} passengers` : '1 passenger'}
                       </Text>
                     </div>
 
@@ -187,7 +221,12 @@ export default function ReviewConfirmation() {
                         Return Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData && bookingData.tripType !== 'oneWay' ? bookingData.returnDate : 'N/A (One-way trip)'}
+                        {bookingData && bookingData.tripType !== 'oneWay' && bookingData.returnDate ? 
+                          new Date(bookingData.returnDate).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          }) : 'N/A (One-way trip)'}
                       </Text>
                     </div>
                   </Space>
@@ -202,18 +241,42 @@ export default function ReviewConfirmation() {
                   Selected Services
                 </Text>
                 <Space direction="vertical" size="small" className="w-full">
-                  <div className="flex items-center justify-between">
-                    <Text className="text-gray-900">Economy Plus Seats</Text>
-                    <Text className="text-gray-600">$89 per person</Text>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Text className="text-gray-900">Premium Baggage</Text>
-                    <Text className="text-gray-600">$125 per person</Text>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Text className="text-gray-900">Airport Transfers</Text>
-                    <Text className="text-gray-600">$75 per person</Text>
-                  </div>
+                  {selectedServices.length > 0 ? (
+                    selectedServices.map((service, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <Text className="text-gray-900">{service.name}</Text>
+                        <Text className="text-gray-600">₹{service.price} per person</Text>
+                      </div>
+                    ))
+                  ) : (
+                    <Text className="text-gray-500 italic">No additional services selected</Text>
+                  )}
+                  
+                  {/* Show bundle services if available */}
+                  {bundleData && (
+                    <>
+                      {bundleData.selectedSeat && (
+                        <div className="flex items-center justify-between">
+                          <Text className="text-gray-900">{bundleData.selectedSeat.name}</Text>
+                          <Text className="text-gray-600">₹{bundleData.selectedSeat.price} per person</Text>
+                        </div>
+                      )}
+                      {bundleData.selectedBaggage && (
+                        <div className="flex items-center justify-between">
+                          <Text className="text-gray-900">{bundleData.selectedBaggage.name}</Text>
+                          <Text className="text-gray-600">₹{bundleData.selectedBaggage.price} per person</Text>
+                        </div>
+                      )}
+                      {bundleData.selectedMeals && bundleData.selectedMeals.length > 0 && (
+                        bundleData.selectedMeals.map((meal, index) => (
+                          <div key={index} className="flex items-center justify-between">
+                            <Text className="text-gray-900">{meal.name}</Text>
+                            <Text className="text-gray-600">₹{meal.price} per person</Text>
+                          </div>
+                        ))
+                      )}
+                    </>
+                  )}
                 </Space>
               </div>
             </Card>
@@ -230,7 +293,9 @@ export default function ReviewConfirmation() {
                     <Text className="text-gray-500 text-sm block mb-1">
                       Full Name
                     </Text>
-                    <Text className="text-gray-900 font-medium">John Doe</Text>
+                    <Text className="text-gray-900 font-medium">
+                      {groupLeaderData ? `${groupLeaderData.firstName} ${groupLeaderData.lastName}` : 'Not provided'}
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={12}>
@@ -239,7 +304,7 @@ export default function ReviewConfirmation() {
                       Email Address
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      john.doe@company.com
+                      {groupLeaderData?.email || 'Not provided'}
                     </Text>
                   </div>
                 </Col>
@@ -249,17 +314,17 @@ export default function ReviewConfirmation() {
                       Phone Number
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      +1 (555) 123-4567
+                      {groupLeaderData?.phoneNumber || 'Not provided'}
                     </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={12}>
                   <div>
                     <Text className="text-gray-500 text-sm block mb-1">
-                      Company
+                      {groupLeaderData?.groupType === 'corporate' ? 'Company' : 'Organization'}
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      ABC Corporation
+                      {groupLeaderData?.companyName || groupLeaderData?.organizationName || 'Not provided'}
                     </Text>
                   </div>
                 </Col>
@@ -278,18 +343,31 @@ export default function ReviewConfirmation() {
               <Space direction="vertical" size="middle" className="w-full">
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Base Flight Cost</Text>
-                  <Text className="font-medium">₹38,400</Text>
+                  <Text className="font-medium">
+                    ₹{flightData?.baseCost || (bookingSummary ? (bookingSummary.subtotal - (bundleData?.bundleCost || 0) * (bookingData?.totalPassengers || 1) - selectedServices.reduce((total, service) => total + (service.price * (bookingData?.totalPassengers || 1)), 0)) : '3,800')}
+                  </Text>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Selected Services</Text>
-                  <Text className="font-medium">₹9,248</Text>
-                </div>
+                {(selectedServices.length > 0 || bundleData?.bundleCost) && (
+                  <div className="flex justify-between items-center">
+                    <Text className="text-gray-600">Selected Services</Text>
+                    <Text className="font-medium">
+                      ₹{((bundleData?.bundleCost || 0) + selectedServices.reduce((total, service) => total + service.price, 0)) * (bookingData?.totalPassengers || 1)}
+                    </Text>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Taxes & Fees</Text>
-                  <Text className="font-medium">₹3,200</Text>
+                  <Text className="font-medium">₹{bookingSummary?.taxes || '304'}</Text>
                 </div>
+
+                {bookingSummary?.groupDiscount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <Text className="text-gray-600">Group Discount (15%)</Text>
+                    <Text className="font-medium text-green-600">-₹{bookingSummary.groupDiscount}</Text>
+                  </div>
+                )}
 
                 <Divider className="!my-3" />
 
@@ -298,12 +376,12 @@ export default function ReviewConfirmation() {
                     Total Amount
                   </Text>
                   <Text className="text-xl font-bold text-blue-600">
-                    ₹50,848
+                    ₹{bookingSummary?.totalAmount || '4,104'}
                   </Text>
                 </div>
 
                 <Text className="text-gray-500 text-sm text-center">
-                  For 32 passengers
+                  For {bookingData?.totalPassengers || (bookingData ? (bookingData.adults + bookingData.kids + bookingData.infants) : 1)} passengers
                 </Text>
               </Space>
             </Card>
