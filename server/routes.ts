@@ -50,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/flight-locations", async (req, res) => {
     try {
       const flights = await storage.getFlights("", "", undefined); // Fetch all flights
-      
+
       // Extract unique locations from origin and destination
       const locations = new Set<string>();
       flights.forEach(flight => {
@@ -227,6 +227,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         error: "Failed to migrate flights" 
+      });
+    }
+  });
+
+  // Group Leaders
+  app.post("/api/group-leaders", async (req, res) => {
+    try {
+      console.log("Creating group leader with data:", req.body);
+
+      const groupLeaderData = {
+        id: crypto.randomUUID(),
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const groupLeader = await db.insert(groupLeaders).values(groupLeaderData).returning();
+
+      console.log("Group leader created successfully:", groupLeader[0]);
+      res.json(groupLeader[0]);
+    } catch (error) {
+      console.error("Error creating group leader:", error);
+      console.error("Request body:", req.body);
+      res.status(500).json({ 
+        error: "Failed to create group leader",
+        details: error.message 
       });
     }
   });

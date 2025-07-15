@@ -37,12 +37,19 @@ export default function GroupLeader() {
 
   const handleSubmit = async (values: any) => {
       try {
+        // Format dates before sending to server
+        const formattedValues = {
+          ...values,
+          dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : null,
+          passportExpiryDate: values.passportExpiryDate ? values.passportExpiryDate.format('YYYY-MM-DD') : null,
+        };
+
         const response = await fetch("/api/group-leaders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify(formattedValues),
         });
 
         if (response.ok) {
@@ -50,7 +57,7 @@ export default function GroupLeader() {
           console.log("Group leader data saved:", result);
 
           // Store group leader data in localStorage
-          localStorage.setItem("groupLeaderData", JSON.stringify(values));
+          localStorage.setItem("groupLeaderData", JSON.stringify(formattedValues));
 
           // Calculate and store total booking amount
           const bookingData = JSON.parse(localStorage.getItem("bookingFormData") || "{}");
@@ -101,11 +108,13 @@ export default function GroupLeader() {
           message.success("Group leader information saved successfully!");
           setLocation("/payment-options");
         } else {
-          throw new Error("Failed to save group leader data");
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Server responded with error:", response.status, errorData);
+          throw new Error(errorData.details || errorData.error || "Failed to save group leader data");
         }
       } catch (error) {
         console.error("Error saving group leader data:", error);
-        message.error("Failed to save group leader information");
+        message.error(`Failed to save group leader information: ${error.message}`);
       }
     };
 
