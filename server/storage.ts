@@ -332,3 +332,57 @@ export class DatabaseStorage implements IStorage {
 
       // Insert only domestic Indian flights
       const domesticFlights = [
+        {
+          flightNumber: 'AI101',
+          airline: 'Air India',
+          aircraft: 'Boeing 737',
+          origin: 'Delhi',
+          destination: 'Mumbai',
+          departureTime: new Date('2024-01-20T06:00:00'),
+          arrivalTime: new Date('2024-01-20T08:30:00'),
+          duration: 150,
+          availableSeats: 180,
+          baseCost: 4500,
+          cabinClass: 'Economy'
+        },
+        {
+          flightNumber: 'SG201',
+          airline: 'SpiceJet',
+          aircraft: 'Boeing 737',
+          origin: 'Mumbai',
+          destination: 'Bangalore',
+          departureTime: new Date('2024-01-20T09:00:00'),
+          arrivalTime: new Date('2024-01-20T11:00:00'),
+          duration: 120,
+          availableSeats: 189,
+          baseCost: 3800,
+          cabinClass: 'Economy'
+        },
+        {
+          flightNumber: 'UK301',
+          airline: 'Vistara',
+          aircraft: 'Airbus A320',
+          origin: 'Delhi',
+          destination: 'Bangalore',
+          departureTime: new Date('2024-01-20T10:30:00'),
+          arrivalTime: new Date('2024-01-20T13:00:00'),
+          duration: 150,
+          availableSeats: 164,
+          baseCost: 5200,
+          cabinClass: 'Economy'
+        }
+      ];
+
+      // Insert domestic flights
+      for (const flight of domesticFlights) {
+        await db.insert(flights).values(flight);
+      }
+
+      console.log(`Successfully inserted ${domesticFlights.length} domestic flights`);
+      
+    } catch (error) {
+      console.error('Migration failed:', error);
+      throw error;
+    }
+  }
+}
