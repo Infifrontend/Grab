@@ -239,6 +239,7 @@ export const clearBookingData = (): void => {
     'groupLeaderData',
     'bookingSummary',
     'paymentData',
+    'passengerData',
     'selectedPaymentMethod',
     'selectedPaymentSchedule',
     'searchResults',
@@ -251,6 +252,25 @@ export const clearBookingData = (): void => {
   });
 };
 
+// Passenger Data
+export const getPassengerData = (): any[] => {
+  try {
+    const stored = localStorage.getItem('passengerData');
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error parsing passenger data:', error);
+    return [];
+  }
+};
+
+export const setPassengerData = (data: any[]): void => {
+  try {
+    localStorage.setItem('passengerData', JSON.stringify(data));
+  } catch (error) {
+    console.error('Error storing passenger data:', error);
+  }
+};
+
 // Get all booking data for debugging
 export const getAllBookingData = () => {
   return {
@@ -260,7 +280,8 @@ export const getAllBookingData = () => {
     servicesData: getServicesData(),
     groupLeaderData: getGroupLeaderData(),
     bookingSummary: getBookingSummary(),
-    paymentData: getPaymentData()
+    paymentData: getPaymentData(),
+    passengerData: getPassengerData()
   };
 };
 

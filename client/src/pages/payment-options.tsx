@@ -127,7 +127,7 @@ export default function PaymentOptions() {
     const subtotal = baseCost + servicesCost;
     const taxes = subtotal * 0.08; // 8% tax
     const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
-    
+
     setTotalAmount(subtotal + taxes - groupDiscount);
   }, [flightData, selectedServices, passengerCount, bookingData]);
 
@@ -176,11 +176,11 @@ export default function PaymentOptions() {
       if (paymentMethod === "creditCard") {
         await form.validateFields();
       }
-      
+
       const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
       const discount = selectedOption?.discount || 0;
       const discountedTotal = totalAmount * (1 - discount);
-      
+
       // Extract form values safely to avoid circular references
       let creditCardData = null;
       if (paymentMethod === "creditCard") {
@@ -218,12 +218,9 @@ export default function PaymentOptions() {
       // Save payment data to localStorage
       try {
         localStorage.setItem("paymentData", JSON.stringify(paymentData));
-        console.log("Payment Information saved:", paymentData);
-        
-        // Force navigation
-        setTimeout(() => {
-          setLocation("/passenger-info");
-        }, 100);
+
+        // Always navigate to passenger info first, then review
+        setLocation("/passenger-info");
       } catch (storageError) {
         console.error("Storage error:", storageError);
         // Still navigate even if storage fails
@@ -661,7 +658,7 @@ export default function PaymentOptions() {
                         const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                         const discount = selectedOption?.discount || 0;
                         const discountedTotal = totalAmount * (1 - discount);
-                        
+
                         if (paymentSchedule === "full") return discountedTotal.toFixed(2);
                         if (paymentSchedule === "deposit") return (discountedTotal * 0.3).toFixed(2);
                         if (paymentSchedule === "split") return (discountedTotal / 3).toFixed(2);

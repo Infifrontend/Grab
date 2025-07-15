@@ -88,8 +88,15 @@ export default function PassengerInfo() {
   };
 
   const handleContinue = () => {
-    console.log("Passenger Information:", passengers);
-    // Navigate to next step (Review & Confirmation)
+    // Store all passenger data before navigating
+    const allPassengerData = passengers.filter(p => 
+      p.firstName && p.lastName && p.dateOfBirth && p.nationality
+    );
+
+    localStorage.setItem("passengerData", JSON.stringify(allPassengerData));
+
+    console.log("Passenger data stored:", allPassengerData);
+    console.log("Navigating to review confirmation...");
     setLocation("/review-confirmation");
   };
 

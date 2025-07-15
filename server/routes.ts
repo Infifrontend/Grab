@@ -198,6 +198,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create comprehensive group booking
+  app.post("/api/group-bookings", async (req, res) => {
+    try {
+      const {
+        bookingData,
+        flightData,
+        bundleData,
+        selectedServices,
+        groupLeaderData,
+        paymentData,
+        passengerData,
+        bookingSummary
+      } = req.body;
+
+      console.log("Creating comprehensive group booking:", {
+        passengerCount: bookingData?.totalPassengers,
+        totalAmount: bookingSummary?.totalAmount,
+        paymentMethod: paymentData?.paymentMethod
+      });
+
+      // Generate unique booking reference
+      const bookingReference = `GB-${new Date().getFullYear()}-${nanoid(8).toUpperCase()}`;
+
+      // Create main booking record
+      const mainBooking = {
+        bookingReference,
+        flightId: flightData?.selectedFlightId || 1,
+        passengerCount: bookingData?.totalPassengers || 1,
+        totalAmount: bookingSummary?.totalAmount?.toString() || "0",
+        bookingStatus: "confirmed",
+        paymentStatus: paymentData?.paymentMethod === "bankTransfer" ? "pending" : "pending",
+        specialRequests: `Group Type: ${groupLeaderData?.groupType || 'N/A'}, Services: ${selectedServices?.map(s => s.name).join(', ') || 'None'}`
+      };
+
+      const booking = await storage.createFlightBooking(mainBooking);
+
+      // Add passengers if provided
+      if (passengerData && passengerData.length > 0) {
+        for (const passenger of passengerData) {
+          await storage.createPassenger({
+            bookingId: booking.id,
+            title: passenger.title || 'Mr',
+            firstName: passenger.firstName,
+            lastName: passenger.lastName,
+            dateOfBirth: new Date(passenger.dateOfBirth),
+            nationality: passenger.nationality || 'Indian',
+            passportNumber: passenger.passportNumber || null,
+            passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry) : null,
+            seatPreference: passenger.seatPreference || null,
+            mealPreference: passenger.mealPreference || null,
+            specialAssistance: passenger.specialAssistance || null
+          });
+        }
+      }
+
+      // Store comprehensive booking data in a separate table for full details
+      const comprehensiveBookingData = {
+        bookingReference,
+        tripDetails: bookingData,
+        flightDetails: flightData,
+        bundleSelection: bundleData,
+        selectedServices: selectedServices || [],
+        groupLeaderInfo: groupLeaderData,
+        paymentInfo: paymentData,
+        pricingSummary: bookingSummary,
+        createdAt: new Date().toISOString(),
+        status: 'confirmed'
+      };
+
+      // For now, we'll store this as a JSON field in the booking's specialRequests
+      // In a production app, you'd want a separate table for this
+      await storage.updateBookingDetails(booking.id, {
+        specialRequests: JSON.stringify(comprehensiveBookingData)
+      });
+
+      res.json({ 
+        success: true,
+        booking,
+        bookingReference,
+        message: "Group booking created successfully" 
+      });
+    } catch (error) {
+      console.error("Group booking creation error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create group booking",
+        error: error.message 
+      });
+    }
+  });
+
   // Create legacy booking (keep for compatibility)
   app.post("/api/bookings", async (req, res) => {
     try {

@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Row, Col, Input, Button, Typography, Space, Badge } from 'antd';
 import { SearchOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -15,9 +14,18 @@ export default function ManageBooking() {
   const [email, setEmail] = useState('');
   const [, setLocation] = useLocation();
 
-  const { data: bookings } = useQuery<Booking[]>({
-    queryKey: ['/api/bookings'],
+  const { data: bookings, isLoading } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
   });
+
+  const { data: flightBookings, refetch: refetchFlightBookings } = useQuery({
+    queryKey: ["/api/flight-bookings"],
+  });
+
+  // Refresh data when component mounts
+  useEffect(() => {
+    refetchFlightBookings();
+  }, [refetchFlightBookings]);
 
   const handleFindBooking = () => {
     console.log('Finding booking:', { bookingId, email });
@@ -49,7 +57,7 @@ export default function ManageBooking() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Page Header */}
         <div className="mb-8">
@@ -146,7 +154,7 @@ export default function ManageBooking() {
         {/* Recent Bookings */}
         <div className="mt-8">
           <Title level={4} className="!mb-6 text-gray-900">Recent Bookings</Title>
-          
+
           <Row gutter={[24, 24]}>
             {bookings?.slice(0, 3).map((booking) => (
               <Col xs={24} lg={8} key={booking.id}>
@@ -168,14 +176,14 @@ export default function ManageBooking() {
                       <UserOutlined className="text-sm" />
                       <Text className="text-sm">{booking.route}</Text>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarOutlined className="text-sm" />
                       <Text className="text-sm">
                         {format(new Date(booking.date), 'MMM dd, yyyy')}
                       </Text>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-gray-600">
                       <TeamOutlined className="text-sm" />
                       <Text className="text-sm">{booking.passengers} passengers</Text>

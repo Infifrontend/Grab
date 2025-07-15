@@ -69,37 +69,66 @@ export default function ReviewConfirmation() {
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting booking request...");
+    console.log("Submitting comprehensive booking request...");
     
     try {
-      if (!bookingData) {
-        console.error("No booking data found");
-        return;
-      }
+      // Collect all stored data
+      const storedPaymentData = localStorage.getItem('paymentData');
+      const storedPassengerData = localStorage.getItem('passengerData');
+      
+      const paymentData = storedPaymentData ? JSON.parse(storedPaymentData) : null;
+      const passengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
 
-      // Submit the booking request
-      const response = await fetch('/api/flight-bookings', {
+      // Prepare comprehensive booking payload
+      const comprehensiveBookingData = {
+        bookingData,
+        flightData,
+        bundleData,
+        selectedServices,
+        groupLeaderData,
+        paymentData,
+        passengerData,
+        bookingSummary
+      };
+
+      console.log("Submitting comprehensive booking data:", comprehensiveBookingData);
+
+      // Submit to the comprehensive group booking endpoint
+      const response = await fetch('/api/group-bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          flightId: bookingData.selectedFlightId || 1, // Use stored flight ID or default
-          passengerCount: bookingData.totalPassengers || 1,
-          passengers: bookingData.passengers || []
-        })
+        body: JSON.stringify(comprehensiveBookingData)
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Booking created successfully:", result);
+        console.log("Comprehensive booking created successfully:", result);
         setCreatedBooking(result.booking);
         setIsSuccessModalVisible(true);
+        
+        // Clear localStorage after successful submission
+        const keysToRemove = [
+          'bookingFormData',
+          'selectedFlightData',
+          'selectedBundleData',
+          'selectedServices',
+          'groupLeaderData',
+          'bookingSummary',
+          'paymentData',
+          'passengerData'
+        ];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
       } else {
-        console.error("Booking submission failed");
+        const errorData = await response.json();
+        console.error("Booking submission failed:", errorData);
+        alert("Failed to submit booking. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
+      alert("An error occurred while submitting your booking. Please try again.");
     }
   };
 

@@ -12,55 +12,55 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Deals
   getDeals(): Promise<Deal[]>;
   getDeal(id: number): Promise<Deal | undefined>;
-  
+
   // Packages
   getPackages(): Promise<Package[]>;
   searchPackages(destination?: string): Promise<Package[]>;
-  
+
   // Legacy Bookings
   getBookings(userId?: number): Promise<Booking[]>;
   getBooking(id: number): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
-  
+
   // Search Requests
   createSearchRequest(request: InsertSearchRequest): Promise<void>;
-  
+
   // Flights
   getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]>;
   getFlight(id: number): Promise<Flight | undefined>;
   createFlight(flight: InsertFlight): Promise<Flight>;
   updateFlightSeats(flightId: number, seatsBooked: number): Promise<void>;
-  
+
   // Flight Bookings
   getFlightBookings(userId?: number): Promise<FlightBooking[]>;
   getFlightBooking(id: number): Promise<FlightBooking | undefined>;
   getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
   updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
-  
+
   // Passengers
   getPassengersByBooking(bookingId: number): Promise<Passenger[]>;
   createPassenger(passenger: InsertPassenger): Promise<Passenger>;
   updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void>;
-  
+
   // Bids
   getBids(userId?: number, flightId?: number): Promise<Bid[]>;
   getBid(id: number): Promise<Bid | undefined>;
   createBid(bid: InsertBid): Promise<Bid>;
   updateBidStatus(id: number, status: string): Promise<void>;
   deleteBid(id: number): Promise<void>;
-  
+
   // Payments
   getPaymentsByBooking(bookingId: number): Promise<Payment[]>;
   getPayment(id: number): Promise<Payment | undefined>;
   getPaymentByReference(reference: string): Promise<Payment | undefined>;
   createPayment(payment: InsertPayment): Promise<Payment>;
   updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void>;
-  
+
   // Refunds
   getRefundsByPayment(paymentId: number): Promise<Refund[]>;
   createRefund(refund: InsertRefund): Promise<Refund>;
@@ -70,6 +70,21 @@ export interface IStorage {
 // DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
+  async updateBookingDetails(bookingId: number, updates: any) {
+    try {
+      const result = await db
+        .update(flightBookings)
+        .set(updates)
+        .where(eq(flightBookings.id, bookingId))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('Error updating booking details:', error);
+      throw error;
+    }
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -105,7 +120,7 @@ export class DatabaseStorage implements IStorage {
     if (!destination) {
       return await db.select().from(packages);
     }
-    
+
     const allPackages = await db.select().from(packages);
     return allPackages.filter(pkg => 
       pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
@@ -117,7 +132,7 @@ export class DatabaseStorage implements IStorage {
     if (!userId) {
       return await db.select().from(bookings);
     }
-    
+
     return await db.select().from(bookings).where(eq(bookings.userId, userId));
   }
 
@@ -151,11 +166,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(gte(flights.departureTime, startOfDay));
       conditions.push(lte(flights.departureTime, endOfDay));
     }
-    
+
     if (conditions.length > 0) {
       return await db.select().from(flights).where(and(...conditions));
     }
-    
+
     return await db.select().from(flights);
   }
 
@@ -229,11 +244,11 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
     if (userId) conditions.push(eq(bids.userId, userId));
     if (flightId) conditions.push(eq(bids.flightId, flightId));
-    
+
     if (conditions.length > 0) {
       return await db.select().from(bids).where(and(...conditions));
     }
-    
+
     return await db.select().from(bids);
   }
 
@@ -306,6 +321,14 @@ export class DatabaseStorage implements IStorage {
     }
     await db.update(refunds).set(updateData).where(eq(refunds.id, id));
   }
-}
 
-export const storage = new DatabaseStorage();
+  async migrateToDomesticFlights() {
+    console.log('Starting migration to domestic flights only...');
+
+    try {
+      // Delete all existing flights
+      await db.delete(flights);
+      console.log('Cleared existing flights');
+
+      // Insert only domestic Indian flights
+      const domesticFlights = [
