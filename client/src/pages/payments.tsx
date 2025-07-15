@@ -384,7 +384,7 @@ export default function Payments() {
                   paymentId: 'SCH-1001',
                   bookingId: 'GR-5678',
                   dueDate: '2023-06-15',
-                  amount: '$1,800.00',
+                  amount: '₹1,800.00',
                   status: 'Due',
                 },
                 {
@@ -392,7 +392,7 @@ export default function Payments() {
                   paymentId: 'SCH-1002',
                   bookingId: 'GR-5678',
                   dueDate: '2023-07-15',
-                  amount: '$1,800.00',
+                  amount: '₹1,800.00',
                   status: 'Upcoming',
                 },
                 {
@@ -400,7 +400,7 @@ export default function Payments() {
                   paymentId: 'SCH-1003',
                   bookingId: 'GR-5679',
                   dueDate: '2023-06-01',
-                  amount: '$2,500.00',
+                  amount: '₹2,500.00',
                   status: 'Overdue',
                 },
                 {
