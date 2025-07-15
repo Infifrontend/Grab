@@ -94,11 +94,34 @@ export default function PaymentOptions() {
       }
     }
 
-    // Calculate services cost
+    // Calculate services cost from selected services
     if (selectedServices.length > 0) {
       servicesCost = selectedServices.reduce((total, service) => {
-        return total + (service.price || 0) * passengerCount;
+        const servicePrice = typeof service.price === 'string' 
+          ? parseFloat(service.price) 
+          : service.price || 0;
+        return total + servicePrice * passengerCount;
       }, 0);
+    }
+
+    // Calculate bundle services cost (seat, baggage, meals)
+    const bundleData = localStorage.getItem('selectedBundleData');
+    if (bundleData) {
+      const bundle = JSON.parse(bundleData);
+      if (bundle.selectedSeat) {
+        const seatPrice = bundle.selectedSeat.price || 0;
+        servicesCost += seatPrice * passengerCount;
+      }
+      if (bundle.selectedBaggage) {
+        const baggagePrice = bundle.selectedBaggage.price || 0;
+        servicesCost += baggagePrice * passengerCount;
+      }
+      if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
+        bundle.selectedMeals.forEach(meal => {
+          const mealPrice = meal.price || 0;
+          servicesCost += mealPrice * passengerCount;
+        });
+      }
     }
 
     const subtotal = baseCost + servicesCost;
@@ -154,15 +177,25 @@ export default function PaymentOptions() {
           await form.validateFields();
         }
         
+        const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+        const discount = selectedOption?.discount || 0;
+        const discountedTotal = totalAmount * (1 - discount);
+        
         const paymentData = {
           paymentSchedule,
           paymentMethod,
           totalAmount,
-          dueNow: paymentSchedule === "full" ? totalAmount : 
-                  paymentSchedule === "deposit" ? totalAmount * 0.3 : 
-                  totalAmount / 3,
-          selectedPaymentOption: availablePaymentOptions.find(opt => opt.id === paymentMethod),
+          discountedTotal,
+          paymentDiscount: discount,
+          dueNow: paymentSchedule === "full" ? discountedTotal : 
+                  paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
+                  discountedTotal / 3,
+          selectedPaymentOption: selectedOption,
           formData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
+          flightData,
+          selectedServices,
+          bundleData: localStorage.getItem('selectedBundleData') ? JSON.parse(localStorage.getItem('selectedBundleData')) : null,
+          passengerCount,
         };
 
         // Save payment data to localStorage
@@ -237,7 +270,11 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          ₹{totalAmount.toFixed(2)}
+                          ₹{(() => {
+                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                            const discount = selectedOption?.discount || 0;
+                            return (totalAmount * (1 - discount)).toFixed(2);
+                          })()}
                         </Text>
                       </div>
                     </Radio>
@@ -255,11 +292,21 @@ export default function PaymentOptions() {
                         </Text>
                         <div className="flex justify-between mt-2">
                           <Text className="text-sm text-gray-600">Deposit (30%):</Text>
-                          <Text className="font-semibold">₹{(totalAmount * 0.3).toFixed(2)}</Text>
+                          <Text className="font-semibold">₹{(() => {
+                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                            const discount = selectedOption?.discount || 0;
+                            const discountedTotal = totalAmount * (1 - discount);
+                            return (discountedTotal * 0.3).toFixed(2);
+                          })()}</Text>
                         </div>
                         <div className="flex justify-between">
                           <Text className="text-sm text-gray-600">Remaining:</Text>
-                          <Text className="font-semibold">₹{(totalAmount * 0.7).toFixed(2)}</Text>
+                          <Text className="font-semibold">₹{(() => {
+                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                            const discount = selectedOption?.discount || 0;
+                            const discountedTotal = totalAmount * (1 - discount);
+                            return (discountedTotal * 0.7).toFixed(2);
+                          })()}</Text>
                         </div>
                       </div>
                     </Radio>
@@ -277,15 +324,30 @@ export default function PaymentOptions() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">Today:</Text>
-                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                            <Text className="font-semibold">₹{(() => {
+                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                              const discount = selectedOption?.discount || 0;
+                              const discountedTotal = totalAmount * (1 - discount);
+                              return (discountedTotal / 3).toFixed(2);
+                            })()}</Text>
                           </div>
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">In 30 days:</Text>
-                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                            <Text className="font-semibold">₹{(() => {
+                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                              const discount = selectedOption?.discount || 0;
+                              const discountedTotal = totalAmount * (1 - discount);
+                              return (discountedTotal / 3).toFixed(2);
+                            })()}</Text>
                           </div>
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">In 60 days:</Text>
-                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                            <Text className="font-semibold">₹{(() => {
+                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                              const discount = selectedOption?.discount || 0;
+                              const discountedTotal = totalAmount * (1 - discount);
+                              return (discountedTotal / 3).toFixed(2);
+                            })()}</Text>
                           </div>
                         </div>
                       </div>
@@ -476,24 +538,73 @@ export default function PaymentOptions() {
 
                 {selectedServices.length > 0 && (
                   <div className="flex justify-between">
-                    <Text className="text-gray-600">Selected Services</Text>
+                    <Text className="text-gray-600">Additional Services</Text>
                     <Text className="text-gray-900">
-                      ₹{(selectedServices.reduce((total, service) => total + (service.price || 0) * passengerCount, 0)).toFixed(2)}
+                      ₹{(selectedServices.reduce((total, service) => {
+                        const servicePrice = typeof service.price === 'string' ? parseFloat(service.price) : service.price || 0;
+                        return total + servicePrice * passengerCount;
+                      }, 0)).toFixed(2)}
                     </Text>
                   </div>
                 )}
 
+                {(() => {
+                  const bundleData = localStorage.getItem('selectedBundleData');
+                  if (bundleData) {
+                    const bundle = JSON.parse(bundleData);
+                    let bundleCost = 0;
+                    if (bundle.selectedSeat) bundleCost += (bundle.selectedSeat.price || 0) * passengerCount;
+                    if (bundle.selectedBaggage) bundleCost += (bundle.selectedBaggage.price || 0) * passengerCount;
+                    if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
+                      bundle.selectedMeals.forEach(meal => {
+                        bundleCost += (meal.price || 0) * passengerCount;
+                      });
+                    }
+                    if (bundleCost > 0) {
+                      return (
+                        <div className="flex justify-between">
+                          <Text className="text-gray-600">Bundle Services</Text>
+                          <Text className="text-gray-900">₹{bundleCost.toFixed(2)}</Text>
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Taxes & Fees (8%)</Text>
-                  <Text className="text-gray-900">₹{(totalAmount * 0.08 / 1.08).toFixed(2)}</Text>
+                  <Text className="text-gray-900">₹{(() => {
+                    const subtotal = totalAmount / 1.08;
+                    const taxesOnly = subtotal * 0.08;
+                    return taxesOnly.toFixed(2);
+                  })()}</Text>
                 </div>
 
                 {passengerCount >= 10 && (
                   <div className="flex justify-between">
                     <Text className="text-green-600">Group Discount (15%)</Text>
-                    <Text className="text-green-600">-₹{((totalAmount / 1.08) * 0.15).toFixed(2)}</Text>
+                    <Text className="text-green-600">-₹{(() => {
+                      const subtotal = totalAmount / 1.08;
+                      const discount = subtotal * 0.15;
+                      return discount.toFixed(2);
+                    })()}</Text>
                   </div>
                 )}
+
+                {(() => {
+                  const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                  const discount = selectedOption?.discount || 0;
+                  if (discount > 0) {
+                    return (
+                      <div className="flex justify-between">
+                        <Text className="text-green-600">Payment Method Discount ({(discount * 100).toFixed(0)}%)</Text>
+                        <Text className="text-green-600">-₹{(totalAmount * discount).toFixed(2)}</Text>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 <Divider className="!my-3" />
 
@@ -502,7 +613,11 @@ export default function PaymentOptions() {
                     Total Amount
                   </Text>
                   <Text className="font-bold text-xl text-gray-900">
-                    ₹{totalAmount.toFixed(2)}
+                    ₹{(() => {
+                      const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                      const discount = selectedOption?.discount || 0;
+                      return (totalAmount * (1 - discount)).toFixed(2);
+                    })()}
                   </Text>
                 </div>
 
@@ -516,13 +631,56 @@ export default function PaymentOptions() {
                     <Text className="text-blue-600">Due now:</Text>
                     <Text className="font-semibold text-blue-700">
                       ₹{(() => {
-                        if (paymentSchedule === "full") return totalAmount.toFixed(2);
-                        if (paymentSchedule === "deposit") return (totalAmount * 0.3).toFixed(2);
-                        if (paymentSchedule === "split") return (totalAmount / 3).toFixed(2);
-                        return totalAmount.toFixed(2);
+                        const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                        const discount = selectedOption?.discount || 0;
+                        const discountedTotal = totalAmount * (1 - discount);
+                        
+                        if (paymentSchedule === "full") return discountedTotal.toFixed(2);
+                        if (paymentSchedule === "deposit") return (discountedTotal * 0.3).toFixed(2);
+                        if (paymentSchedule === "split") return (discountedTotal / 3).toFixed(2);
+                        return discountedTotal.toFixed(2);
                       })()}
                     </Text>
                   </div>
+                  {paymentSchedule === "deposit" && (
+                    <div className="flex justify-between items-center mt-1">
+                      <Text className="text-blue-600">Remaining (due in 30 days):</Text>
+                      <Text className="font-semibold text-blue-700">
+                        ₹{(() => {
+                          const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                          const discount = selectedOption?.discount || 0;
+                          const discountedTotal = totalAmount * (1 - discount);
+                          return (discountedTotal * 0.7).toFixed(2);
+                        })()}
+                      </Text>
+                    </div>
+                  )}
+                  {paymentSchedule === "split" && (
+                    <div className="space-y-1 mt-1">
+                      <div className="flex justify-between items-center">
+                        <Text className="text-blue-600">Next payment (30 days):</Text>
+                        <Text className="font-semibold text-blue-700">
+                          ₹{(() => {
+                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                            const discount = selectedOption?.discount || 0;
+                            const discountedTotal = totalAmount * (1 - discount);
+                            return (discountedTotal / 3).toFixed(2);
+                          })()}
+                        </Text>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <Text className="text-blue-600">Final payment (60 days):</Text>
+                        <Text className="font-semibold text-blue-700">
+                          ₹{(() => {
+                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                            const discount = selectedOption?.discount || 0;
+                            const discountedTotal = totalAmount * (1 - discount);
+                            return (discountedTotal / 3).toFixed(2);
+                          })()}
+                        </Text>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
