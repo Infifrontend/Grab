@@ -170,10 +170,14 @@ export default function BookingDetails() {
                       Airline
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      ✈ {flightData?.airline || 'British Airways'}
+                      ✈ {flightData?.outbound?.airline || 
+                          comprehensiveData?.selectedFlights?.outbound?.airline || 
+                          'British Airways'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Duration: {flightData?.duration || '7h 45m'}
+                      Duration: {flightData?.outbound?.duration || 
+                               comprehensiveData?.selectedFlights?.outbound?.duration || 
+                               '7h 45m'}
                     </Text>
                   </div>
                 </Col>
@@ -183,10 +187,14 @@ export default function BookingDetails() {
                       Flight
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.flightNumber || 'BA 178'}
+                      {flightData?.outbound?.flightNumber || 
+                       comprehensiveData?.selectedFlights?.outbound?.flightNumber || 
+                       'BA 178'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Aircraft: {flightData?.aircraft || 'Boeing 777-300ER'}
+                      Aircraft: {flightData?.outbound?.aircraft || 
+                               comprehensiveData?.selectedFlights?.outbound?.aircraft || 
+                               'Boeing 777-300ER'}
                     </Text>
                   </div>
                 </Col>
@@ -196,17 +204,22 @@ export default function BookingDetails() {
                       Departure
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.departureTime 
-                        ? dayjs(flightData.departureTime).format('DD MMM YYYY h:mm A')
+                      {flightData?.outbound?.departureTime 
+                        ? dayjs(flightData.outbound.departureTime).format('DD MMM YYYY h:mm A')
                         : bookingData?.departureDate
                         ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
                         : 'Jun 15, 2024 10:30 AM'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightData?.origin || bookingData?.origin || 'New York (JFK)'}
+                      {flightData?.outbound?.origin || 
+                       bookingData?.origin || 
+                       comprehensiveData?.tripDetails?.origin || 
+                       'New York (JFK)'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Class: {bookingData?.cabin || flightData?.cabin || 'Economy'}
+                      Class: {bookingData?.cabin || 
+                             comprehensiveData?.tripDetails?.cabin || 
+                             'Economy'}
                     </Text>
                   </div>
                 </Col>
@@ -216,12 +229,15 @@ export default function BookingDetails() {
                       Arrival
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.arrivalTime 
-                        ? dayjs(flightData.arrivalTime).format('DD MMM YYYY h:mm A')
+                      {flightData?.outbound?.arrivalTime 
+                        ? dayjs(flightData.outbound.arrivalTime).format('DD MMM YYYY h:mm A')
                         : 'Jun 15, 2024 10:15 PM'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightData?.destination || bookingData?.destination || 'London (LHR)'}
+                      {flightData?.outbound?.destination || 
+                       bookingData?.destination || 
+                       comprehensiveData?.tripDetails?.destination || 
+                       'London (LHR)'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
                       Meal: Standard
@@ -268,10 +284,14 @@ export default function BookingDetails() {
                         Airline
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        ✈ {flightBooking?.flightData?.airline || 'British Airways'}
+                        ✈ {flightData?.return?.airline || 
+                            comprehensiveData?.selectedFlights?.return?.airline || 
+                            'British Airways'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        Duration: {flightBooking?.flightData?.duration || '7h 45m'}
+                        Duration: {flightData?.return?.duration || 
+                                 comprehensiveData?.selectedFlights?.return?.duration || 
+                                 '7h 45m'}
                       </Text>
                     </div>
                   </Col>
@@ -281,10 +301,14 @@ export default function BookingDetails() {
                         Flight
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        {flightBooking?.flightData?.flightNumber || 'BA 179'}
+                        {flightData?.return?.flightNumber || 
+                         comprehensiveData?.selectedFlights?.return?.flightNumber || 
+                         'BA 179'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        Aircraft: {flightBooking?.flightData?.aircraft || 'Boeing 777-300ER'}
+                        Aircraft: {flightData?.return?.aircraft || 
+                                 comprehensiveData?.selectedFlights?.return?.aircraft || 
+                                 'Boeing 777-300ER'}
                       </Text>
                     </div>
                   </Col>
@@ -294,15 +318,22 @@ export default function BookingDetails() {
                         Departure
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        {flightBooking?.bookingData?.returnDate 
-                          ? dayjs(flightBooking.bookingData.returnDate).format('DD MMM YYYY')
+                        {flightData?.return?.departureTime 
+                          ? dayjs(flightData.return.departureTime).format('DD MMM YYYY h:mm A')
+                          : bookingData?.returnDate
+                          ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
                           : 'Jun 22, 2024 12:45 PM'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        {flightBooking?.bookingData?.destination || 'London (LHR)'}
+                        {flightData?.return?.origin || 
+                         bookingData?.destination || 
+                         comprehensiveData?.tripDetails?.destination || 
+                         'London (LHR)'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        Class: {flightBooking?.bookingData?.cabin || 'Economy'}
+                        Class: {bookingData?.cabin || 
+                               comprehensiveData?.tripDetails?.cabin || 
+                               'Economy'}
                       </Text>
                     </div>
                   </Col>
@@ -312,12 +343,17 @@ export default function BookingDetails() {
                         Arrival
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        {flightBooking?.bookingData?.returnDate 
-                          ? dayjs(flightBooking.bookingData.returnDate).format('DD MMM YYYY')
+                        {flightData?.return?.arrivalTime 
+                          ? dayjs(flightData.return.arrivalTime).format('DD MMM YYYY h:mm A')
+                          : bookingData?.returnDate
+                          ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
                           : 'Jun 22, 2024 4:30 PM'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        {flightBooking?.bookingData?.origin || 'New York (JFK)'}
+                        {flightData?.return?.destination || 
+                         bookingData?.origin || 
+                         comprehensiveData?.tripDetails?.origin || 
+                         'New York (JFK)'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
                         Meal: Standard
