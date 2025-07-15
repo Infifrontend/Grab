@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Button, Typography, Space, Badge, Tabs, Row, Col } from "antd";
+import { Card, Button, Typography, Space, Badge, Tabs, Row, Col, Spin, Alert } from "antd";
 import {
   DownloadOutlined,
   EditOutlined,
@@ -18,55 +18,59 @@ export default function BookingDetails() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: bookings } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
-  });
+  // Get booking ID from URL params or query string
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = params?.id || urlParams.get('ref') || urlParams.get('id');
 
-  const { data: flightBookings } = useQuery({
-    queryKey: ["/api/flight-bookings"],
+  const { data: bookingDetails, isLoading, error } = useQuery({
+    queryKey: ["/api/booking-details", bookingId],
+    queryFn: async () => {
+      if (!bookingId) throw new Error("No booking ID provided");
+      const response = await fetch(`/api/booking-details/${bookingId}`);
+      if (!response.ok) throw new Error("Failed to fetch booking details");
+      return response.json();
+    },
+    enabled: !!bookingId,
   });
 
   const handleManageBooking = () => {
-    setLocation(`/manage-booking/${params?.id || booking.id}`);
+    setLocation(`/manage-booking/${bookingId}`);
   };
 
-  // Find the booking by ID from legacy bookings or flight bookings
-  let booking = bookings?.find((b) => b.id.toString() === params?.id || b.bookingId === params?.id);
-  let flightBooking = null;
-  
-  // If not found in legacy bookings, check flight bookings by reference
-  if (!booking && flightBookings) {
-    flightBooking = flightBookings.find((fb: any) => fb.bookingReference === params?.id);
-    if (flightBooking) {
-      // Convert flight booking to legacy booking format for display
-      booking = {
-        id: flightBooking.id,
-        bookingId: flightBooking.bookingReference,
-        userId: flightBooking.userId,
-        route: `${flightBooking.bookingData?.origin || 'Origin'} to ${flightBooking.bookingData?.destination || 'Destination'}`,
-        date: flightBooking.bookedAt,
-        passengers: flightBooking.passengerCount,
-        status: flightBooking.bookingStatus,
-        groupType: flightBooking.groupLeaderData?.groupType || 'Group',
-        returnDate: flightBooking.bookingData?.returnDate || null,
-      };
-    }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
+          <Spin size="large" />
+        </div>
+      </div>
+    );
   }
-  
-  // Fallback to mock data if nothing found
-  if (!booking) {
-    booking = {
-      id: 1,
-      bookingId: "GR-2024-1001",
-      userId: 1,
-      groupType: "Corporate",
-      route: "New York to London",
-      date: "2024-06-15",
-      returnDate: "2024-06-22",
-      passengers: 32,
-      status: "confirmed",
-    };
+
+  if (error || !bookingDetails) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <Alert
+            message="Booking Not Found"
+            description="The booking you're looking for could not be found."
+            type="error"
+            showIcon
+          />
+        </div>
+      </div>
+    );
   }
+
+  const { booking, passengers, flightData, comprehensiveData } = bookingDetails;
+  
+  // Parse comprehensive data for detailed information
+  const bookingData = comprehensiveData?.tripDetails;
+  const groupLeaderData = comprehensiveData?.groupLeaderInfo;
+  const selectedServices = comprehensiveData?.selectedServices || [];
+  const totalAmount = comprehensiveData?.pricingSummary?.totalAmount || booking.totalAmount;
 
   const tabItems = [
     {
@@ -96,7 +100,7 @@ export default function BookingDetails() {
                 Booking Details
               </Title>
               <Text className="text-gray-600">
-                Booking ID: {booking.bookingId}
+                Booking ID: {booking.bookingReference || booking.bookingId}
               </Text>
             </div>
           </div>
@@ -104,7 +108,7 @@ export default function BookingDetails() {
             <Button 
               icon={<DownloadOutlined />} 
               className="flex items-center"
-              onClick={() => setLocation(`/download-itinerary/${params?.id || booking.id}`)}
+              onClick={() => setLocation(`/download-itinerary/${bookingId}`)}
             >
               Download Itinerary
             </Button>
@@ -166,10 +170,10 @@ export default function BookingDetails() {
                       Airline
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      ✈ {flightBooking?.flightData?.airline || 'British Airways'}
+                      ✈ {flightData?.airline || 'British Airways'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Duration: {flightBooking?.flightData?.duration || '7h 45m'}
+                      Duration: {flightData?.duration || '7h 45m'}
                     </Text>
                   </div>
                 </Col>
@@ -179,10 +183,10 @@ export default function BookingDetails() {
                       Flight
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightBooking?.flightData?.flightNumber || 'BA 178'}
+                      {flightData?.flightNumber || 'BA 178'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Aircraft: {flightBooking?.flightData?.aircraft || 'Boeing 777-300ER'}
+                      Aircraft: {flightData?.aircraft || 'Boeing 777-300ER'}
                     </Text>
                   </div>
                 </Col>
@@ -192,17 +196,17 @@ export default function BookingDetails() {
                       Departure
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightBooking?.flightData?.departureTime 
-                        ? dayjs(flightBooking.flightData.departureTime).format('DD MMM YYYY h:mm A')
-                        : flightBooking?.bookingData?.departureDate
-                        ? dayjs(flightBooking.bookingData.departureDate).format('DD MMM YYYY')
+                      {flightData?.departureTime 
+                        ? dayjs(flightData.departureTime).format('DD MMM YYYY h:mm A')
+                        : bookingData?.departureDate
+                        ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
                         : 'Jun 15, 2024 10:30 AM'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightBooking?.flightData?.origin || flightBooking?.bookingData?.origin || 'New York (JFK)'}
+                      {flightData?.origin || bookingData?.origin || 'New York (JFK)'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Class: {flightBooking?.bookingData?.cabin || 'Economy'}
+                      Class: {bookingData?.cabin || flightData?.cabin || 'Economy'}
                     </Text>
                   </div>
                 </Col>
@@ -212,12 +216,12 @@ export default function BookingDetails() {
                       Arrival
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightBooking?.flightData?.arrivalTime 
-                        ? dayjs(flightBooking.flightData.arrivalTime).format('DD MMM YYYY h:mm A')
+                      {flightData?.arrivalTime 
+                        ? dayjs(flightData.arrivalTime).format('DD MMM YYYY h:mm A')
                         : 'Jun 15, 2024 10:15 PM'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightBooking?.flightData?.destination || flightBooking?.bookingData?.destination || 'London (LHR)'}
+                      {flightData?.destination || bookingData?.destination || 'London (LHR)'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
                       Meal: Standard
@@ -228,7 +232,7 @@ export default function BookingDetails() {
             </Card>
 
             {/* Return Flight - Only show if it's a round trip */}
-            {flightBooking?.bookingData?.tripType === 'roundTrip' && flightBooking?.bookingData?.returnDate && (
+            {bookingData?.tripType === 'roundTrip' && bookingData?.returnDate && (
               <Card>
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-3">
@@ -338,12 +342,12 @@ export default function BookingDetails() {
                         Group Leader
                       </Text>
                       <Text className="text-gray-900">
-                        {flightBooking?.groupLeaderData 
-                          ? `${flightBooking.groupLeaderData.firstName} ${flightBooking.groupLeaderData.lastName}`
+                        {groupLeaderData 
+                          ? `${groupLeaderData.firstName} ${groupLeaderData.lastName}`
                           : 'Not provided'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        {flightBooking?.groupLeaderData?.email || 'No email provided'}
+                        {groupLeaderData?.email || 'No email provided'}
                       </Text>
                     </div>
                     <div>
@@ -351,8 +355,8 @@ export default function BookingDetails() {
                         Organization
                       </Text>
                       <Text className="text-gray-900">
-                        {flightBooking?.groupLeaderData?.companyName || 
-                         flightBooking?.groupLeaderData?.organizationName || 
+                        {groupLeaderData?.companyName || 
+                         groupLeaderData?.organizationName || 
                          'Not provided'}
                       </Text>
                     </div>
@@ -365,7 +369,7 @@ export default function BookingDetails() {
                         Booking Reference
                       </Text>
                       <Text className="text-gray-900">
-                        {booking.bookingId}
+                        {booking.bookingReference || booking.bookingId}
                       </Text>
                     </div>
                     <div>
@@ -373,7 +377,7 @@ export default function BookingDetails() {
                         Total Amount
                       </Text>
                       <Text className="text-gray-900">
-                        ₹{flightBooking?.totalAmount || '5,280.00'}
+                        ₹{totalAmount || '5,280.00'}
                       </Text>
                     </div>
                   </div>
@@ -381,13 +385,13 @@ export default function BookingDetails() {
               </Row>
 
               {/* Selected Services */}
-              {flightBooking?.selectedServices && flightBooking.selectedServices.length > 0 && (
+              {selectedServices && selectedServices.length > 0 && (
                 <div className="mt-6">
                   <Text className="text-gray-500 text-sm block mb-3">
                     Selected Services
                   </Text>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {flightBooking.selectedServices.map((service: any, index: number) => (
+                    {selectedServices.map((service: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <Text className="text-gray-900">{service.name}</Text>
                         <Text className="text-gray-600 font-medium">₹{service.price}</Text>
@@ -410,24 +414,57 @@ export default function BookingDetails() {
             </Text>
 
             <div className="space-y-4">
-              {Array.from({ length: booking.passengers || 3 }, (_, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <Text className="font-semibold text-gray-900 block">
-                        Passenger {index + 1}
-                      </Text>
-                      <Text className="text-gray-600 text-sm">Adult</Text>
+              {passengers && passengers.length > 0 ? (
+                passengers.map((passenger: any, index: number) => (
+                  <div
+                    key={passenger.id}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">
+                          {passenger.title} {passenger.firstName} {passenger.lastName}
+                        </Text>
+                        <Text className="text-gray-600 text-sm">
+                          {passenger.nationality} • DOB: {dayjs(passenger.dateOfBirth).format('DD MMM YYYY')}
+                        </Text>
+                        {passenger.seatPreference && (
+                          <Text className="text-gray-600 text-sm">
+                            Seat Preference: {passenger.seatPreference}
+                          </Text>
+                        )}
+                        {passenger.mealPreference && (
+                          <Text className="text-gray-600 text-sm">
+                            Meal: {passenger.mealPreference}
+                          </Text>
+                        )}
+                      </div>
+                      <Button type="link" className="text-blue-600 p-0">
+                        Edit
+                      </Button>
                     </div>
-                    <Button type="link" className="text-blue-600 p-0">
-                      Edit
-                    </Button>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                Array.from({ length: booking.passengerCount || 1 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">
+                          Passenger {index + 1}
+                        </Text>
+                        <Text className="text-gray-600 text-sm">Adult</Text>
+                      </div>
+                      <Button type="link" className="text-blue-600 p-0">
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         )}
@@ -449,11 +486,11 @@ export default function BookingDetails() {
                       Total Amount
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      For {booking.passengers} passengers
+                      For {booking.passengerCount} passengers
                     </Text>
                   </div>
                   <Text className="text-2xl font-bold text-gray-900">
-                    ₹{flightBooking?.totalAmount || '5,280.00'}
+                    ₹{totalAmount || '5,280.00'}
                   </Text>
                 </div>
               </div>
@@ -465,11 +502,11 @@ export default function BookingDetails() {
                       Payment Status
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      {flightBooking?.paymentData?.paymentMethod || 'To be determined'}
+                      {comprehensiveData?.paymentInfo?.paymentMethod || 'To be determined'}
                     </Text>
                   </div>
                   <Text className="text-xl font-semibold text-orange-600">
-                    {booking.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                    {booking.bookingStatus === 'confirmed' ? 'Confirmed' : 'Pending'}
                   </Text>
                 </div>
               </div>

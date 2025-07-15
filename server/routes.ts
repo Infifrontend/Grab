@@ -198,6 +198,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get booking details by ID (for booking details page)
+  app.get("/api/booking-details/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Try to find in flight bookings first
+      let booking = await storage.getFlightBookingByReference(id);
+      let passengers = [];
+      let flightData = null;
+      let comprehensiveData = null;
+      
+      if (booking) {
+        // Get passengers for this booking
+        passengers = await storage.getPassengersByBooking(booking.id);
+        
+        // Get flight details
+        flightData = await storage.getFlight(booking.flightId);
+        
+        // Parse comprehensive booking data from specialRequests if available
+        if (booking.specialRequests) {
+          try {
+            comprehensiveData = JSON.parse(booking.specialRequests);
+          } catch (e) {
+            // If parsing fails, ignore and use basic data
+          }
+        }
+        
+        return res.json({ 
+          booking, 
+          passengers, 
+          flightData,
+          comprehensiveData
+        });
+      }
+      
+      // If not found in flight bookings, try legacy bookings
+      const legacyBookings = await storage.getBookings();
+      const legacyBooking = legacyBookings.find(b => 
+        b.id.toString() === id || b.bookingId === id
+      );
+      
+      if (legacyBooking) {
+        return res.json({ 
+          booking: legacyBooking, 
+          passengers: [], 
+          flightData: null,
+          comprehensiveData: null
+        });
+      }
+      
+      res.status(404).json({ message: "Booking not found" });
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      res.status(500).json({ message: "Failed to fetch booking details" });
+    }
+  });
+
   // Create comprehensive group booking
   app.post("/api/group-bookings", async (req, res) => {
     try {

@@ -217,6 +217,22 @@ export class DatabaseStorage implements IStorage {
     return newBooking;
   }
 
+  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
+    await db.update(flightBookings)
+      .set(updates)
+      .where(eq(flightBookings.id, bookingId));
+  }
+
+  // Passengers
+  async getPassengersByBooking(bookingId: number): Promise<Passenger[]> {
+    return await db.select().from(passengers).where(eq(passengers.bookingId, bookingId));
+  }
+
+  async createPassenger(passenger: InsertPassenger): Promise<Passenger> {
+    const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+    return newPassenger;
+  }
+
   async updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void> {
     const updateData: any = { bookingStatus: status, updatedAt: new Date() };
     if (paymentStatus) {
