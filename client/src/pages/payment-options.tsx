@@ -47,55 +47,27 @@ export default function PaymentOptions() {
       const storedBookingData = localStorage.getItem("bookingFormData");
       if (storedBookingData) {
         const data = JSON.parse(storedBookingData);
-        console.log('Loaded booking data:', data);
         setBookingData(data);
-        const totalPassengers = data.totalPassengers || (data.adults || 0) + (data.kids || 0) + (data.infants || 0) || 1;
-        setPassengerCount(totalPassengers);
-        console.log('Passenger count set to:', totalPassengers);
+        setPassengerCount(data.totalPassengers || data.adults + data.kids + data.infants || 1);
       }
 
       // Load selected flight data
       const storedFlightData = localStorage.getItem("selectedFlightData");
       if (storedFlightData) {
-        const flightData = JSON.parse(storedFlightData);
-        console.log('Loaded flight data:', flightData);
-        setFlightData(flightData);
+        setFlightData(JSON.parse(storedFlightData));
       }
 
       // Load group leader data
       const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
       if (storedGroupLeaderData) {
-        const groupData = JSON.parse(storedGroupLeaderData);
-        console.log('Loaded group leader data:', groupData);
-        setGroupLeaderData(groupData);
+        setGroupLeaderData(JSON.parse(storedGroupLeaderData));
       }
 
       // Load selected services
       const storedServices = localStorage.getItem("selectedServices");
       if (storedServices) {
-        const services = JSON.parse(storedServices);
-        console.log('Loaded selected services:', services);
-        setSelectedServices(services);
+        setSelectedServices(JSON.parse(storedServices));
       }
-
-      // Load booking summary with calculated amounts
-      const storedBookingSummary = localStorage.getItem("bookingSummary");
-      if (storedBookingSummary) {
-        const summary = JSON.parse(storedBookingSummary);
-        console.log('Loaded booking summary:', summary);
-        setTotalAmount(summary.totalAmount);
-      }
-
-      // Debug: Check all localStorage keys
-      console.log('All localStorage keys:', Object.keys(localStorage));
-      console.log('localStorage contents:', {
-        bookingFormData: localStorage.getItem("bookingFormData"),
-        selectedFlightData: localStorage.getItem("selectedFlightData"),
-        selectedBundleData: localStorage.getItem("selectedBundleData"),
-        selectedServices: localStorage.getItem("selectedServices"),
-        groupLeaderData: localStorage.getItem("groupLeaderData"),
-        bookingSummary: localStorage.getItem("bookingSummary")
-      });
     };
 
     loadBookingData();
@@ -103,100 +75,60 @@ export default function PaymentOptions() {
 
   // Calculate total amount based on selected flight and services
   useEffect(() => {
-    console.log('Calculating total amount...', { flightData, selectedServices, passengerCount, bookingData });
-    
     let baseCost = 0;
     let servicesCost = 0;
 
     // Calculate base flight cost
-    if (flightData) {
-      // Handle outbound flight
-      if (flightData.outbound) {
-        const outboundPrice = typeof flightData.outbound.price === 'string' 
-          ? parseFloat(flightData.outbound.price.replace(/[^0-9.-]+/g, "")) 
-          : flightData.outbound.price || 0;
-        baseCost += outboundPrice * passengerCount;
-        console.log('Outbound cost:', outboundPrice, 'x', passengerCount, '=', outboundPrice * passengerCount);
-      }
+    if (flightData && flightData.outbound) {
+      const outboundPrice = typeof flightData.outbound.price === 'string' 
+        ? parseFloat(flightData.outbound.price) 
+        : flightData.outbound.price || 0;
+      baseCost += outboundPrice * passengerCount;
 
-      // Handle return flight for round trip
+      // Add return flight cost if round trip
       if (flightData.return && bookingData?.tripType === "roundTrip") {
         const returnPrice = typeof flightData.return.price === 'string'
-          ? parseFloat(flightData.return.price.replace(/[^0-9.-]+/g, ""))
+          ? parseFloat(flightData.return.price)
           : flightData.return.price || 0;
         baseCost += returnPrice * passengerCount;
-        console.log('Return cost:', returnPrice, 'x', passengerCount, '=', returnPrice * passengerCount);
-      }
-
-      // Handle single flight object (for compatibility)
-      if (!flightData.outbound && !flightData.return && flightData.price) {
-        const flightPrice = typeof flightData.price === 'string'
-          ? parseFloat(flightData.price.replace(/[^0-9.-]+/g, ""))
-          : flightData.price || 0;
-        baseCost += flightPrice * passengerCount;
-        console.log('Single flight cost:', flightPrice, 'x', passengerCount, '=', flightPrice * passengerCount);
       }
     }
 
     // Calculate services cost from selected services
-    if (selectedServices && selectedServices.length > 0) {
+    if (selectedServices.length > 0) {
       servicesCost = selectedServices.reduce((total, service) => {
         const servicePrice = typeof service.price === 'string' 
-          ? parseFloat(service.price.replace(/[^0-9.-]+/g, ""))
+          ? parseFloat(service.price) 
           : service.price || 0;
         return total + servicePrice * passengerCount;
       }, 0);
-      console.log('Services cost:', servicesCost);
     }
 
     // Calculate bundle services cost (seat, baggage, meals)
     const bundleData = localStorage.getItem('selectedBundleData');
     if (bundleData) {
-      try {
-        const bundle = JSON.parse(bundleData);
-        if (bundle.selectedSeat && bundle.selectedSeat.price) {
-          const seatPrice = typeof bundle.selectedSeat.price === 'string'
-            ? parseFloat(bundle.selectedSeat.price.replace(/[^0-9.-]+/g, ""))
-            : bundle.selectedSeat.price || 0;
-          servicesCost += seatPrice * passengerCount;
-          console.log('Seat cost:', seatPrice * passengerCount);
-        }
-        if (bundle.selectedBaggage && bundle.selectedBaggage.price) {
-          const baggagePrice = typeof bundle.selectedBaggage.price === 'string'
-            ? parseFloat(bundle.selectedBaggage.price.replace(/[^0-9.-]+/g, ""))
-            : bundle.selectedBaggage.price || 0;
-          servicesCost += baggagePrice * passengerCount;
-          console.log('Baggage cost:', baggagePrice * passengerCount);
-        }
-        if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
-          bundle.selectedMeals.forEach(meal => {
-            const mealPrice = typeof meal.price === 'string'
-              ? parseFloat(meal.price.replace(/[^0-9.-]+/g, ""))
-              : meal.price || 0;
-            servicesCost += mealPrice * passengerCount;
-            console.log('Meal cost:', mealPrice * passengerCount);
-          });
-        }
-      } catch (error) {
-        console.error('Error parsing bundle data:', error);
+      const bundle = JSON.parse(bundleData);
+      if (bundle.selectedSeat) {
+        const seatPrice = bundle.selectedSeat.price || 0;
+        servicesCost += seatPrice * passengerCount;
+      }
+      if (bundle.selectedBaggage) {
+        const baggagePrice = bundle.selectedBaggage.price || 0;
+        servicesCost += baggagePrice * passengerCount;
+      }
+      if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
+        bundle.selectedMeals.forEach(meal => {
+          const mealPrice = meal.price || 0;
+          servicesCost += mealPrice * passengerCount;
+        });
       }
     }
 
     const subtotal = baseCost + servicesCost;
     const taxes = subtotal * 0.08; // 8% tax
     const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
-    const finalTotal = subtotal + taxes - groupDiscount;
     
-    console.log('Calculation breakdown:', {
-      baseCost,
-      servicesCost,
-      subtotal,
-      taxes,
-      groupDiscount,
-      finalTotal
-    });
-    
-    setTotalAmount(finalTotal);
+    setTotalAmount(subtotal + taxes - groupDiscount);
   }, [flightData, selectedServices, passengerCount, bookingData]);
 
   // Get payment options based on amount and services
@@ -268,10 +200,6 @@ export default function PaymentOptions() {
 
         // Save payment data to localStorage
         localStorage.setItem("paymentData", JSON.stringify(paymentData));
-        
-        // Also save payment method and schedule separately for easy access
-        localStorage.setItem("selectedPaymentMethod", paymentMethod);
-        localStorage.setItem("selectedPaymentSchedule", paymentSchedule);
         
         console.log("Payment Information:", paymentData);
         setLocation("/passenger-info");
@@ -577,69 +505,17 @@ export default function PaymentOptions() {
                       <div>
                         <Text className="text-gray-600">Outbound: </Text>
                         <Text className="text-gray-900">{flightData.outbound.airline} {flightData.outbound.flightNumber}</Text>
-                        <Text className="text-gray-600 block">₹{flightData.outbound.price} × {passengerCount} passengers</Text>
                       </div>
                     )}
                     {flightData.return && bookingData?.tripType === "roundTrip" && (
                       <div>
                         <Text className="text-gray-600">Return: </Text>
                         <Text className="text-gray-900">{flightData.return.airline} {flightData.return.flightNumber}</Text>
-                        <Text className="text-gray-600 block">₹{flightData.return.price} × {passengerCount} passengers</Text>
                       </div>
                     )}
                   </div>
                 </div>
               )}
-
-              {(() => {
-                const bundleData = localStorage.getItem('selectedBundleData');
-                const servicesData = localStorage.getItem('selectedServices');
-                
-                if (bundleData || servicesData) {
-                  return (
-                    <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                      <Text className="font-medium text-gray-700 block mb-2">Selected Services</Text>
-                      <div className="space-y-2 text-sm">
-                        {bundleData && (() => {
-                          const bundle = JSON.parse(bundleData);
-                          return (
-                            <div>
-                              {bundle.selectedSeat && (
-                                <div className="flex justify-between">
-                                  <Text className="text-gray-600">{bundle.selectedSeat.name}</Text>
-                                  <Text className="text-gray-900">₹{bundle.selectedSeat.price} × {passengerCount}</Text>
-                                </div>
-                              )}
-                              {bundle.selectedBaggage && (
-                                <div className="flex justify-between">
-                                  <Text className="text-gray-600">{bundle.selectedBaggage.name}</Text>
-                                  <Text className="text-gray-900">₹{bundle.selectedBaggage.price} × {passengerCount}</Text>
-                                </div>
-                              )}
-                              {bundle.selectedMeals && bundle.selectedMeals.map((meal, index) => (
-                                <div key={index} className="flex justify-between">
-                                  <Text className="text-gray-600">{meal.name}</Text>
-                                  <Text className="text-gray-900">₹{meal.price} × {passengerCount}</Text>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                        {servicesData && (() => {
-                          const services = JSON.parse(servicesData);
-                          return services.map((service, index) => (
-                            <div key={index} className="flex justify-between">
-                              <Text className="text-gray-600">{service.name}</Text>
-                              <Text className="text-gray-900">₹{service.price} {service.count > 1 ? `(${service.count}×)` : ''}</Text>
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
 
               <div className="border-t pt-4 space-y-3">
                 {flightData && (

@@ -13,49 +13,6 @@ export interface BookingFormData {
   searchData?: any;
 }
 
-export interface FlightData {
-  outbound?: any;
-  return?: any;
-  baseCost: number;
-  totalCost: number;
-}
-
-export interface BundleData {
-  selectedSeat?: any;
-  selectedBaggage?: any;
-  selectedMeals?: any[];
-  bundleCost: number;
-}
-
-export interface ServiceData {
-  id: string;
-  name: string;
-  price: number;
-  count?: number;
-  type: 'bundle' | 'individual';
-}
-
-export interface BookingSummary {
-  subtotal: number;
-  taxes: number;
-  groupDiscount: number;
-  totalAmount: number;
-  passengerCount: number;
-  calculatedAt: string;
-}
-
-export interface PaymentData {
-  paymentSchedule: string;
-  paymentMethod: string;
-  totalAmount: number;
-  discountedTotal: number;
-  paymentDiscount: number;
-  dueNow: number;
-  selectedPaymentOption?: any;
-  formData?: any;
-}
-
-// Booking Form Data
 export const getBookingData = (): BookingFormData | null => {
   try {
     const stored = localStorage.getItem('bookingFormData');
@@ -74,199 +31,33 @@ export const setBookingData = (data: BookingFormData): void => {
   }
 };
 
-// Flight Data
-export const getFlightData = (): FlightData | null => {
-  try {
-    const stored = localStorage.getItem('selectedFlightData');
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.error('Error parsing flight data:', error);
-    return null;
-  }
-};
-
-export const setFlightData = (data: FlightData): void => {
-  try {
-    localStorage.setItem('selectedFlightData', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing flight data:', error);
-  }
-};
-
-// Bundle Data
-export const getBundleData = (): BundleData | null => {
-  try {
-    const stored = localStorage.getItem('selectedBundleData');
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.error('Error parsing bundle data:', error);
-    return null;
-  }
-};
-
-export const setBundleData = (data: BundleData): void => {
-  try {
-    localStorage.setItem('selectedBundleData', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing bundle data:', error);
-  }
-};
-
-// Services Data
-export const getServicesData = (): ServiceData[] => {
-  try {
-    const stored = localStorage.getItem('selectedServices');
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error('Error parsing services data:', error);
-    return [];
-  }
-};
-
-export const setServicesData = (data: ServiceData[]): void => {
-  try {
-    localStorage.setItem('selectedServices', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing services data:', error);
-  }
-};
-
-// Group Leader Data
-export const getGroupLeaderData = (): any | null => {
-  try {
-    const stored = localStorage.getItem('groupLeaderData');
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.error('Error parsing group leader data:', error);
-    return null;
-  }
-};
-
-export const setGroupLeaderData = (data: any): void => {
-  try {
-    localStorage.setItem('groupLeaderData', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing group leader data:', error);
-  }
-};
-
-// Booking Summary
-export const getBookingSummary = (): BookingSummary | null => {
-  try {
-    const stored = localStorage.getItem('bookingSummary');
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.error('Error parsing booking summary:', error);
-    return null;
-  }
-};
-
-export const setBookingSummary = (data: BookingSummary): void => {
-  try {
-    localStorage.setItem('bookingSummary', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing booking summary:', error);
-  }
-};
-
-// Payment Data
-export const getPaymentData = (): PaymentData | null => {
-  try {
-    const stored = localStorage.getItem('paymentData');
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.error('Error parsing payment data:', error);
-    return null;
-  }
-};
-
-export const setPaymentData = (data: PaymentData): void => {
-  try {
-    localStorage.setItem('paymentData', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error storing payment data:', error);
-  }
-};
-
-// Calculate total booking amount
-export const calculateBookingTotal = (): BookingSummary => {
-  const bookingData = getBookingData();
-  const flightData = getFlightData();
-  const bundleData = getBundleData();
-  const servicesData = getServicesData();
-  
-  const passengerCount = bookingData?.totalPassengers || 1;
-  let subtotal = 0;
-  
-  // Flight cost
-  if (flightData) {
-    subtotal += flightData.baseCost || 0;
-  }
-  
-  // Bundle cost
-  if (bundleData) {
-    subtotal += (bundleData.bundleCost || 0) * passengerCount;
-  }
-  
-  // Services cost
-  const servicesCost = servicesData.reduce((total, service) => {
-    return total + (service.price * passengerCount);
-  }, 0);
-  subtotal += servicesCost;
-  
-  // Calculate taxes and discounts
-  const taxes = subtotal * 0.08; // 8% tax
-  const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
-  const totalAmount = subtotal + taxes - groupDiscount;
-  
-  return {
-    subtotal,
-    taxes,
-    groupDiscount,
-    totalAmount,
-    passengerCount,
-    calculatedAt: new Date().toISOString()
-  };
-};
-
-// Clear all booking data
-export const clearBookingData = (): void => {
-  const keysToRemove = [
-    'bookingFormData',
-    'selectedFlightData',
-    'selectedBundleData',
-    'selectedServices',
-    'groupLeaderData',
-    'bookingSummary',
-    'paymentData',
-    'selectedPaymentMethod',
-    'selectedPaymentSchedule',
-    'searchResults',
-    'searchCriteria',
-    'passengerCount'
-  ];
-  
-  keysToRemove.forEach(key => {
-    localStorage.removeItem(key);
-  });
-};
-
-// Get all booking data for debugging
-export const getAllBookingData = () => {
-  return {
-    bookingData: getBookingData(),
-    flightData: getFlightData(),
-    bundleData: getBundleData(),
-    servicesData: getServicesData(),
-    groupLeaderData: getGroupLeaderData(),
-    bookingSummary: getBookingSummary(),
-    paymentData: getPaymentData()
-  };
-};
-
 export const updateBookingData = (updates: Partial<BookingFormData>): void => {
   const currentData = getBookingData();
   if (currentData) {
     setBookingData({ ...currentData, ...updates });
+  }
+};
+
+export const clearBookingData = (): void => {
+  localStorage.removeItem('bookingFormData');
+  localStorage.removeItem('searchResults');
+  localStorage.removeItem('searchCriteria');
+  localStorage.removeItem('passengerCount');
+};
+
+export const getPassengerBreakdown = (data: BookingFormData): string => {
+  const parts = [];
+  if (data.adults > 0) parts.push(`${data.adults} adult${data.adults > 1 ? 's' : ''}`);
+  if (data.kids > 0) parts.push(`${data.kids} kid${data.kids > 1 ? 's' : ''}`);
+  if (data.infants > 0) parts.push(`${data.infants} infant${data.infants > 1 ? 's' : ''}`);
+  return parts.join(', ');
+};
+
+export const formatTripType = (tripType: string): string => {
+  switch (tripType) {
+    case 'oneWay': return 'One-way';
+    case 'roundTrip': return 'Round-trip';
+    case 'multiCity': return 'Multi-city';
+    default: return tripType;
   }
 };

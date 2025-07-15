@@ -475,27 +475,6 @@ export default function FlightSearchBundle() {
   };
 
   const handleContinue = () => {
-    // Store selected flight data
-    const selectedFlightData = {
-      outbound: selectedOutboundFlight,
-      return: selectedReturnFlight,
-      baseCost,
-      totalCost,
-    };
-    
-    // Store bundle selection data
-    const bundleData = {
-      selectedSeat: selectedSeatOption,
-      selectedBaggage: selectedBaggageOption,
-      selectedMeals: selectedMeals.map(mealId => 
-        mealOptions.find(m => m.id === mealId)
-      ).filter(Boolean),
-      bundleCost,
-    };
-
-    localStorage.setItem("selectedFlightData", JSON.stringify(selectedFlightData));
-    localStorage.setItem("selectedBundleData", JSON.stringify(bundleData));
-    
     console.log("Continue to Add Services & Bundles");
     setLocation("/add-services-bundles");
   };
