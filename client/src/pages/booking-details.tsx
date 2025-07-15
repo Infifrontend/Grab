@@ -230,8 +230,8 @@ export default function BookingDetails() {
                     </Text>
                     <Text className="text-gray-900 font-medium">
                       {flightData?.outbound?.arrivalTime 
-                        ? dayjs(flightData.outbound.arrivalTime).format('DD MMM YYYY h:mm A')
-                        : 'Jun 15, 2024 10:15 PM'}
+                        ? dayjs(flightData.outbound.arrivalTime).format('DD MMM YYYY')
+                        : '15 Jun 2024'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
                       {flightData?.outbound?.destination || 
@@ -344,10 +344,10 @@ export default function BookingDetails() {
                       </Text>
                       <Text className="text-gray-900 font-medium">
                         {flightData?.return?.arrivalTime 
-                          ? dayjs(flightData.return.arrivalTime).format('DD MMM YYYY h:mm A')
+                          ? dayjs(flightData.return.arrivalTime).format('DD MMM YYYY')
                           : bookingData?.returnDate
                           ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
-                          : 'Jun 22, 2024 4:30 PM'}
+                          : '22 Jun 2024'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
                         {flightData?.return?.destination || 
