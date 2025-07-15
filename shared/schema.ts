@@ -153,30 +153,6 @@ export const refunds = pgTable("refunds", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Group Leader Information
-export const groupLeaders = pgTable("group_leaders", {
-  id: serial("id").primaryKey(),
-  bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
-  title: text("title").notNull(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  email: text("email").notNull(),
-  phoneNumber: text("phone_number").notNull(),
-  dateOfBirth: timestamp("date_of_birth").notNull(),
-  nationality: text("nationality").notNull(),
-  passportNumber: text("passport_number").notNull(),
-  passportExpiryDate: timestamp("passport_expiry_date").notNull(),
-  streetAddress: text("street_address").notNull(),
-  city: text("city").notNull(),
-  stateProvince: text("state_province"),
-  postalCode: text("postal_code"),
-  country: text("country").notNull(),
-  emergencyContactName: text("emergency_contact_name").notNull(),
-  emergencyContactPhone: text("emergency_contact_phone").notNull(),
-  emergencyContactRelationship: text("emergency_contact_relationship").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -242,27 +218,6 @@ export const refundsRelations = relations(refunds, ({ one }) => ({
   }),
 }));
 
-export const groupLeadersRelations = relations(groupLeaders, ({ one }) => ({
-  booking: one(flightBookings, {
-    fields: [groupLeaders.bookingId],
-    references: [flightBookings.id],
-  }),
-}));
-
-export const flightBookingsRelationsUpdated = relations(flightBookings, ({ one, many }) => ({
-  user: one(users, {
-    fields: [flightBookings.userId],
-    references: [users.id],
-  }),
-  flight: one(flights, {
-    fields: [flightBookings.flightId],
-    references: [flights.id],
-  }),
-  passengers: many(passengers),
-  payments: many(payments),
-  groupLeader: one(groupLeaders),
-}));
-
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -288,7 +243,6 @@ export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: t
 export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
-export const insertGroupLeaderSchema = createInsertSchema(groupLeaders).omit({ id: true, createdAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -314,5 +268,3 @@ export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
-export type GroupLeader = typeof groupLeaders.$inferSelect;
-export type InsertGroupLeader = z.infer<typeof insertGroupLeaderSchema>;

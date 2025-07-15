@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Form,
   Input,
@@ -30,15 +30,6 @@ export default function PaymentOptions() {
   const [, setLocation] = useLocation();
   const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
-  const [bookingData, setBookingData] = useState<any>(null);
-
-  // Load booking data from localStorage
-  useEffect(() => {
-    const storedBookingData = localStorage.getItem('bookingFormData');
-    if (storedBookingData) {
-      setBookingData(JSON.parse(storedBookingData));
-    }
-  }, []);
 
   const handleBack = () => {
     setLocation("/group-leader");
@@ -119,7 +110,7 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          ₹{bookingData?.totalCost || '70,448'}
+                          ₹70,448
                         </Text>
                       </div>
                     </Radio>
@@ -276,53 +267,39 @@ export default function PaymentOptions() {
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 text-sm">✈️</span>
                   </div>
-                  <Text className="text-gray-900 font-medium">
-                    {bookingData ? `${bookingData.origin} ⇄ ${bookingData.destination}` : 'JFK ⇄ LHR'}
-                  </Text>
+                  <Text className="text-gray-900 font-medium">JFK ⇄ LHR</Text>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <CalendarOutlined className="text-blue-600 text-sm" />
                   </div>
-                  <Text className="text-gray-900">
-                    {bookingData ? `${bookingData.departureDate}${bookingData.returnDate ? ` - ${bookingData.returnDate}` : ''}` : 'Jun 15 - Jun 22, 2024'}
-                  </Text>
+                  <Text className="text-gray-900">Jun 15 - Jun 22, 2024</Text>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <UserOutlined className="text-blue-600 text-sm" />
                   </div>
-                  <Text className="text-gray-900">
-                    {bookingData ? `${bookingData.totalPassengers} passengers` : '32 passengers'}
-                  </Text>
+                  <Text className="text-gray-900">32 passengers</Text>
                 </div>
               </div>
 
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Base Flight Cost</Text>
-                  <Text className="text-gray-900">
-                    ₹{bookingData?.selectedFlight?.price ? (parseFloat(bookingData.selectedFlight.price) * (bookingData.totalPassengers || 1)).toFixed(2) : '78,400'}
-                  </Text>
+                  <Text className="text-gray-900">₹78,400</Text>
                 </div>
 
-                {bookingData?.selectedBundles && bookingData.selectedBundles.length > 0 && (
-                  <div className="flex justify-between">
-                    <Text className="text-gray-600">Selected Bundles</Text>
-                    <Text className="text-gray-900">₹{bookingData.bundleCost || '4,480'}</Text>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <Text className="text-gray-600">Selected Bundles</Text>
+                  <Text className="text-gray-900">₹4,480</Text>
+                </div>
 
-                {bookingData?.totalPassengers && bookingData.totalPassengers >= 10 && (
-                  <div className="flex justify-between">
-                    <Text className="text-green-600">Group Discount (15%)</Text>
-                    <Text className="text-green-600">
-                      -₹{bookingData.groupDiscount || '12,432'}
-                    </Text>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <Text className="text-green-600">Group Discount (15%)</Text>
+                  <Text className="text-green-600">-₹12,432</Text>
+                </div>
 
                 <div className="border-t pt-3">
                   <div className="flex justify-between items-center">
@@ -330,7 +307,7 @@ export default function PaymentOptions() {
                       Total Amount
                     </Text>
                     <Text className="font-bold text-xl text-gray-900">
-                      ₹{bookingData?.totalCost || '70,448'}
+                      ₹70,448
                     </Text>
                   </div>
                 </div>
@@ -343,18 +320,8 @@ export default function PaymentOptions() {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <Text className="text-blue-600">Due now:</Text>
-                    <Text className="font-semibold text-blue-700">
-                      ₹{paymentSchedule === 'full' ? (bookingData?.totalCost || '70,448') : Math.round((bookingData?.totalCost || 70448) * 0.3)}
-                    </Text>
+                    <Text className="font-semibold text-blue-700">₹70,448</Text>
                   </div>
-                  {paymentSchedule === 'deposit' && (
-                    <div className="flex justify-between items-center mt-1">
-                      <Text className="text-blue-600">Due later:</Text>
-                      <Text className="font-semibold text-blue-700">
-                        ₹{Math.round((bookingData?.totalCost || 70448) * 0.7)}
-                      </Text>
-                    </div>
-                  )}
                 </div>
               </div>
             </Card>
