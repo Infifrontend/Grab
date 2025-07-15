@@ -27,14 +27,71 @@ export default function GroupLeader() {
   };
 
   const handleContinue = () => {
-    setLocation("/payment-options");
+    form.validateFields().then(async (values) => {
+      console.log('Group Leader Information:', values);
+      
+      try {
+        // Get booking data from localStorage to get booking ID
+        const storedBookingData = localStorage.getItem('bookingFormData');
+        let bookingId = 1; // Default fallback
+        
+        if (storedBookingData) {
+          const bookingData = JSON.parse(storedBookingData);
+          bookingId = bookingData.bookingId || 1;
+        }
 
-    // form.validateFields().then((values) => {
-    //   console.log('Group Leader Information:', values);
-    // Navigate to next step (Payment Options)
-    // }).catch((errorInfo) => {
-    //   console.log('Validation Failed:', errorInfo);
-    // });
+        // Prepare group leader data
+        const groupLeaderData = {
+          bookingId,
+          title: values.title,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phoneNumber: values.phoneNumber,
+          dateOfBirth: values.dateOfBirth.toISOString(),
+          nationality: values.nationality,
+          passportNumber: values.passportNumber,
+          passportExpiryDate: values.passportExpiryDate.toISOString(),
+          streetAddress: values.streetAddress,
+          city: values.city,
+          stateProvince: values.stateProvince || '',
+          postalCode: values.postalCode || '',
+          country: values.country,
+          emergencyContactName: values.emergencyContactName,
+          emergencyContactPhone: values.emergencyContactPhone,
+          emergencyContactRelationship: values.emergencyContactRelationship,
+        };
+
+        // Save group leader information
+        const response = await fetch('/api/group-leaders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(groupLeaderData),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Group leader saved successfully:', result);
+          
+          // Update booking data with group leader info
+          if (storedBookingData) {
+            const bookingData = JSON.parse(storedBookingData);
+            bookingData.groupLeader = result.groupLeader;
+            localStorage.setItem('bookingFormData', JSON.stringify(bookingData));
+          }
+          
+          setLocation("/payment-options");
+        } else {
+          console.error('Failed to save group leader information');
+        }
+      } catch (error) {
+        console.error('Error saving group leader information:', error);
+      }
+    }).catch((errorInfo) => {
+      console.log('Validation Failed:', errorInfo);
+    });
   };
 
   return (

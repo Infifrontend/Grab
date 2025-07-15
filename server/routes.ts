@@ -7,7 +7,8 @@ import {
   insertFlightBookingSchema, 
   insertPassengerSchema,
   insertBidSchema,
-  insertPaymentSchema 
+  insertPaymentSchema,
+  insertGroupLeaderSchema 
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -210,6 +211,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Booking creation failed" });
       }
+    }
+  });
+
+  // Create group leader
+  app.post("/api/group-leaders", async (req, res) => {
+    try {
+      const groupLeaderData = insertGroupLeaderSchema.parse(req.body);
+      const groupLeader = await storage.createGroupLeader(groupLeaderData);
+      res.json({ groupLeader, message: "Group leader information saved successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid group leader data", errors: error.errors });
+      } else {
+        console.error("Group leader creation error:", error);
+        res.status(500).json({ message: "Failed to save group leader information" });
+      }
+    }
+  });
+
+  // Get group leader by booking ID
+  app.get("/api/group-leaders/:bookingId", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const groupLeader = await storage.getGroupLeaderByBookingId(parseInt(bookingId));
+      if (!groupLeader) {
+        return res.status(404).json({ message: "Group leader not found" });
+      }
+      res.json(groupLeader);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch group leader" });
     }
   });
 
