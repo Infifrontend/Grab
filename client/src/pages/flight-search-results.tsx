@@ -428,7 +428,7 @@ export default function FlightSearchResults() {
                       <Input
                         value={departureDate}
                         onChange={(e) => setDepartureDate(e.target.value)}
-                        placeholder="dd / mm / yyyy"
+                        placeholder="DD MMM YY"
                       />
                     </div>
                   </Col>
@@ -440,7 +440,7 @@ export default function FlightSearchResults() {
                       <Input
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        placeholder="dd / mm / yyyy"
+                        placeholder="DD MMM YY"
                         disabled={tripType === "oneWay"}
                       />
                     </div>
