@@ -182,7 +182,7 @@ export default function AddServicesBundles() {
   const handleContinue = () => {
     // Calculate selected services data
     const selectedServices = [];
-    
+
     // Add selected bundles
     selectedBundles.forEach(bundleId => {
       const bundle = bundles.find(b => b.id === bundleId);
@@ -195,7 +195,7 @@ export default function AddServicesBundles() {
         });
       }
     });
-    
+
     // Add individual services
     Object.entries(individualServiceCounts).forEach(([serviceId, count]) => {
       if (count > 0) {
@@ -219,7 +219,7 @@ export default function AddServicesBundles() {
 
     // Store selected services
     localStorage.setItem("selectedServices", JSON.stringify(selectedServices));
-    
+
     console.log("Continue to Group Leader", { selectedServices });
     setLocation("/group-leader");
   };

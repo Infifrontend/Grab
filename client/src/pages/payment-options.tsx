@@ -39,10 +39,24 @@ export default function PaymentOptions() {
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [passengerCount, setPassengerCount] = useState(1);
+  const [tripType, setTripType] = useState<'oneWay' | 'roundTrip' | 'multiCity'>('roundTrip');
 
   // Load booking data on component mount
   useEffect(() => {
     const loadBookingData = () => {
+      // Get trip type - prioritize from bookingFormData (Quick Booking form)
+      const bookingFormData = localStorage.getItem('bookingFormData');
+      if (bookingFormData) {
+        const formData = JSON.parse(bookingFormData);
+        const formTripType = formData.tripType || 'roundTrip';
+        setTripType(formTripType);
+        // Ensure consistency by updating selectedTripType
+        localStorage.setItem('selectedTripType', formTripType);
+      } else {
+        const savedTripType = localStorage.getItem('selectedTripType');
+        setTripType(savedTripType as 'oneWay' | 'roundTrip' | 'multiCity' || 'roundTrip');
+      }
+
       // Load booking form data
       const storedBookingData = localStorage.getItem("bookingFormData");
       if (storedBookingData) {
@@ -86,7 +100,7 @@ export default function PaymentOptions() {
       baseCost += outboundPrice * passengerCount;
 
       // Add return flight cost if round trip
-      if (flightData.return && bookingData?.tripType === "roundTrip") {
+      if (flightData.return && tripType === "roundTrip") {
         const returnPrice = typeof flightData.return.price === 'string'
           ? parseFloat(flightData.return.price)
           : flightData.return.price || 0;
@@ -129,7 +143,7 @@ export default function PaymentOptions() {
     const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
 
     setTotalAmount(subtotal + taxes - groupDiscount);
-  }, [flightData, selectedServices, passengerCount, bookingData]);
+  }, [flightData, selectedServices, passengerCount, bookingData, tripType]);
 
   // Get payment options based on amount and services
   const getAvailablePaymentOptions = () => {
@@ -487,7 +501,7 @@ export default function PaymentOptions() {
                     <span className="text-blue-600 text-sm">✈️</span>
                   </div>
                   <Text className="text-gray-900 font-medium">
-                    {bookingData ? `${bookingData.origin} ${bookingData.tripType === "roundTrip" ? "⇄" : "→"} ${bookingData.destination}` : "Flight Route"}
+                    {bookingData ? `${bookingData.origin} ${tripType === "roundTrip" ? "⇄" : "→"} ${bookingData.destination}` : "Flight Route"}
                   </Text>
                 </div>
 
@@ -497,7 +511,7 @@ export default function PaymentOptions() {
                   </div>
                   <Text className="text-gray-900">
                     {bookingData ? (
-                      bookingData.tripType === "roundTrip" ? 
+                      tripType === "roundTrip" ? 
                         `${dayjs(bookingData.departureDate).format('DD MMM YYYY')} - ${dayjs(bookingData.returnDate).format('DD MMM YYYY')}` :
                         dayjs(bookingData.departureDate).format('DD MMM YYYY')
                     ) : "Travel Dates"}
@@ -531,7 +545,7 @@ export default function PaymentOptions() {
                         <Text className="text-gray-900">{flightData.outbound.airline} {flightData.outbound.flightNumber}</Text>
                       </div>
                     )}
-                    {flightData.return && bookingData?.tripType === "roundTrip" && (
+                    {flightData.return && tripType === "roundTrip" && (
                       <div>
                         <Text className="text-gray-600">Return: </Text>
                         <Text className="text-gray-900">{flightData.return.airline} {flightData.return.flightNumber}</Text>
@@ -551,7 +565,7 @@ export default function PaymentOptions() {
                         if (flightData.outbound) {
                           baseCost += (typeof flightData.outbound.price === 'string' ? parseFloat(flightData.outbound.price) : flightData.outbound.price || 0) * passengerCount;
                         }
-                        if (flightData.return && bookingData?.tripType === "roundTrip") {
+                        if (flightData.return && tripType === "roundTrip") {
                           baseCost += (typeof flightData.return.price === 'string' ? parseFloat(flightData.return.price) : flightData.return.price || 0) * passengerCount;
                         }
                         return baseCost.toFixed(2);

@@ -17,6 +17,7 @@ import {
 import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
@@ -70,12 +71,12 @@ export default function ReviewConfirmation() {
 
   const handleSubmit = async () => {
     console.log("Submitting comprehensive booking request...");
-    
+
     try {
       // Collect all stored data
       const storedPaymentData = localStorage.getItem('paymentData');
       const storedPassengerData = localStorage.getItem('passengerData');
-      
+
       const paymentData = storedPaymentData ? JSON.parse(storedPaymentData) : null;
       const passengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
 
@@ -107,7 +108,7 @@ export default function ReviewConfirmation() {
         console.log("Comprehensive booking created successfully:", result);
         setCreatedBooking(result.booking);
         setIsSuccessModalVisible(true);
-        
+
         // Clear localStorage after successful submission
         const keysToRemove = [
           'bookingFormData',
@@ -120,7 +121,7 @@ export default function ReviewConfirmation() {
           'passengerData'
         ];
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        
+
       } else {
         const errorData = await response.json();
         console.error("Booking submission failed:", errorData);
@@ -214,11 +215,11 @@ export default function ReviewConfirmation() {
                         Departure Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? new Date(bookingData.departureDate).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        }) : 'July 21, 2025'}
+                        {bookingData?.departureDate 
+                          ? (typeof bookingData.departureDate === 'string' 
+                              ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
+                              : dayjs(bookingData.departureDate).format('DD MMM YYYY'))
+                          : '22 Jun 2024'}
                       </Text>
                     </div>
                   </Space>
@@ -250,12 +251,11 @@ export default function ReviewConfirmation() {
                         Return Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData && bookingData.tripType !== 'oneWay' && bookingData.returnDate ? 
-                          new Date(bookingData.returnDate).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          }) : 'N/A (One-way trip)'}
+                        {bookingData?.returnDate && bookingData.tripType !== 'oneWay'
+                          ? (typeof bookingData.returnDate === 'string' 
+                              ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
+                              : dayjs(bookingData.returnDate).format('DD MMM YYYY'))
+                          : 'N/A'}
                       </Text>
                     </div>
                   </Space>
@@ -280,7 +280,7 @@ export default function ReviewConfirmation() {
                   ) : (
                     <Text className="text-gray-500 italic">No additional services selected</Text>
                   )}
-                  
+
                   {/* Show bundle services if available */}
                   {bundleData && (
                     <>

@@ -274,7 +274,7 @@ export default function PassengerInfo() {
                     <Form.Item label="Date of Birth" required>
                       <DatePicker
                         size="large"
-                        placeholder="dd/mm/yyyy"
+                        placeholder="DD MMM YYYY"
                         format="DD MMM YYYY"
                         className="w-full"
                         value={
@@ -348,7 +348,7 @@ export default function PassengerInfo() {
                     <Form.Item label="Passport Expiry" required>
                       <DatePicker
                         size="large"
-                        placeholder="dd/mm/yyyy"
+                        placeholder="DD MMM YYYY"
                         format="DD MMM YYYY"
                         className="w-full"
                         value={

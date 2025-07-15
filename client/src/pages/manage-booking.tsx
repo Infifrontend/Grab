@@ -180,7 +180,7 @@ export default function ManageBooking() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarOutlined className="text-sm" />
                       <Text className="text-sm">
-                        {format(new Date(booking.date), 'MMM dd, yyyy')}
+                        {format(new Date(booking.date), 'dd MMM yyyy')}
                       </Text>
                     </div>
 

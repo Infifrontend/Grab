@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 
 export interface BookingFormData {
   origin: string;
@@ -194,31 +195,31 @@ export const calculateBookingTotal = (): BookingSummary => {
   const flightData = getFlightData();
   const bundleData = getBundleData();
   const servicesData = getServicesData();
-  
+
   const passengerCount = bookingData?.totalPassengers || 1;
   let subtotal = 0;
-  
+
   // Flight cost
   if (flightData) {
     subtotal += flightData.baseCost || 0;
   }
-  
+
   // Bundle cost
   if (bundleData) {
     subtotal += (bundleData.bundleCost || 0) * passengerCount;
   }
-  
+
   // Services cost
   const servicesCost = servicesData.reduce((total, service) => {
     return total + (service.price * passengerCount);
   }, 0);
   subtotal += servicesCost;
-  
+
   // Calculate taxes and discounts
   const taxes = subtotal * 0.08; // 8% tax
   const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
   const totalAmount = subtotal + taxes - groupDiscount;
-  
+
   return {
     subtotal,
     taxes,
@@ -246,7 +247,7 @@ export const clearBookingData = (): void => {
     'searchCriteria',
     'passengerCount'
   ];
-  
+
   keysToRemove.forEach(key => {
     localStorage.removeItem(key);
   });
@@ -291,3 +292,45 @@ export const updateBookingData = (updates: Partial<BookingFormData>): void => {
     setBookingData({ ...currentData, ...updates });
   }
 };
+
+// Get trip type from localStorage with consistency check
+export function getTripType(): 'oneWay' | 'roundTrip' | 'multiCity' {
+  // First check bookingFormData (from Quick Booking form) - this has priority
+  const bookingData = localStorage.getItem('bookingFormData');
+  if (bookingData) {
+    const data = JSON.parse(bookingData);
+    if (data.tripType) {
+      // Update selectedTripType to match for consistency
+      localStorage.setItem('selectedTripType', data.tripType);
+      return data.tripType;
+    }
+  }
+
+  // Fallback to selectedTripType
+  const savedTripType = localStorage.getItem('selectedTripType');
+  if (savedTripType) {
+    return savedTripType as 'oneWay' | 'roundTrip' | 'multiCity';
+  }
+
+  return 'roundTrip';
+}
+
+// Store booking step data
+export function storeBookingStepData(step: string, data: any) {
+  localStorage.setItem(`bookingStep_${step}`, JSON.stringify(data));
+}
+
+// Format date consistently across the application
+export function formatDate(date: string | Date | null): string {
+  if (!date) return '';
+
+  try {
+    if (typeof date === 'string') {
+      return dayjs(date).format('DD MMM YYYY');
+    }
+    return dayjs(date).format('DD MMM YYYY');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
+}

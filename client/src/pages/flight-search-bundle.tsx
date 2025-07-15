@@ -918,7 +918,9 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
                         <Text className="block font-medium">
-                          {searchCriteria.departureDate || (typeof departureDate === 'string' ? departureDate : departureDate?.format('DD/MM/YYYY'))}
+                          {searchCriteria.departureDate 
+                            ? dayjs(searchCriteria.departureDate).format('DD MMM YYYY')
+                            : (typeof departureDate === 'string' ? dayjs(departureDate).format('DD MMM YYYY') : departureDate?.format('DD MMM YYYY'))}
                         </Text>
                       </div>
                     </Col>
@@ -927,7 +929,9 @@ export default function FlightSearchBundle() {
                         <div>
                           <Text className="text-gray-600 text-sm">Return</Text>
                           <Text className="block font-medium">
-                            {tripType === "oneWay" ? "N/A" : (searchCriteria.returnDate || (typeof returnDate === 'string' ? returnDate : returnDate?.format('DD/MM/YYYY')))}
+                            {tripType === "oneWay" ? "N/A" : (searchCriteria.returnDate 
+                              ? dayjs(searchCriteria.returnDate).format('DD MMM YYYY')
+                              : (typeof returnDate === 'string' ? dayjs(returnDate).format('DD MMM YYYY') : returnDate?.format('DD MMM YYYY')))}
                           </Text>
                         </div>
                       </Col>

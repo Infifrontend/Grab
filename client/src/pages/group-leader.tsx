@@ -219,8 +219,8 @@ export default function GroupLeader() {
                   >
                     <DatePicker
                       size="large"
-                      placeholder="dd/mm/yyyy"
-                      format="DD/MM/YYYY"
+                      placeholder="DD MMM YYYY"
+                      format="DD MMM YYYY"
                       className="w-full"
                       disabledDate={(current) => current && current.isAfter(new Date(), 'day')}
                     />
@@ -288,8 +288,8 @@ export default function GroupLeader() {
                   >
                     <DatePicker
                       size="large"
-                      placeholder="dd/mm/yyyy"
-                      format="DD/MM/YYYY"
+                      placeholder="DD MMM YYYY"
+                      format="DD MMM YYYY"
                       className="w-full"
                     />
                   </Form.Item>
