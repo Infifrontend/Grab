@@ -21,12 +21,37 @@ export default function BookingDetails() {
     queryKey: ["/api/bookings"],
   });
 
+  const { data: flightBookings } = useQuery({
+    queryKey: ["/api/flight-bookings"],
+  });
+
   const handleManageBooking = () => {
     setLocation(`/manage-booking/${params?.id || booking.id}`);
   };
 
-  // Find the booking by ID or use mock data
-  const booking = bookings?.find((b) => b.id.toString() === params?.id) || {
+  // Find the booking by ID from legacy bookings or flight bookings
+  let booking = bookings?.find((b) => b.id.toString() === params?.id || b.bookingId === params?.id);
+  
+  // If not found in legacy bookings, check flight bookings by reference
+  if (!booking && flightBookings) {
+    const flightBooking = flightBookings.find((fb: any) => fb.bookingReference === params?.id);
+    if (flightBooking) {
+      // Convert flight booking to legacy booking format for display
+      booking = {
+        id: flightBooking.id,
+        bookingId: flightBooking.bookingReference,
+        userId: flightBooking.userId,
+        route: "Flight Booking", // Will be enhanced with actual flight data
+        date: flightBooking.bookedAt,
+        passengers: flightBooking.passengerCount,
+        status: flightBooking.bookingStatus,
+      };
+    }
+  }
+  
+  // Fallback to mock data if nothing found
+  if (!booking) {
+    booking = {
     id: 1,
     bookingId: "GR-2024-1001",
     userId: 1,

@@ -24,6 +24,7 @@ export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [createdBooking, setCreatedBooking] = useState<any>(null);
 
   // Load booking data from localStorage
   useEffect(() => {
@@ -37,16 +38,49 @@ export default function ReviewConfirmation() {
     setLocation("/passenger-info");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log("Submitting booking request...");
-    // Here you would submit the booking request
-    setIsSuccessModalVisible(true);
+    
+    try {
+      if (!bookingData) {
+        console.error("No booking data found");
+        return;
+      }
+
+      // Submit the booking request
+      const response = await fetch('/api/flight-bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          flightId: bookingData.selectedFlightId || 1, // Use stored flight ID or default
+          passengerCount: bookingData.totalPassengers || 1,
+          passengers: bookingData.passengers || []
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Booking created successfully:", result);
+        setCreatedBooking(result.booking);
+        setIsSuccessModalVisible(true);
+      } else {
+        console.error("Booking submission failed");
+      }
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+    }
   };
 
   const handleSuccessModalClose = () => {
     setIsSuccessModalVisible(false);
-    // Redirect to booking details page with a sample booking ID
-    setLocation("/booking-details/GR-2024-002");
+    // Redirect to booking details page with actual booking reference
+    if (createdBooking?.bookingReference) {
+      setLocation(`/booking-details/${createdBooking.bookingReference}`);
+    } else {
+      setLocation("/dashboard");
+    }
   };
 
   return (
