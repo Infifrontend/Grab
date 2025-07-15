@@ -971,7 +971,7 @@ export default function FlightSearchBundle() {
                     <DatePicker
                       value={tripType === "oneWay" ? null : returnDate}
                       onChange={(date) => {
-                        if (tripType !== "oneWay";
+                        if (tripType !== "oneWay") {
                           setReturnDate(date);
                         }
                       }}
