@@ -138,7 +138,7 @@ export default function QuickBookingForm() {
         destination: values.destination,
         departureDate: values.departureDate,
         returnDate: values.returnDate,
-        tripType: values.tripType,
+        tripType: tripType,  // Use the tripType state instead of values.tripType
         adults: values.adults,
         kids: values.kids,
         infants: values.infants,

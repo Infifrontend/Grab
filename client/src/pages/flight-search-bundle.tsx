@@ -199,103 +199,84 @@ export default function FlightSearchBundle() {
 
   // Load flight data from localStorage on component mount
   useEffect(() => {
-    const loadFlightData = () => {
-      const storedFlights = localStorage.getItem("searchResults");
-      const storedCriteria = localStorage.getItem("searchCriteria");
-      const storedPassengerCount = localStorage.getItem("passengerCount");
-      const storedBookingData = localStorage.getItem("bookingFormData");
-
-      let loadedFlights: Flight[] = [];
-      let loadedCriteria: any = {};
-
-      if (storedFlights) {
-        const flights = JSON.parse(storedFlights);
-        // Convert price to string format if it's a number and format times
-        loadedFlights = flights.map((flight: any) => ({
-          ...flight,
-          price:
-            typeof flight.price === "number"
-              ? flight.price.toString()
-              : flight.price,
-          departureTime:
-            typeof flight.departureTime === "string" &&
-            flight.departureTime.includes("T")
-              ? new Date(flight.departureTime).toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })
-              : flight.departureTime,
-          arrivalTime:
-            typeof flight.arrivalTime === "string" &&
-            flight.arrivalTime.includes("T")
-              ? new Date(flight.arrivalTime).toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })
-              : flight.arrivalTime,
-        }));
-        console.log("Loaded flights from localStorage:", loadedFlights);
+    const loadData = () => {
+      // Load search results
+      const searchResults = localStorage.getItem("searchResults");
+      if (searchResults) {
+        const flights = JSON.parse(searchResults);
+        console.log("Loaded search results:", flights);
+        setAvailableFlights(flights);
       }
 
-      if (storedCriteria) {
-        loadedCriteria = JSON.parse(storedCriteria);
-        setSearchCriteria(loadedCriteria);
-        console.log("Loaded search criteria:", loadedCriteria);
+      // Load search criteria
+      const searchCriteria = localStorage.getItem("searchCriteria");
+      if (searchCriteria) {
+        setSearchCriteria(JSON.parse(searchCriteria));
       }
 
-      if (storedPassengerCount) {
-        setPassengerCount(parseInt(storedPassengerCount));
+      // Load passenger count
+      const passengerCount = localStorage.getItem("passengerCount");
+      if (passengerCount) {
+        setPassengerCount(parseInt(passengerCount));
       }
 
-      // Load complete booking form data to ensure consistency
-      if (storedBookingData) {
-        const bookingData = JSON.parse(storedBookingData);
+      // Load booking form data from Quick Booking
+      const bookingFormData = localStorage.getItem("bookingFormData");
+      if (bookingFormData) {
+        const formData = JSON.parse(bookingFormData);
+        setOrigin(formData.origin || "");
+        setDestination(formData.destination || "");
 
-        // Initialize modify search form with original data
-        setOrigin(bookingData.origin || "JFK");
-        setDestination(bookingData.destination || "LHR");
-        setDepartureDate(bookingData.departureDate ? dayjs(bookingData.departureDate) : dayjs("2024-06-22"));
-        setReturnDate(bookingData.returnDate ? dayjs(bookingData.returnDate) : null);
-        setAdults(bookingData.adults || 1);
-        setKids(bookingData.kids || 0);
-        setInfants(bookingData.infants || 0);
-        setCabin(bookingData.cabin || "Economy");
-        setTripType(bookingData.tripType || "roundTrip");
-
-        // Update passenger count if needed
-        if (bookingData.totalPassengers) {
-          setPassengerCount(bookingData.totalPassengers);
+        // Set trip type from booking form data
+        if (formData.tripType) {
+          setTripType(formData.tripType);
         }
 
-        // Use booking data for search criteria if not available
-        if (!loadedCriteria.origin && !loadedCriteria.destination) {
-          loadedCriteria = {
-            origin: bookingData.origin,
-            destination: bookingData.destination,
-            departureDate: bookingData.departureDate,
-            returnDate: bookingData.returnDate,
-            tripType: bookingData.tripType,
-            passengers: bookingData.totalPassengers,
-            cabin: bookingData.cabin,
-          };
-          setSearchCriteria(loadedCriteria);
+        if (formData.departureDate) {
+          if (typeof formData.departureDate === 'string') {
+            setDepartureDate(dayjs(formData.departureDate));
+          } else {
+            setDepartureDate(formData.departureDate);
+          }
         }
+
+        if (formData.returnDate) {
+          if (typeof formData.returnDate === 'string') {
+            setReturnDate(dayjs(formData.returnDate));
+          } else {
+            setReturnDate(formData.returnDate);
+          }
+        }
+
+        setAdults(formData.adults || 0);
+        setKids(formData.kids || 0);
+        setInfants(formData.infants || 0);
+        setCabin(formData.cabin || "Economy");
+      } else {
+        // Fallback to individual localStorage items (from New Booking page)
+        setOrigin(localStorage.getItem("searchOrigin") || "");
+        setDestination(localStorage.getItem("searchDestination") || "");
+
+        // Set trip type from selectedTripType
+        const savedTripType = localStorage.getItem("selectedTripType");
+        if (savedTripType) {
+          setTripType(savedTripType);
+        }
+
+        const depDate = localStorage.getItem("searchDepartureDate");
+        if (depDate) setDepartureDate(dayjs(depDate));
+
+        const retDate = localStorage.getItem("searchReturnDate");
+        if (retDate) setReturnDate(dayjs(retDate));
+
+        setAdults(parseInt(localStorage.getItem("searchAdults") || "0"));
+        setKids(parseInt(localStorage.getItem("searchKids") || "0"));
+        setInfants(parseInt(localStorage.getItem("searchInfants") || "0"));
+        setCabin(localStorage.getItem("searchCabin") || "Economy");
       }
-
-      // Set flights directly without filtering initially - let user see all available flights
-      setAvailableFlights(loadedFlights);
-
-      // Set the first flight as selected by default
-      if (loadedFlights.length > 0) {
-        setSelectedOutbound(loadedFlights[0].id.toString());
-      }
-
-      console.log("Final available flights:", loadedFlights);
     };
 
-    loadFlightData();
+    loadData();
   }, []);
 
   // Filter states
@@ -541,7 +522,7 @@ export default function FlightSearchBundle() {
       baseCost,
       totalCost,
     };
-    
+
     // Store bundle selection data
     const bundleData = {
       selectedSeat: selectedSeatOption,
@@ -554,7 +535,7 @@ export default function FlightSearchBundle() {
 
     localStorage.setItem("selectedFlightData", JSON.stringify(selectedFlightData));
     localStorage.setItem("selectedBundleData", JSON.stringify(bundleData));
-    
+
     console.log("Continue to Add Services & Bundles");
     setLocation("/add-services-bundles");
   };
@@ -1393,7 +1374,7 @@ export default function FlightSearchBundle() {
               </div>
             </Card>
 
-            
+
 
             {/* Booking Summary */}
             {selectedOutbound && (
