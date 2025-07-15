@@ -52,16 +52,17 @@ export default function BookingDetails() {
   // Fallback to mock data if nothing found
   if (!booking) {
     booking = {
-    id: 1,
-    bookingId: "GR-2024-1001",
-    userId: 1,
-    groupType: "Corporate",
-    route: "New York to London",
-    date: "2024-06-15",
-    returnDate: "2024-06-22",
-    passengers: 32,
-    status: "confirmed",
-  };
+      id: 1,
+      bookingId: "GR-2024-1001",
+      userId: 1,
+      groupType: "Corporate",
+      route: "New York to London",
+      date: "2024-06-15",
+      returnDate: "2024-06-22",
+      passengers: 32,
+      status: "confirmed",
+    };
+  }
 
   const tabItems = [
     {
