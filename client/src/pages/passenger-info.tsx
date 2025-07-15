@@ -19,6 +19,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
+import dayjs from "dayjs";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 
@@ -271,7 +272,7 @@ export default function PassengerInfo() {
                         className="w-full"
                         value={
                           passenger.dateOfBirth
-                            ? (new Date(passenger.dateOfBirth) as any)
+                            ? dayjs(passenger.dateOfBirth)
                             : null
                         }
                         onChange={(date) =>
@@ -281,7 +282,7 @@ export default function PassengerInfo() {
                             date ? date.toISOString() : "",
                           )
                         }
-                        disabledDate={(current) => current && current.isAfter(new Date(), 'day')}
+                        disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
                       />
                     </Form.Item>
                   </Col>
@@ -345,7 +346,7 @@ export default function PassengerInfo() {
                         className="w-full"
                         value={
                           passenger.passportExpiry
-                            ? (new Date(passenger.passportExpiry) as any)
+                            ? dayjs(passenger.passportExpiry)
                             : null
                         }
                         onChange={(date) =>
