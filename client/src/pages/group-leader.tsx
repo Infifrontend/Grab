@@ -9,6 +9,7 @@ import {
   Row,
   Col,
   Typography,
+  message,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useLocation } from "wouter";
