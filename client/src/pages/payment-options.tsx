@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -10,6 +10,7 @@ import {
   Radio,
   Space,
   Badge,
+  Divider,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -18,10 +19,12 @@ import {
   CalendarOutlined,
   UserOutlined,
   DollarOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -30,25 +33,149 @@ export default function PaymentOptions() {
   const [, setLocation] = useLocation();
   const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [flightData, setFlightData] = useState<any>(null);
+  const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [passengerCount, setPassengerCount] = useState(1);
+
+  // Load booking data on component mount
+  useEffect(() => {
+    const loadBookingData = () => {
+      // Load booking form data
+      const storedBookingData = localStorage.getItem("bookingFormData");
+      if (storedBookingData) {
+        const data = JSON.parse(storedBookingData);
+        setBookingData(data);
+        setPassengerCount(data.totalPassengers || data.adults + data.kids + data.infants || 1);
+      }
+
+      // Load selected flight data
+      const storedFlightData = localStorage.getItem("selectedFlightData");
+      if (storedFlightData) {
+        setFlightData(JSON.parse(storedFlightData));
+      }
+
+      // Load group leader data
+      const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
+      if (storedGroupLeaderData) {
+        setGroupLeaderData(JSON.parse(storedGroupLeaderData));
+      }
+
+      // Load selected services
+      const storedServices = localStorage.getItem("selectedServices");
+      if (storedServices) {
+        setSelectedServices(JSON.parse(storedServices));
+      }
+    };
+
+    loadBookingData();
+  }, []);
+
+  // Calculate total amount based on selected flight and services
+  useEffect(() => {
+    let baseCost = 0;
+    let servicesCost = 0;
+
+    // Calculate base flight cost
+    if (flightData && flightData.outbound) {
+      const outboundPrice = typeof flightData.outbound.price === 'string' 
+        ? parseFloat(flightData.outbound.price) 
+        : flightData.outbound.price || 0;
+      baseCost += outboundPrice * passengerCount;
+
+      // Add return flight cost if round trip
+      if (flightData.return && bookingData?.tripType === "roundTrip") {
+        const returnPrice = typeof flightData.return.price === 'string'
+          ? parseFloat(flightData.return.price)
+          : flightData.return.price || 0;
+        baseCost += returnPrice * passengerCount;
+      }
+    }
+
+    // Calculate services cost
+    if (selectedServices.length > 0) {
+      servicesCost = selectedServices.reduce((total, service) => {
+        return total + (service.price || 0) * passengerCount;
+      }, 0);
+    }
+
+    const subtotal = baseCost + servicesCost;
+    const taxes = subtotal * 0.08; // 8% tax
+    const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
+    
+    setTotalAmount(subtotal + taxes - groupDiscount);
+  }, [flightData, selectedServices, passengerCount, bookingData]);
+
+  // Get payment options based on amount and services
+  const getAvailablePaymentOptions = () => {
+    const options = [
+      {
+        id: "creditCard",
+        name: "Credit/Debit Card",
+        icon: <CreditCardOutlined className="text-blue-600" />,
+        description: "Pay securely with your credit or debit card.",
+        available: true,
+        discount: 0,
+      },
+      {
+        id: "bankTransfer",
+        name: "Bank Transfer",
+        icon: <BankOutlined className="text-blue-600" />,
+        description: "Direct bank transfer with discount on total amount.",
+        available: totalAmount > 1000,
+        discount: 0.02, // 2% discount
+        badge: "2% Discount",
+      },
+      {
+        id: "corporate",
+        name: "Corporate Account",
+        icon: <CreditCardOutlined className="text-blue-600" />,
+        description: "Charge to your company's corporate travel account.",
+        available: groupLeaderData?.groupType === "Corporate",
+        discount: 0,
+      },
+    ];
+
+    return options.filter(option => option.available);
+  };
+
+  const availablePaymentOptions = getAvailablePaymentOptions();
 
   const handleBack = () => {
     setLocation("/group-leader");
   };
 
   const handleContinue = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        console.log("Payment Information:", {
-          ...values,
+    const validateAndContinue = async () => {
+      try {
+        if (paymentMethod === "creditCard") {
+          await form.validateFields();
+        }
+        
+        const paymentData = {
           paymentSchedule,
           paymentMethod,
-        });
+          totalAmount,
+          dueNow: paymentSchedule === "full" ? totalAmount : 
+                  paymentSchedule === "deposit" ? totalAmount * 0.3 : 
+                  totalAmount / 3,
+          selectedPaymentOption: availablePaymentOptions.find(opt => opt.id === paymentMethod),
+          formData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
+        };
+
+        // Save payment data to localStorage
+        localStorage.setItem("paymentData", JSON.stringify(paymentData));
+        
+        console.log("Payment Information:", paymentData);
         setLocation("/passenger-info");
-      })
-      .catch((errorInfo) => {
+      } catch (errorInfo) {
         console.log("Validation Failed:", errorInfo);
-      });
+      }
+    };
+
+    validateAndContinue();
   };
 
   return (
@@ -110,7 +237,7 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          ₹70,448
+                          ₹{totalAmount.toFixed(2)}
                         </Text>
                       </div>
                     </Radio>
@@ -126,6 +253,14 @@ export default function PaymentOptions() {
                           Pay a deposit now, remaining balance due 30 days
                           before departure.
                         </Text>
+                        <div className="flex justify-between mt-2">
+                          <Text className="text-sm text-gray-600">Deposit (30%):</Text>
+                          <Text className="font-semibold">₹{(totalAmount * 0.3).toFixed(2)}</Text>
+                        </div>
+                        <div className="flex justify-between">
+                          <Text className="text-sm text-gray-600">Remaining:</Text>
+                          <Text className="font-semibold">₹{(totalAmount * 0.7).toFixed(2)}</Text>
+                        </div>
                       </div>
                     </Radio>
                   </div>
@@ -134,11 +269,25 @@ export default function PaymentOptions() {
                     <Radio value="split" className="!flex !items-start">
                       <div className="flex-1 ml-2">
                         <Text className="font-semibold text-gray-900 block mb-1">
-                          Split Payment
+                          Split Payment (3 installments)
                         </Text>
                         <Text className="text-gray-600 text-sm block mb-2">
                           Divide your payment into equal installments over time.
                         </Text>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <Text className="text-sm text-gray-600">Today:</Text>
+                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                          </div>
+                          <div className="flex justify-between">
+                            <Text className="text-sm text-gray-600">In 30 days:</Text>
+                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                          </div>
+                          <div className="flex justify-between">
+                            <Text className="text-sm text-gray-600">In 60 days:</Text>
+                            <Text className="font-semibold">₹{(totalAmount / 3).toFixed(2)}</Text>
+                          </div>
+                        </div>
                       </div>
                     </Radio>
                   </div>
@@ -161,95 +310,79 @@ export default function PaymentOptions() {
                 className="w-full"
               >
                 <Space direction="vertical" className="w-full" size={16}>
-                  <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
-                    <Radio value="creditCard" className="!flex !items-start">
-                      <div className="flex-1 ml-2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CreditCardOutlined className="text-blue-600" />
-                          <Text className="font-semibold text-gray-900">
-                            Credit/Debit Card
+                  {availablePaymentOptions.map((option) => (
+                    <div key={option.id} className={`border rounded-lg p-4 hover:border-blue-300 transition-colors ${!option.available ? 'opacity-50' : ''}`}>
+                      <Radio value={option.id} className="!flex !items-start" disabled={!option.available}>
+                        <div className="flex-1 ml-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            {option.icon}
+                            <Text className="font-semibold text-gray-900">
+                              {option.name}
+                            </Text>
+                            {option.badge && (
+                              <Badge color="green" text={option.badge} />
+                            )}
+                          </div>
+                          <Text className="text-gray-600 text-sm block mb-3">
+                            {option.description}
                           </Text>
-                        </div>
-                        <Text className="text-gray-600 text-sm block mb-3">
-                          Pay securely with your credit or debit card.
-                        </Text>
+                          {option.discount > 0 && (
+                            <Text className="text-green-600 text-sm font-medium">
+                              Save ₹{(totalAmount * option.discount).toFixed(2)} with this method
+                            </Text>
+                          )}
 
-                        {paymentMethod === "creditCard" && (
-                          <Form form={form} layout="vertical" className="mt-4">
-                            <Row gutter={16}>
-                              <Col xs={24} md={12}>
-                                <Form.Item
-                                  label="Card Number"
-                                  name="cardNumber"
-                                >
-                                  <Input
-                                    placeholder="1234 5678 9012 3456"
-                                    size="large"
-                                  />
-                                </Form.Item>
-                              </Col>
-                              <Col xs={24} md={12}>
-                                <Form.Item
-                                  label="Cardholder Name"
-                                  name="cardholderName"
-                                >
-                                  <Input placeholder="John Doe" size="large" />
-                                </Form.Item>
-                              </Col>
-                            </Row>
-                            <Row gutter={16}>
-                              <Col xs={24} md={12}>
-                                <Form.Item
-                                  label="Expiry Date"
-                                  name="expiryDate"
-                                >
-                                  <Input placeholder="MM/YY" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col xs={24} md={12}>
-                                <Form.Item label="CVV" name="cvv">
-                                  <Input placeholder="123" size="large" />
-                                </Form.Item>
-                              </Col>
-                            </Row>
-                          </Form>
-                        )}
-                      </div>
-                    </Radio>
-                  </div>
-
-                  <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
-                    <Radio value="bankTransfer" className="!flex !items-start">
-                      <div className="flex-1 ml-2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <BankOutlined className="text-blue-600" />
-                          <Text className="font-semibold text-gray-900">
-                            Bank Transfer
-                          </Text>
-                          <Badge color="green" text="2% Discount" />
+                          {paymentMethod === "creditCard" && option.id === "creditCard" && (
+                            <Form form={form} layout="vertical" className="mt-4">
+                              <Row gutter={16}>
+                                <Col xs={24} md={12}>
+                                  <Form.Item
+                                    label="Card Number"
+                                    name="cardNumber"
+                                    rules={[{ required: true, message: 'Please enter card number' }]}
+                                  >
+                                    <Input
+                                      placeholder="1234 5678 9012 3456"
+                                      size="large"
+                                    />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={12}>
+                                  <Form.Item
+                                    label="Cardholder Name"
+                                    name="cardholderName"
+                                    rules={[{ required: true, message: 'Please enter cardholder name' }]}
+                                  >
+                                    <Input placeholder="John Doe" size="large" />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                              <Row gutter={16}>
+                                <Col xs={24} md={12}>
+                                  <Form.Item
+                                    label="Expiry Date"
+                                    name="expiryDate"
+                                    rules={[{ required: true, message: 'Please enter expiry date' }]}
+                                  >
+                                    <Input placeholder="MM/YY" size="large" />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={12}>
+                                  <Form.Item 
+                                    label="CVV" 
+                                    name="cvv"
+                                    rules={[{ required: true, message: 'Please enter CVV' }]}
+                                  >
+                                    <Input placeholder="123" size="large" />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                            </Form>
+                          )}
                         </div>
-                        <Text className="text-gray-600 text-sm">
-                          Direct bank transfer with 2% discount on total amount.
-                        </Text>
-                      </div>
-                    </Radio>
-                  </div>
-
-                  <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
-                    <Radio value="corporate" className="!flex !items-start">
-                      <div className="flex-1 ml-2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CreditCardOutlined className="text-blue-600" />
-                          <Text className="font-semibold text-gray-900">
-                            Corporate Account
-                          </Text>
-                        </div>
-                        <Text className="text-gray-600 text-sm">
-                          Charge to your company's corporate travel account.
-                        </Text>
-                      </div>
-                    </Radio>
-                  </div>
+                      </Radio>
+                    </div>
+                  ))}
                 </Space>
               </Radio.Group>
             </Card>
@@ -267,49 +400,110 @@ export default function PaymentOptions() {
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 text-sm">✈️</span>
                   </div>
-                  <Text className="text-gray-900 font-medium">JFK ⇄ LHR</Text>
+                  <Text className="text-gray-900 font-medium">
+                    {bookingData ? `${bookingData.origin} ${bookingData.tripType === "roundTrip" ? "⇄" : "→"} ${bookingData.destination}` : "Flight Route"}
+                  </Text>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <CalendarOutlined className="text-blue-600 text-sm" />
                   </div>
-                  <Text className="text-gray-900">Jun 15 - Jun 22, 2024</Text>
+                  <Text className="text-gray-900">
+                    {bookingData ? (
+                      bookingData.tripType === "roundTrip" ? 
+                        `${dayjs(bookingData.departureDate).format('DD MMM YYYY')} - ${dayjs(bookingData.returnDate).format('DD MMM YYYY')}` :
+                        dayjs(bookingData.departureDate).format('DD MMM YYYY')
+                    ) : "Travel Dates"}
+                  </Text>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <UserOutlined className="text-blue-600 text-sm" />
                   </div>
-                  <Text className="text-gray-900">32 passengers</Text>
+                  <Text className="text-gray-900">{passengerCount} passenger{passengerCount > 1 ? 's' : ''}</Text>
                 </div>
+
+                {groupLeaderData && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <EnvironmentOutlined className="text-blue-600 text-sm" />
+                    </div>
+                    <Text className="text-gray-900">{groupLeaderData.groupType} Group</Text>
+                  </div>
+                )}
               </div>
 
+              {flightData && (
+                <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+                  <Text className="font-medium text-gray-700 block mb-2">Selected Flights</Text>
+                  <div className="space-y-2 text-sm">
+                    {flightData.outbound && (
+                      <div>
+                        <Text className="text-gray-600">Outbound: </Text>
+                        <Text className="text-gray-900">{flightData.outbound.airline} {flightData.outbound.flightNumber}</Text>
+                      </div>
+                    )}
+                    {flightData.return && bookingData?.tripType === "roundTrip" && (
+                      <div>
+                        <Text className="text-gray-600">Return: </Text>
+                        <Text className="text-gray-900">{flightData.return.airline} {flightData.return.flightNumber}</Text>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="border-t pt-4 space-y-3">
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Base Flight Cost</Text>
-                  <Text className="text-gray-900">₹78,400</Text>
-                </div>
-
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Selected Bundles</Text>
-                  <Text className="text-gray-900">₹4,480</Text>
-                </div>
-
-                <div className="flex justify-between">
-                  <Text className="text-green-600">Group Discount (15%)</Text>
-                  <Text className="text-green-600">-₹12,432</Text>
-                </div>
-
-                <div className="border-t pt-3">
-                  <div className="flex justify-between items-center">
-                    <Text className="font-semibold text-lg text-gray-900">
-                      Total Amount
-                    </Text>
-                    <Text className="font-bold text-xl text-gray-900">
-                      ₹70,448
+                {flightData && (
+                  <div className="flex justify-between">
+                    <Text className="text-gray-600">Base Flight Cost</Text>
+                    <Text className="text-gray-900">
+                      ₹{(() => {
+                        let baseCost = 0;
+                        if (flightData.outbound) {
+                          baseCost += (typeof flightData.outbound.price === 'string' ? parseFloat(flightData.outbound.price) : flightData.outbound.price || 0) * passengerCount;
+                        }
+                        if (flightData.return && bookingData?.tripType === "roundTrip") {
+                          baseCost += (typeof flightData.return.price === 'string' ? parseFloat(flightData.return.price) : flightData.return.price || 0) * passengerCount;
+                        }
+                        return baseCost.toFixed(2);
+                      })()}
                     </Text>
                   </div>
+                )}
+
+                {selectedServices.length > 0 && (
+                  <div className="flex justify-between">
+                    <Text className="text-gray-600">Selected Services</Text>
+                    <Text className="text-gray-900">
+                      ₹{(selectedServices.reduce((total, service) => total + (service.price || 0) * passengerCount, 0)).toFixed(2)}
+                    </Text>
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <Text className="text-gray-600">Taxes & Fees (8%)</Text>
+                  <Text className="text-gray-900">₹{(totalAmount * 0.08 / 1.08).toFixed(2)}</Text>
+                </div>
+
+                {passengerCount >= 10 && (
+                  <div className="flex justify-between">
+                    <Text className="text-green-600">Group Discount (15%)</Text>
+                    <Text className="text-green-600">-₹{((totalAmount / 1.08) * 0.15).toFixed(2)}</Text>
+                  </div>
+                )}
+
+                <Divider className="!my-3" />
+
+                <div className="flex justify-between items-center">
+                  <Text className="font-semibold text-lg text-gray-900">
+                    Total Amount
+                  </Text>
+                  <Text className="font-bold text-xl text-gray-900">
+                    ₹{totalAmount.toFixed(2)}
+                  </Text>
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-3 mt-4">
@@ -320,7 +514,14 @@ export default function PaymentOptions() {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <Text className="text-blue-600">Due now:</Text>
-                    <Text className="font-semibold text-blue-700">₹70,448</Text>
+                    <Text className="font-semibold text-blue-700">
+                      ₹{(() => {
+                        if (paymentSchedule === "full") return totalAmount.toFixed(2);
+                        if (paymentSchedule === "deposit") return (totalAmount * 0.3).toFixed(2);
+                        if (paymentSchedule === "split") return (totalAmount / 3).toFixed(2);
+                        return totalAmount.toFixed(2);
+                      })()}
+                    </Text>
                   </div>
                 </div>
               </div>
