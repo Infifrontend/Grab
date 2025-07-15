@@ -29,6 +29,8 @@ import dayjs from "dayjs";
 import Header from "@/components/layout/header";
 import { useLocation } from "wouter";
 import BookingSteps from "@/components/booking/booking-steps";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
 
@@ -168,6 +170,17 @@ export default function FlightSearchBundle() {
   const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [searchCriteria, setSearchCriteria] = useState<any>({});
   const [passengerCount, setPassengerCount] = useState<number>(1);
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
   const [selectedOutbound, setSelectedOutbound] = useState<string>("");
   const [selectedReturn, setSelectedReturn] = useState<string>("");
   const [selectedSeat, setSelectedSeat] = useState<string>("");
@@ -175,6 +188,14 @@ export default function FlightSearchBundle() {
   const [selectedMeals, setSelectedMeals] = useState<string[]>([
     "standard-meal",
   ]);
+
+  // Set location options when data is loaded
+  useEffect(() => {
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
 
   // Load flight data from localStorage on component mount
   useEffect(() => {
@@ -407,26 +428,40 @@ export default function FlightSearchBundle() {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.origin || "JFK";
+      return data.origin || "";
     }
-    return localStorage.getItem("searchOrigin") || "JFK";
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.origin || "";
+    }
+    return "";
   });
   const [destination, setDestination] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.destination || "LHR";
+      return data.destination || "";
     }
-    return localStorage.getItem("searchDestination") || "LHR";
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.destination || "";
+    }
+    return "";
   });
   const [departureDate, setDepartureDate] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.departureDate ? dayjs(data.departureDate) : dayjs("2024-06-22");
+      return data.departureDate ? dayjs(data.departureDate) : dayjs().add(1, 'day');
     }
-    const storedDate = localStorage.getItem("searchDepartureDate");
-    return storedDate ? dayjs(storedDate) : dayjs("2024-06-22");
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.departureDate ? dayjs(criteria.departureDate) : dayjs().add(1, 'day');
+    }
+    return dayjs().add(1, 'day');
   });
   const [returnDate, setReturnDate] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -434,16 +469,25 @@ export default function FlightSearchBundle() {
       const data = JSON.parse(bookingData);
       return data.returnDate ? dayjs(data.returnDate) : null;
     }
-    const storedDate = localStorage.getItem("searchReturnDate");
-    return storedDate ? dayjs(storedDate) : null;
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.returnDate ? dayjs(criteria.returnDate) : null;
+    }
+    return null;
   });
   const [adults, setAdults] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.adults || 1;
+      return data.adults || 0;
     }
-    return parseInt(localStorage.getItem("searchAdults") || "1");
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.adults || 0;
+    }
+    return 0;
   });
   const [kids, setKids] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -451,7 +495,12 @@ export default function FlightSearchBundle() {
       const data = JSON.parse(bookingData);
       return data.kids || 0;
     }
-    return parseInt(localStorage.getItem("searchKids") || "0");
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.kids || 0;
+    }
+    return 0;
   });
   const [infants, setInfants] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -459,15 +508,25 @@ export default function FlightSearchBundle() {
       const data = JSON.parse(bookingData);
       return data.infants || 0;
     }
-    return parseInt(localStorage.getItem("searchInfants") || "0");
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.infants || 0;
+    }
+    return 0;
   });
   const [cabin, setCabin] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.cabin || "Economy";
+      return data.cabin || "economy";
     }
-    return localStorage.getItem("searchCabin") || "Economy";
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    if (searchCriteria) {
+      const criteria = JSON.parse(searchCriteria);
+      return criteria.cabin || "economy";
+    }
+    return "economy";
   });
 
   const handleBackToTripDetails = () => {
@@ -501,8 +560,19 @@ export default function FlightSearchBundle() {
   };
 
   const handleSearchFlights = async () => {
+    // Validate required fields
+    if (!origin || !destination || !departureDate) {
+      console.error("Missing required fields:", { origin, destination, departureDate });
+      return;
+    }
+
     try {
       const totalPassengers = adults + kids + infants;
+
+      if (totalPassengers <= 0) {
+        console.error("At least one passenger is required");
+        return;
+      }
 
       const searchData = {
         origin,
@@ -519,21 +589,15 @@ export default function FlightSearchBundle() {
 
       console.log("Searching for flights with data:", searchData);
 
-      // Make API call to search for flights
-      const response = await fetch("/api/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          origin,
-          destination,
-          departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
-          returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
-          passengers: totalPassengers,
-          cabin,
-          tripType,
-        }),
+      // Make API call to search for flights using apiRequest
+      const response = await apiRequest("POST", "/api/search", {
+        origin,
+        destination,
+        departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
+        returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
+        passengers: totalPassengers,
+        cabin,
+        tripType,
       });
 
       const searchResult = await response.json();
@@ -945,27 +1009,53 @@ export default function FlightSearchBundle() {
                 <Col xs={24} md={6}>
                   <div>
                     <Text className="text-gray-600 text-sm block mb-1">
-                      Origin
+                      Origin *
                     </Text>
-                    <Input
+                    <Select
+                      mode="combobox"
                       value={origin}
-                      onChange={(e) => setOrigin(e.target.value)}
-                      prefix={<EnvironmentOutlined className="text-gray-400" />}
-                      placeholder="City / Airport"
-                    />
+                      onChange={setOrigin}
+                      placeholder="Search city / airport"
+                      showSearch
+                      filterOption={(input, option) =>
+                        (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                      notFoundContent="No locations found"
+                      className="w-full"
+                    >
+                      {originOptions.map((location) => (
+                        <Select.Option key={location} value={location}>
+                          {location}
+                        </Select.Option>
+                      ))}
+                    </Select>
                   </div>
                 </Col>
                 <Col xs={24} md={6}>
                   <div>
                     <Text className="text-gray-600 text-sm block mb-1">
-                      Destination
+                      Destination *
                     </Text>
-                    <Input
+                    <Select
+                      mode="combobox"
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      prefix={<EnvironmentOutlined className="text-gray-400" />}
-                      placeholder="City / Airport"
-                    />
+                      onChange={setDestination}
+                      placeholder="Search city / airport"
+                      showSearch
+                      filterOption={(input, option) =>
+                        (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                      notFoundContent="No locations found"
+                      className="w-full"
+                    >
+                      {destinationOptions.map((location) => (
+                        <Select.Option key={location} value={location}>
+                          {location}
+                        </Select.Option>
+                      ))}
+                    </Select>
                   </div>
                 </Col>
                 <Col xs={24} md={6}>
@@ -1027,6 +1117,7 @@ export default function FlightSearchBundle() {
                           value={adults}
                           onChange={(value) => setAdults(value || 0)}
                           className="w-full"
+                          placeholder="0"
                         />
                       </div>
                     </Col>
@@ -1040,6 +1131,7 @@ export default function FlightSearchBundle() {
                           value={kids}
                           onChange={(value) => setKids(value || 0)}
                           className="w-full"
+                          placeholder="0"
                         />
                       </div>
                     </Col>
@@ -1053,6 +1145,7 @@ export default function FlightSearchBundle() {
                           value={infants}
                           onChange={(value) => setInfants(value || 0)}
                           className="w-full"
+                          placeholder="0"
                         />
                       </div>
                     </Col>
@@ -1061,17 +1154,17 @@ export default function FlightSearchBundle() {
                 <Col xs={24} md={6}>
                   <div>
                     <Text className="text-gray-600 text-sm block mb-1">
-                      Cabin
+                      Cabin *
                     </Text>
                     <Select
                       value={cabin}
                       onChange={setCabin}
                       className="w-full"
-                      suffixIcon={<span className="text-gray-400">▼</span>}
+                      placeholder="Select cabin class"
                     >
-                      <Select.Option value="Economy">Economy</Select.Option>
-                      <Select.Option value="Business">Business</Select.Option>
-                      <Select.Option value="First">First Class</Select.Option>
+                      <Select.Option value="economy">Economy</Select.Option>
+                      <Select.Option value="business">Business</Select.Option>
+                      <Select.Option value="first">First Class</Select.Option>
                     </Select>
                   </div>
                 </Col>
