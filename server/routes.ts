@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import { 
   insertSearchRequestSchema, 
   insertBookingSchema, 
@@ -9,8 +9,11 @@ import {
   insertBidSchema,
   insertPaymentSchema 
 } from "@shared/schema";
+import { groupLeaders } from "@shared/schema";
+import { db } from "./db.js";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
