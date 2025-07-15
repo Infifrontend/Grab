@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage.js";
+import { storage } from "./storage";
 import { 
   insertSearchRequestSchema, 
   insertBookingSchema, 
@@ -9,12 +9,8 @@ import {
   insertBidSchema,
   insertPaymentSchema 
 } from "@shared/schema";
-
-import { db } from "./db.js";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-import crypto from "crypto";
-import { groupLeaders } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -54,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/flight-locations", async (req, res) => {
     try {
       const flights = await storage.getFlights("", "", undefined); // Fetch all flights
-
+      
       // Extract unique locations from origin and destination
       const locations = new Set<string>();
       flights.forEach(flight => {
@@ -234,25 +230,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
-  // Group Leaders endpoint
-  app.post("/api/group-leaders", async (req, res) => {
-    try {
-      // Assuming you have a schema for group leaders similar to insertBookingSchema
-      // const groupLeaderData = groupLeaders.parse(req.body);
-      // const groupLeader = await storage.createGroupLeader(groupLeaderData);
-      // res.json(groupLeader);
-      res.status(500).json({ message: "Group leader creation failed - Endpoint not completely implemented" });
-
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid group leader data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Group leader creation failed", error: error.message });
-      }
-    }
-  });
-
 
   const httpServer = createServer(app);
   return httpServer;

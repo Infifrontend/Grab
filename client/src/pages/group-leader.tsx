@@ -9,7 +9,6 @@ import {
   Row,
   Col,
   Typography,
-  message,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useLocation } from "wouter";
@@ -37,19 +36,12 @@ export default function GroupLeader() {
 
   const handleSubmit = async (values: any) => {
       try {
-        // Format dates before sending to server
-        const formattedValues = {
-          ...values,
-          dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : null,
-          passportExpiryDate: values.passportExpiryDate ? values.passportExpiryDate.format('YYYY-MM-DD') : null,
-        };
-
         const response = await fetch("/api/group-leaders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formattedValues),
+          body: JSON.stringify(values),
         });
 
         if (response.ok) {
@@ -57,7 +49,7 @@ export default function GroupLeader() {
           console.log("Group leader data saved:", result);
 
           // Store group leader data in localStorage
-          localStorage.setItem("groupLeaderData", JSON.stringify(formattedValues));
+          localStorage.setItem("groupLeaderData", JSON.stringify(values));
 
           // Calculate and store total booking amount
           const bookingData = JSON.parse(localStorage.getItem("bookingFormData") || "{}");
@@ -108,13 +100,11 @@ export default function GroupLeader() {
           message.success("Group leader information saved successfully!");
           setLocation("/payment-options");
         } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.error("Server responded with error:", response.status, errorData);
-          throw new Error(errorData.details || errorData.error || "Failed to save group leader data");
+          throw new Error("Failed to save group leader data");
         }
       } catch (error) {
         console.error("Error saving group leader data:", error);
-        message.error(`Failed to save group leader information: ${error.message}`);
+        message.error("Failed to save group leader information");
       }
     };
 
