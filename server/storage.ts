@@ -379,10 +379,13 @@ export class DatabaseStorage implements IStorage {
       }
 
       console.log(`Successfully inserted ${domesticFlights.length} domestic flights`);
-      
+
     } catch (error) {
       console.error('Migration failed:', error);
       throw error;
     }
   }
 }
+
+// Export storage instance
+export const storage = new DatabaseStorage();
