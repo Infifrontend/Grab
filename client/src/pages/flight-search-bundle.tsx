@@ -1275,44 +1275,7 @@ export default function FlightSearchBundle() {
               </div>
             </Card>
 
-            {/* Bundle Selection - Only show if a flight is selected */}
-            {selectedOutbound && (
-              <Card className="mt-6">
-                <Title level={4} className="!mb-6 text-gray-800">
-                  Customize Your Journey
-                </Title>
-
-                <BundleSection
-                  title="Seat Selection"
-                  options={seatOptions}
-                  selectedValue={selectedSeat}
-                  onSelect={setSelectedSeat}
-                />
-
-                <BundleSection
-                  title="Baggage"
-                  options={baggageOptions}
-                  selectedValue={selectedBaggage}
-                  onSelect={setSelectedBaggage}
-                />
-
-                <BundleSection
-                  title="Meals"
-                  options={mealOptions}
-                  selectedValue={selectedMeals}
-                  onSelect={(value) => {
-                    if (selectedMeals.includes(value)) {
-                      setSelectedMeals(
-                        selectedMeals.filter((m) => m !== value),
-                      );
-                    } else {
-                      setSelectedMeals([...selectedMeals, value]);
-                    }
-                  }}
-                  allowMultiple={true}
-                />
-              </Card>
-            )}
+            
 
             {/* Booking Summary */}
             {selectedOutbound && (
