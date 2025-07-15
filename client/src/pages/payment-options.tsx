@@ -170,45 +170,42 @@ export default function PaymentOptions() {
     setLocation("/group-leader");
   };
 
-  const handleContinue = () => {
-    const validateAndContinue = async () => {
-      try {
-        if (paymentMethod === "creditCard") {
-          await form.validateFields();
-        }
-        
-        const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-        const discount = selectedOption?.discount || 0;
-        const discountedTotal = totalAmount * (1 - discount);
-        
-        const paymentData = {
-          paymentSchedule,
-          paymentMethod,
-          totalAmount,
-          discountedTotal,
-          paymentDiscount: discount,
-          dueNow: paymentSchedule === "full" ? discountedTotal : 
-                  paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
-                  discountedTotal / 3,
-          selectedPaymentOption: selectedOption,
-          formData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
-          flightData,
-          selectedServices,
-          bundleData: localStorage.getItem('selectedBundleData') ? JSON.parse(localStorage.getItem('selectedBundleData')) : null,
-          passengerCount,
-        };
-
-        // Save payment data to localStorage
-        localStorage.setItem("paymentData", JSON.stringify(paymentData));
-        
-        console.log("Payment Information:", paymentData);
-        setLocation("/passenger-info");
-      } catch (errorInfo) {
-        console.log("Validation Failed:", errorInfo);
+  const handleContinue = async () => {
+    try {
+      // Only validate form fields if credit card is selected
+      if (paymentMethod === "creditCard") {
+        await form.validateFields();
       }
-    };
+      
+      const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+      const discount = selectedOption?.discount || 0;
+      const discountedTotal = totalAmount * (1 - discount);
+      
+      const paymentData = {
+        paymentSchedule,
+        paymentMethod,
+        totalAmount,
+        discountedTotal,
+        paymentDiscount: discount,
+        dueNow: paymentSchedule === "full" ? discountedTotal : 
+                paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
+                discountedTotal / 3,
+        selectedPaymentOption: selectedOption,
+        formData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
+        flightData,
+        selectedServices,
+        bundleData: localStorage.getItem('selectedBundleData') ? JSON.parse(localStorage.getItem('selectedBundleData')) : null,
+        passengerCount,
+      };
 
-    validateAndContinue();
+      // Save payment data to localStorage
+      localStorage.setItem("paymentData", JSON.stringify(paymentData));
+      
+      console.log("Payment Information:", paymentData);
+      setLocation("/passenger-info");
+    } catch (errorInfo) {
+      console.log("Validation Failed:", errorInfo);
+    }
   };
 
   return (
