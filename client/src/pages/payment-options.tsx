@@ -47,27 +47,39 @@ export default function PaymentOptions() {
       const storedBookingData = localStorage.getItem("bookingFormData");
       if (storedBookingData) {
         const data = JSON.parse(storedBookingData);
+        console.log('Loaded booking data:', data);
         setBookingData(data);
-        setPassengerCount(data.totalPassengers || data.adults + data.kids + data.infants || 1);
+        const totalPassengers = data.totalPassengers || (data.adults || 0) + (data.kids || 0) + (data.infants || 0) || 1;
+        setPassengerCount(totalPassengers);
+        console.log('Passenger count set to:', totalPassengers);
       }
 
       // Load selected flight data
       const storedFlightData = localStorage.getItem("selectedFlightData");
       if (storedFlightData) {
-        setFlightData(JSON.parse(storedFlightData));
+        const flightData = JSON.parse(storedFlightData);
+        console.log('Loaded flight data:', flightData);
+        setFlightData(flightData);
       }
 
       // Load group leader data
       const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
       if (storedGroupLeaderData) {
-        setGroupLeaderData(JSON.parse(storedGroupLeaderData));
+        const groupData = JSON.parse(storedGroupLeaderData);
+        console.log('Loaded group leader data:', groupData);
+        setGroupLeaderData(groupData);
       }
 
       // Load selected services
       const storedServices = localStorage.getItem("selectedServices");
       if (storedServices) {
-        setSelectedServices(JSON.parse(storedServices));
+        const services = JSON.parse(storedServices);
+        console.log('Loaded selected services:', services);
+        setSelectedServices(services);
       }
+
+      // Check all localStorage keys for debugging
+      console.log('All localStorage keys:', Object.keys(localStorage));
     };
 
     loadBookingData();
@@ -75,60 +87,100 @@ export default function PaymentOptions() {
 
   // Calculate total amount based on selected flight and services
   useEffect(() => {
+    console.log('Calculating total amount...', { flightData, selectedServices, passengerCount, bookingData });
+    
     let baseCost = 0;
     let servicesCost = 0;
 
     // Calculate base flight cost
-    if (flightData && flightData.outbound) {
-      const outboundPrice = typeof flightData.outbound.price === 'string' 
-        ? parseFloat(flightData.outbound.price) 
-        : flightData.outbound.price || 0;
-      baseCost += outboundPrice * passengerCount;
+    if (flightData) {
+      // Handle outbound flight
+      if (flightData.outbound) {
+        const outboundPrice = typeof flightData.outbound.price === 'string' 
+          ? parseFloat(flightData.outbound.price.replace(/[^0-9.-]+/g, "")) 
+          : flightData.outbound.price || 0;
+        baseCost += outboundPrice * passengerCount;
+        console.log('Outbound cost:', outboundPrice, 'x', passengerCount, '=', outboundPrice * passengerCount);
+      }
 
-      // Add return flight cost if round trip
+      // Handle return flight for round trip
       if (flightData.return && bookingData?.tripType === "roundTrip") {
         const returnPrice = typeof flightData.return.price === 'string'
-          ? parseFloat(flightData.return.price)
+          ? parseFloat(flightData.return.price.replace(/[^0-9.-]+/g, ""))
           : flightData.return.price || 0;
         baseCost += returnPrice * passengerCount;
+        console.log('Return cost:', returnPrice, 'x', passengerCount, '=', returnPrice * passengerCount);
+      }
+
+      // Handle single flight object (for compatibility)
+      if (!flightData.outbound && !flightData.return && flightData.price) {
+        const flightPrice = typeof flightData.price === 'string'
+          ? parseFloat(flightData.price.replace(/[^0-9.-]+/g, ""))
+          : flightData.price || 0;
+        baseCost += flightPrice * passengerCount;
+        console.log('Single flight cost:', flightPrice, 'x', passengerCount, '=', flightPrice * passengerCount);
       }
     }
 
     // Calculate services cost from selected services
-    if (selectedServices.length > 0) {
+    if (selectedServices && selectedServices.length > 0) {
       servicesCost = selectedServices.reduce((total, service) => {
         const servicePrice = typeof service.price === 'string' 
-          ? parseFloat(service.price) 
+          ? parseFloat(service.price.replace(/[^0-9.-]+/g, ""))
           : service.price || 0;
         return total + servicePrice * passengerCount;
       }, 0);
+      console.log('Services cost:', servicesCost);
     }
 
     // Calculate bundle services cost (seat, baggage, meals)
     const bundleData = localStorage.getItem('selectedBundleData');
     if (bundleData) {
-      const bundle = JSON.parse(bundleData);
-      if (bundle.selectedSeat) {
-        const seatPrice = bundle.selectedSeat.price || 0;
-        servicesCost += seatPrice * passengerCount;
-      }
-      if (bundle.selectedBaggage) {
-        const baggagePrice = bundle.selectedBaggage.price || 0;
-        servicesCost += baggagePrice * passengerCount;
-      }
-      if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
-        bundle.selectedMeals.forEach(meal => {
-          const mealPrice = meal.price || 0;
-          servicesCost += mealPrice * passengerCount;
-        });
+      try {
+        const bundle = JSON.parse(bundleData);
+        if (bundle.selectedSeat && bundle.selectedSeat.price) {
+          const seatPrice = typeof bundle.selectedSeat.price === 'string'
+            ? parseFloat(bundle.selectedSeat.price.replace(/[^0-9.-]+/g, ""))
+            : bundle.selectedSeat.price || 0;
+          servicesCost += seatPrice * passengerCount;
+          console.log('Seat cost:', seatPrice * passengerCount);
+        }
+        if (bundle.selectedBaggage && bundle.selectedBaggage.price) {
+          const baggagePrice = typeof bundle.selectedBaggage.price === 'string'
+            ? parseFloat(bundle.selectedBaggage.price.replace(/[^0-9.-]+/g, ""))
+            : bundle.selectedBaggage.price || 0;
+          servicesCost += baggagePrice * passengerCount;
+          console.log('Baggage cost:', baggagePrice * passengerCount);
+        }
+        if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
+          bundle.selectedMeals.forEach(meal => {
+            const mealPrice = typeof meal.price === 'string'
+              ? parseFloat(meal.price.replace(/[^0-9.-]+/g, ""))
+              : meal.price || 0;
+            servicesCost += mealPrice * passengerCount;
+            console.log('Meal cost:', mealPrice * passengerCount);
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing bundle data:', error);
       }
     }
 
     const subtotal = baseCost + servicesCost;
     const taxes = subtotal * 0.08; // 8% tax
     const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0; // 15% group discount for 10+ passengers
+    const finalTotal = subtotal + taxes - groupDiscount;
     
-    setTotalAmount(subtotal + taxes - groupDiscount);
+    console.log('Calculation breakdown:', {
+      baseCost,
+      servicesCost,
+      subtotal,
+      taxes,
+      groupDiscount,
+      finalTotal
+    });
+    
+    setTotalAmount(finalTotal);
   }, [flightData, selectedServices, passengerCount, bookingData]);
 
   // Get payment options based on amount and services
