@@ -27,15 +27,86 @@ export default function GroupLeader() {
   };
 
   const handleContinue = () => {
-    setLocation("/payment-options");
-
-    // form.validateFields().then((values) => {
-    //   console.log('Group Leader Information:', values);
-    // Navigate to next step (Payment Options)
-    // }).catch((errorInfo) => {
-    //   console.log('Validation Failed:', errorInfo);
-    // });
+    form.validateFields().then((values) => {
+      handleSubmit(values);
+    }).catch((errorInfo) => {
+      console.log('Validation Failed:', errorInfo);
+    });
   };
+
+  const handleSubmit = async (values: any) => {
+      try {
+        const response = await fetch("/api/group-leaders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Group leader data saved:", result);
+
+          // Store group leader data in localStorage
+          localStorage.setItem("groupLeaderData", JSON.stringify(values));
+
+          // Calculate and store total booking amount
+          const bookingData = JSON.parse(localStorage.getItem("bookingFormData") || "{}");
+          const flightData = JSON.parse(localStorage.getItem("selectedFlightData") || "{}");
+          const bundleData = JSON.parse(localStorage.getItem("selectedBundleData") || "{}");
+          const servicesData = JSON.parse(localStorage.getItem("selectedServices") || "[]");
+
+          const passengerCount = bookingData.totalPassengers || 1;
+          let totalAmount = 0;
+
+          // Calculate flight cost
+          if (flightData.baseCost) {
+            totalAmount += flightData.baseCost;
+          }
+
+          // Calculate bundle cost
+          if (bundleData.bundleCost) {
+            totalAmount += bundleData.bundleCost * passengerCount;
+          }
+
+          // Calculate services cost
+          const servicesCost = servicesData.reduce((total, service) => {
+            return total + (service.price * passengerCount);
+          }, 0);
+          totalAmount += servicesCost;
+
+          // Add taxes (8%)
+          const subtotal = totalAmount;
+          const taxes = subtotal * 0.08;
+
+          // Apply group discount for 10+ passengers
+          const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0;
+
+          const finalTotal = subtotal + taxes - groupDiscount;
+
+          // Store booking summary
+          const bookingSummary = {
+            subtotal,
+            taxes,
+            groupDiscount,
+            totalAmount: finalTotal,
+            passengerCount,
+            calculatedAt: new Date().toISOString()
+          };
+
+          localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
+
+          message.success("Group leader information saved successfully!");
+          setLocation("/payment-options");
+        } else {
+          throw new Error("Failed to save group leader data");
+        }
+      } catch (error) {
+        console.error("Error saving group leader data:", error);
+        message.error("Failed to save group leader information");
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gray-50">

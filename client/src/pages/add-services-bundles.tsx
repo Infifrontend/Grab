@@ -180,7 +180,47 @@ export default function AddServicesBundles() {
   };
 
   const handleContinue = () => {
-    console.log("Continue to Group Leader");
+    // Calculate selected services data
+    const selectedServices = [];
+    
+    // Add selected bundles
+    selectedBundles.forEach(bundleId => {
+      const bundle = bundles.find(b => b.id === bundleId);
+      if (bundle) {
+        selectedServices.push({
+          id: bundle.id,
+          name: bundle.name,
+          price: bundle.price,
+          type: 'bundle'
+        });
+      }
+    });
+    
+    // Add individual services
+    Object.entries(individualServiceCounts).forEach(([serviceId, count]) => {
+      if (count > 0) {
+        const category = ['insurance', 'connectivity', 'comfort', 'baggage', 'dining'].find(cat => 
+          services[cat].some(service => service.id === serviceId)
+        );
+        if (category) {
+          const service = services[category].find(s => s.id === serviceId);
+          if (service) {
+            selectedServices.push({
+              id: service.id,
+              name: service.name,
+              price: service.price * count,
+              count: count,
+              type: 'individual'
+            });
+          }
+        }
+      }
+    });
+
+    // Store selected services
+    localStorage.setItem("selectedServices", JSON.stringify(selectedServices));
+    
+    console.log("Continue to Group Leader", { selectedServices });
     setLocation("/group-leader");
   };
 
