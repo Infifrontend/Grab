@@ -170,12 +170,12 @@ export default function BookingDetails() {
                       Airline
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      ✈ {flightData?.outbound?.airline || 
+                      ✈ {flightData?.airline || 
                           comprehensiveData?.selectedFlights?.outbound?.airline || 
                           'British Airways'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Duration: {flightData?.outbound?.duration || 
+                      Duration: {flightData?.duration || 
                                comprehensiveData?.selectedFlights?.outbound?.duration || 
                                '7h 45m'}
                     </Text>
@@ -187,12 +187,12 @@ export default function BookingDetails() {
                       Flight
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.outbound?.flightNumber || 
+                      {flightData?.flightNumber || 
                        comprehensiveData?.selectedFlights?.outbound?.flightNumber || 
                        'BA 178'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      Aircraft: {flightData?.outbound?.aircraft || 
+                      Aircraft: {flightData?.aircraft || 
                                comprehensiveData?.selectedFlights?.outbound?.aircraft || 
                                'Boeing 777-300ER'}
                     </Text>
@@ -204,14 +204,14 @@ export default function BookingDetails() {
                       Departure
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.outbound?.departureTime 
-                        ? dayjs(flightData.outbound.departureTime).format('DD MMM YYYY h:mm A')
+                      {flightData?.departureTime 
+                        ? dayjs(flightData.departureTime).format('DD MMM YYYY h:mm A')
                         : bookingData?.departureDate
                         ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
                         : 'Jun 15, 2024 10:30 AM'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightData?.outbound?.origin || 
+                      {flightData?.origin || 
                        bookingData?.origin || 
                        comprehensiveData?.tripDetails?.origin || 
                        'New York (JFK)'}
@@ -229,12 +229,12 @@ export default function BookingDetails() {
                       Arrival
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {flightData?.outbound?.arrivalTime 
-                        ? dayjs(flightData.outbound.arrivalTime).format('DD MMM YYYY')
+                      {flightData?.arrivalTime 
+                        ? dayjs(flightData.arrivalTime).format('DD MMM YYYY')
                         : '15 Jun 2024'}
                     </Text>
                     <Text className="text-gray-600 text-sm block">
-                      {flightData?.outbound?.destination || 
+                      {flightData?.destination || 
                        bookingData?.destination || 
                        comprehensiveData?.tripDetails?.destination || 
                        'London (LHR)'}
