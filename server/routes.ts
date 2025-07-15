@@ -9,7 +9,7 @@ import {
   insertBidSchema,
   insertPaymentSchema 
 } from "@shared/schema";
-import { groupLeaders } from "@shared/schema";
+
 import { db } from "./db.js";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -234,31 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Group Leaders
-  app.post("/api/group-leaders", async (req, res) => {
-    try {
-      console.log("Creating group leader with data:", req.body);
 
-      const groupLeaderData = {
-        id: crypto.randomUUID(),
-        ...req.body,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const groupLeader = await db.insert(groupLeaders).values(groupLeaderData).returning();
-
-      console.log("Group leader created successfully:", groupLeader[0]);
-      res.json(groupLeader[0]);
-    } catch (error) {
-      console.error("Error creating group leader:", error);
-      console.error("Request body:", req.body);
-      res.status(500).json({ 
-        error: "Failed to create group leader",
-        details: error.message 
-      });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
