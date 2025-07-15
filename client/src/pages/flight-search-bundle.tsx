@@ -891,7 +891,7 @@ export default function FlightSearchBundle() {
                     const newTripType = e.target.value;
                     setTripType(newTripType);
                     localStorage.setItem("selectedTripType", newTripType);
-                    
+
                     // Update bookingFormData with new trip type
                     const bookingData = localStorage.getItem("bookingFormData");
                     if (bookingData) {
@@ -899,7 +899,7 @@ export default function FlightSearchBundle() {
                       data.tripType = newTripType;
                       localStorage.setItem("bookingFormData", JSON.stringify(data));
                     }
-                    
+
                     // Clear return date if switching to one way
                     if (newTripType === "oneWay") {
                       setReturnDate(null);
@@ -956,7 +956,7 @@ export default function FlightSearchBundle() {
                       value={departureDate}
                       onChange={(date) => setDepartureDate(date)}
                       placeholder="Select departure date"
-                      format="DD/MM/YYYY"
+                      format="DD MMM YYYY"
                       className="w-full"
                       suffixIcon={<CalendarOutlined className="text-gray-400" />}
                       disabledDate={(current) => current && current.isBefore(dayjs(), 'day')}
@@ -971,12 +971,12 @@ export default function FlightSearchBundle() {
                     <DatePicker
                       value={tripType === "oneWay" ? null : returnDate}
                       onChange={(date) => {
-                        if (tripType !== "oneWay") {
+                        if (tripType !== "oneWay";
                           setReturnDate(date);
                         }
                       }}
                       placeholder={tripType === "oneWay" ? "N/A for one way" : "Select return date"}
-                      format="DD/MM/YYYY"
+                      format="DD MMM YYYY"
                       className="w-full"
                       disabled={tripType === "oneWay"}
                       suffixIcon={<CalendarOutlined className="text-gray-400" />}

@@ -268,7 +268,7 @@ export default function PassengerInfo() {
                       <DatePicker
                         size="large"
                         placeholder="dd/mm/yyyy"
-                        format="DD/MM/YYYY"
+                        format="DD MMM YYYY"
                         className="w-full"
                         value={
                           passenger.dateOfBirth
@@ -342,7 +342,7 @@ export default function PassengerInfo() {
                       <DatePicker
                         size="large"
                         placeholder="dd/mm/yyyy"
-                        format="DD/MM/YYYY"
+                        format="DD MMM YYYY"
                         className="w-full"
                         value={
                           passenger.passportExpiry

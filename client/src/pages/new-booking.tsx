@@ -137,8 +137,8 @@ export default function NewBooking() {
                   <DatePicker
                     size="large"
                     className="w-full"
-                    placeholder="DD MMM YY"
-                    format="DD MMM YY"
+                    placeholder="DD MMM YYYY"
+                    format="DD MMM YYYY"
                     disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                   />
                 </Form.Item>
@@ -161,8 +161,8 @@ export default function NewBooking() {
                   <DatePicker
                     size="large"
                     className="w-full"
-                    placeholder="DD MMM YY"
-                    format="DD MMM YY"
+                    placeholder="DD MMM YYYY"
+                    format="DD MMM YYYY"
                     disabled={tripType === "oneWay"}
                     disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                   />

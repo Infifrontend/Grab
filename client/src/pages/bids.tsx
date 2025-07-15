@@ -453,8 +453,8 @@ export default function Bids() {
                   <Text className="text-gray-600 text-sm block mb-1">Date From</Text>
                   <DatePicker 
                     style={{ width: '100%' }} 
-                    placeholder="DD MMM YY" 
-                    format="DD MMM YY"
+                    placeholder="DD MMM YYYY" 
+                    format="DD MMM YYYY"
                     disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                   />
                 </Col>

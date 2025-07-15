@@ -184,7 +184,7 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Departure Date</Text>
                     <DatePicker 
                       value={dayjs(bidData.departureDate, 'DD/MM/YYYY')}
-                      format="DD/MM/YYYY"
+                      format="DD MMM YYYY"
                       placeholder="Select departure date"
                       size="large"
                       className="w-full rounded-md"
@@ -197,7 +197,7 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Return Date</Text>
                     <DatePicker 
                       value={dayjs(bidData.returnDate, 'DD/MM/YYYY')}
-                      format="DD/MM/YYYY"
+                      format="DD MMM YYYY"
                       placeholder="Select return date"
                       size="large"
                       className="w-full rounded-md"

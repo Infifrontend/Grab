@@ -258,8 +258,8 @@ export default function QuickBookingForm() {
               >
                 <DatePicker 
                   className="w-full" 
-                  placeholder="DD MMM YY"
-                  format="DD MMM YY"
+                  placeholder="DD MMM YYYY"
+                  format="DD MMM YYYY"
                   suffixIcon={<CalendarOutlined className="text-gray-400" />}
                   disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                 />
@@ -269,8 +269,8 @@ export default function QuickBookingForm() {
             <Form.Item label="Return date" name="returnDate">
               <DatePicker 
                 className="w-full" 
-                placeholder="DD MMM YY"
-                format="DD MMM YY"
+                placeholder="DD MMM YYYY"
+                format="DD MMM YYYY"
                 disabled={tripType === "oneWay"}
                 suffixIcon={<CalendarOutlined className="text-gray-400" />}
               />
