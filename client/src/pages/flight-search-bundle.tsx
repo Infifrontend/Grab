@@ -878,6 +878,38 @@ export default function FlightSearchBundle() {
     setMaxDuration("any");
   };
 
+  const formatFlightTime = (timeStr: string) => {
+    try {
+      // Handle both ISO string format and simple time format
+      let date;
+      if (timeStr.includes('T') && timeStr.includes('Z')) {
+        // ISO format like "2025-07-21T08:30:00.000Z"
+        date = new Date(timeStr);
+      } else if (timeStr.includes(':')) {
+        // Simple time format like "08:30"
+        date = new Date();
+        const [hours, minutes] = timeStr.split(':');
+        date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      } else {
+        return timeStr; // Return as-is if format is unrecognized
+      }
+
+      // Format to local timezone with date and time
+      return date.toLocaleString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZoneName: 'short'
+      });
+    } catch (error) {
+      console.error('Error formatting time:', timeStr, error);
+      return timeStr; // Return original if formatting fails
+    }
+  };
+
   const FlightCard = ({
     flight,
     isSelected,
@@ -919,8 +951,8 @@ export default function FlightSearchBundle() {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <Text className="font-medium text-sm">
-                {flight.departureTime}
+              <Text className="font-medium text-xs">
+                {formatFlightTime(flight.departureTime)}
               </Text>
               <Text className="text-xs text-gray-500">{flight.origin}</Text>
             </div>
@@ -930,8 +962,8 @@ export default function FlightSearchBundle() {
               <div className="w-12 h-px bg-gray-300"></div>
             </div>
             <div className="text-center">
-              <Text className="font-medium text-sm">
-                {flight.arrivalTime}
+              <Text className="font-medium text-xs">
+                {formatFlightTime(flight.arrivalTime)}
               </Text>
               <Text className="text-xs text-gray-500">{flight.destination}</Text>
             </div>
