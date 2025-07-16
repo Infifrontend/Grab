@@ -418,6 +418,13 @@ export default function FlightSearchBundle() {
   // Filter and sort return flights
   const filteredReturnFlights = useMemo(() => {
     console.log("Filtering return flights. Total return flights:", returnFlights.length);
+    console.log("Return flights data:", returnFlights);
+    
+    if (returnFlights.length === 0) {
+      console.log("No return flights to filter");
+      return [];
+    }
+    
     let filtered = [...returnFlights];
 
     // Filter by airlines
@@ -434,7 +441,9 @@ export default function FlightSearchBundle() {
         typeof flight.price === "string"
           ? parseFloat(flight.price)
           : flight.price;
-      return price >= priceRange[0] && price <= priceRange[1];
+      const inRange = price >= priceRange[0] && price <= priceRange[1];
+      console.log(`Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`);
+      return inRange;
     });
     console.log("After price filter:", filtered.length);
 
@@ -442,7 +451,15 @@ export default function FlightSearchBundle() {
     if (departureTime !== "any") {
       filtered = filtered.filter((flight) => {
         const depTime = flight.departureTime;
-        const hour = parseInt(depTime.split(":")[0]);
+        // Handle both string format "HH:MM" and time strings
+        let hour;
+        if (typeof depTime === 'string' && depTime.includes(':')) {
+          hour = parseInt(depTime.split(":")[0]);
+        } else {
+          // If it's a full datetime string, extract hour
+          const date = new Date(depTime);
+          hour = date.getHours();
+        }
 
         switch (departureTime) {
           case "early-morning":
@@ -505,6 +522,7 @@ export default function FlightSearchBundle() {
       }
     });
 
+    console.log("Final filtered return flights:", filtered.length);
     return filtered;
   }, [
     returnFlights,
@@ -1565,6 +1583,14 @@ export default function FlightSearchBundle() {
                       ),
                       children: (
                         <div className="space-y-4">
+                          {/* Debug information */}
+                          <div className="mb-4 p-3 bg-gray-100 rounded text-sm">
+                            <div>Total return flights: {returnFlights.length}</div>
+                            <div>Filtered return flights: {filteredReturnFlights.length}</div>
+                            <div>Price range: ₹{priceRange[0]} - ₹{priceRange[1]}</div>
+                            <div>Selected airlines: {selectedAirlines.length > 0 ? selectedAirlines.join(", ") : "All"}</div>
+                          </div>
+                          
                           {filteredReturnFlights.length > 0 ? (
                             filteredReturnFlights.map((flight) => (
                               <FlightCard
@@ -1574,29 +1600,33 @@ export default function FlightSearchBundle() {
                                 onSelect={() => setSelectedReturn(flight.id.toString())}
                               />
                             ))
+                          ) : returnFlights.length > 0 ? (
+                            <div className="text-center py-8">
+                              <Text className="text-gray-500 block mb-4">
+                                No return flights match your current filters.
+                              </Text>
+                              <div className="space-y-2 text-sm text-gray-400">
+                                <div>Found {returnFlights.length} return flights total</div>
+                                <div>Current filters are hiding all return flights</div>
+                              </div>
+                              <div className="mt-4">
+                                <Button
+                                  type="primary"
+                                  onClick={handleClearFilters}
+                                  size="small"
+                                >
+                                  Clear All Filters
+                                </Button>
+                              </div>
+                            </div>
                           ) : (
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
-                                {returnFlights.length === 0
-                                  ? "No return flights found for your search criteria"
-                                  : "No return flights match your current filters. Try adjusting your filters."}
+                                No return flights found for your search criteria.
                               </Text>
-                              {returnFlights.length > 0 && (
-                                <div className="mt-4">
-                                  <Text className="text-sm text-gray-400">
-                                    Found {returnFlights.length} return flights total, but {filteredReturnFlights.length} match current filters
-                                  </Text>
-                                  <div className="mt-2">
-                                    <Button
-                                      type="link"
-                                      className="text-blue-600"
-                                      onClick={handleClearFilters}
-                                    >
-                                      Clear Filters to See All Return Flights
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
+                              <div className="mt-4 text-sm text-gray-400">
+                                Try searching again or modify your search criteria.
+                              </div>
                             </div>
                           )}
                         </div>
