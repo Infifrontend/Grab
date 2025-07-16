@@ -1,24 +1,44 @@
-import { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Space, Input, Button, Badge, Spin, message } from 'antd';
-import { SearchOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Row,
+  Col,
+  Typography,
+  Space,
+  Input,
+  Button,
+  Badge,
+  Spin,
+  message,
+} from "antd";
+import {
+  SearchOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { format } from "date-fns";
 import Header from "@/components/layout/header";
-import type { Booking } from '@shared/schema';
+import type { Booking } from "@shared/schema";
 
 const { Title, Text } = Typography;
 
 export default function ManageBooking() {
-  const [bookingId, setBookingId] = useState('');
-  const [email, setEmail] = useState('');
+  const [bookingId, setBookingId] = useState("");
+  const [email, setEmail] = useState("");
   const [, setLocation] = useLocation();
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
   });
 
-  const { data: flightBookings, refetch: refetchFlightBookings, isLoading: isFlightBookingsLoading } = useQuery({
+  const {
+    data: flightBookings,
+    refetch: refetchFlightBookings,
+    isLoading: isFlightBookingsLoading,
+  } = useQuery({
     queryKey: ["/api/flight-bookings"],
   });
 
@@ -28,48 +48,52 @@ export default function ManageBooking() {
   }, [refetchFlightBookings]);
 
   // Get recent flight bookings sorted by created_at/bookedAt
-  const recentBookings = flightBookings?.slice()
-    .sort((a: any, b: any) => {
-      const dateA = new Date(a.bookedAt || a.createdAt || 0);
-      const dateB = new Date(b.bookedAt || b.createdAt || 0);
-      return dateB.getTime() - dateA.getTime();
-    })
-    .slice(0, 3) || [];
+  const recentBookings =
+    flightBookings
+      ?.slice()
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.bookedAt || a.createdAt || 0);
+        const dateB = new Date(b.bookedAt || b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, 3) || [];
 
   const handleFindBooking = async () => {
-    console.log('Finding booking:', { bookingId, email });
+    console.log("Finding booking:", { bookingId, email });
 
     if (!bookingId) {
-      message.error('Please enter a booking ID.');
+      message.error("Please enter a booking ID.");
       return;
     }
 
     if (!email) {
-      message.error('Please enter your email address.');
+      message.error("Please enter your email address.");
       return;
     }
 
     try {
       // Fetch booking details from the API using the booking ID
       const response = await fetch(`/api/booking-details/${bookingId}`);
-      
+
       if (!response.ok) {
         if (response.status === 404) {
-          message.error('Booking not found. Please check your booking ID and email.');
+          message.error(
+            "Booking not found. Please check your booking ID and email.",
+          );
         } else {
-          message.error('Error fetching booking details. Please try again.');
+          message.error("Error fetching booking details. Please try again.");
         }
         return;
       }
 
       const bookingDetails = await response.json();
-      
+
       // Navigate to the booking details page with the retrieved data
-      setLocation(`/booking-details/${bookingId}`);
-      
+      // setLocation(`/booking-details/${bookingId}`);
+      setLocation(`/manage-booking/2`);
     } catch (error) {
-      console.error('Error fetching booking:', error);
-      message.error('Error fetching booking details. Please try again.');
+      console.error("Error fetching booking:", error);
+      message.error("Error fetching booking details. Please try again.");
     }
   };
 
@@ -79,14 +103,14 @@ export default function ManageBooking() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'cancelled':
-        return 'error';
+      case "confirmed":
+        return "success";
+      case "pending":
+        return "warning";
+      case "cancelled":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -101,9 +125,12 @@ export default function ManageBooking() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Page Header */}
         <div className="mb-8">
-          <Title level={2} className="!mb-2 text-gray-900">Manage Your Booking</Title>
+          <Title level={2} className="!mb-2 text-gray-900">
+            Manage Your Booking
+          </Title>
           <Text className="text-gray-600 text-base">
-            Access and modify your existing group bookings, add passengers, or update travel details
+            Access and modify your existing group bookings, add passengers, or
+            update travel details
           </Text>
         </div>
 
@@ -113,15 +140,20 @@ export default function ManageBooking() {
           <Col xs={24} lg={14}>
             <Card className="mb-6">
               <div className="mb-6">
-                <Title level={4} className="!mb-2 text-gray-900">Find Your Booking</Title>
+                <Title level={4} className="!mb-2 text-gray-900">
+                  Find Your Booking
+                </Title>
                 <Text className="text-gray-600">
-                  Enter your booking details to access and manage your reservation
+                  Enter your booking details to access and manage your
+                  reservation
                 </Text>
               </div>
 
               <Space direction="vertical" size="large" className="w-full">
                 <div>
-                  <Text className="block mb-2 text-gray-700 font-medium">Booking ID</Text>
+                  <Text className="block mb-2 text-gray-700 font-medium">
+                    Booking ID
+                  </Text>
                   <Input
                     size="large"
                     placeholder="Enter booking ID (e.g., GR-2024-1001)"
@@ -132,7 +164,9 @@ export default function ManageBooking() {
                 </div>
 
                 <div>
-                  <Text className="block mb-2 text-gray-700 font-medium">Email Address</Text>
+                  <Text className="block mb-2 text-gray-700 font-medium">
+                    Email Address
+                  </Text>
                   <Input
                     size="large"
                     placeholder="Enter email used for booking"
@@ -161,9 +195,12 @@ export default function ManageBooking() {
           <Col xs={24} lg={10}>
             <Card>
               <div className="mb-4">
-                <Title level={4} className="!mb-2 text-gray-900">Need Help?</Title>
+                <Title level={4} className="!mb-2 text-gray-900">
+                  Need Help?
+                </Title>
                 <Text className="text-gray-600">
-                  Can't find your booking or need assistance? Our support team is here to help.
+                  Can't find your booking or need assistance? Our support team
+                  is here to help.
                 </Text>
               </div>
 
@@ -171,17 +208,19 @@ export default function ManageBooking() {
                 <Button
                   size="large"
                   className="w-full text-left flex items-center justify-start"
-                  style={{ height: 'auto', padding: '12px 16px' }}
+                  style={{ height: "auto", padding: "12px 16px" }}
                 >
                   <div>
-                    <div className="font-medium text-gray-900">Contact Support</div>
+                    <div className="font-medium text-gray-900">
+                      Contact Support
+                    </div>
                   </div>
                 </Button>
 
                 <Button
                   size="large"
                   className="w-full text-left flex items-center justify-start"
-                  style={{ height: 'auto', padding: '12px 16px' }}
+                  style={{ height: "auto", padding: "12px 16px" }}
                 >
                   <div>
                     <div className="font-medium text-gray-900">FAQ</div>
@@ -194,7 +233,9 @@ export default function ManageBooking() {
 
         {/* Recent Bookings */}
         <div className="mt-8">
-          <Title level={4} className="!mb-6 text-gray-900">Recent Bookings</Title>
+          <Title level={4} className="!mb-6 text-gray-900">
+            Recent Bookings
+          </Title>
 
           <Row gutter={[24, 24]}>
             {recentBookings.map((booking: any) => (
@@ -202,32 +243,47 @@ export default function ManageBooking() {
                 <Card className="h-full hover:shadow-md transition-shadow">
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-2">
-                      <Text className="font-bold text-lg text-[var(--infiniti-primary)]">{booking.bookingReference}</Text>
-                      <Badge 
-                        status={getStatusColor(booking.bookingStatus)} 
+                      <Text className="font-bold text-lg text-[var(--infiniti-primary)]">
+                        {booking.bookingReference}
+                      </Text>
+                      <Badge
+                        status={getStatusColor(booking.bookingStatus)}
                         text={getStatusText(booking.bookingStatus)}
                         className="font-medium"
                       />
                     </div>
-                    <Text className="text-gray-600 block mb-3 capitalize">Flight Booking</Text>
+                    <Text className="text-gray-600 block mb-3 capitalize">
+                      Flight Booking
+                    </Text>
                   </div>
 
-                  <Space direction="vertical" size="small" className="w-full mb-4">
+                  <Space
+                    direction="vertical"
+                    size="small"
+                    className="w-full mb-4"
+                  >
                     <div className="flex items-center gap-2 text-gray-600">
                       <UserOutlined className="text-sm" />
-                      <Text className="text-sm font-medium">Flight ID: {booking.flightId}</Text>
+                      <Text className="text-sm font-medium">
+                        Flight ID: {booking.flightId}
+                      </Text>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarOutlined className="text-sm" />
                       <Text className="text-sm">
-                        Booked: {booking.bookedAt ? format(new Date(booking.bookedAt), 'dd MMM yyyy') : 'N/A'}
+                        Booked:{" "}
+                        {booking.bookedAt
+                          ? format(new Date(booking.bookedAt), "dd MMM yyyy")
+                          : "N/A"}
                       </Text>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-600">
                       <TeamOutlined className="text-sm" />
-                      <Text className="text-sm">{booking.passengerCount} passengers</Text>
+                      <Text className="text-sm">
+                        {booking.passengerCount} passengers
+                      </Text>
                     </div>
 
                     {booking.totalAmount && (
@@ -243,7 +299,11 @@ export default function ManageBooking() {
                   <Button
                     type="primary"
                     className="w-full infiniti-btn-primary"
-                    onClick={() => setLocation(`/booking-details/${booking.bookingReference}`)}
+                    onClick={() =>
+                      setLocation(
+                        `/booking-details/${booking.bookingReference}`,
+                      )
+                    }
                   >
                     View Details
                   </Button>
@@ -253,28 +313,32 @@ export default function ManageBooking() {
           </Row>
 
           {/* Empty state */}
-          {(!flightBookings || flightBookings.length === 0) && !isFlightBookingsLoading && (
-            <Card className="text-center py-12">
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <CalendarOutlined className="text-2xl text-gray-400" />
+          {(!flightBookings || flightBookings.length === 0) &&
+            !isFlightBookingsLoading && (
+              <Card className="text-center py-12">
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                    <CalendarOutlined className="text-2xl text-gray-400" />
+                  </div>
+                  <div>
+                    <Title level={4} className="!mb-2 text-gray-600">
+                      No Recent Bookings
+                    </Title>
+                    <Text className="text-gray-500">
+                      You haven't made any bookings yet. Start by creating your
+                      first group booking.
+                    </Text>
+                  </div>
+                  <Button
+                    type="primary"
+                    className="infiniti-btn-primary mt-4"
+                    onClick={() => setLocation("/new-booking")}
+                  >
+                    Create New Booking
+                  </Button>
                 </div>
-                <div>
-                  <Title level={4} className="!mb-2 text-gray-600">No Recent Bookings</Title>
-                  <Text className="text-gray-500">
-                    You haven't made any bookings yet. Start by creating your first group booking.
-                  </Text>
-                </div>
-                <Button 
-                  type="primary" 
-                  className="infiniti-btn-primary mt-4"
-                  onClick={() => setLocation('/new-booking')}
-                >
-                  Create New Booking
-                </Button>
-              </div>
-            </Card>
-          )}
+              </Card>
+            )}
 
           {/* Loading state */}
           {isFlightBookingsLoading && (
