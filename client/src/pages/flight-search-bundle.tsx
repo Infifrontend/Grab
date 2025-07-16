@@ -417,6 +417,7 @@ export default function FlightSearchBundle() {
 
   // Filter and sort return flights
   const filteredReturnFlights = useMemo(() => {
+    console.log("Filtering return flights. Total return flights:", returnFlights.length);
     let filtered = [...returnFlights];
 
     // Filter by airlines
@@ -424,6 +425,7 @@ export default function FlightSearchBundle() {
       filtered = filtered.filter((flight) =>
         selectedAirlines.includes(flight.airline),
       );
+      console.log("After airline filter:", filtered.length);
     }
 
     // Filter by price range
@@ -434,6 +436,7 @@ export default function FlightSearchBundle() {
           : flight.price;
       return price >= priceRange[0] && price <= priceRange[1];
     });
+    console.log("After price filter:", filtered.length);
 
     // Filter by departure time
     if (departureTime !== "any") {
@@ -756,6 +759,9 @@ export default function FlightSearchBundle() {
           
           console.log("Processed return flights:", processedReturnFlights);
           setReturnFlights(processedReturnFlights);
+        } else {
+          // Clear return flights if none found
+          setReturnFlights([]);
         }
 
         // Set the first flight as selected by default
@@ -777,6 +783,8 @@ export default function FlightSearchBundle() {
         localStorage.setItem("returnFlights", JSON.stringify(processedReturnFlights));
         localStorage.setItem("searchCriteria", JSON.stringify(searchData));
         localStorage.setItem("passengerCount", totalPassengers.toString());
+        
+        console.log("Updated localStorage - Return flights:", processedReturnFlights.length);
 
         // Update booking form data
         const updatedBookingData = {
@@ -1550,7 +1558,7 @@ export default function FlightSearchBundle() {
                           <span>🛬</span>
                           Return Flight
                           <Badge
-                            count={filteredReturnFlights.length}
+                            count={returnFlights.length}
                             style={{ backgroundColor: "#52c41a" }}
                           />
                         </span>
@@ -1560,7 +1568,7 @@ export default function FlightSearchBundle() {
                           {filteredReturnFlights.length > 0 ? (
                             filteredReturnFlights.map((flight) => (
                               <FlightCard
-                                key={flight.id}
+                                key={`return-${flight.id}`}
                                 flight={flight}
                                 isSelected={selectedReturn === flight.id.toString()}
                                 onSelect={() => setSelectedReturn(flight.id.toString())}
@@ -1578,6 +1586,15 @@ export default function FlightSearchBundle() {
                                   <Text className="text-sm text-gray-400">
                                     Found {returnFlights.length} return flights total, but {filteredReturnFlights.length} match current filters
                                   </Text>
+                                  <div className="mt-2">
+                                    <Button
+                                      type="link"
+                                      className="text-blue-600"
+                                      onClick={handleClearFilters}
+                                    >
+                                      Clear Filters to See All Return Flights
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
                             </div>
