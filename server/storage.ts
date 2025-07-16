@@ -70,21 +70,6 @@ export interface IStorage {
 // DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
-  async updateBookingDetails(bookingId: number, updates: any) {
-    try {
-      const result = await db
-        .update(flightBookings)
-        .set(updates)
-        .where(eq(flightBookings.id, bookingId))
-        .returning();
-
-      return result[0];
-    } catch (error) {
-      console.error('Error updating booking details:', error);
-      throw error;
-    }
-  }
-
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -237,10 +222,19 @@ export class DatabaseStorage implements IStorage {
     return newBooking;
   }
 
-  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
-    await db.update(flightBookings)
-      .set(updates)
-      .where(eq(flightBookings.id, bookingId));
+  async updateBookingDetails(bookingId: number, updates: any): Promise<any> {
+    try {
+      const result = await db
+        .update(flightBookings)
+        .set(updates)
+        .where(eq(flightBookings.id, bookingId))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('Error updating booking details:', error);
+      throw error;
+    }
   }
 
   // Passengers
