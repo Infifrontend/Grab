@@ -51,6 +51,13 @@ export default function ManageBookingDetail() {
         firstName: p.firstName || '',
         lastName: p.lastName || ''
       })));
+    } else if (bookingDetails?.booking?.passengerCount) {
+      // Create empty passenger slots based on passenger count
+      const emptyPassengers = Array.from({ length: bookingDetails.booking.passengerCount }, () => ({
+        firstName: '',
+        lastName: ''
+      }));
+      setPassengers(emptyPassengers);
     }
   }, [bookingDetails]);
 
@@ -63,16 +70,25 @@ export default function ManageBookingDetail() {
         email: groupLeaderData.email || '',
         phone: groupLeaderData.phone || groupLeaderData.phoneNumber || ''
       });
+    } else if (bookingDetails?.booking) {
+      // Set default empty values if no comprehensive data exists
+      setGroupLeaderInfo({
+        name: '',
+        email: '',
+        phone: ''
+      });
     }
   }, [bookingDetails]);
 
   // Get group size from booking data
   const groupSize = bookingDetails?.booking?.passengerCount || 1;
-  const [currentGroupSize, setCurrentGroupSize] = useState(groupSize);
+  const [currentGroupSize, setCurrentGroupSize] = useState(1);
 
   React.useEffect(() => {
-    setCurrentGroupSize(groupSize);
-  }, [groupSize]);
+    if (bookingDetails?.booking?.passengerCount) {
+      setCurrentGroupSize(bookingDetails.booking.passengerCount);
+    }
+  }, [bookingDetails]);
 
   if (isLoading) {
     return (
@@ -157,6 +173,9 @@ export default function ManageBookingDetail() {
       }
 
       message.success('Changes saved successfully');
+      
+      // Refresh the booking details to reflect the changes
+      window.location.reload();
     } catch (error) {
       console.error('Error saving changes:', error);
       message.error('Failed to save changes. Please try again.');

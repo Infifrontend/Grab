@@ -411,28 +411,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFlightSeats(flightId: number, passengerCount: number): Promise<void> {
-    const flight = await this.getFlight(flightId);
-    if (flight) {
-      const newAvailableSeats = flight.availableSeats - passengerCount;
-      await db.update(flights)
-        .set({ availableSeats: newAvailableSeats })
-        .where(eq(flights.id, flightId));
-    }
-  }
-
-  async updateBookingDetails(bookingId: number, updates: any): Promise<void> {
-    await db.update(flightBookings)
-      .set(updates)
-      .where(eq(flightBookings.id, bookingId));
-  }
-
-  async updatePassenger(passengerId: number, updates: any): Promise<void> {
-    await db.update(passengers)
-      .set(updates)
-      .where(eq(passengers.id, passengerId));
-  }
-
   async deletePassenger(passengerId: number): Promise<void> {
     await db.delete(passengers)
       .where(eq(passengers.id, passengerId));
