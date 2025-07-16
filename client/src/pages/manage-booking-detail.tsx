@@ -90,6 +90,24 @@ export default function ManageBookingDetail() {
     }
   }, [bookingDetails]);
 
+  // Update passenger list when group size changes
+  React.useEffect(() => {
+    if (currentGroupSize !== passengers.length) {
+      if (currentGroupSize > passengers.length) {
+        // Add empty passenger slots
+        const newPassengers = [...passengers];
+        const passengersToAdd = currentGroupSize - passengers.length;
+        for (let i = 0; i < passengersToAdd; i++) {
+          newPassengers.push({ firstName: '', lastName: '' });
+        }
+        setPassengers(newPassengers);
+      } else if (currentGroupSize < passengers.length) {
+        // Remove excess passengers
+        setPassengers(passengers.slice(0, currentGroupSize));
+      }
+    }
+  }, [currentGroupSize]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -155,6 +173,24 @@ export default function ManageBookingDetail() {
 
       if (!groupLeaderResponse.ok) {
         throw new Error('Failed to update group leader information');
+      }
+
+      // Update group size if it has changed
+      const originalGroupSize = bookingDetails?.booking?.passengerCount || 1;
+      if (currentGroupSize !== originalGroupSize) {
+        const groupSizeResponse = await fetch(`/api/booking-group-size/${bookingId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            groupSize: currentGroupSize
+          }),
+        });
+
+        if (!groupSizeResponse.ok) {
+          throw new Error('Failed to update group size');
+        }
       }
 
       // Save passenger information

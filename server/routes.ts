@@ -560,6 +560,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update group size for a booking
+  app.put("/api/booking-group-size/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { groupSize } = req.body;
+
+      // Find the booking by ID or reference
+      let booking = await storage.getFlightBookingByReference(id);
+      if (!booking) {
+        const allFlightBookings = await storage.getFlightBookings();
+        booking = allFlightBookings.find(b => b.id.toString() === id);
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Update the passenger count in the booking
+      await storage.updateBookingDetails(booking.id, {
+        passengerCount: groupSize
+      });
+
+      // Get existing passengers
+      const existingPassengers = await storage.getPassengersByBooking(booking.id);
+
+      // If the new group size is larger, create empty passenger slots
+      if (groupSize > existingPassengers.length) {
+        const passengersToAdd = groupSize - existingPassengers.length;
+        for (let i = 0; i < passengersToAdd; i++) {
+          await storage.createPassenger({
+            bookingId: booking.id,
+            title: 'Mr',
+            firstName: '',
+            lastName: '',
+            dateOfBirth: new Date('1990-01-01'),
+            nationality: 'Indian'
+          });
+        }
+      }
+      // If the new group size is smaller, remove excess passengers
+      else if (groupSize < existingPassengers.length) {
+        for (let i = groupSize; i < existingPassengers.length; i++) {
+          await storage.deletePassenger(existingPassengers[i].id);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Group size updated successfully",
+        newGroupSize: groupSize
+      });
+    } catch (error) {
+      console.error("Error updating group size:", error);
+      res.status(500).json({ message: "Failed to update group size" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
