@@ -321,9 +321,12 @@ export default function FlightSearchBundle() {
   // Filter and sort flights
   const filteredFlights = useMemo(() => {
     // First filter to only include actual outbound flights (origin to destination)
+    const searchOrigin = searchCriteria.origin || origin;
+    const searchDestination = searchCriteria.destination || destination;
+    
     let filtered = availableFlights.filter((flight) => 
-      flight.origin === (searchCriteria.origin || origin) && 
-      flight.destination === (searchCriteria.destination || destination)
+      flight.origin === searchOrigin && 
+      flight.destination === searchDestination
     );
 
     // Filter by airlines
@@ -433,10 +436,18 @@ export default function FlightSearchBundle() {
     }
 
     // First filter to only include actual return flights (destination to origin)
+    const searchOrigin = searchCriteria.origin || origin;
+    const searchDestination = searchCriteria.destination || destination;
+    
+    console.log("Return flights filter - Looking for flights from:", searchDestination, "to:", searchOrigin);
+    console.log("Available return flights routes:", returnFlights.map(f => `${f.origin}→${f.destination}`));
+    
     let filtered = returnFlights.filter((flight) => 
-      flight.origin === (searchCriteria.destination || destination) && 
-      flight.destination === (searchCriteria.origin || origin)
+      flight.origin === searchDestination && 
+      flight.destination === searchOrigin
     );
+    
+    console.log("After route filtering:", filtered.length, "return flights");
 
     // Filter by airlines
     if (selectedAirlines.length > 0) {
