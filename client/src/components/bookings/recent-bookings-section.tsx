@@ -58,7 +58,15 @@ export default function RecentBookingsSection() {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => format(new Date(date), "MMM dd, yyyy"),
+      render: (date) => {
+        if (!date) return 'N/A';
+        try {
+          return format(new Date(date), "MMM dd, yyyy");
+        } catch (error) {
+          console.error('Error formatting date:', date, error);
+          return 'Invalid Date';
+        }
+      },
     },
     {
       title: "Passengers",
