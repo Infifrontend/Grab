@@ -116,7 +116,7 @@ export default function ManageBookingDetail() {
   };
 
   const handleDownloadCSVTemplate = () => {
-    // Create CSV header
+    // Create CSV header with the required fields
     let csvContent = 'First Name,Last Name,Date of Birth,Passport Number,Nationality,Gender,Special Requirements\n';
     
     // Add current passenger data if available
@@ -124,13 +124,21 @@ export default function ManageBookingDetail() {
       passengers.forEach((passenger, index) => {
         const firstName = passenger.firstName || `Passenger${index + 1}`;
         const lastName = passenger.lastName || '';
-        csvContent += `${firstName},${lastName},,,,,\n`;
+        const dateOfBirth = passenger.dateOfBirth || '';
+        const passportNumber = passenger.passportNumber || '';
+        const nationality = passenger.nationality || '';
+        const gender = passenger.gender || '';
+        const specialRequirements = passenger.specialRequirements || passenger.specialRequests || '';
+        
+        csvContent += `${firstName},${lastName},${dateOfBirth},${passportNumber},${nationality},${gender},"${specialRequirements}"\n`;
       });
     } else {
-      // Add template rows if no passenger data
+      // Add template rows with sample data for all required fields
       csvContent += `John,Smith,1985-06-15,A12345678,US,Male,Vegetarian meal
 Jane,Doe,1990-03-22,B87654321,US,Female,Wheelchair assistance
-Mike,Johnson,1978-11-08,C11223344,US,Male,None`;
+Mike,Johnson,1978-11-08,C11223344,US,Male,None
+Sarah,Williams,1992-07-30,D55667788,US,Female,Kosher meal
+David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
     }
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
