@@ -190,6 +190,22 @@ export default function FlightSearchBundle() {
     "standard-meal",
   ]);
 
+  // Modify search form state - initialize from bookingFormData (from QuickBooking form)
+  const [origin, setOrigin] = useState<string>("");
+  const [destination, setDestination] = useState<string>("");
+  const [departureDate, setDepartureDate] = useState(dayjs().add(1, "day"));
+  const [returnDate, setReturnDate] = useState<any>(null);
+  const [adults, setAdults] = useState(0);
+  const [kids, setKids] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [cabin, setCabin] = useState("economy");
+
+  // Get trip type from bookingFormData (from QuickBooking form)
+  const [tripType, setTripType] = useState<string>("roundTrip");
+
+  // Modify search toggle state
+  const [showModifySearch, setShowModifySearch] = useState(false);
+
   // Set location options when data is loaded
   useEffect(() => {
     if (locationsData?.locations) {
@@ -564,22 +580,6 @@ export default function FlightSearchBundle() {
     departureTime,
     maxStops,
   ]);
-
-  // Get trip type from bookingFormData (from QuickBooking form)
-  const [tripType, setTripType] = useState<string>("roundTrip");
-
-  // Modify search toggle state
-  const [showModifySearch, setShowModifySearch] = useState(false);
-
-  // Modify search form state - initialize from bookingFormData (from QuickBooking form)
-  const [origin, setOrigin] = useState<string>("");
-  const [destination, setDestination] = useState<string>("");
-  const [departureDate, setDepartureDate] = useState(dayjs().add(1, "day"));
-  const [returnDate, setReturnDate] = useState<any>(null);
-  const [adults, setAdults] = useState(0);
-  const [kids, setKids] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [cabin, setCabin] = useState("economy");
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
