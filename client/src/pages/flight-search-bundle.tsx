@@ -215,7 +215,7 @@ export default function FlightSearchBundle() {
         const returnFlightsData = JSON.parse(returnSearchResults);
         console.log("Loaded return flights:", returnFlightsData);
         setReturnFlights(returnFlightsData);
-        
+
         // Set the first return flight as selected by default if available and none selected
         if (returnFlightsData.length > 0 && !selectedReturn) {
           setSelectedReturn(returnFlightsData[0].id.toString());
@@ -250,7 +250,7 @@ export default function FlightSearchBundle() {
         }
 
         if (formData.departureDate) {
-          if (typeof formData.departureDate === 'string') {
+          if (typeof formData.departureDate === "string") {
             setDepartureDate(dayjs(formData.departureDate));
           } else {
             setDepartureDate(formData.departureDate);
@@ -258,7 +258,7 @@ export default function FlightSearchBundle() {
         }
 
         if (formData.returnDate) {
-          if (typeof formData.returnDate === 'string') {
+          if (typeof formData.returnDate === "string") {
             setReturnDate(dayjs(formData.returnDate));
           } else {
             setReturnDate(formData.returnDate);
@@ -417,14 +417,17 @@ export default function FlightSearchBundle() {
 
   // Filter and sort return flights
   const filteredReturnFlights = useMemo(() => {
-    console.log("Filtering return flights. Total return flights:", returnFlights.length);
+    console.log(
+      "Filtering return flights. Total return flights:",
+      returnFlights.length,
+    );
     console.log("Return flights data:", returnFlights);
-    
+
     if (returnFlights.length === 0) {
       console.log("No return flights to filter");
       return [];
     }
-    
+
     let filtered = [...returnFlights];
 
     // Filter by airlines
@@ -442,7 +445,9 @@ export default function FlightSearchBundle() {
           ? parseFloat(flight.price)
           : flight.price;
       const inRange = price >= priceRange[0] && price <= priceRange[1];
-      console.log(`Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`);
+      console.log(
+        `Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`,
+      );
       return inRange;
     });
     console.log("After price filter:", filtered.length);
@@ -453,7 +458,7 @@ export default function FlightSearchBundle() {
         const depTime = flight.departureTime;
         // Handle both string format "HH:MM" and time strings
         let hour;
-        if (typeof depTime === 'string' && depTime.includes(':')) {
+        if (typeof depTime === "string" && depTime.includes(":")) {
           hour = parseInt(depTime.split(":")[0]);
         } else {
           // If it's a full datetime string, extract hour
@@ -570,14 +575,18 @@ export default function FlightSearchBundle() {
     const bookingData = localStorage.getItem("bookingFormData");
     if (bookingData) {
       const data = JSON.parse(bookingData);
-      return data.departureDate ? dayjs(data.departureDate) : dayjs().add(1, 'day');
+      return data.departureDate
+        ? dayjs(data.departureDate)
+        : dayjs().add(1, "day");
     }
     const searchCriteria = localStorage.getItem("searchCriteria");
     if (searchCriteria) {
       const criteria = JSON.parse(searchCriteria);
-      return criteria.departureDate ? dayjs(criteria.departureDate) : dayjs().add(1, 'day');
+      return criteria.departureDate
+        ? dayjs(criteria.departureDate)
+        : dayjs().add(1, "day");
     }
-    return dayjs().add(1, 'day');
+    return dayjs().add(1, "day");
   });
   const [returnDate, setReturnDate] = useState(() => {
     const bookingData = localStorage.getItem("bookingFormData");
@@ -662,13 +671,16 @@ export default function FlightSearchBundle() {
     const bundleData = {
       selectedSeat: selectedSeatOption,
       selectedBaggage: selectedBaggageOption,
-      selectedMeals: selectedMeals.map(mealId => 
-        mealOptions.find(m => m.id === mealId)
-      ).filter(Boolean),
+      selectedMeals: selectedMeals
+        .map((mealId) => mealOptions.find((m) => m.id === mealId))
+        .filter(Boolean),
       bundleCost,
     };
 
-    localStorage.setItem("selectedFlightData", JSON.stringify(selectedFlightData));
+    localStorage.setItem(
+      "selectedFlightData",
+      JSON.stringify(selectedFlightData),
+    );
     localStorage.setItem("selectedBundleData", JSON.stringify(bundleData));
 
     console.log("Continue to Add Services & Bundles");
@@ -678,7 +690,11 @@ export default function FlightSearchBundle() {
   const handleSearchFlights = async () => {
     // Validate required fields
     if (!origin || !destination || !departureDate) {
-      console.error("Missing required fields:", { origin, destination, departureDate });
+      console.error("Missing required fields:", {
+        origin,
+        destination,
+        departureDate,
+      });
       return;
     }
 
@@ -693,8 +709,16 @@ export default function FlightSearchBundle() {
       const searchData = {
         origin,
         destination,
-        departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
-        returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
+        departureDate:
+          typeof departureDate === "string"
+            ? departureDate
+            : departureDate?.format("YYYY-MM-DD"),
+        returnDate:
+          tripType === "oneWay"
+            ? null
+            : typeof returnDate === "string"
+              ? returnDate
+              : returnDate?.format("YYYY-MM-DD"),
         tripType,
         passengers: totalPassengers,
         adults,
@@ -709,8 +733,16 @@ export default function FlightSearchBundle() {
       const response = await apiRequest("POST", "/api/search", {
         origin,
         destination,
-        departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
-        returnDate: tripType === "oneWay" ? null : (typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD')),
+        departureDate:
+          typeof departureDate === "string"
+            ? departureDate
+            : departureDate?.format("YYYY-MM-DD"),
+        returnDate:
+          tripType === "oneWay"
+            ? null
+            : typeof returnDate === "string"
+              ? returnDate
+              : returnDate?.format("YYYY-MM-DD"),
         passengers: totalPassengers,
         cabin,
         tripType,
@@ -750,31 +782,36 @@ export default function FlightSearchBundle() {
 
         // Process return flights if available
         let processedReturnFlights = [];
-        if (searchResult.returnFlights && searchResult.returnFlights.length > 0) {
-          processedReturnFlights = searchResult.returnFlights.map((flight: any) => ({
-            ...flight,
-            price:
-              typeof flight.price === "number"
-                ? flight.price.toString()
-                : flight.price,
-            departureTime: new Date(flight.departureTime).toLocaleTimeString(
-              "en-US",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              },
-            ),
-            arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString(
-              "en-US",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              },
-            ),
-          }));
-          
+        if (
+          searchResult.returnFlights &&
+          searchResult.returnFlights.length > 0
+        ) {
+          processedReturnFlights = searchResult.returnFlights.map(
+            (flight: any) => ({
+              ...flight,
+              price:
+                typeof flight.price === "number"
+                  ? flight.price.toString()
+                  : flight.price,
+              departureTime: new Date(flight.departureTime).toLocaleTimeString(
+                "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                },
+              ),
+              arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString(
+                "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                },
+              ),
+            }),
+          );
+
           console.log("Processed return flights:", processedReturnFlights);
           setReturnFlights(processedReturnFlights);
         } else {
@@ -798,18 +835,30 @@ export default function FlightSearchBundle() {
 
         // Update localStorage with new search results and criteria
         localStorage.setItem("searchResults", JSON.stringify(processedFlights));
-        localStorage.setItem("returnFlights", JSON.stringify(processedReturnFlights));
+        localStorage.setItem(
+          "returnFlights",
+          JSON.stringify(processedReturnFlights),
+        );
         localStorage.setItem("searchCriteria", JSON.stringify(searchData));
         localStorage.setItem("passengerCount", totalPassengers.toString());
-        
-        console.log("Updated localStorage - Return flights:", processedReturnFlights.length);
+
+        console.log(
+          "Updated localStorage - Return flights:",
+          processedReturnFlights.length,
+        );
 
         // Update booking form data
         const updatedBookingData = {
           origin,
           destination,
-          departureDate: typeof departureDate === 'string' ? departureDate : departureDate?.format('YYYY-MM-DD'),
-          returnDate: typeof returnDate === 'string' ? returnDate : returnDate?.format('YYYY-MM-DD'),
+          departureDate:
+            typeof departureDate === "string"
+              ? departureDate
+              : departureDate?.format("YYYY-MM-DD"),
+          returnDate:
+            typeof returnDate === "string"
+              ? returnDate
+              : returnDate?.format("YYYY-MM-DD"),
           tripType,
           adults,
           kids,
@@ -1078,9 +1127,13 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
                         <Text className="block font-medium">
-                          {searchCriteria.departureDate 
-                            ? dayjs(searchCriteria.departureDate).format('DD MMM YYYY')
-                            : (typeof departureDate === 'string' ? dayjs(departureDate).format('DD MMM YYYY') : departureDate?.format('DD MMM YYYY'))}
+                          {searchCriteria.departureDate
+                            ? dayjs(searchCriteria.departureDate).format(
+                                "DD MMM YYYY",
+                              )
+                            : typeof departureDate === "string"
+                              ? dayjs(departureDate).format("DD MMM YYYY")
+                              : departureDate?.format("DD MMM YYYY")}
                         </Text>
                       </div>
                     </Col>
@@ -1089,9 +1142,15 @@ export default function FlightSearchBundle() {
                         <div>
                           <Text className="text-gray-600 text-sm">Return</Text>
                           <Text className="block font-medium">
-                            {tripType === "oneWay" ? "N/A" : (searchCriteria.returnDate 
-                              ? dayjs(searchCriteria.returnDate).format('DD MMM YYYY')
-                              : (typeof returnDate === 'string' ? dayjs(returnDate).format('DD MMM YYYY') : returnDate?.format('DD MMM YYYY')))}
+                            {tripType === "oneWay"
+                              ? "N/A"
+                              : searchCriteria.returnDate
+                                ? dayjs(searchCriteria.returnDate).format(
+                                    "DD MMM YYYY",
+                                  )
+                                : typeof returnDate === "string"
+                                  ? dayjs(returnDate).format("DD MMM YYYY")
+                                  : returnDate?.format("DD MMM YYYY")}
                           </Text>
                         </div>
                       </Col>
@@ -1146,7 +1205,10 @@ export default function FlightSearchBundle() {
                     if (bookingData) {
                       const data = JSON.parse(bookingData);
                       data.tripType = newTripType;
-                      localStorage.setItem("bookingFormData", JSON.stringify(data));
+                      localStorage.setItem(
+                        "bookingFormData",
+                        JSON.stringify(data),
+                      );
                     }
 
                     // Clear return date if switching to one way
@@ -1182,9 +1244,13 @@ export default function FlightSearchBundle() {
                       placeholder="Search city / airport"
                       showSearch
                       filterOption={(input, option) =>
-                        (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                        (option?.value ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
                       }
-                      suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                      suffixIcon={
+                        <EnvironmentOutlined className="text-gray-400" />
+                      }
                       notFoundContent="No locations found"
                       className="w-full"
                     >
@@ -1208,9 +1274,13 @@ export default function FlightSearchBundle() {
                       placeholder="Search city / airport"
                       showSearch
                       filterOption={(input, option) =>
-                        (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                        (option?.value ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
                       }
-                      suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                      suffixIcon={
+                        <EnvironmentOutlined className="text-gray-400" />
+                      }
                       notFoundContent="No locations found"
                       className="w-full"
                     >
@@ -1233,8 +1303,12 @@ export default function FlightSearchBundle() {
                       placeholder="Select departure date"
                       format="DD MMM YYYY"
                       className="w-full"
-                      suffixIcon={<CalendarOutlined className="text-gray-400" />}
-                      disabledDate={(current) => current && current.isBefore(dayjs(), 'day')}
+                      suffixIcon={
+                        <CalendarOutlined className="text-gray-400" />
+                      }
+                      disabledDate={(current) =>
+                        current && current.isBefore(dayjs(), "day")
+                      }
                     />
                   </div>
                 </Col>
@@ -1250,14 +1324,25 @@ export default function FlightSearchBundle() {
                           setReturnDate(date);
                         }
                       }}
-                      placeholder={tripType === "oneWay" ? "N/A for one way" : "Select return date"}
+                      placeholder={
+                        tripType === "oneWay"
+                          ? "N/A for one way"
+                          : "Select return date"
+                      }
                       format="DD MMM YYYY"
                       className="w-full"
                       disabled={tripType === "oneWay"}
-                      suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                      suffixIcon={
+                        <CalendarOutlined className="text-gray-400" />
+                      }
                       disabledDate={(current) => {
                         if (tripType === "oneWay") return true;
-                        return current && (current.isBefore(dayjs(), 'day') || (departureDate && current.isBefore(departureDate, 'day')));
+                        return (
+                          current &&
+                          (current.isBefore(dayjs(), "day") ||
+                            (departureDate &&
+                              current.isBefore(departureDate, "day")))
+                        );
                       }}
                     />
                   </div>
@@ -1555,14 +1640,19 @@ export default function FlightSearchBundle() {
                               <FlightCard
                                 key={flight.id}
                                 flight={flight}
-                                isSelected={selectedOutbound === flight.id.toString()}
-                                onSelect={() => setSelectedOutbound(flight.id.toString())}
+                                isSelected={
+                                  selectedOutbound === flight.id.toString()
+                                }
+                                onSelect={() =>
+                                  setSelectedOutbound(flight.id.toString())
+                                }
                               />
                             ))
                           ) : (
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
-                                No outbound flights found for your search criteria
+                                No outbound flights found for your search
+                                criteria
                               </Text>
                             </div>
                           )}
@@ -1583,50 +1673,25 @@ export default function FlightSearchBundle() {
                       ),
                       children: (
                         <div className="space-y-4">
-                          {/* Debug information */}
-                          <div className="mb-4 p-3 bg-gray-100 rounded text-sm">
-                            <div>Total return flights: {returnFlights.length}</div>
-                            <div>Filtered return flights: {filteredReturnFlights.length}</div>
-                            <div>Price range: ₹{priceRange[0]} - ₹{priceRange[1]}</div>
-                            <div>Selected airlines: {selectedAirlines.length > 0 ? selectedAirlines.join(", ") : "All"}</div>
-                          </div>
-                          
-                          {filteredReturnFlights.length > 0 ? (
-                            filteredReturnFlights.map((flight) => (
+                          {filteredFlights.length > 0 ? (
+                            filteredFlights.map((flight) => (
                               <FlightCard
-                                key={`return-${flight.id}`}
+                                key={flight.id}
                                 flight={flight}
-                                isSelected={selectedReturn === flight.id.toString()}
-                                onSelect={() => setSelectedReturn(flight.id.toString())}
+                                isSelected={
+                                  selectedReturn === flight.id.toString()
+                                }
+                                onSelect={() =>
+                                  setSelectedReturn(flight.id.toString())
+                                }
                               />
                             ))
-                          ) : returnFlights.length > 0 ? (
-                            <div className="text-center py-8">
-                              <Text className="text-gray-500 block mb-4">
-                                No return flights match your current filters.
-                              </Text>
-                              <div className="space-y-2 text-sm text-gray-400">
-                                <div>Found {returnFlights.length} return flights total</div>
-                                <div>Current filters are hiding all return flights</div>
-                              </div>
-                              <div className="mt-4">
-                                <Button
-                                  type="primary"
-                                  onClick={handleClearFilters}
-                                  size="small"
-                                >
-                                  Clear All Filters
-                                </Button>
-                              </div>
-                            </div>
                           ) : (
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
-                                No return flights found for your search criteria.
+                                No outbound flights found for your search
+                                criteria
                               </Text>
-                              <div className="mt-4 text-sm text-gray-400">
-                                Try searching again or modify your search criteria.
-                              </div>
                             </div>
                           )}
                         </div>
@@ -1643,7 +1708,9 @@ export default function FlightSearchBundle() {
                         key={flight.id}
                         flight={flight}
                         isSelected={selectedOutbound === flight.id.toString()}
-                        onSelect={() => setSelectedOutbound(flight.id.toString())}
+                        onSelect={() =>
+                          setSelectedOutbound(flight.id.toString())
+                        }
                       />
                     ))
                   ) : (
@@ -1658,8 +1725,6 @@ export default function FlightSearchBundle() {
                 </div>
               )}
             </Card>
-
-
 
             {/* Booking Summary */}
             {selectedOutbound && (
