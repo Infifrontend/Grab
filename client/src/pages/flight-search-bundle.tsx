@@ -16,6 +16,7 @@ import {
   Input,
   InputNumber,
   DatePicker,
+  message,
 } from "antd";
 import {
   ArrowRightOutlined,
@@ -622,6 +623,12 @@ export default function FlightSearchBundle() {
         destination,
         departureDate,
       });
+      return;
+    }
+
+    // Validate at least one adult passenger is required
+    if (adults === 0) {
+      message.error("At least one adult passenger is required");
       return;
     }
 

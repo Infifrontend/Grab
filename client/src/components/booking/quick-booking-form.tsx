@@ -106,6 +106,13 @@ export default function QuickBookingForm() {
       return;
     }
 
+    // Validate at least one adult passenger is required
+    const totalPassengers = (values.adults || 0) + (values.kids || 0) + (values.infants || 0);
+    if (totalPassengers === 0 || (values.adults || 0) === 0) {
+      message.error("At least one adult passenger is required");
+      return;
+    }
+
     try {
       // First search for available flights from database
       const totalPassengers = (values.adults || 1) + (values.kids || 0) + (values.infants || 0);
