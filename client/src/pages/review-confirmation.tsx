@@ -17,7 +17,7 @@ import {
 import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -34,32 +34,32 @@ export default function ReviewConfirmation() {
 
   // Load all booking data from localStorage
   useEffect(() => {
-    const storedBookingData = localStorage.getItem('bookingFormData');
+    const storedBookingData = localStorage.getItem("bookingFormData");
     if (storedBookingData) {
       setBookingData(JSON.parse(storedBookingData));
     }
 
-    const storedFlightData = localStorage.getItem('selectedFlightData');
+    const storedFlightData = localStorage.getItem("selectedFlightData");
     if (storedFlightData) {
       setFlightData(JSON.parse(storedFlightData));
     }
 
-    const storedGroupLeaderData = localStorage.getItem('groupLeaderData');
+    const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
     if (storedGroupLeaderData) {
       setGroupLeaderData(JSON.parse(storedGroupLeaderData));
     }
 
-    const storedServices = localStorage.getItem('selectedServices');
+    const storedServices = localStorage.getItem("selectedServices");
     if (storedServices) {
       setSelectedServices(JSON.parse(storedServices));
     }
 
-    const storedBundleData = localStorage.getItem('selectedBundleData');
+    const storedBundleData = localStorage.getItem("selectedBundleData");
     if (storedBundleData) {
       setBundleData(JSON.parse(storedBundleData));
     }
 
-    const storedBookingSummary = localStorage.getItem('bookingSummary');
+    const storedBookingSummary = localStorage.getItem("bookingSummary");
     if (storedBookingSummary) {
       setBookingSummary(JSON.parse(storedBookingSummary));
     }
@@ -74,11 +74,15 @@ export default function ReviewConfirmation() {
 
     try {
       // Collect all stored data
-      const storedPaymentData = localStorage.getItem('paymentData');
-      const storedPassengerData = localStorage.getItem('passengerData');
+      const storedPaymentData = localStorage.getItem("paymentData");
+      const storedPassengerData = localStorage.getItem("passengerData");
 
-      const paymentData = storedPaymentData ? JSON.parse(storedPaymentData) : null;
-      const passengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
+      const paymentData = storedPaymentData
+        ? JSON.parse(storedPaymentData)
+        : null;
+      const passengerData = storedPassengerData
+        ? JSON.parse(storedPassengerData)
+        : [];
 
       // Prepare comprehensive booking payload
       const comprehensiveBookingData = {
@@ -89,18 +93,21 @@ export default function ReviewConfirmation() {
         groupLeaderData,
         paymentData,
         passengerData,
-        bookingSummary
+        bookingSummary,
       };
 
-      console.log("Submitting comprehensive booking data:", comprehensiveBookingData);
+      console.log(
+        "Submitting comprehensive booking data:",
+        comprehensiveBookingData,
+      );
 
       // Submit to the comprehensive group booking endpoint
-      const response = await fetch('/api/group-bookings', {
-        method: 'POST',
+      const response = await fetch("/api/group-bookings", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(comprehensiveBookingData)
+        body: JSON.stringify(comprehensiveBookingData),
       });
 
       if (response.ok) {
@@ -111,17 +118,16 @@ export default function ReviewConfirmation() {
 
         // Clear localStorage after successful submission
         const keysToRemove = [
-          'bookingFormData',
-          'selectedFlightData',
-          'selectedBundleData',
-          'selectedServices',
-          'groupLeaderData',
-          'bookingSummary',
-          'paymentData',
-          'passengerData'
+          "bookingFormData",
+          "selectedFlightData",
+          "selectedBundleData",
+          "selectedServices",
+          "groupLeaderData",
+          "bookingSummary",
+          "paymentData",
+          "passengerData",
         ];
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
       } else {
         const errorData = await response.json();
         console.error("Booking submission failed:", errorData);
@@ -129,7 +135,9 @@ export default function ReviewConfirmation() {
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
-      alert("An error occurred while submitting your booking. Please try again.");
+      alert(
+        "An error occurred while submitting your booking. Please try again.",
+      );
     }
   };
 
@@ -194,10 +202,13 @@ export default function ReviewConfirmation() {
                         Trip Type
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? (
-                          bookingData.tripType === 'oneWay' ? 'One-way' : 
-                          bookingData.tripType === 'roundTrip' ? 'Round-trip' : 'Multi-city'
-                        ) : 'One-way'}
+                        {bookingData
+                          ? bookingData.tripType === "oneWay"
+                            ? "One-way"
+                            : bookingData.tripType === "roundTrip"
+                              ? "Round-trip"
+                              : "Multi-city"
+                          : "One-way"}
                       </Text>
                     </div>
 
@@ -206,7 +217,9 @@ export default function ReviewConfirmation() {
                         Route
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? `${bookingData.origin} → ${bookingData.destination}` : 'Chennai → Delhi'}
+                        {bookingData
+                          ? `${bookingData.origin} → ${bookingData.destination}`
+                          : "Chennai → Delhi"}
                       </Text>
                     </div>
 
@@ -215,11 +228,15 @@ export default function ReviewConfirmation() {
                         Departure Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData?.departureDate 
-                          ? (typeof bookingData.departureDate === 'string' 
-                              ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
-                              : dayjs(bookingData.departureDate).format('DD MMM YYYY'))
-                          : '22 Jun 2024'}
+                        {bookingData?.departureDate
+                          ? typeof bookingData.departureDate === "string"
+                            ? dayjs(bookingData.departureDate).format(
+                                "DD MMM YYYY",
+                              )
+                            : dayjs(bookingData.departureDate).format(
+                                "DD MMM YYYY",
+                              )
+                          : "22 Jun 2024"}
                       </Text>
                     </div>
                   </Space>
@@ -233,7 +250,7 @@ export default function ReviewConfirmation() {
                         Cabin Class
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? bookingData.cabin : 'Economy'}
+                        {bookingData ? bookingData.cabin : "Economy"}
                       </Text>
                     </div>
 
@@ -242,7 +259,9 @@ export default function ReviewConfirmation() {
                         Total Passengers
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData ? `${bookingData.totalPassengers || (bookingData.adults + bookingData.kids + bookingData.infants)} passengers` : '1 passenger'}
+                        {bookingData
+                          ? `${bookingData.totalPassengers || bookingData.adults + bookingData.kids + bookingData.infants} passengers`
+                          : "1 passenger"}
                       </Text>
                     </div>
 
@@ -251,11 +270,16 @@ export default function ReviewConfirmation() {
                         Return Date
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
-                        {bookingData?.returnDate && bookingData.tripType !== 'oneWay'
-                          ? (typeof bookingData.returnDate === 'string' 
-                              ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
-                              : dayjs(bookingData.returnDate).format('DD MMM YYYY'))
-                          : 'N/A'}
+                        {bookingData?.returnDate &&
+                        bookingData.tripType !== "oneWay"
+                          ? typeof bookingData.returnDate === "string"
+                            ? dayjs(bookingData.returnDate).format(
+                                "DD MMM YYYY",
+                              )
+                            : dayjs(bookingData.returnDate).format(
+                                "DD MMM YYYY",
+                              )
+                          : "N/A"}
                       </Text>
                     </div>
                   </Space>
@@ -272,13 +296,20 @@ export default function ReviewConfirmation() {
                 <Space direction="vertical" size="small" className="w-full">
                   {selectedServices.length > 0 ? (
                     selectedServices.map((service, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
                         <Text className="text-gray-900">{service.name}</Text>
-                        <Text className="text-gray-600">₹{service.price} per person</Text>
+                        <Text className="text-gray-600">
+                          ₹{service.price} per person
+                        </Text>
                       </div>
                     ))
                   ) : (
-                    <Text className="text-gray-500 italic">No additional services selected</Text>
+                    <Text className="text-gray-500 italic">
+                      No additional services selected
+                    </Text>
                   )}
 
                   {/* Show bundle services if available */}
@@ -286,24 +317,37 @@ export default function ReviewConfirmation() {
                     <>
                       {bundleData.selectedSeat && (
                         <div className="flex items-center justify-between">
-                          <Text className="text-gray-900">{bundleData.selectedSeat.name}</Text>
-                          <Text className="text-gray-600">₹{bundleData.selectedSeat.price} per person</Text>
+                          <Text className="text-gray-900">
+                            {bundleData.selectedSeat.name}
+                          </Text>
+                          <Text className="text-gray-600">
+                            ₹{bundleData.selectedSeat.price} per person
+                          </Text>
                         </div>
                       )}
                       {bundleData.selectedBaggage && (
                         <div className="flex items-center justify-between">
-                          <Text className="text-gray-900">{bundleData.selectedBaggage.name}</Text>
-                          <Text className="text-gray-600">₹{bundleData.selectedBaggage.price} per person</Text>
+                          <Text className="text-gray-900">
+                            {bundleData.selectedBaggage.name}
+                          </Text>
+                          <Text className="text-gray-600">
+                            ₹{bundleData.selectedBaggage.price} per person
+                          </Text>
                         </div>
                       )}
-                      {bundleData.selectedMeals && bundleData.selectedMeals.length > 0 && (
+                      {bundleData.selectedMeals &&
+                        bundleData.selectedMeals.length > 0 &&
                         bundleData.selectedMeals.map((meal, index) => (
-                          <div key={index} className="flex items-center justify-between">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between"
+                          >
                             <Text className="text-gray-900">{meal.name}</Text>
-                            <Text className="text-gray-600">₹{meal.price} per person</Text>
+                            <Text className="text-gray-600">
+                              ₹{meal.price} per person
+                            </Text>
                           </div>
-                        ))
-                      )}
+                        ))}
                     </>
                   )}
                 </Space>
@@ -323,7 +367,9 @@ export default function ReviewConfirmation() {
                       Full Name
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {groupLeaderData ? `${groupLeaderData.firstName} ${groupLeaderData.lastName}` : 'Not provided'}
+                      {groupLeaderData
+                        ? `${groupLeaderData.firstName} ${groupLeaderData.lastName}`
+                        : "Not provided"}
                     </Text>
                   </div>
                 </Col>
@@ -333,7 +379,7 @@ export default function ReviewConfirmation() {
                       Email Address
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {groupLeaderData?.email || 'Not provided'}
+                      {groupLeaderData?.email || "Not provided"}
                     </Text>
                   </div>
                 </Col>
@@ -343,17 +389,21 @@ export default function ReviewConfirmation() {
                       Phone Number
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {groupLeaderData?.phoneNumber || 'Not provided'}
+                      {groupLeaderData?.phoneNumber || "Not provided"}
                     </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={12}>
                   <div>
                     <Text className="text-gray-500 text-sm block mb-1">
-                      {groupLeaderData?.groupType === 'corporate' ? 'Company' : 'Organization'}
+                      {groupLeaderData?.groupType === "corporate"
+                        ? "Company"
+                        : "Organization"}
                     </Text>
                     <Text className="text-gray-900 font-medium">
-                      {groupLeaderData?.companyName || groupLeaderData?.organizationName || 'Not provided'}
+                      {groupLeaderData?.companyName ||
+                        groupLeaderData?.organizationName ||
+                        "Not provided"}
                     </Text>
                   </div>
                 </Col>
@@ -373,7 +423,20 @@ export default function ReviewConfirmation() {
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Base Flight Cost</Text>
                   <Text className="font-medium">
-                    ₹{flightData?.baseCost || (bookingSummary ? (bookingSummary.subtotal - (bundleData?.bundleCost || 0) * (bookingData?.totalPassengers || 1) - selectedServices.reduce((total, service) => total + (service.price * (bookingData?.totalPassengers || 1)), 0)) : '3,800')}
+                    ₹
+                    {flightData?.baseCost ||
+                      (bookingSummary
+                        ? bookingSummary.subtotal -
+                          (bundleData?.bundleCost || 0) *
+                            (bookingData?.totalPassengers || 1) -
+                          selectedServices.reduce(
+                            (total, service) =>
+                              total +
+                              service.price *
+                                (bookingData?.totalPassengers || 1),
+                            0,
+                          )
+                        : "3,800")}
                   </Text>
                 </div>
 
@@ -381,20 +444,30 @@ export default function ReviewConfirmation() {
                   <div className="flex justify-between items-center">
                     <Text className="text-gray-600">Selected Services</Text>
                     <Text className="font-medium">
-                      ₹{((bundleData?.bundleCost || 0) + selectedServices.reduce((total, service) => total + service.price, 0)) * (bookingData?.totalPassengers || 1)}
+                      ₹
+                      {((bundleData?.bundleCost || 0) +
+                        selectedServices.reduce(
+                          (total, service) => total + service.price,
+                          0,
+                        )) *
+                        (bookingData?.totalPassengers || 1)}
                     </Text>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Taxes & Fees</Text>
-                  <Text className="font-medium">₹{bookingSummary?.taxes || '304'}</Text>
+                  <Text className="font-medium">
+                    ₹{bookingSummary?.taxes || "304"}
+                  </Text>
                 </div>
 
                 {bookingSummary?.groupDiscount > 0 && (
                   <div className="flex justify-between items-center">
                     <Text className="text-gray-600">Group Discount (15%)</Text>
-                    <Text className="font-medium text-green-600">-₹{bookingSummary.groupDiscount}</Text>
+                    <Text className="font-medium text-green-600">
+                      -₹{bookingSummary.groupDiscount}
+                    </Text>
                   </div>
                 )}
 
@@ -405,12 +478,19 @@ export default function ReviewConfirmation() {
                     Total Amount
                   </Text>
                   <Text className="text-xl font-bold text-blue-600">
-                    ₹{bookingSummary?.totalAmount || '4,104'}
+                    ₹{bookingSummary?.totalAmount || "4,104"}
                   </Text>
                 </div>
 
                 <Text className="text-gray-500 text-sm text-center">
-                  For {bookingData?.totalPassengers || (bookingData ? (bookingData.adults + bookingData.kids + bookingData.infants) : 1)} passengers
+                  For{" "}
+                  {bookingData?.totalPassengers ||
+                    (bookingData
+                      ? bookingData.adults +
+                        bookingData.kids +
+                        bookingData.infants
+                      : 1)}{" "}
+                  passengers
                 </Text>
               </Space>
             </Card>

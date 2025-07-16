@@ -48,61 +48,100 @@ interface IndividualService {
 const premiumBundles: BundleOption[] = [
   {
     id: "ultimate-comfort",
-    name: "Ultimate Comfort Bundle",
-    description: "Complete premium experience for your group",
-    originalPrice: 399,
-    discountedPrice: 299,
-    savings: 100,
+    name: "FlexPay Plus",
+    description: "Pay your way with flexible payment options",
+    originalPrice: 59,
+    discountedPrice: 29,
+    savings: 30,
     popular: true,
     icon: "✈️",
     color: "purple",
     features: [
-      "Business class upgrade",
-      "Airport lounge access",
-      "Priority boarding & check-in",
-      "Extra baggage (2×23kg)",
-      "Premium meal selection",
-      "Fast track security",
-      "Complimentary WiFi",
-      "Travel insurance",
+      "Pay 50% now, 50% later",
+      "No interest charges",
+      "Automatic payment reminders",
+      "Secure payment processing"
     ],
   },
   {
     id: "group-explorer",
-    name: "Group Explorer Bundle",
-    description: "Perfect for leisure groups and families",
+    name: "BookNow Complete Later",
+    description: "Secure your booking, add passenger details when ready",
     originalPrice: 249,
     discountedPrice: 189,
     savings: 60,
     icon: "🗺️",
     color: "blue",
     features: [
-      "Seat selection for all",
-      "Extra legroom seats",
-      "Priority boarding",
-      "1 checked bag (23kg)",
-      "In-flight entertainment",
-      "Group meal coordination",
-      "Travel assistance",
+      "Reserve seats immediately",
+      "Add passenger names up to 30 days before travel",
+      "Email reminders for pending details",
+      "No risk of price increases",
     ],
   },
   {
     id: "business-traveler-pro",
-    name: "Business Traveler Pro",
-    description: "Designed for corporate groups",
+    name: "Schedule Shield",
+    description: "Change your travel dates with confidence",
     originalPrice: 269,
     discountedPrice: 229,
     savings: 40,
     icon: "💼",
     color: "gray",
     features: [
-      "Premium economy upgrade",
-      "Airport lounge access",
-      "Fast track security",
-      "Priority baggage handling",
-      "Business meal options",
-      "Meeting room access",
-      "Corporate travel insurance",
+      "One free date change per booking",
+     "Waived change fees",
+      "Subject to fare difference only",
+      "Valid for 12 months"
+    ],
+  },
+  {
+    id: "business-traveler-pro",
+    name: "Worry-Free Cancellation",
+    description: "Full refund protection for unexpected changes",
+    originalPrice: 55,
+    discountedPrice: 65,
+    savings: 40,
+    icon: "💼",
+    color: "gray",
+    features: [
+      "100% refund if cancelled 48+ hours before",
+      "75% refund if cancelled 24-48 hours before",
+      "No questions asked policy",
+      "Instant refund processing"
+    ],
+  },
+  {
+    id: "business-traveler-pro",
+    name: "SplitPay Pro",
+    description: "Divide payments among group members easily",
+    originalPrice: 40,
+    discountedPrice: 25,
+    savings: 40,
+    icon: "💼",
+    color: "gray",
+    features: [
+      "Split payment among up to 10 people",
+      "Individual payment links",
+      "Automatic payment tracking",
+      "Group payment dashboard"
+    ],
+  },
+  {
+    id: "business-traveler-pro",
+    name: "Premium Flexibility Bundle",
+    description: "Ultimate booking flexibility and peace of mind",
+    originalPrice: 100,
+    discountedPrice: 89,
+    savings: 40,
+    icon: "💼",
+    color: "gray",
+    features: [
+      "Includes FlexPay Plus",
+      "Includes Schedule Shield",
+      "Includes Worry-Free Cancellation",
+      "Priority customer support",
+      "Save $50 vs individual purchases"
     ],
   },
 ];
@@ -119,10 +158,11 @@ const standardBundles: BundleOption[] = [
     icon: "🎯",
     color: "green",
     features: [
-      "Extra legroom seats",
       "Priority boarding",
-      "1 checked bag (23kg)",
-      "Priority check-in",
+      "Extra legroom seat",
+      "Premium meal",
+      "1 additional checked bag",
+      "Priority baggage handling"
     ],
   },
   {
@@ -135,15 +175,16 @@ const standardBundles: BundleOption[] = [
     icon: "👨‍👩‍👧‍👦",
     color: "orange",
     features: [
-      "Seat selection for all",
-      "Extra baggage allowance",
-      "Kids meal options",
-      "Family check-in",
+      "Lounge access",
+      "Fast-track security",
+      "Premium seat selection",
+     "Wi-Fi access",
+      "Flexible rebooking"
     ],
   },
   {
     id: "travel-essentials",
-    name: "Travel Essentials",
+    name: "Business Essentials",
     description: "Basic add-ons for budget-conscious travelers",
     originalPrice: 79,
     discountedPrice: 59,
@@ -151,10 +192,11 @@ const standardBundles: BundleOption[] = [
     icon: "✅",
     color: "teal",
     features: [
-      "Seat selection",
-      "1 checked bag (20kg)",
-      "Standard meal",
-      "Online check-in",
+      "Kids meal",
+      "Entertainment package",
+      "Priority family boarding",
+      "Extra baggage allowance",
+      "Travel insurance"
     ],
   },
 ];
@@ -169,7 +211,7 @@ export default function AddServicesBundles() {
 
   // Load booking data from localStorage
   useEffect(() => {
-    const storedBookingData = localStorage.getItem('bookingFormData');
+    const storedBookingData = localStorage.getItem("bookingFormData");
     if (storedBookingData) {
       setBookingData(JSON.parse(storedBookingData));
     }
@@ -184,14 +226,14 @@ export default function AddServicesBundles() {
     const selectedServices = [];
 
     // Add selected bundles
-    selectedBundles.forEach(bundleId => {
-      const bundle = bundles.find(b => b.id === bundleId);
+    selectedBundles.forEach((bundleId) => {
+      const bundle = bundles.find((b) => b.id === bundleId);
       if (bundle) {
         selectedServices.push({
           id: bundle.id,
           name: bundle.name,
           price: bundle.price,
-          type: 'bundle'
+          type: "bundle",
         });
       }
     });
@@ -199,18 +241,24 @@ export default function AddServicesBundles() {
     // Add individual services
     Object.entries(individualServiceCounts).forEach(([serviceId, count]) => {
       if (count > 0) {
-        const category = ['insurance', 'connectivity', 'comfort', 'baggage', 'dining'].find(cat => 
-          services[cat].some(service => service.id === serviceId)
+        const category = [
+          "insurance",
+          "connectivity",
+          "comfort",
+          "baggage",
+          "dining",
+        ].find((cat) =>
+          services[cat].some((service) => service.id === serviceId),
         );
         if (category) {
-          const service = services[category].find(s => s.id === serviceId);
+          const service = services[category].find((s) => s.id === serviceId);
           if (service) {
             selectedServices.push({
               id: service.id,
               name: service.name,
               price: service.price * count,
               count: count,
-              type: 'individual'
+              type: "individual",
             });
           }
         }
@@ -370,7 +418,7 @@ export default function AddServicesBundles() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-6">
             <Title level={3} className="!mb-0 text-gray-800">
-              Premium Bundles
+              Special Bundles
             </Title>
             <Badge
               color="purple"
