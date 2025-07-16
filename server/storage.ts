@@ -225,8 +225,15 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
-  async createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking> {
-    const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+  async createFlightBooking(bookingData: any): Promise<FlightBooking> {
+    const [newBooking] = await db.insert(flightBookings)
+      .values({
+        ...bookingData,
+        flightNumber: bookingData.flightNumber || null,
+        airlineName: bookingData.airlineName || null,
+        arrivalTime: bookingData.arrivalTime || null
+      })
+      .returning();
     return newBooking;
   }
 

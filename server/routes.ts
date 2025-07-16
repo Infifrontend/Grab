@@ -152,8 +152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         flightId,
         passengerCount,
         totalAmount: totalAmount.toString(),
-        bookingStatus: "pending",
-        paymentStatus: "pending"
+        bookingStatus: "confirmed",
+        paymentStatus: "pending",
+        flightNumber: flight.flightNumber,
+        airlineName: flight.airline,
+        arrivalTime: flight.arrivalTime
       };
 
       const booking = await storage.createFlightBooking(bookingData);
@@ -295,6 +298,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate unique booking reference
       const bookingReference = `GB-${new Date().getFullYear()}-${nanoid(8).toUpperCase()}`;
 
+      // Get flight details for the booking
+      const flight = await storage.getFlight(flightData?.selectedFlightId || 1);
+
       // Create main booking record
       const mainBooking = {
         bookingReference,
@@ -303,7 +309,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalAmount: bookingSummary?.totalAmount?.toString() || "0",
         bookingStatus: "confirmed",
         paymentStatus: paymentData?.paymentMethod === "bankTransfer" ? "pending" : "pending",
-        specialRequests: `Group Type: ${groupLeaderData?.groupType || 'N/A'}, Services: ${selectedServices?.map(s => s.name).join(', ') || 'None'}`
+        specialRequests: `Group Type: ${groupLeaderData?.groupType || 'N/A'}, Services: ${selectedServices?.map(s => s.name).join(', ') || 'None'}`,
+        flightNumber: flight?.flightNumber,
+        airlineName: flight?.airline,
+        arrivalTime: flight?.arrivalTime
       };
 
       const booking = await storage.createFlightBooking(mainBooking);
