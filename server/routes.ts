@@ -298,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create main booking record
       const mainBooking = {
         bookingReference,
-        flightId: flightData?.selectedFlightId || 1,
+        flightId: flightData?.outbound?.id || flightData?.selectedFlightId || 1,
         passengerCount: bookingData?.totalPassengers || 1,
         totalAmount: bookingSummary?.totalAmount?.toString() || "0",
         bookingStatus: "confirmed",
