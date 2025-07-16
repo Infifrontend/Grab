@@ -5,7 +5,7 @@ import {
   type Bid, type InsertBid, type Payment, type InsertPayment, type Refund, type InsertRefund
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lte, like, or } from "drizzle-orm";
+import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -42,6 +42,7 @@ export interface IStorage {
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
   updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
   updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void>;
+  getRecentFlightBookings(limit?: number): Promise<FlightBooking[]>;
 
   // Passengers
   getPassengersByBooking(bookingId: number): Promise<Passenger[]>;
@@ -204,6 +205,14 @@ export class DatabaseStorage implements IStorage {
       return await db.select().from(flightBookings);
     }
     return await db.select().from(flightBookings).where(eq(flightBookings.userId, userId));
+  }
+
+  async getRecentFlightBookings(limit: number = 5): Promise<FlightBooking[]> {
+    return await db
+      .select()
+      .from(flightBookings)
+      .orderBy(desc(flightBookings.bookedAt))
+      .limit(limit);
   }
 
   async getFlightBooking(id: number): Promise<FlightBooking | undefined> {

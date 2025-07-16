@@ -197,6 +197,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get recent flight bookings (last 5 records)
+  app.get("/api/recent-flight-bookings", async (req, res) => {
+    try {
+      const recentBookings = await storage.getRecentFlightBookings(5);
+      res.json(recentBookings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recent flight bookings" });
+    }
+  });
+
   // Get flight booking by reference
   app.get("/api/flight-bookings/:reference", async (req, res) => {
     try {

@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 
 export default function RecentBookingsSection() {
   const { data: flightBookings, isLoading } = useQuery({
-    queryKey: ["/api/flight-bookings"],
+    queryKey: ["/api/recent-flight-bookings"],
   });
   const [, setLocation] = useLocation();
 
@@ -56,8 +56,8 @@ export default function RecentBookingsSection() {
     },
     {
       title: "Date",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "bookedAt",
+      key: "bookedAt",
       render: (date) => {
         if (!date) return 'N/A';
         try {
@@ -115,10 +115,7 @@ export default function RecentBookingsSection() {
       <div className="p-6">
         <Table
           columns={columns}
-          dataSource={flightBookings?.sort((a, b) => {
-            if (!a.createdAt || !b.createdAt) return 0;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          }).slice(0, 5) || []}
+          dataSource={flightBookings || []}
           loading={isLoading}
           rowKey="id"
           pagination={false}
