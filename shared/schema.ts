@@ -91,6 +91,10 @@ export const flightBookings = pgTable("flight_bookings", {
   paymentStatus: text("payment_status").notNull().default("pending"), // pending, paid, failed, refunded
   seatNumbers: text("seat_numbers").array(),
   specialRequests: text("special_requests"),
+  // Flight details stored in booking for easy access
+  flightNumber: text("flight_number"),
+  airlineName: text("airline_name"),
+  arrivalTime: timestamp("arrival_time"),
   bookedAt: timestamp("booked_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
