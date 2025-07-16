@@ -73,17 +73,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const searchData = insertSearchRequestSchema.parse(req.body);
       await storage.createSearchRequest(searchData);
 
-      // Search for available flights
-      const flights = await storage.getFlights(
+      // Search for outbound flights
+      const outboundFlights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
         searchData.departureDate
       );
 
-      console.log(`Found ${flights.length} flights for ${searchData.origin} to ${searchData.destination}`);
-      console.log("Flight data sample:", flights.slice(0, 2));
+      let returnFlights = [];
+      
+      // If it's a round trip, also search for return flights
+      if (searchData.tripType === 'roundTrip' && searchData.returnDate) {
+        returnFlights = await storage.getReturnFlights(
+          searchData.origin,
+          searchData.destination,
+          searchData.returnDate
+        );
+        console.log(`Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`);
+      }
 
-      res.json({ flights, message: "Search completed successfully" });
+      console.log(`Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`);
+      console.log("Outbound flight data sample:", outboundFlights.slice(0, 2));
+
+      res.json({ 
+        flights: outboundFlights,
+        returnFlights: returnFlights,
+        tripType: searchData.tripType,
+        message: "Search completed successfully" 
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error("Search validation error:", error.errors);
@@ -375,6 +392,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         error: "Failed to migrate flights" 
+      });
+    }
+  });
+
+  // Add return flights for round trip support
+  app.post("/api/add-return-flights", async (_req, res) => {
+    try {
+      const { addReturnFlights } = await import('./add-return-flights');
+      await addReturnFlights();
+
+      res.json({ 
+        success: true, 
+        message: "Return flights added successfully" 
+      });
+    } catch (error) {
+      console.error('Return flights migration error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to add return flights" 
       });
     }
   });

@@ -155,23 +155,36 @@ export class DatabaseStorage implements IStorage {
 
   // Flights
   async getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]> {
-    const conditions = [];
-    if (origin) conditions.push(eq(flights.origin, origin));
-    if (destination) conditions.push(eq(flights.destination, destination));
+    let query = db.select().from(flights);
+
+    if (origin) {
+      query = query.where(eq(flights.origin, origin));
+    }
+
+    if (destination) {
+      query = query.where(eq(flights.destination, destination));
+    }
+
     if (departureDate) {
       const startOfDay = new Date(departureDate);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(departureDate);
       endOfDay.setHours(23, 59, 59, 999);
-      conditions.push(gte(flights.departureTime, startOfDay));
-      conditions.push(lte(flights.departureTime, endOfDay));
+
+      query = query.where(
+        and(
+          gte(flights.departureTime, startOfDay),
+          lte(flights.departureTime, endOfDay)
+        )
+      );
     }
 
-    if (conditions.length > 0) {
-      return await db.select().from(flights).where(and(...conditions));
-    }
+    return await query;
+  }
 
-    return await db.select().from(flights);
+  async getReturnFlights(destination: string, origin: string, returnDate?: Date) {
+    // For return flights, origin and destination are swapped
+    return this.getFlights(destination, origin, returnDate);
   }
 
   async getFlight(id: number): Promise<Flight | undefined> {
