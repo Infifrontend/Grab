@@ -547,7 +547,7 @@ export default function BookingDetails() {
                       {comprehensiveData?.paymentInfo?.paymentMethod || 'To be determined'}
                     </Text>
                   </div>
-                  <Text className="text-xl font-semibold text-orange-600">
+                  <Text className={`text-xl font-semibold ${booking.bookingStatus === 'confirmed' ? 'text-green-600' : 'text-orange-600'}`}>
                     {booking.bookingStatus === 'confirmed' ? 'Confirmed' : 'Pending'}
                   </Text>
                 </div>
