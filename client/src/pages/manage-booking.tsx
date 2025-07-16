@@ -36,7 +36,7 @@ export default function ManageBooking() {
     })
     .slice(0, 3) || [];
 
-  const handleFindBooking = () => {
+  const handleFindBooking = async () => {
     console.log('Finding booking:', { bookingId, email });
 
     if (!bookingId) {
@@ -44,15 +44,32 @@ export default function ManageBooking() {
       return;
     }
 
-    // Find the booking that matches the entered booking ID
-    const foundBooking = bookings?.find(booking => booking.bookingId === bookingId);
+    if (!email) {
+      message.error('Please enter your email address.');
+      return;
+    }
 
-    if (foundBooking) {
-      // Navigate to the manage booking page for the found booking
-      setLocation(`/manage-booking/${foundBooking.id}`);
-    } else {
-      // Display an error message if the booking is not found
-      message.error('Booking not found. Please check your booking ID and email.');
+    try {
+      // Fetch booking details from the API using the booking ID
+      const response = await fetch(`/api/booking-details/${bookingId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          message.error('Booking not found. Please check your booking ID and email.');
+        } else {
+          message.error('Error fetching booking details. Please try again.');
+        }
+        return;
+      }
+
+      const bookingDetails = await response.json();
+      
+      // Navigate to the booking details page with the retrieved data
+      setLocation(`/booking-details/${bookingId}`);
+      
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+      message.error('Error fetching booking details. Please try again.');
     }
   };
 
