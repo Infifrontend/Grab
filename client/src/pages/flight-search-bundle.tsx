@@ -215,6 +215,9 @@ export default function FlightSearchBundle() {
         const returnFlightsData = JSON.parse(returnSearchResults);
         console.log("Loaded return flights:", returnFlightsData);
         setReturnFlights(returnFlightsData);
+      } else {
+        // Ensure returnFlights is empty array if no data
+        setReturnFlights([]);
       }
 
       // Load search criteria
@@ -757,6 +760,13 @@ export default function FlightSearchBundle() {
           setSelectedOutbound("");
         }
 
+        // Set the first return flight as selected by default if available
+        if (processedReturnFlights.length > 0) {
+          setSelectedReturn(processedReturnFlights[0].id.toString());
+        } else {
+          setSelectedReturn("");
+        }
+
         // Update localStorage with new search results and criteria
         localStorage.setItem("searchResults", JSON.stringify(processedFlights));
         localStorage.setItem("returnFlights", JSON.stringify(processedReturnFlights));
@@ -813,7 +823,7 @@ export default function FlightSearchBundle() {
   const selectedOutboundFlight = availableFlights.find(
     (f) => f.id.toString() === selectedOutbound,
   );
-  const selectedReturnFlight = availableFlights.find(
+  const selectedReturnFlight = returnFlights.find(
     (f) => f.id.toString() === selectedReturn,
   );
   const selectedSeatOption = seatOptions.find((s) => s.id === selectedSeat);
@@ -826,7 +836,7 @@ export default function FlightSearchBundle() {
       ? parseFloat(selectedOutboundFlight.price)
       : selectedOutboundFlight?.price || 0) *
       passengerCount +
-    (tripType === "roundTrip"
+    (tripType === "roundTrip" && selectedReturnFlight
       ? (typeof selectedReturnFlight?.price === "string"
           ? parseFloat(selectedReturnFlight.price)
           : selectedReturnFlight?.price || 0) * passengerCount
