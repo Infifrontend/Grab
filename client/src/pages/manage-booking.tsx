@@ -89,8 +89,7 @@ export default function ManageBooking() {
       const bookingDetails = await response.json();
 
       // Navigate to the booking details page with the retrieved data
-      // setLocation(`/booking-details/${bookingId}`);
-      setLocation(`/manage-booking/2`);
+      setLocation(`/manage-booking/${bookingId}`);
     } catch (error) {
       console.error("Error fetching booking:", error);
       message.error("Error fetching booking details. Please try again.");

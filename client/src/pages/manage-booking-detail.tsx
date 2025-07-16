@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider } from 'antd';
+import React, { useState } from 'react';
+import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider, Spin, Alert } from 'antd';
 import { DownloadOutlined, PlusOutlined, UploadOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -14,32 +14,79 @@ export default function ManageBookingDetail() {
   const [, params] = useRoute("/manage-booking/:id");
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("basic-info");
-  const [groupSize, setGroupSize] = useState(32);
-  const [passengers, setPassengers] = useState([
-    { firstName: 'John', lastName: 'Smith' },
-    { firstName: 'Jane', lastName: 'Doe' },
-    { firstName: 'Mike', lastName: 'Johnson' },
-    { firstName: '', lastName: '' },
-  ]);
   const [paymentAmount, setPaymentAmount] = useState('4500.00');
   const [paymentMethod, setPaymentMethod] = useState('Credit Card');
 
-  const { data: bookings } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
+  // Get booking ID from URL params
+  const bookingId = params?.id;
+
+  // Fetch booking details from API
+  const { data: bookingDetails, isLoading, error } = useQuery({
+    queryKey: ["/api/booking-details", bookingId],
+    queryFn: async () => {
+      if (!bookingId) throw new Error("No booking ID provided");
+      const response = await fetch(`/api/booking-details/${bookingId}`);
+      if (!response.ok) throw new Error("Failed to fetch booking details");
+      return response.json();
+    },
+    enabled: !!bookingId,
   });
 
-  // Find the booking by ID or use mock data
-  const booking = bookings?.find((b) => b.id.toString() === params?.id) || {
-    id: 1,
-    bookingId: "GR-2024-1001",
-    userId: 1,
-    groupType: "Corporate",
-    route: "New York to London",
-    date: "2024-06-15",
-    returnDate: "2024-06-22",
-    passengers: 32,
-    status: "confirmed",
-  };
+  // Initialize passengers state with fetched data
+  const [passengers, setPassengers] = useState([
+    { firstName: '', lastName: '' },
+  ]);
+
+  // Update passengers when booking data is loaded
+  React.useEffect(() => {
+    if (bookingDetails?.passengers && bookingDetails.passengers.length > 0) {
+      setPassengers(bookingDetails.passengers.map(p => ({
+        firstName: p.firstName || '',
+        lastName: p.lastName || ''
+      })));
+    }
+  }, [bookingDetails]);
+
+  // Get group size from booking data
+  const groupSize = bookingDetails?.booking?.passengerCount || 1;
+  const [currentGroupSize, setCurrentGroupSize] = useState(groupSize);
+
+  React.useEffect(() => {
+    setCurrentGroupSize(groupSize);
+  }, [groupSize]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
+          <Spin size="large" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !bookingDetails) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <Alert
+            message="Booking Not Found"
+            description="The booking you're looking for could not be found."
+            type="error"
+            showIcon
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const { booking, passengers: fetchedPassengers, flightData, comprehensiveData } = bookingDetails;
+  
+  // Parse comprehensive data for detailed information
+  const groupLeaderData = comprehensiveData?.groupLeaderInfo;
+  const selectedServices = comprehensiveData?.selectedServices || [];
 
   const handleAddPassenger = () => {
     setPassengers([...passengers, { firstName: '', lastName: '' }]);
@@ -147,7 +194,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Booking ID</Text>
                     <Input
-                      value={booking.bookingId}
+                      value={booking.bookingReference || booking.bookingId || bookingId}
                       disabled
                       className="w-full"
                     />
@@ -156,8 +203,8 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Group Leader Name</Text>
                     <Input
-                      placeholder="John Smith"
-                      defaultValue="John Smith"
+                      placeholder="Enter group leader name"
+                      defaultValue={groupLeaderData?.name || groupLeaderData?.firstName || ""}
                       className="w-full"
                     />
                   </div>
@@ -166,8 +213,8 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Text className="block mb-2 text-gray-700 font-medium">Contact Email</Text>
                     <Input
                       type="email"
-                      placeholder="john.smith@example.com"
-                      defaultValue="john.smith@example.com"
+                      placeholder="Enter contact email"
+                      defaultValue={groupLeaderData?.email || ""}
                       className="w-full"
                     />
                   </div>
@@ -175,8 +222,8 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Contact Phone</Text>
                     <Input
-                      placeholder="+1 (555) 123-4567"
-                      defaultValue="+1 (555) 123-4567"
+                      placeholder="Enter contact phone"
+                      defaultValue={groupLeaderData?.phone || ""}
                       className="w-full"
                     />
                   </div>
@@ -198,7 +245,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Text className="block mb-2 text-gray-700 font-medium">Current Group Size</Text>
                     <Text className="text-gray-600 text-sm block mb-2">Confirmed passengers</Text>
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-                      <Text className="text-green-700 font-semibold text-lg">{groupSize} passengers</Text>
+                      <Text className="text-green-700 font-semibold text-lg">{currentGroupSize} passengers</Text>
                     </div>
                   </div>
 
@@ -208,20 +255,20 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Text className="text-gray-600 text-sm block mb-3">Add or remove passengers</Text>
                     <div className="flex items-center gap-3">
                       <Button 
-                        onClick={() => setGroupSize(Math.max(1, groupSize - 1))}
+                        onClick={() => setCurrentGroupSize(Math.max(1, currentGroupSize - 1))}
                         className="w-10 h-10 flex items-center justify-center"
                       >
                         -
                       </Button>
                       <InputNumber
-                        value={groupSize}
-                        onChange={(value) => setGroupSize(value || 1)}
+                        value={currentGroupSize}
+                        onChange={(value) => setCurrentGroupSize(value || 1)}
                         min={1}
                         className="text-center"
                         style={{ width: '80px' }}
                       />
                       <Button 
-                        onClick={() => setGroupSize(groupSize + 1)}
+                        onClick={() => setCurrentGroupSize(currentGroupSize + 1)}
                         className="w-10 h-10 flex items-center justify-center"
                       >
                         +
@@ -529,19 +576,25 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                 <Col xs={24} md={8}>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                     <Text className="text-blue-600 font-medium block mb-1">Total Booking Amount</Text>
-                    <Text className="text-2xl font-bold text-blue-600">₹8,500.00</Text>
+                    <Text className="text-2xl font-bold text-blue-600">
+                      ₹{parseFloat(booking.totalAmount || '0').toLocaleString()}
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                     <Text className="text-green-600 font-medium block mb-1">Amount Paid</Text>
-                    <Text className="text-2xl font-bold text-green-600">₹4,000.00</Text>
+                    <Text className="text-2xl font-bold text-green-600">
+                      ₹{(parseFloat(booking.totalAmount || '0') * (booking.paymentStatus === 'completed' ? 1 : 0.5)).toLocaleString()}
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                     <Text className="text-orange-600 font-medium block mb-1">Remaining Balance</Text>
-                    <Text className="text-2xl font-bold text-orange-600">₹4,500.00</Text>
+                    <Text className="text-2xl font-bold text-orange-600">
+                      ₹{(parseFloat(booking.totalAmount || '0') * (booking.paymentStatus === 'completed' ? 0 : 0.5)).toLocaleString()}
+                    </Text>
                   </div>
                 </Col>
               </Row>
