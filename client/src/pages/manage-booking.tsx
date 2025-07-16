@@ -122,7 +122,6 @@ export default function ManageBooking() {
                   size="large"
                   icon={<SearchOutlined />}
                   onClick={handleFindBooking}
-                  disabled={!bookingId.trim() || !email.trim()}
                   className="w-full infiniti-btn-primary"
                 >
                   Find Booking
