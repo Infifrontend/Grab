@@ -424,6 +424,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Migrate flight booking columns
+  app.post("/api/migrate-flight-booking-columns", async (_req, res) => {
+    try {
+      const { migrateFlightBookingColumns } = await import('./migrate-flight-booking-columns');
+      await migrateFlightBookingColumns();
+
+      res.json({ 
+        success: true, 
+        message: "Flight booking columns migration completed successfully" 
+      });
+    } catch (error) {
+      console.error('Flight booking columns migration error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to migrate flight booking columns" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
