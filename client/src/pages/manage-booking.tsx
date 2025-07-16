@@ -27,6 +27,11 @@ export default function ManageBooking() {
     refetchFlightBookings();
   }, [refetchFlightBookings]);
 
+  // Get recent bookings sorted by created_at
+  const recentBookings = bookings?.slice()
+    .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+    .slice(0, 3) || [];
+
   const handleFindBooking = () => {
     console.log('Finding booking:', { bookingId, email });
 
@@ -171,7 +176,7 @@ export default function ManageBooking() {
           <Title level={4} className="!mb-6 text-gray-900">Recent Bookings</Title>
 
           <Row gutter={[24, 24]}>
-            {bookings?.slice(0, 3).map((booking) => (
+            {recentBookings.map((booking) => (
               <Col xs={24} lg={8} key={booking.id}>
                 <Card className="h-full hover:shadow-md transition-shadow">
                   <div className="mb-4">

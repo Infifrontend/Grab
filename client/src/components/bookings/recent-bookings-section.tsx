@@ -9,6 +9,15 @@ export default function RecentBookingsSection() {
   const { data: flightBookings, isLoading } = useQuery({
     queryKey: ["/api/recent-flight-bookings"],
   });
+
+  // Sort and limit to last 3 bookings based on creation date
+  const recentFlightBookings = flightBookings?.slice()
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || a.bookedAt || 0);
+      const dateB = new Date(b.createdAt || b.bookedAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, 3) || [];
   const [, setLocation] = useLocation();
 
   const getStatusColor = (status: string) => {
@@ -61,7 +70,11 @@ export default function RecentBookingsSection() {
       render: (date) => {
         if (!date) return 'N/A';
         try {
-          return format(new Date(date), "MMM dd, yyyy");
+          const dateObj = new Date(date);
+          if (isNaN(dateObj.getTime())) {
+            return 'Invalid Date';
+          }
+          return format(dateObj, "MMM dd, yyyy");
         } catch (error) {
           console.error('Error formatting date:', date, error);
           return 'Invalid Date';
@@ -115,7 +128,7 @@ export default function RecentBookingsSection() {
       <div className="p-6">
         <Table
           columns={columns}
-          dataSource={flightBookings || []}
+          dataSource={recentFlightBookings}
           loading={isLoading}
           rowKey="id"
           pagination={false}
