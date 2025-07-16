@@ -115,7 +115,10 @@ export default function RecentBookingsSection() {
       <div className="p-6">
         <Table
           columns={columns}
-          dataSource={flightBookings?.slice(0, 5) || []}
+          dataSource={flightBookings?.sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }).slice(0, 5) || []}
           loading={isLoading}
           rowKey="id"
           pagination={false}
