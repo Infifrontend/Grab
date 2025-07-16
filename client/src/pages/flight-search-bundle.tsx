@@ -215,6 +215,11 @@ export default function FlightSearchBundle() {
         const returnFlightsData = JSON.parse(returnSearchResults);
         console.log("Loaded return flights:", returnFlightsData);
         setReturnFlights(returnFlightsData);
+        
+        // Set the first return flight as selected by default if available and none selected
+        if (returnFlightsData.length > 0 && !selectedReturn) {
+          setSelectedReturn(returnFlightsData[0].id.toString());
+        }
       } else {
         // Ensure returnFlights is empty array if no data
         setReturnFlights([]);
@@ -1566,8 +1571,15 @@ export default function FlightSearchBundle() {
                               <Text className="text-gray-500">
                                 {returnFlights.length === 0
                                   ? "No return flights found for your search criteria"
-                                  : "No return flights match your current filters"}
+                                  : "No return flights match your current filters. Try adjusting your filters."}
                               </Text>
+                              {returnFlights.length > 0 && (
+                                <div className="mt-4">
+                                  <Text className="text-sm text-gray-400">
+                                    Found {returnFlights.length} return flights total, but {filteredReturnFlights.length} match current filters
+                                  </Text>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
