@@ -70,6 +70,21 @@ export interface IStorage {
 // DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
+  async updateBookingDetails(bookingId: number, updates: any) {
+    try {
+      const result = await db
+        .update(flightBookings)
+        .set(updates)
+        .where(eq(flightBookings.id, bookingId))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('Error updating booking details:', error);
+      throw error;
+    }
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -210,31 +225,15 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
-  async createFlightBooking(bookingData: any): Promise<FlightBooking> {
-    const [newBooking] = await db.insert(flightBookings)
-      .values({
-        ...bookingData,
-        flightNumber: bookingData.flightNumber || null,
-        airlineName: bookingData.airlineName || null,
-        arrivalTime: bookingData.arrivalTime || null
-      })
-      .returning();
+  async createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking> {
+    const [newBooking] = await db.insert(flightBookings).values(booking).returning();
     return newBooking;
   }
 
-  async updateBookingDetails(bookingId: number, updates: any): Promise<any> {
-    try {
-      const result = await db
-        .update(flightBookings)
-        .set(updates)
-        .where(eq(flightBookings.id, bookingId))
-        .returning();
-
-      return result[0];
-    } catch (error) {
-      console.error('Error updating booking details:', error);
-      throw error;
-    }
+  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
+    await db.update(flightBookings)
+      .set(updates)
+      .where(eq(flightBookings.id, bookingId));
   }
 
   // Passengers
