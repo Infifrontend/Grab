@@ -194,7 +194,7 @@ export default function ManageBooking() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarOutlined className="text-sm" />
                       <Text className="text-sm">
-                        Departure: {format(new Date(booking.date), 'dd MMM yyyy')}
+                        Departure: {booking.date ? format(new Date(booking.date), 'dd MMM yyyy') : 'N/A'}
                       </Text>
                     </div>
 
@@ -202,7 +202,7 @@ export default function ManageBooking() {
                       <div className="flex items-center gap-2 text-gray-600">
                         <CalendarOutlined className="text-sm" />
                         <Text className="text-sm">
-                          Return: {format(new Date(booking.returnDate), 'dd MMM yyyy')}
+                          Return: {booking.returnDate ? format(new Date(booking.returnDate), 'dd MMM yyyy') : 'N/A'}
                         </Text>
                       </div>
                     )}
