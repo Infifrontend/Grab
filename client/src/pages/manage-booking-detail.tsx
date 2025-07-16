@@ -154,18 +154,10 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   </div>
 
                   <div>
-                    <Text className="block mb-2 text-gray-700 font-medium">Group Name</Text>
+                    <Text className="block mb-2 text-gray-700 font-medium">Group Leader Name</Text>
                     <Input
-                      placeholder="ABC Corporation Annual Meeting"
-                      defaultValue="ABC Corporation Annual Meeting"
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <Text className="block mb-2 text-gray-700 font-medium">Group Type</Text>
-                    <Input
-                      defaultValue="Corporate"
+                      placeholder="John Smith"
+                      defaultValue="John Smith"
                       className="w-full"
                     />
                   </div>
