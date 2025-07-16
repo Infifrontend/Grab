@@ -6,8 +6,8 @@ import type { ColumnsType } from "antd/es/table";
 import { useLocation } from "wouter";
 
 export default function RecentBookingsSection() {
-  const { data: bookings, isLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
+  const { data: flightBookings, isLoading } = useQuery({
+    queryKey: ["/api/flight-bookings"],
   });
   const [, setLocation] = useLocation();
 
@@ -27,21 +27,21 @@ export default function RecentBookingsSection() {
   const getStatusClassName = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "status-confirmed";
+        return "text-green-600 font-semibold";
       case "cancelled":
-        return "status-cancelled";
+        return "text-red-600 font-semibold";
       case "pending":
-        return "status-pending";
+        return "text-orange-600 font-semibold";
       default:
-        return "";
+        return "text-gray-600";
     }
   };
 
-  const columns: ColumnsType<Booking> = [
+  const columns: ColumnsType<any> = [
     {
-      title: "Booking ID",
-      dataIndex: "bookingId",
-      key: "bookingId",
+      title: "Booking Reference",
+      dataIndex: "bookingReference",
+      key: "bookingReference",
       render: (text) => (
         <span className="font-semibold text-[var(--infiniti-primary)]">
           {text}
@@ -49,26 +49,27 @@ export default function RecentBookingsSection() {
       ),
     },
     {
-      title: "Route",
-      dataIndex: "route",
-      key: "route",
+      title: "Amount",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      render: (amount) => amount ? `₹${parseFloat(amount).toLocaleString()}` : 'N/A',
     },
     {
       title: "Date",
-      dataIndex: "date",
-      key: "date",
+      dataIndex: "createdAt",
+      key: "createdAt",
       render: (date) => format(new Date(date), "MMM dd, yyyy"),
     },
     {
       title: "Passengers",
-      dataIndex: "passengers",
-      key: "passengers",
-      render: (passengers) => `${passengers} passengers`,
+      dataIndex: "passengerCount",
+      key: "passengerCount",
+      render: (count) => `${count} passengers`,
     },
     {
       title: "Status",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "bookingStatus",
+      key: "bookingStatus",
       render: (status) => (
         <span className={`${getStatusClassName(status)} capitalize`}>
           {status}
@@ -84,11 +85,10 @@ export default function RecentBookingsSection() {
           className="text-[var(--infiniti-primary)] font-medium hover:underline"
           onClick={(e) => {
             e.preventDefault();
-            setLocation(`/manage-booking/${2}`);
-            console.log("Manage booking:", record.id);
+            setLocation(`/booking-details/${record.bookingReference}`);
           }}
         >
-          Manage booking
+          View Details
         </a>
       ),
     },
@@ -107,7 +107,7 @@ export default function RecentBookingsSection() {
       <div className="p-6">
         <Table
           columns={columns}
-          dataSource={bookings}
+          dataSource={flightBookings?.slice(0, 5) || []}
           loading={isLoading}
           rowKey="id"
           pagination={false}
