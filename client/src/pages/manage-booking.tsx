@@ -4,7 +4,6 @@ import { SearchOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from '@a
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
-import { format } from 'date-fns';
 import Header from "@/components/layout/header";
 import type { Booking } from '@shared/schema';
 
