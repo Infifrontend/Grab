@@ -225,14 +225,17 @@ export default function AddServicesBundles() {
     // Calculate selected services data
     const selectedServices = [];
 
+    // Combine all bundles
+    const allBundles = [...premiumBundles, ...standardBundles];
+
     // Add selected bundles
     selectedBundles.forEach((bundleId) => {
-      const bundle = bundles.find((b) => b.id === bundleId);
+      const bundle = allBundles.find((b) => b.id === bundleId);
       if (bundle) {
         selectedServices.push({
           id: bundle.id,
           name: bundle.name,
-          price: bundle.price,
+          price: bundle.discountedPrice,
           type: "bundle",
         });
       }
