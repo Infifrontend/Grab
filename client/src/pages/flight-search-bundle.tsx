@@ -1666,15 +1666,15 @@ export default function FlightSearchBundle() {
                           <span>🛬</span>
                           Return Flight
                           <Badge
-                            count={returnFlights.length}
+                            count={filteredReturnFlights.length}
                             style={{ backgroundColor: "#52c41a" }}
                           />
                         </span>
                       ),
                       children: (
                         <div className="space-y-4">
-                          {filteredFlights.length > 0 ? (
-                            filteredFlights.map((flight) => (
+                          {filteredReturnFlights.length > 0 ? (
+                            filteredReturnFlights.map((flight) => (
                               <FlightCard
                                 key={flight.id}
                                 flight={flight}
@@ -1689,9 +1689,17 @@ export default function FlightSearchBundle() {
                           ) : (
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
-                                No outbound flights found for your search
-                                criteria
+                                {returnFlights.length === 0
+                                  ? "No return flights found for your search criteria"
+                                  : "No return flights match your current filters. Try adjusting your filters."}
                               </Text>
+                              {returnFlights.length > 0 && (
+                                <div className="mt-4">
+                                  <Text className="text-sm text-gray-400">
+                                    Found {returnFlights.length} return flights total, but {filteredReturnFlights.length} match current filters
+                                  </Text>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
