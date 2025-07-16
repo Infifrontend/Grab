@@ -449,6 +449,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update booking details (group leader info)
+  app.put("/api/booking-details/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { groupLeaderName, groupLeaderEmail, groupLeaderPhone } = req.body;
+
+      // Find the booking by ID or reference
+      let booking = await storage.getFlightBookingByReference(id);
+      if (!booking) {
+        const allFlightBookings = await storage.getFlightBookings();
+        booking = allFlightBookings.find(b => b.id.toString() === id);
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Parse existing comprehensive data if available
+      let comprehensiveData = {};
+      if (booking.specialRequests) {
+        try {
+          comprehensiveData = JSON.parse(booking.specialRequests);
+        } catch (e) {
+          // If parsing fails, start with empty object
+        }
+      }
+
+      // Update group leader information
+      comprehensiveData.groupLeaderInfo = {
+        ...comprehensiveData.groupLeaderInfo,
+        name: groupLeaderName,
+        email: groupLeaderEmail,
+        phone: groupLeaderPhone,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Save back to database
+      await storage.updateBookingDetails(booking.id, {
+        specialRequests: JSON.stringify(comprehensiveData)
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Group leader information updated successfully" 
+      });
+    } catch (error) {
+      console.error("Error updating booking details:", error);
+      res.status(500).json({ message: "Failed to update booking details" });
+    }
+  });
+
+  // Update passengers for a booking
+  app.put("/api/booking-passengers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { passengers } = req.body;
+
+      // Find the booking by ID or reference
+      let booking = await storage.getFlightBookingByReference(id);
+      if (!booking) {
+        const allFlightBookings = await storage.getFlightBookings();
+        booking = allFlightBookings.find(b => b.id.toString() === id);
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Get existing passengers
+      const existingPassengers = await storage.getPassengersByBooking(booking.id);
+
+      // Update existing passengers or create new ones
+      for (let i = 0; i < passengers.length; i++) {
+        const passengerData = passengers[i];
+        
+        if (existingPassengers[i]) {
+          // Update existing passenger
+          await storage.updatePassenger(existingPassengers[i].id, {
+            firstName: passengerData.firstName,
+            lastName: passengerData.lastName
+          });
+        } else {
+          // Create new passenger
+          await storage.createPassenger({
+            bookingId: booking.id,
+            title: 'Mr',
+            firstName: passengerData.firstName,
+            lastName: passengerData.lastName,
+            dateOfBirth: new Date('1990-01-01'), // Default date
+            nationality: 'Indian' // Default nationality
+          });
+        }
+      }
+
+      // Remove excess passengers if the new list is shorter
+      if (existingPassengers.length > passengers.length) {
+        for (let i = passengers.length; i < existingPassengers.length; i++) {
+          await storage.deletePassenger(existingPassengers[i].id);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Passengers updated successfully" 
+      });
+    } catch (error) {
+      console.error("Error updating passengers:", error);
+      res.status(500).json({ message: "Failed to update passengers" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -37,6 +37,13 @@ export default function ManageBookingDetail() {
     { firstName: '', lastName: '' },
   ]);
 
+  // State for group leader information
+  const [groupLeaderInfo, setGroupLeaderInfo] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+
   // Update passengers when booking data is loaded
   React.useEffect(() => {
     if (bookingDetails?.passengers && bookingDetails.passengers.length > 0) {
@@ -44,6 +51,18 @@ export default function ManageBookingDetail() {
         firstName: p.firstName || '',
         lastName: p.lastName || ''
       })));
+    }
+  }, [bookingDetails]);
+
+  // Update group leader info when booking data is loaded
+  React.useEffect(() => {
+    if (bookingDetails?.comprehensiveData?.groupLeaderInfo) {
+      const groupLeaderData = bookingDetails.comprehensiveData.groupLeaderInfo;
+      setGroupLeaderInfo({
+        name: groupLeaderData.name || groupLeaderData.firstName || '',
+        email: groupLeaderData.email || '',
+        phone: groupLeaderData.phone || groupLeaderData.phoneNumber || ''
+      });
     }
   }, [bookingDetails]);
 
@@ -103,8 +122,45 @@ export default function ManageBookingDetail() {
     setLocation('/manage-booking');
   };
 
-  const handleSaveChanges = () => {
-    message.success('Changes saved successfully');
+  const handleSaveChanges = async () => {
+    try {
+      // Save group leader information
+      const groupLeaderResponse = await fetch(`/api/booking-details/${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupLeaderName: groupLeaderInfo.name,
+          groupLeaderEmail: groupLeaderInfo.email,
+          groupLeaderPhone: groupLeaderInfo.phone,
+        }),
+      });
+
+      if (!groupLeaderResponse.ok) {
+        throw new Error('Failed to update group leader information');
+      }
+
+      // Save passenger information
+      const passengersResponse = await fetch(`/api/booking-passengers/${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          passengers: passengers.filter(p => p.firstName.trim() || p.lastName.trim())
+        }),
+      });
+
+      if (!passengersResponse.ok) {
+        throw new Error('Failed to update passenger information');
+      }
+
+      message.success('Changes saved successfully');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      message.error('Failed to save changes. Please try again.');
+    }
   };
 
   const handleMakePayment = () => {
@@ -217,7 +273,8 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     <Text className="block mb-2 text-gray-700 font-medium">Group Leader Name</Text>
                     <Input
                       placeholder="Enter group leader name"
-                      defaultValue={groupLeaderData?.name || groupLeaderData?.firstName || ""}
+                      value={groupLeaderInfo.name}
+                      onChange={(e) => setGroupLeaderInfo(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full"
                     />
                   </div>
@@ -227,7 +284,8 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     <Input
                       type="email"
                       placeholder="Enter group leader contact email"
-                      defaultValue={groupLeaderData?.email || ""}
+                      value={groupLeaderInfo.email}
+                      onChange={(e) => setGroupLeaderInfo(prev => ({ ...prev, email: e.target.value }))}
                       className="w-full"
                     />
                   </div>
@@ -236,7 +294,8 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     <Text className="block mb-2 text-gray-700 font-medium">Group Leader Contact Phone</Text>
                     <Input
                       placeholder="Enter group leader contact phone"
-                      defaultValue={groupLeaderData?.phone || groupLeaderData?.phoneNumber || ""}
+                      value={groupLeaderInfo.phone}
+                      onChange={(e) => setGroupLeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
                       className="w-full"
                     />
                   </div>
