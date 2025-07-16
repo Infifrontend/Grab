@@ -802,7 +802,8 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       onChange={setPaymentMethod}
                       className="w-full"
                     >
-                      <Option value="Credit Card">Credit Card</Option                      <Option value="Bank Transfer">Bank Transfer</Option>
+                      <Option value="Credit Card">Credit Card</Option>
+                      <Option value="Bank Transfer">Bank Transfer</Option>
                       <Option value="PayPal">PayPal</Option>
                     </Select>
                   </div>
