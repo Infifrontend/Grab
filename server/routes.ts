@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      // Try to find in flight bookings first
+      // Try to find in flight bookings first by booking reference
       let booking = await storage.getFlightBookingByReference(id);
       let passengers = [];
       let flightData = null;
@@ -244,6 +244,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.json({ 
           booking, 
+          passengers, 
+          flightData,
+          comprehensiveData
+        });
+      }
+      
+      // If not found by reference, try by ID
+      const allFlightBookings = await storage.getFlightBookings();
+      const flightBookingById = allFlightBookings.find(b => b.id.toString() === id);
+      
+      if (flightBookingById) {
+        passengers = await storage.getPassengersByBooking(flightBookingById.id);
+        flightData = await storage.getFlight(flightBookingById.flightId);
+        
+        if (flightBookingById.specialRequests) {
+          try {
+            comprehensiveData = JSON.parse(flightBookingById.specialRequests);
+          } catch (e) {
+            // If parsing fails, ignore and use basic data
+          }
+        }
+        
+        return res.json({ 
+          booking: flightBookingById, 
           passengers, 
           flightData,
           comprehensiveData

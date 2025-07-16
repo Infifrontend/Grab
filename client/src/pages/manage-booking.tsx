@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Input, Button, Typography, Space, Badge } from 'antd';
+import { Card, Row, Col, Typography, Space, Input, Button, Badge, Spin, message } from 'antd';
 import { SearchOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
@@ -29,8 +29,22 @@ export default function ManageBooking() {
 
   const handleFindBooking = () => {
     console.log('Finding booking:', { bookingId, email });
-    // Navigate to manage-booking/1 after finding booking
-    setLocation('/manage-booking/1');
+
+    if (!bookingId) {
+      message.error('Please enter a booking ID.');
+      return;
+    }
+
+    // Find the booking that matches the entered booking ID
+    const foundBooking = bookings?.find(booking => booking.bookingId === bookingId);
+
+    if (foundBooking) {
+      // Navigate to the manage booking page for the found booking
+      setLocation(`/manage-booking/${foundBooking.id}`);
+    } else {
+      // Display an error message if the booking is not found
+      message.error('Booking not found. Please check your booking ID and email.');
+    }
   };
 
   const handleManageBooking = (booking: Booking) => {
