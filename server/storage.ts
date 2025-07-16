@@ -41,6 +41,7 @@ export interface IStorage {
   getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
   updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
+  updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void>;
 
   // Passengers
   getPassengersByBooking(bookingId: number): Promise<Passenger[]>;
@@ -70,20 +71,6 @@ export interface IStorage {
 // DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
-  async updateBookingDetails(bookingId: number, updates: any) {
-    try {
-      const result = await db
-        .update(flightBookings)
-        .set(updates)
-        .where(eq(flightBookings.id, bookingId))
-        .returning();
-
-      return result[0];
-    } catch (error) {
-      console.error('Error updating booking details:', error);
-      throw error;
-    }
-  }
 
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -155,14 +142,14 @@ export class DatabaseStorage implements IStorage {
 
   // Flights
   async getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]> {
-    let query = db.select().from(flights);
+    const conditions = [];
 
     if (origin) {
-      query = query.where(eq(flights.origin, origin));
+      conditions.push(eq(flights.origin, origin));
     }
 
     if (destination) {
-      query = query.where(eq(flights.destination, destination));
+      conditions.push(eq(flights.destination, destination));
     }
 
     if (departureDate) {
@@ -171,7 +158,7 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(departureDate);
       endOfDay.setHours(23, 59, 59, 999);
 
-      query = query.where(
+      conditions.push(
         and(
           gte(flights.departureTime, startOfDay),
           lte(flights.departureTime, endOfDay)
@@ -179,7 +166,11 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    return await query;
+    if (conditions.length > 0) {
+      return await db.select().from(flights).where(and(...conditions));
+    }
+
+    return await db.select().from(flights);
   }
 
   async getReturnFlights(destination: string, origin: string, returnDate?: Date) {
@@ -230,28 +221,18 @@ export class DatabaseStorage implements IStorage {
     return newBooking;
   }
 
-  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
-    await db.update(flightBookings)
-      .set(updates)
-      .where(eq(flightBookings.id, bookingId));
-  }
-
-  // Passengers
-  async getPassengersByBooking(bookingId: number): Promise<Passenger[]> {
-    return await db.select().from(passengers).where(eq(passengers.bookingId, bookingId));
-  }
-
-  async createPassenger(passenger: InsertPassenger): Promise<Passenger> {
-    const [newPassenger] = await db.insert(passengers).values(passenger).returning();
-    return newPassenger;
-  }
-
   async updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void> {
     const updateData: any = { bookingStatus: status, updatedAt: new Date() };
     if (paymentStatus) {
       updateData.paymentStatus = paymentStatus;
     }
     await db.update(flightBookings).set(updateData).where(eq(flightBookings.id, id));
+  }
+
+  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
+    await db.update(flightBookings)
+      .set(updates)
+      .where(eq(flightBookings.id, bookingId));
   }
 
   // Passengers
@@ -369,10 +350,12 @@ export class DatabaseStorage implements IStorage {
           destination: 'Mumbai',
           departureTime: new Date('2024-01-20T06:00:00'),
           arrivalTime: new Date('2024-01-20T08:30:00'),
-          duration: 150,
+          duration: '2h 30m',
+          price: '4500',
           availableSeats: 180,
-          baseCost: 4500,
-          cabinClass: 'Economy'
+          totalSeats: 180,
+          cabin: 'economy',
+          stops: 0
         },
         {
           flightNumber: 'SG201',
@@ -382,10 +365,12 @@ export class DatabaseStorage implements IStorage {
           destination: 'Bangalore',
           departureTime: new Date('2024-01-20T09:00:00'),
           arrivalTime: new Date('2024-01-20T11:00:00'),
-          duration: 120,
+          duration: '2h 0m',
+          price: '3800',
           availableSeats: 189,
-          baseCost: 3800,
-          cabinClass: 'Economy'
+          totalSeats: 189,
+          cabin: 'economy',
+          stops: 0
         },
         {
           flightNumber: 'UK301',
@@ -395,10 +380,12 @@ export class DatabaseStorage implements IStorage {
           destination: 'Bangalore',
           departureTime: new Date('2024-01-20T10:30:00'),
           arrivalTime: new Date('2024-01-20T13:00:00'),
-          duration: 150,
+          duration: '2h 30m',
+          price: '5200',
           availableSeats: 164,
-          baseCost: 5200,
-          cabinClass: 'Economy'
+          totalSeats: 164,
+          cabin: 'economy',
+          stops: 0
         }
       ];
 
