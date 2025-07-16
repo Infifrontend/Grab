@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider } from 'antd';
+import { Card, Row, Col, Typography, Space, Tabs, Input, Button, InputNumber, Upload, message, DatePicker, Select, Badge, Divider, Spin, Alert } from 'antd';
 import { DownloadOutlined, PlusOutlined, UploadOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -24,22 +24,50 @@ export default function ManageBookingDetail() {
   const [paymentAmount, setPaymentAmount] = useState('4500.00');
   const [paymentMethod, setPaymentMethod] = useState('Credit Card');
 
-  const { data: bookings } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
+  // Get booking details from the database
+  const { data: bookingDetails, isLoading, error } = useQuery({
+    queryKey: ["/api/booking-details", params?.id],
+    queryFn: async () => {
+      if (!params?.id) throw new Error("No booking ID provided");
+      const response = await fetch(`/api/booking-details/${params.id}`);
+      if (!response.ok) throw new Error("Failed to fetch booking details");
+      return response.json();
+    },
+    enabled: !!params?.id,
   });
 
-  // Find the booking by ID or use mock data
-  const booking = bookings?.find((b) => b.id.toString() === params?.id) || {
-    id: 1,
-    bookingId: "GR-2024-1001",
-    userId: 1,
-    groupType: "Corporate",
-    route: "New York to London",
-    date: "2024-06-15",
-    returnDate: "2024-06-22",
-    passengers: 32,
-    status: "confirmed",
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
+          <Spin size="large" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !bookingDetails) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <Alert
+            message="Booking Not Found"
+            description="The booking you're looking for could not be found."
+            type="error"
+            showIcon
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const { booking, passengers: bookingPassengers, flightData, comprehensiveData } = bookingDetails;
+  
+  // Parse comprehensive data for detailed information
+  const bookingData = comprehensiveData?.tripDetails;
+  const groupLeaderData = comprehensiveData?.groupLeaderInfo;
 
   const handleAddPassenger = () => {
     setPassengers([...passengers, { firstName: '', lastName: '' }]);
@@ -135,6 +163,80 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
         {/* Basic Info Tab */}
         {activeTab === "basic-info" && (
           <Row gutter={[24, 24]}>
+            {/* Flight Information */}
+            <Col xs={24} lg={12}>
+              <Card>
+                <div className="mb-6">
+                  <Title level={4} className="!mb-2 text-gray-900">Flight Information</Title>
+                  <Text className="text-gray-600">Outbound flight details</Text>
+                </div>
+
+                <Space direction="vertical" size="large" className="w-full">
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Airline</Text>
+                    <Input
+                      value={booking.airlineName || flightData?.airline || 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Flight Number</Text>
+                    <Input
+                      value={booking.flightNumber || flightData?.flightNumber || 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Aircraft</Text>
+                    <Input
+                      value={flightData?.aircraft || 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Departure</Text>
+                    <Input
+                      value={flightData?.departureTime 
+                        ? dayjs(flightData.departureTime).format('DD MMM YYYY, h:mm A')
+                        : bookingData?.departureDate
+                        ? dayjs(bookingData.departureDate).format('DD MMM YYYY')
+                        : 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Arrival</Text>
+                    <Input
+                      value={booking.arrivalTime 
+                        ? dayjs(booking.arrivalTime).format('DD MMM YYYY, h:mm A')
+                        : flightData?.arrivalTime
+                        ? dayjs(flightData.arrivalTime).format('DD MMM YYYY, h:mm A')
+                        : 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Route</Text>
+                    <Input
+                      value={`${flightData?.origin || bookingData?.origin || 'N/A'} → ${flightData?.destination || bookingData?.destination || 'N/A'}`}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+                </Space>
+              </Card>
+            </Col>
+
             {/* Booking Information */}
             <Col xs={24} lg={12}>
               <Card>
@@ -147,7 +249,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Booking ID</Text>
                     <Input
-                      value={booking.bookingId}
+                      value={booking.bookingReference || booking.bookingId}
                       disabled
                       className="w-full"
                     />
@@ -156,8 +258,8 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Group Name</Text>
                     <Input
-                      placeholder="ABC Corporation Annual Meeting"
-                      defaultValue="ABC Corporation Annual Meeting"
+                      placeholder="Enter group name"
+                      defaultValue={groupLeaderData?.groupName || "Group Booking"}
                       className="w-full"
                     />
                   </div>
@@ -165,7 +267,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Group Type</Text>
                     <Input
-                      defaultValue="Corporate"
+                      defaultValue={groupLeaderData?.groupType || "Corporate"}
                       className="w-full"
                     />
                   </div>
@@ -174,8 +276,8 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Text className="block mb-2 text-gray-700 font-medium">Contact Email</Text>
                     <Input
                       type="email"
-                      placeholder="john.smith@example.com"
-                      defaultValue="john.smith@example.com"
+                      placeholder="Enter contact email"
+                      defaultValue={groupLeaderData?.email || ""}
                       className="w-full"
                     />
                   </div>
@@ -183,8 +285,26 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                   <div>
                     <Text className="block mb-2 text-gray-700 font-medium">Contact Phone</Text>
                     <Input
-                      placeholder="+1 (555) 123-4567"
-                      defaultValue="+1 (555) 123-4567"
+                      placeholder="Enter contact phone"
+                      defaultValue={groupLeaderData?.phone || ""}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Booking Status</Text>
+                    <Input
+                      value={booking.bookingStatus?.charAt(0).toUpperCase() + booking.bookingStatus?.slice(1) || 'N/A'}
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Text className="block mb-2 text-gray-700 font-medium">Payment Status</Text>
+                    <Input
+                      value={booking.paymentStatus?.charAt(0).toUpperCase() + booking.paymentStatus?.slice(1) || 'N/A'}
+                      disabled
                       className="w-full"
                     />
                   </div>
@@ -206,7 +326,7 @@ Jennifer,Taylor,1987-10-03,J77889900,US,Female,Gluten-free meal`;
                     <Text className="block mb-2 text-gray-700 font-medium">Current Group Size</Text>
                     <Text className="text-gray-600 text-sm block mb-2">Confirmed passengers</Text>
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-                      <Text className="text-green-700 font-semibold text-lg">{groupSize} passengers</Text>
+                      <Text className="text-green-700 font-semibold text-lg">{booking.passengerCount || groupSize} passengers</Text>
                     </div>
                   </div>
 
