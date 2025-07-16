@@ -237,6 +237,7 @@ export default function FlightSearchBundle() {
         setPassengerCount(parseInt(passengerCount));
       }
 
+      // Initialize origin and destination from localStorage
       // Load booking form data from Quick Booking
       const bookingFormData = localStorage.getItem("bookingFormData");
       if (bookingFormData) {
@@ -271,8 +272,15 @@ export default function FlightSearchBundle() {
         setCabin(formData.cabin || "Economy");
       } else {
         // Fallback to individual localStorage items (from New Booking page)
-        setOrigin(localStorage.getItem("searchOrigin") || "");
-        setDestination(localStorage.getItem("searchDestination") || "");
+        const searchCriteriaData = localStorage.getItem("searchCriteria");
+        if (searchCriteriaData) {
+          const criteria = JSON.parse(searchCriteriaData);
+          setOrigin(criteria.origin || localStorage.getItem("searchOrigin") || "");
+          setDestination(criteria.destination || localStorage.getItem("searchDestination") || "");
+        } else {
+          setOrigin(localStorage.getItem("searchOrigin") || "");
+          setDestination(localStorage.getItem("searchDestination") || "");
+        }
 
         // Set trip type from selectedTripType
         const savedTripType = localStorage.getItem("selectedTripType");
@@ -564,114 +572,14 @@ export default function FlightSearchBundle() {
   const [showModifySearch, setShowModifySearch] = useState(false);
 
   // Modify search form state - initialize from bookingFormData (from QuickBooking form)
-  const [origin, setOrigin] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.origin || "";
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.origin || "";
-    }
-    return "";
-  });
-  const [destination, setDestination] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.destination || "";
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.destination || "";
-    }
-    return "";
-  });
-  const [departureDate, setDepartureDate] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.departureDate
-        ? dayjs(data.departureDate)
-        : dayjs().add(1, "day");
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.departureDate
-        ? dayjs(criteria.departureDate)
-        : dayjs().add(1, "day");
-    }
-    return dayjs().add(1, "day");
-  });
-  const [returnDate, setReturnDate] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.returnDate ? dayjs(data.returnDate) : null;
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.returnDate ? dayjs(criteria.returnDate) : null;
-    }
-    return null;
-  });
-  const [adults, setAdults] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.adults || 0;
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.adults || 0;
-    }
-    return 0;
-  });
-  const [kids, setKids] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.kids || 0;
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.kids || 0;
-    }
-    return 0;
-  });
-  const [infants, setInfants] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.infants || 0;
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.infants || 0;
-    }
-    return 0;
-  });
-  const [cabin, setCabin] = useState(() => {
-    const bookingData = localStorage.getItem("bookingFormData");
-    if (bookingData) {
-      const data = JSON.parse(bookingData);
-      return data.cabin || "economy";
-    }
-    const searchCriteria = localStorage.getItem("searchCriteria");
-    if (searchCriteria) {
-      const criteria = JSON.parse(searchCriteria);
-      return criteria.cabin || "economy";
-    }
-    return "economy";
-  });
+  const [origin, setOrigin] = useState<string>("");
+  const [destination, setDestination] = useState<string>("");
+  const [departureDate, setDepartureDate] = useState(dayjs().add(1, "day"));
+  const [returnDate, setReturnDate] = useState<any>(null);
+  const [adults, setAdults] = useState(0);
+  const [kids, setKids] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [cabin, setCabin] = useState("economy");
 
   const handleBackToTripDetails = () => {
     setLocation("/new-booking");
