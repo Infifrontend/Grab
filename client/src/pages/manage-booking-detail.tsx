@@ -90,6 +90,24 @@ export default function ManageBookingDetail() {
     }
   }, [bookingDetails]);
 
+  // Update passenger list when group size changes
+  React.useEffect(() => {
+    if (currentGroupSize > 0 && currentGroupSize !== passengers.length) {
+      if (currentGroupSize > passengers.length) {
+        // Add empty passenger slots
+        const newPassengers = [...passengers];
+        const passengersToAdd = currentGroupSize - passengers.length;
+        for (let i = 0; i < passengersToAdd; i++) {
+          newPassengers.push({ firstName: '', lastName: '' });
+        }
+        setPassengers(newPassengers);
+      } else if (currentGroupSize < passengers.length) {
+        // Remove excess passengers
+        setPassengers(passengers.slice(0, currentGroupSize));
+      }
+    }
+  }, [currentGroupSize, passengers.length]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -118,7 +136,7 @@ export default function ManageBookingDetail() {
   }
 
   const { booking, passengers: fetchedPassengers, flightData, comprehensiveData } = bookingDetails;
-  
+
   // Parse comprehensive data for detailed information
   const groupLeaderData = comprehensiveData?.groupLeaderInfo;
   const selectedServices = comprehensiveData?.selectedServices || [];
@@ -172,8 +190,26 @@ export default function ManageBookingDetail() {
         throw new Error('Failed to update passenger information');
       }
 
+      // Update group size if it has changed
+      const originalGroupSize = bookingDetails?.booking?.passengerCount || 1;
+      if (currentGroupSize !== originalGroupSize) {
+        const groupSizeResponse = await fetch(`/api/booking-group-size/${bookingId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            groupSize: currentGroupSize
+          }),
+        });
+
+        if (!groupSizeResponse.ok) {
+          throw new Error('Failed to update group size');
+        }
+      }
+
       message.success('Changes saved successfully');
-      
+
       // Refresh the booking details to reflect the changes
       window.location.reload();
     } catch (error) {
@@ -193,7 +229,7 @@ export default function ManageBookingDetail() {
   const handleDownloadCSVTemplate = () => {
     // Create CSV header with the required fields
     let csvContent = 'First Name,Last Name,Date of Birth,Passport Number,Nationality,Gender,Special Requirements\n';
-    
+
     // Add current passenger data if available
     if (passengers && passengers.length > 0) {
       passengers.forEach((passenger, index) => {
@@ -204,7 +240,7 @@ export default function ManageBookingDetail() {
         const nationality = passenger.nationality || '';
         const gender = passenger.gender || '';
         const specialRequirements = passenger.specialRequirements || passenger.specialRequests || '';
-        
+
         csvContent += `${firstName},${lastName},${dateOfBirth},${passportNumber},${nationality},${gender},"${specialRequirements}"\n`;
       });
     } else {
@@ -766,8 +802,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       onChange={setPaymentMethod}
                       className="w-full"
                     >
-                      <Option value="Credit Card">Credit Card</Option>
-                      <Option value="Bank Transfer">Bank Transfer</Option>
+                      <Option value="Credit Card">Credit Card</Option                      <Option value="Bank Transfer">Bank Transfer</Option>
                       <Option value="PayPal">PayPal</Option>
                     </Select>
                   </div>
