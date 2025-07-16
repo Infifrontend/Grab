@@ -18,7 +18,7 @@ export default function ManageBooking() {
     queryKey: ["/api/bookings"],
   });
 
-  const { data: flightBookings, refetch: refetchFlightBookings } = useQuery({
+  const { data: flightBookings, refetch: refetchFlightBookings, isLoading: isFlightBookingsLoading } = useQuery({
     queryKey: ["/api/flight-bookings"],
   });
 
@@ -27,9 +27,13 @@ export default function ManageBooking() {
     refetchFlightBookings();
   }, [refetchFlightBookings]);
 
-  // Get recent bookings sorted by created_at
-  const recentBookings = bookings?.slice()
-    .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+  // Get recent flight bookings sorted by created_at/bookedAt
+  const recentBookings = flightBookings?.slice()
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.bookedAt || a.createdAt || 0);
+      const dateB = new Date(b.bookedAt || b.createdAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    })
     .slice(0, 3) || [];
 
   const handleFindBooking = () => {
@@ -176,46 +180,37 @@ export default function ManageBooking() {
           <Title level={4} className="!mb-6 text-gray-900">Recent Bookings</Title>
 
           <Row gutter={[24, 24]}>
-            {recentBookings.map((booking) => (
+            {recentBookings.map((booking: any) => (
               <Col xs={24} lg={8} key={booking.id}>
                 <Card className="h-full hover:shadow-md transition-shadow">
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-2">
-                      <Text className="font-bold text-lg text-[var(--infiniti-primary)]">{booking.bookingId}</Text>
+                      <Text className="font-bold text-lg text-[var(--infiniti-primary)]">{booking.bookingReference}</Text>
                       <Badge 
-                        status={getStatusColor(booking.status)} 
-                        text={getStatusText(booking.status)}
+                        status={getStatusColor(booking.bookingStatus)} 
+                        text={getStatusText(booking.bookingStatus)}
                         className="font-medium"
                       />
                     </div>
-                    <Text className="text-gray-600 block mb-3 capitalize">{booking.groupType} Trip</Text>
+                    <Text className="text-gray-600 block mb-3 capitalize">Flight Booking</Text>
                   </div>
 
                   <Space direction="vertical" size="small" className="w-full mb-4">
                     <div className="flex items-center gap-2 text-gray-600">
                       <UserOutlined className="text-sm" />
-                      <Text className="text-sm font-medium">{booking.route}</Text>
+                      <Text className="text-sm font-medium">Flight ID: {booking.flightId}</Text>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarOutlined className="text-sm" />
                       <Text className="text-sm">
-                        Departure: {booking.date ? format(new Date(booking.date), 'dd MMM yyyy') : 'N/A'}
+                        Booked: {booking.bookedAt ? format(new Date(booking.bookedAt), 'dd MMM yyyy') : 'N/A'}
                       </Text>
                     </div>
 
-                    {booking.returnDate && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <CalendarOutlined className="text-sm" />
-                        <Text className="text-sm">
-                          Return: {booking.returnDate ? format(new Date(booking.returnDate), 'dd MMM yyyy') : 'N/A'}
-                        </Text>
-                      </div>
-                    )}
-
                     <div className="flex items-center gap-2 text-gray-600">
                       <TeamOutlined className="text-sm" />
-                      <Text className="text-sm">{booking.passengers} passengers</Text>
+                      <Text className="text-sm">{booking.passengerCount} passengers</Text>
                     </div>
 
                     {booking.totalAmount && (
@@ -231,7 +226,7 @@ export default function ManageBooking() {
                   <Button
                     type="primary"
                     className="w-full infiniti-btn-primary"
-                    onClick={() => handleManageBooking(booking)}
+                    onClick={() => setLocation(`/booking-details/${booking.bookingReference}`)}
                   >
                     View Details
                   </Button>
@@ -241,7 +236,7 @@ export default function ManageBooking() {
           </Row>
 
           {/* Empty state */}
-          {(!bookings || bookings.length === 0) && !isLoading && (
+          {(!flightBookings || flightBookings.length === 0) && !isFlightBookingsLoading && (
             <Card className="text-center py-12">
               <div className="space-y-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
@@ -265,7 +260,7 @@ export default function ManageBooking() {
           )}
 
           {/* Loading state */}
-          {isLoading && (
+          {isFlightBookingsLoading && (
             <Row gutter={[24, 24]}>
               {[1, 2, 3].map((i) => (
                 <Col xs={24} lg={8} key={i}>
