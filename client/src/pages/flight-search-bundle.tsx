@@ -348,7 +348,7 @@ export default function FlightSearchBundle() {
     // First filter to only include actual outbound flights (origin to destination)
     const searchOrigin = searchCriteria.origin || origin;
     const searchDestination = searchCriteria.destination || destination;
-    
+
     let filtered = availableFlights.filter((flight) => 
       flight.origin === searchOrigin && 
       flight.destination === searchDestination
@@ -463,15 +463,15 @@ export default function FlightSearchBundle() {
     // First filter to only include actual return flights (destination to origin)
     const searchOrigin = searchCriteria.origin || origin;
     const searchDestination = searchCriteria.destination || destination;
-    
+
     console.log("Return flights filter - Looking for flights from:", searchDestination, "to:", searchOrigin);
     console.log("Available return flights routes:", returnFlights.map(f => `${f.origin}→${f.destination}`));
-    
+
     let filtered = returnFlights.filter((flight) => 
       flight.origin === searchDestination && 
       flight.destination === searchOrigin
     );
-    
+
     console.log("After route filtering:", filtered.length, "return flights");
 
     // Filter by airlines
@@ -756,7 +756,7 @@ export default function FlightSearchBundle() {
         // Verify flight separation
         console.log("Outbound flights (should be", origin, "to", destination, "):", 
           processedFlights.map(f => `${f.flightNumber}: ${f.origin}→${f.destination}`));
-        
+
         if (processedReturnFlights.length > 0) {
           console.log("Return flights (should be", destination, "to", origin, "):", 
             processedReturnFlights.map(f => `${f.flightNumber}: ${f.origin}→${f.destination}`));
@@ -919,21 +919,21 @@ export default function FlightSearchBundle() {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <Text className="font-medium text-lg">
+              <Text className="font-medium text-sm">
                 {flight.departureTime}
               </Text>
               <Text className="text-xs text-gray-500">{flight.origin}</Text>
             </div>
-            <div className="flex items-center">
-              <div className="w-6 h-px bg-gray-300"></div>
-              <ArrowRightOutlined className="mx-2 text-gray-400" />
-              <div className="w-6 h-px bg-gray-300"></div>
+            <div className="flex items-center mx-4">
+              <div className="w-12 h-px bg-gray-300"></div>
+              <span className="mx-2 text-gray-400">✈</span>
+              <div className="w-12 h-px bg-gray-300"></div>
             </div>
             <div className="text-center">
-              <Text className="font-medium text-lg">{flight.arrivalTime}</Text>
-              <Text className="text-xs text-gray-500">
-                {flight.destination}
+              <Text className="font-medium text-sm">
+                {flight.arrivalTime}
               </Text>
+              <Text className="text-xs text-gray-500">{flight.destination}</Text>
             </div>
             <div className="ml-4">
               <Text className="text-gray-600 text-sm">({flight.duration})</Text>
