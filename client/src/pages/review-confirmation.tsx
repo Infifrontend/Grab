@@ -7,12 +7,9 @@ import {
   Typography,
   Divider,
   Space,
-  Modal,
 } from "antd";
 import {
   ArrowLeftOutlined,
-  CheckCircleOutlined,
-  CloseOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
@@ -23,14 +20,12 @@ const { Title, Text } = Typography;
 
 export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
-  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
   const [flightData, setFlightData] = useState<any>(null);
   const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [bundleData, setBundleData] = useState<any>(null);
   const [bookingSummary, setBookingSummary] = useState<any>(null);
-  const [createdBooking, setCreatedBooking] = useState<any>(null);
 
   // Load all booking data from localStorage
   useEffect(() => {
@@ -69,87 +64,9 @@ export default function ReviewConfirmation() {
     setLocation("/passenger-info");
   };
 
-  const handleSubmit = async () => {
-    console.log("Submitting comprehensive booking request...");
+  
 
-    try {
-      // Collect all stored data
-      const storedPaymentData = localStorage.getItem("paymentData");
-      const storedPassengerData = localStorage.getItem("passengerData");
-
-      const paymentData = storedPaymentData
-        ? JSON.parse(storedPaymentData)
-        : null;
-      const passengerData = storedPassengerData
-        ? JSON.parse(storedPassengerData)
-        : [];
-
-      // Prepare comprehensive booking payload
-      const comprehensiveBookingData = {
-        bookingData,
-        flightData,
-        bundleData,
-        selectedServices,
-        groupLeaderData,
-        paymentData,
-        passengerData,
-        bookingSummary,
-      };
-
-      console.log(
-        "Submitting comprehensive booking data:",
-        comprehensiveBookingData,
-      );
-
-      // Submit to the comprehensive group booking endpoint
-      const response = await fetch("/api/group-bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(comprehensiveBookingData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Comprehensive booking created successfully:", result);
-        setCreatedBooking(result.booking);
-        setIsSuccessModalVisible(true);
-
-        // Clear localStorage after successful submission
-        const keysToRemove = [
-          "bookingFormData",
-          "selectedFlightData",
-          "selectedBundleData",
-          "selectedServices",
-          "groupLeaderData",
-          "bookingSummary",
-          "paymentData",
-          "passengerData",
-        ];
-        keysToRemove.forEach((key) => localStorage.removeItem(key));
-      } else {
-        const errorData = await response.json();
-        console.error("Booking submission failed:", errorData);
-        alert("Failed to submit booking. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting booking:", error);
-      alert(
-        "An error occurred while submitting your booking. Please try again.",
-      );
-    }
-  };
-
-  const handleSuccessModalClose = () => {
-    setIsSuccessModalVisible(false);
-    // Redirect to booking details page with actual booking reference
-    if (createdBooking?.bookingReference) {
-      setLocation(`/booking-details/${createdBooking.bookingReference}`);
-    } else {
-      setLocation("/dashboard");
-    }
-  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -526,61 +443,7 @@ export default function ReviewConfirmation() {
         </div>
       </div>
 
-      {/* Success Modal */}
-      <Modal
-        open={isSuccessModalVisible}
-        onCancel={handleSuccessModalClose}
-        footer={null}
-        width={480}
-        centered
-        closable={false}
-        className="success-modal"
-      >
-        <div className="text-center p-6">
-          {/* Close Button */}
-          <Button
-            type="text"
-            icon={<CloseOutlined />}
-            onClick={handleSuccessModalClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            size="small"
-          />
-
-          {/* Success Icon */}
-          <div className="mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircleOutlined className="text-3xl text-green-600" />
-            </div>
-          </div>
-
-          {/* Title */}
-          <Title level={3} className="!mb-4 text-gray-900 font-semibold">
-            Booking Request Submitted Successfully!
-          </Title>
-
-          {/* Description */}
-          <Text className="text-gray-600 block mb-8 leading-relaxed">
-            Your group booking request has been submitted. We'll review your
-            request and get back to you within 24 hours with available options
-            and pricing.
-          </Text>
-
-          {/* OK Button */}
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleSuccessModalClose}
-            className="px-8"
-            style={{
-              backgroundColor: "#2a0a22",
-              borderColor: "#2a0a22",
-              fontWeight: "500",
-            }}
-          >
-            OK
-          </Button>
-        </div>
-      </Modal>
+      
 
       <style jsx>{`
         .ant-card {
@@ -597,14 +460,7 @@ export default function ReviewConfirmation() {
           margin: 16px 0;
         }
 
-        :global(.success-modal .ant-modal-content) {
-          border-radius: 12px;
-          padding: 0;
-        }
-
-        :global(.success-modal .ant-modal-body) {
-          padding: 0;
-        }
+        
       `}</style>
     </div>
   );

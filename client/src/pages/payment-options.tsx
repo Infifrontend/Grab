@@ -184,7 +184,7 @@ export default function PaymentOptions() {
     setLocation("/review-confirmation");
   };
 
-  const handleContinue = async () => {
+  const handleSubmitBooking = async () => {
     try {
       // Only validate form fields if credit card is selected
       if (paymentMethod === "creditCard") {
@@ -230,22 +230,77 @@ export default function PaymentOptions() {
       };
 
       // Save payment data to localStorage
-      try {
-        localStorage.setItem("paymentData", JSON.stringify(paymentData));
+      localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
-        // Always navigate to passenger info first, then review
-        setLocation("/passenger-info");
-      } catch (storageError) {
-        console.error("Storage error:", storageError);
-        // Still navigate even if storage fails
-        setLocation("/passenger-info");
+      console.log("Submitting comprehensive booking request...");
+
+      // Collect all stored data
+      const storedBookingData = localStorage.getItem("bookingFormData");
+      const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
+      const storedPassengerData = localStorage.getItem("passengerData");
+      const storedBundleData = localStorage.getItem("selectedBundleData");
+      const storedBookingSummary = localStorage.getItem("bookingSummary");
+
+      const parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
+      const parsedGroupLeaderData = storedGroupLeaderData ? JSON.parse(storedGroupLeaderData) : null;
+      const parsedPassengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
+      const parsedBundleData = storedBundleData ? JSON.parse(storedBundleData) : null;
+      const parsedBookingSummary = storedBookingSummary ? JSON.parse(storedBookingSummary) : null;
+
+      // Prepare comprehensive booking payload
+      const comprehensiveBookingData = {
+        bookingData: parsedBookingData,
+        flightData,
+        bundleData: parsedBundleData,
+        selectedServices,
+        groupLeaderData: parsedGroupLeaderData,
+        paymentData,
+        passengerData: parsedPassengerData,
+        bookingSummary: parsedBookingSummary,
+      };
+
+      console.log("Submitting comprehensive booking data:", comprehensiveBookingData);
+
+      // Submit to the comprehensive group booking endpoint
+      const response = await fetch("/api/group-bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(comprehensiveBookingData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Comprehensive booking created successfully:", result);
+        
+        // Clear localStorage after successful submission
+        const keysToRemove = [
+          "bookingFormData",
+          "selectedFlightData",
+          "selectedBundleData",
+          "selectedServices",
+          "groupLeaderData",
+          "bookingSummary",
+          "paymentData",
+          "passengerData",
+        ];
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+        // Navigate to booking details page with actual booking reference
+        if (result.booking?.bookingReference) {
+          setLocation(`/booking-details/${result.booking.bookingReference}`);
+        } else {
+          setLocation("/dashboard");
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Booking submission failed:", errorData);
+        alert("Failed to submit booking. Please try again.");
       }
-    } catch (errorInfo) {
-      console.log("Validation Failed:", errorInfo);
-      // If validation fails but it's not a critical error, still allow navigation for non-credit card payments
-      if (paymentMethod !== "creditCard") {
-        setLocation("/passenger-info");
-      }
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+      alert("An error occurred while submitting your booking. Please try again.");
     }
   };
 
@@ -740,14 +795,14 @@ export default function PaymentOptions() {
           <Button
             type="primary"
             size="large"
-            onClick={handleContinue}
+            onClick={handleSubmitBooking}
             className="px-8"
             style={{
               backgroundColor: "#2a0a22",
               borderColor: "#2a0a22",
             }}
           >
-            Continue to Passenger Info
+            Submit Booking Request
           </Button>
         </div>
       </div>
