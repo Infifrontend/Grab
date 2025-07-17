@@ -313,7 +313,7 @@ export default function PaymentOptions() {
         <div className="mb-8">
           <div className="overflow-x-auto">
             <BookingSteps
-              currentStep={4}
+              currentStep={6}
               size="small"
               className="mb-6 min-w-[800px]"
             />

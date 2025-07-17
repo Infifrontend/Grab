@@ -32,7 +32,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
       title: "Review & Confirmation",
     },
     {
-      title: "Payments",
+      title: "Payment",
     },
   ];
 
