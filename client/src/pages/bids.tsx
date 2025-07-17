@@ -537,7 +537,6 @@ export default function Bids() {
                 dataSource={filteredBidsData}
                 rowKey="bidId"
                 pagination={{ pageSize: 10 }}
-                scroll={{ x: 1200 }}
                 loading={loading}
               />
             </Card>
