@@ -156,13 +156,29 @@ export default function PassengerInfo() {
 
         {/* Page Header */}
         <div className="mb-6">
-          <Title level={2} className="!mb-2 text-gray-900">
-            Passenger Information
-          </Title>
-          <Text className="text-gray-600">
-            Please provide details for all passengers. You need{" "}
-            {totalPassengers} passengers for this group booking.
-          </Text>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <Title level={2} className="!mb-2 text-gray-900">
+                Passenger Information
+              </Title>
+              <Text className="text-gray-600">
+                Please provide details for all passengers. You need{" "}
+                {totalPassengers} passengers for this group booking.
+              </Text>
+            </div>
+            <Button
+              type="default"
+              size="large"
+              onClick={() => {
+                // Skip passenger info and go directly to review confirmation
+                localStorage.setItem("passengerData", JSON.stringify([]));
+                setLocation("/review-confirmation");
+              }}
+              className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
+            >
+              Add Passenger Later
+            </Button>
+          </div>
         </div>
 
         {/* Progress Bar */}
@@ -416,29 +432,14 @@ export default function PassengerInfo() {
             Back
           </Button>
 
-          <div className="flex gap-4">
-            <Button
-              type="default"
-              size="large"
-              onClick={() => {
-                // Skip passenger info and go directly to review confirmation
-                localStorage.setItem("passengerData", JSON.stringify([]));
-                setLocation("/review-confirmation");
-              }}
-              className="px-8 border-gray-300 text-gray-700 hover:border-gray-400"
-            >
-              Add Passenger Later
-            </Button>
-            
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleContinue}
-              className="px-8"
-            >
-              Continue
-            </Button>
-          </div>
+          <Button
+            type="primary"
+            size="large"
+            onClick={handleContinue}
+            className="px-8"
+          >
+            Continue
+          </Button>
         </div>
       </div>
 
