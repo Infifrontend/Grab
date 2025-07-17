@@ -80,7 +80,7 @@ const premiumBundles: BundleOption[] = [
     ],
   },
   {
-    id: "business-traveler-pro",
+    id: "schedule-shield",
     name: "Schedule Shield",
     description: "Change your travel dates with confidence",
     originalPrice: 269,
@@ -96,7 +96,7 @@ const premiumBundles: BundleOption[] = [
     ],
   },
   {
-    id: "business-traveler-pro",
+    id: "worry-free-cancellation",
     name: "Worry-Free Cancellation",
     description: "Full refund protection for unexpected changes",
     originalPrice: 55,
@@ -112,7 +112,7 @@ const premiumBundles: BundleOption[] = [
     ],
   },
   {
-    id: "business-traveler-pro",
+    id: "splitpay-pro",
     name: "SplitPay Pro",
     description: "Divide payments among group members easily",
     originalPrice: 40,
@@ -128,7 +128,7 @@ const premiumBundles: BundleOption[] = [
     ],
   },
   {
-    id: "business-traveler-pro",
+    id: "premium-flexibility-bundle",
     name: "Premium Flexibility Bundle",
     description: "Ultimate booking flexibility and peace of mind",
     originalPrice: 100,
