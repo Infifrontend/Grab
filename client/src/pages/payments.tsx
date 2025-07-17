@@ -227,7 +227,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Total Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ₹{paymentStats.totalPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ${paymentStats.totalPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </Title>
                 <Text className="text-green-600 text-sm">+12% from last month</Text>
               </Card>
@@ -242,7 +242,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Pending Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ₹{paymentStats.pendingPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ${paymentStats.pendingPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </Title>
                 <Text className="text-gray-500 text-sm">
                   {paymentData.filter(p => p.status === 'Pending').length} bookings with pending payments
@@ -259,7 +259,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Upcoming Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ₹{paymentStats.upcomingPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ${paymentStats.upcomingPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </Title>
                 <Text className="text-gray-500 text-sm">Due in the next 30 days</Text>
               </Card>
@@ -274,7 +274,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Refunds Processed</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ₹{paymentStats.refundsProcessed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ${paymentStats.refundsProcessed.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </Title>
                 <Text className="text-gray-500 text-sm">
                   {paymentData.filter(p => p.type === 'Refund').length} refunds this month
@@ -558,7 +558,7 @@ export default function Payments() {
             </Row>
 
             <Form.Item label="Full Payment: ₹4,500.00 (remaining balance)">
-              <div className="text-blue-600 font-medium">Full Payment: ₹4,500.00 (remaining balance)</div>
+              <div className="text-blue-600 font-medium">Full Payment: $4,500.00 (remaining balance)</div>
             </Form.Item>
 
             <Form.Item

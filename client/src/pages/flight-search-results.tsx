@@ -753,7 +753,7 @@ export default function FlightSearchResults() {
                         <div className="text-right">
                           <div className="mb-3">
                             <Text className="text-2xl font-bold text-gray-900">
-                              ₹{flight.price}
+                              ${flight.price}
                             </Text>
                             <Text className="text-gray-600 text-sm block">
                               per person
