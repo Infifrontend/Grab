@@ -84,34 +84,11 @@ export default function ManageBookingDetail() {
   const groupSize = bookingDetails?.booking?.passengerCount || 1;
   const [currentGroupSize, setCurrentGroupSize] = useState(1);
 
-  // Calculate confirmed passengers count (passengers with names filled in)
-  const confirmedPassengersCount = passengers.filter(p => 
-    p.firstName && p.firstName.trim() !== '' && p.lastName && p.lastName.trim() !== ''
-  ).length;
-
   React.useEffect(() => {
     if (bookingDetails?.booking?.passengerCount) {
       setCurrentGroupSize(bookingDetails.booking.passengerCount);
     }
   }, [bookingDetails]);
-
-  // Update passenger slots when group size changes
-  React.useEffect(() => {
-    if (currentGroupSize !== passengers.length) {
-      if (currentGroupSize > passengers.length) {
-        // Add empty passenger slots
-        const additionalSlots = currentGroupSize - passengers.length;
-        const newSlots = Array.from({ length: additionalSlots }, () => ({
-          firstName: '',
-          lastName: ''
-        }));
-        setPassengers(prev => [...prev, ...newSlots]);
-      } else if (currentGroupSize < passengers.length) {
-        // Remove excess passenger slots
-        setPassengers(prev => prev.slice(0, currentGroupSize));
-      }
-    }
-  }, [currentGroupSize, passengers.length]);
 
   if (isLoading) {
     return (
