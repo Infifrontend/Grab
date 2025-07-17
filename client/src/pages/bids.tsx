@@ -241,7 +241,7 @@ export default function Bids() {
         <Button 
           type="link" 
           size="small"
-          onClick={() => setLocation(`/bid-details/${record.bidId}`)}
+          onClick={() => setLocation(`/bid-details/${record.bidId.replace('BID-', '')}`)}
         >
           View Details
         </Button>

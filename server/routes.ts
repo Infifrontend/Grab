@@ -452,6 +452,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get bid details by ID
+  app.get("/api/bids/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const bid = await storage.getBidById(parseInt(id));
+      if (!bid) {
+        return res.status(404).json({ message: "Bid not found" });
+      }
+      res.json(bid);
+    } catch (error) {
+      console.error("Error fetching bid details:", error);
+      res.status(500).json({ message: "Failed to fetch bid details" });
+    }
+  });
+
   // Migration endpoint to remove international flights
   app.post("/api/migrate-domestic", async (_req, res) => {
     try {

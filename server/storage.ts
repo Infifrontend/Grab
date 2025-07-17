@@ -66,6 +66,7 @@ export interface IStorage {
   createBid(bid: InsertBid): Promise<Bid>;
   updateBidStatus(id: number, status: string): Promise<void>;
   deleteBid(id: number): Promise<void>;
+  getBidById(bidId: number): Promise<any>;
 
   // Payments
   getPaymentsByBooking(bookingId: number): Promise<Payment[]>;
@@ -746,6 +747,27 @@ export class DatabaseStorage implements IStorage {
       return bid;
     } catch (error) {
       console.error("Error creating bid:", error);
+      throw error;
+    }
+  }
+
+  async getBidById(bidId: number) {
+    try {
+      const [result] = await db
+        .select({
+          bid: bids,
+          flight: flights,
+          user: users
+        })
+        .from(bids)
+        .leftJoin(flights, eq(bids.flightId, flights.id))
+        .leftJoin(users, eq(bids.userId, users.id))
+        .where(eq(bids.id, bidId))
+        .limit(1);
+
+      return result || null;
+    } catch (error) {
+      console.error("Error getting bid by ID:", error);
       throw error;
     }
   }

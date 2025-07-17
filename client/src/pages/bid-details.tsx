@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Select, DatePicker, Alert, Space, Divider } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Row, Col, Typography, Button, Input, Select, DatePicker, Alert, Space, Divider, Spin } from 'antd';
 import { ArrowLeftOutlined, InfoCircleOutlined, UserOutlined, DollarOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useLocation, useRoute } from 'wouter';
 import Header from "@/components/layout/header";
@@ -11,29 +11,115 @@ const { TextArea } = Input;
 export default function BidDetails() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/bid-details/:id");
-  const [passengers, setPassengers] = useState(25);
-  const [bidAmount, setBidAmount] = useState(850);
-  const [originalBidAmount] = useState(850); // Store original bid amount for validation
+  const [passengers, setPassengers] = useState(0);
+  const [bidAmount, setBidAmount] = useState(0);
+  const [originalBidAmount, setOriginalBidAmount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [bidData, setBidData] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Mock bid data - in real app this would come from API based on ID
-  const bidData = {
-    bidId: '12345',
-    status: 'Draft',
-    timeLeft: '2 days',
-    groupName: 'Corporate Team Building',
+  // Fetch bid details from database
+  useEffect(() => {
+    const fetchBidDetails = async () => {
+      if (!params?.id) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/bids/${params.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch bid details');
+        }
+        
+        const data = await response.json();
+        
+        // Set the fetched data
+        setBidData(data);
+        setPassengers(data.bid.passengerCount);
+        setBidAmount(parseFloat(data.bid.bidAmount));
+        setOriginalBidAmount(parseFloat(data.bid.bidAmount));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBidDetails();
+  }, [params?.id]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
+          <Spin size="large" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !bidData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <Alert
+            message="Error"
+            description={error || "Bid not found"}
+            type="error"
+            showIcon
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate derived values
+  const formatDate = (dateString) => {
+    return dayjs(dateString).format('DD/MM/YYYY');
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'active': return 'Active';
+      case 'accepted': return 'Accepted';
+      case 'rejected': return 'Declined';
+      case 'expired': return 'Expired';
+      default: return 'Draft';
+    }
+  };
+
+  const getTimeLeft = (validUntil) => {
+    const now = dayjs();
+    const expiry = dayjs(validUntil);
+    const diff = expiry.diff(now, 'hour');
+    
+    if (diff <= 0) return 'Expired';
+    if (diff < 24) return `${diff} hours`;
+    return `${Math.ceil(diff / 24)} days`;
+  };
+
+  // Transform the fetched data to match component expectations
+  const transformedBidData = {
+    bidId: bidData.bid.id.toString(),
+    status: getStatusDisplay(bidData.bid.bidStatus),
+    timeLeft: getTimeLeft(bidData.bid.validUntil),
+    groupName: bidData.bid.notes || 'Group Travel',
     groupCategory: 'Corporate',
-    origin: 'New York (JFK)',
-    destination: 'London (LHR)',
-    departureDate: '15/07/2024',
-    returnDate: '22/07/2024',
+    origin: bidData.flight?.origin || 'Unknown',
+    destination: bidData.flight?.destination || 'Unknown',
+    departureDate: formatDate(bidData.flight?.departureTime),
+    returnDate: formatDate(bidData.flight?.arrivalTime),
     passengers: passengers,
-    cabinClass: 'Economy',
+    cabinClass: bidData.flight?.cabin || 'Economy',
     bidAmount: bidAmount,
-    contactName: 'John Smith',
-    email: 'john.smith@company.com',
+    contactName: bidData.user?.name || 'Unknown',
+    email: bidData.user?.username || 'Unknown',
     phone: '+1 (555) 123-4567',
-    specialRequests: 'Any special requirements, meal preferences, seating requests, etc.',
-    route: 'New York (JFK) → London (LHR)',
+    specialRequests: bidData.bid.notes || 'No special requests',
+    route: `${bidData.flight?.origin || 'Unknown'} → ${bidData.flight?.destination || 'Unknown'}`,
     totalBid: passengers * bidAmount,
     depositRequired: (passengers * bidAmount) * 0.1,
     refundPolicy: 'Full refund if bid not accepted'
@@ -81,13 +167,13 @@ export default function BidDetails() {
                 </Title>
                 <div className="flex items-center gap-6 text-sm">
                   <span className="text-gray-600">
-                    <strong>Bid ID:</strong> {bidData.bidId}
+                    <strong>Bid ID:</strong> {transformedBidData.bidId}
                   </span>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                    {bidData.status}
+                    {transformedBidData.status}
                   </span>
                   <span className="text-gray-600">
-                    <strong>Time left:</strong> {bidData.timeLeft}
+                    <strong>Time left:</strong> {transformedBidData.timeLeft}
                   </span>
                 </div>
               </div>
@@ -137,7 +223,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Group Name</Text>
                     <Input 
-                      value={bidData.groupName}
+                      value={transformedBidData.groupName}
                       placeholder="Corporate Team Building"
                       size="large"
                       className="rounded-md"
@@ -150,7 +236,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Group Category</Text>
                     <Select 
-                      value={bidData.groupCategory}
+                      value={transformedBidData.groupCategory}
                       placeholder="Select category"
                       size="large"
                       className="w-full rounded-md"
@@ -179,7 +265,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Origin</Text>
                     <Input 
-                      value={bidData.origin}
+                      value={transformedBidData.origin}
                       placeholder="Departure city"
                       size="large"
                       className="rounded-md"
@@ -192,7 +278,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Destination</Text>
                     <Input 
-                      value={bidData.destination}
+                      value={transformedBidData.destination}
                       placeholder="Arrival city"
                       size="large"
                       className="rounded-md"
@@ -208,7 +294,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Departure Date</Text>
                     <DatePicker 
-                      value={dayjs(bidData.departureDate, 'DD/MM/YYYY')}
+                      value={dayjs(transformedBidData.departureDate, 'DD/MM/YYYY')}
                       format="DD MMM YYYY"
                       placeholder="Select departure date"
                       size="large"
@@ -222,7 +308,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Return Date</Text>
                     <DatePicker 
-                      value={dayjs(bidData.returnDate, 'DD/MM/YYYY')}
+                      value={dayjs(transformedBidData.returnDate, 'DD/MM/YYYY')}
                       format="DD MMM YYYY"
                       placeholder="Select return date"
                       size="large"
@@ -263,7 +349,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Cabin Class</Text>
                     <Select 
-                      value={bidData.cabinClass}
+                      value={transformedBidData.cabinClass}
                       placeholder="Select class"
                       size="large"
                       className="w-full rounded-md"
@@ -309,7 +395,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Contact Name</Text>
                     <Input 
-                      value={bidData.contactName}
+                      value={transformedBidData.contactName}
                       placeholder="John Smith"
                       size="large"
                       className="rounded-md"
@@ -322,7 +408,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Email</Text>
                     <Input 
-                      value={bidData.email}
+                      value={transformedBidData.email}
                       placeholder="john.smith@company.com"
                       size="large"
                       className="rounded-md"
@@ -335,7 +421,7 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Phone</Text>
                     <Input 
-                      value={bidData.phone}
+                      value={transformedBidData.phone}
                       placeholder="+1 (555) 123-4567"
                       size="large"
                       className="rounded-md"
@@ -351,7 +437,7 @@ export default function BidDetails() {
             <div>
               <Text className="text-gray-700 font-medium block mb-2">Special Requests (Optional)</Text>
               <TextArea 
-                value={bidData.specialRequests}
+                value={transformedBidData.specialRequests}
                 placeholder="Any special requirements, meal preferences, seating requests, etc."
                 rows={4}
                 className="rounded-md"
@@ -373,7 +459,7 @@ export default function BidDetails() {
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Route</Text>
-                  <Text className="text-gray-900 font-semibold text-base">{bidData.route}</Text>
+                  <Text className="text-gray-900 font-semibold text-base">{transformedBidData.route}</Text>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
@@ -407,7 +493,7 @@ export default function BidDetails() {
             <Col xs={24} md={12}>
               <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
                 <Text className="text-gray-700 font-medium">Refund Policy</Text>
-                <Text className="text-green-600 font-semibold">{bidData.refundPolicy}</Text>
+                <Text className="text-green-600 font-semibold">{transformedBidData.refundPolicy}</Text>
               </div>
             </Col>
           </Row>
