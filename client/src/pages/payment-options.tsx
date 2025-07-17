@@ -11,6 +11,7 @@ import {
   Space,
   Badge,
   Divider,
+  Modal,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -40,6 +41,8 @@ export default function PaymentOptions() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [passengerCount, setPassengerCount] = useState(1);
   const [tripType, setTripType] = useState<'oneWay' | 'roundTrip' | 'multiCity'>('roundTrip');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
 
   // Load booking data on component mount
   useEffect(() => {
@@ -184,6 +187,20 @@ export default function PaymentOptions() {
     setLocation("/review-confirmation");
   };
 
+  const handleSuccessModalOk = () => {
+    setShowSuccessModal(false);
+    if (bookingReference) {
+      setLocation(`/booking-details/${bookingReference}`);
+    } else {
+      setLocation("/dashboard");
+    }
+  };
+
+  const handleSuccessModalCancel = () => {
+    setShowSuccessModal(false);
+    setLocation("/dashboard");
+  };
+
   const handleSubmitBooking = async () => {
     try {
       // Only validate form fields if credit card is selected
@@ -326,6 +343,13 @@ export default function PaymentOptions() {
         // Save payment data to localStorage after successful submission
         localStorage.setItem("paymentData", JSON.stringify(cleanPaymentData));
         
+        // Set booking reference for the modal
+        const refNumber = result.booking?.bookingReference || result.bookingReference || 'GB-' + Date.now();
+        setBookingReference(refNumber);
+        
+        // Show success modal
+        setShowSuccessModal(true);
+        
         // Clear other localStorage items after successful submission
         const keysToRemove = [
           "bookingFormData",
@@ -337,15 +361,6 @@ export default function PaymentOptions() {
           "passengerData",
         ];
         keysToRemove.forEach((key) => localStorage.removeItem(key));
-
-        // Navigate to booking details page with actual booking reference
-        if (result.booking?.bookingReference) {
-          setLocation(`/booking-details/${result.booking.bookingReference}`);
-        } else if (result.bookingReference) {
-          setLocation(`/booking-details/${result.bookingReference}`);
-        } else {
-          setLocation("/dashboard");
-        }
       } else {
         let errorMessage = "Failed to submit booking. Please try again.";
         try {
@@ -874,6 +889,84 @@ export default function PaymentOptions() {
           </Button>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <Modal
+        title={null}
+        open={showSuccessModal}
+        onOk={handleSuccessModalOk}
+        onCancel={handleSuccessModalCancel}
+        footer={[
+          <Button key="dashboard" onClick={handleSuccessModalCancel}>
+            Go to Dashboard
+          </Button>,
+          <Button 
+            key="details" 
+            type="primary" 
+            onClick={handleSuccessModalOk}
+            style={{
+              backgroundColor: "#2a0a22",
+              borderColor: "#2a0a22",
+            }}
+          >
+            View Booking Details
+          </Button>,
+        ]}
+        centered
+        width={500}
+      >
+        <div className="text-center py-6">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-green-600 text-2xl">✓</span>
+            </div>
+            <Typography.Title level={3} className="!mb-2 text-gray-900">
+              Booking Submitted Successfully!
+            </Typography.Title>
+            <Typography.Text className="text-gray-600 text-lg">
+              Your group booking request has been received and is being processed.
+            </Typography.Text>
+          </div>
+          
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <Typography.Text className="text-blue-700 block mb-2">
+              Booking Reference Number
+            </Typography.Text>
+            <Typography.Text className="text-blue-900 font-bold text-xl">
+              {bookingReference}
+            </Typography.Text>
+          </div>
+          
+          <div className="space-y-3 text-left">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">1</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                We'll search for the best available flights for your group
+              </Typography.Text>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">2</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                You'll receive a detailed quote within 24 hours
+              </Typography.Text>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">3</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                Once approved, you can finalize passenger details and make payment
+              </Typography.Text>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       <style jsx>{`
         .ant-form-item-label > label {
