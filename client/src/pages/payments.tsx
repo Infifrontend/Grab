@@ -66,7 +66,7 @@ export default function Payments() {
       paymentId: 'PAY-1238',
       bookingId: 'GR-2024-0932',
       date: '2024-05-10',
-      amount: '$950.00',
+      amount: '₹950.00',
       type: 'Partial Payment',
       status: 'Failed',
       method: 'Credit Card',
@@ -198,7 +198,7 @@ export default function Payments() {
                 </div>
               </div>
               <Text className="text-gray-600 block mb-2">Total Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">$128,420</Title>
+              <Title level={3} className="!mb-1 text-gray-900">₹12,84,200</Title>
               <Text className="text-green-600 text-sm">+12% from last month</Text>
             </Card>
           </Col>
@@ -211,7 +211,7 @@ export default function Payments() {
                 </div>
               </div>
               <Text className="text-gray-600 block mb-2">Pending Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">$42,560</Title>
+              <Title level={3} className="!mb-1 text-gray-900">₹4,25,600</Title>
               <Text className="text-gray-500 text-sm">3 bookings with pending payments</Text>
             </Card>
           </Col>
@@ -224,7 +224,7 @@ export default function Payments() {
                 </div>
               </div>
               <Text className="text-gray-600 block mb-2">Upcoming Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">$18,750</Title>
+              <Title level={3} className="!mb-1 text-gray-900">₹1,87,500</Title>
               <Text className="text-gray-500 text-sm">Due in the next 30 days</Text>
             </Card>
           </Col>
@@ -237,7 +237,7 @@ export default function Payments() {
                 </div>
               </div>
               <Text className="text-gray-600 block mb-2">Refunds Processed</Text>
-              <Title level={3} className="!mb-1 text-gray-900">$3,240</Title>
+              <Title level={3} className="!mb-1 text-gray-900">₹32,400</Title>
               <Text className="text-gray-500 text-sm">2 refunds this month</Text>
             </Card>
           </Col>
@@ -408,7 +408,7 @@ export default function Payments() {
                   paymentId: 'SCH-1004',
                   bookingId: 'GR-5680',
                   dueDate: '2023-08-01',
-                  amount: '$3,200.00',
+                  amount: '₹3,200.00',
                   status: 'Upcoming',
                 },
               ]}
@@ -547,8 +547,8 @@ export default function Payments() {
               </Col>
             </Row>
 
-            <Form.Item label="Full Payment: $4,500.00 (remaining balance)">
-              <div className="text-blue-600 font-medium">Full Payment: $4,500.00 (remaining balance)</div>
+            <Form.Item label="Full Payment: ₹4,500.00 (remaining balance)">
+              <div className="text-blue-600 font-medium">Full Payment: ₹4,500.00 (remaining balance)</div>
             </Form.Item>
 
             <Form.Item
