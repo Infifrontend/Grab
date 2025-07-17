@@ -186,7 +186,7 @@ export default function BidDetails() {
           message="Airline Minimum Bid"
           description={
             <span>
-              The minimum bid amount set by the airline for this route is <strong>$750 per person</strong>. 
+              The minimum bid amount set by the airline for this route is <strong>€750 per person</strong>. 
               Your bid must meet or exceed this amount to be considered.
             </span>
           }

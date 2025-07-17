@@ -1,4 +1,3 @@
-
 import { Card, Row, Col, Typography, Button, Space, Badge, Divider } from 'antd';
 import { ArrowLeftOutlined, DownloadOutlined, UserOutlined } from '@ant-design/icons';
 import { useRoute, useLocation } from 'wouter';
@@ -47,7 +46,7 @@ export default function PaymentDetails() {
         {/* Page Header */}
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-center gap-4">
-           
+
             <div>
               <Title level={2} className="!mb-0">Payment Details</Title>
             </div>
@@ -80,7 +79,7 @@ export default function PaymentDetails() {
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Amount</Text>
-                  <Text className="font-semibold text-gray-900">${paymentData.amount.toFixed(2)}</Text>
+                  <Text className="font-semibold text-gray-900">€{paymentData.amount.toFixed(2)}</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -151,40 +150,40 @@ export default function PaymentDetails() {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Partial Payment (Deposit)</Text>
-                  <Text className="font-medium text-gray-900">${paymentData.partialPayment.toFixed(2)}</Text>
+                  <Text className="font-medium text-gray-900">€{paymentData.partialPayment.toFixed(2)}</Text>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Processing Fee</Text>
-                  <Text className="text-gray-900">${paymentData.processingFee.toFixed(2)}</Text>
+                  <Text className="text-gray-900">€{paymentData.processingFee.toFixed(2)}</Text>
                 </div>
 
                 <Divider />
 
                 <div className="flex justify-between items-center">
                   <Text className="font-semibold text-gray-900 text-lg">Total Paid</Text>
-                  <Text className="font-bold text-gray-900 text-lg">${paymentData.totalPaid.toFixed(2)}</Text>
+                  <Text className="font-bold text-gray-900 text-lg">€{paymentData.totalPaid.toFixed(2)}</Text>
                 </div>
               </div>
 
               {/* Remaining Balance Section */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <Title level={5} className="!mb-3 text-blue-700">Remaining Balance</Title>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Total Booking Amount:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.totalBookingAmount.toFixed(2)}</Text>
+                    <Text className="font-semibold text-blue-900">€{paymentData.totalBookingAmount.toFixed(2)}</Text>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Amount Paid:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.amountPaid.toFixed(2)}</Text>
+                    <Text className="font-semibold text-blue-900">€{paymentData.amountPaid.toFixed(2)}</Text>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <Text className="text-blue-600">Remaining Balance:</Text>
-                    <Text className="font-bold text-blue-900">${paymentData.remainingBalance.toFixed(2)}</Text>
+                    <Text className="font-bold text-blue-900">€{paymentData.remainingBalance.toFixed(2)}</Text>
                   </div>
                 </div>
               </div>
@@ -201,12 +200,12 @@ export default function PaymentDetails() {
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                   <UserOutlined className="text-gray-500 text-xl" />
                 </div>
-                
+
                 <div className="flex-1">
                   <Text className="font-semibold text-gray-900 block text-lg">{paymentData.payerName}</Text>
                   <Text className="text-gray-600 block">{paymentData.payerEmail}</Text>
                   <Text className="text-gray-600 block">{paymentData.payerPhone}</Text>
-                  
+
                   <div className="mt-4">
                     <Text className="text-gray-600">{paymentData.paymentNote}</Text>
                   </div>

@@ -108,9 +108,9 @@ export default function MarketplaceSection() {
                 <div className="p-4 border-b border-gray-100">
                   <div className="text-xs text-gray-500 mb-1">{pkg.location}</div>
                   <div className="text-base font-semibold text-gray-800 mb-3">{pkg.title}</div>
-                  <div className="package-price">${pkg.price}</div>
+                  <div className="package-price">€{pkg.price}</div>
                   {pkg.originalPrice && (
-                    <div className="text-sm text-gray-400 line-through">${pkg.originalPrice}</div>
+                    <div className="text-sm text-gray-400 line-through">€{pkg.originalPrice}</div>
                   )}
                 </div>
 

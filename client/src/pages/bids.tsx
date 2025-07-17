@@ -36,7 +36,7 @@ export default function Bids() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch bid statistics
         const statsResponse = await fetch('/api/bids/statistics');
         const stats = await statsResponse.json();
@@ -45,15 +45,15 @@ export default function Bids() {
         // Fetch bids data
         const bidsResponse = await fetch('/api/bids');
         const bids = await bidsResponse.json();
-        
+
         // Transform bids data to match table format
         const transformedBids = bids.map((bid: any) => ({
           bidId: `BID-${bid.id}`,
           route: `${bid.flight.origin} → ${bid.flight.destination}`,
           passengers: bid.passengerCount,
           travelDate: new Date(bid.flight.departureTime).toLocaleDateString(),
-          bidAmount: `$${bid.bidAmount}`,
-          deposit: `$${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
+          bidAmount: `€${bid.bidAmount}`,
+          deposit: `€${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
           status: bid.bidStatus === 'active' ? 'Pending' : 
                   bid.bidStatus === 'accepted' ? 'Accepted' :
                   bid.bidStatus === 'rejected' ? 'Declined' :
@@ -63,13 +63,13 @@ export default function Bids() {
           submitted: new Date(bid.createdAt).toLocaleDateString(),
           actions: 'View Details'
         }));
-        
+
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);
 
         // For now, use empty payment history until we have actual payment data
         setPaymentHistoryData([]);
-        
+
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -131,7 +131,7 @@ export default function Bids() {
       const minAmount = parseFloat(searchParams.minAmount);
       if (!isNaN(minAmount)) {
         filtered = filtered.filter(bid => {
-          const bidAmount = parseFloat(bid.bidAmount.replace('$', '').replace(/,/g, ''));
+          const bidAmount = parseFloat(bid.bidAmount.replace('€', '').replace(/,/g, ''));
           return bidAmount >= minAmount;
         });
       }
@@ -141,7 +141,7 @@ export default function Bids() {
       const maxAmount = parseFloat(searchParams.maxAmount);
       if (!isNaN(maxAmount)) {
         filtered = filtered.filter(bid => {
-          const bidAmount = parseFloat(bid.bidAmount.replace('$', '').replace(/,/g, ''));
+          const bidAmount = parseFloat(bid.bidAmount.replace('€', '').replace(/,/g, ''));
           return bidAmount <= maxAmount;
         });
       }
@@ -290,9 +290,7 @@ export default function Bids() {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (type: string) => (
-        <Tag color={type === 'Deposit' ? 'blue' : 'orange'}>{type}</Tag>
-      ),
+    render: (amount) => `€${amount.toFixed(2)}`,
     },
     {
       title: 'Status',
@@ -378,7 +376,7 @@ export default function Bids() {
               {loading ? (
                 <Spin size="small" />
               ) : (
-                <Title level={2} className="!mb-0 text-orange-600">${statistics.totalSavings}</Title>
+                <Title level={2} className="!mb-0 text-orange-600">€{statistics.totalSavings}</Title>
               )}
             </Card>
           </Col>
@@ -391,7 +389,7 @@ export default function Bids() {
               {loading ? (
                 <Spin size="small" />
               ) : (
-                <Title level={2} className="!mb-0 text-purple-600">${statistics.depositsPaid.toFixed(2)}</Title>
+                <Title level={2} className="!mb-0 text-purple-600">€{statistics.depositsPaid.toFixed(2)}</Title>
               )}
             </Card>
           </Col>
@@ -404,7 +402,7 @@ export default function Bids() {
               {loading ? (
                 <Spin size="small" />
               ) : (
-                <Title level={2} className="!mb-0 text-orange-600">${statistics.refundsReceived.toFixed(2)}</Title>
+                <Title level={2} className="!mb-0 text-orange-600">€{statistics.refundsReceived.toFixed(2)}</Title>
               )}
             </Card>
           </Col>
@@ -486,7 +484,7 @@ export default function Bids() {
                   />
                 </Col>
                 <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">Min Amount ($)</Text>
+                  <Text className="text-gray-600 text-sm block mb-1">Min Amount (€)</Text>
                   <Input 
                     placeholder="500" 
                     value={searchParams.minAmount}
@@ -495,7 +493,7 @@ export default function Bids() {
                   />
                 </Col>
                 <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">Max Amount ($)</Text>
+                  <Text className="text-gray-600 text-sm block mb-1">Max Amount (€)</Text>
                   <Input 
                     placeholder="2000" 
                     value={searchParams.maxAmount}
@@ -605,25 +603,25 @@ export default function Bids() {
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-green-50 border-green-200">
                   <Text className="text-green-600 text-sm block mb-1">Total Deposits</Text>
-                  <Title level={3} className="!mb-0 text-green-600">$7,165.00</Title>
+                  <Title level={3} className="!mb-0 text-green-600">€7,165.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-purple-50 border-purple-200">
                   <Text className="text-purple-600 text-sm block mb-1">Total Refunds</Text>
-                  <Title level={3} className="!mb-0 text-purple-600">$5,438.00</Title>
+                  <Title level={3} className="!mb-0 text-purple-600">€5,438.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-blue-50 border-blue-200">
                   <Text className="text-blue-600 text-sm block mb-1">Net Amount</Text>
-                  <Title level={3} className="!mb-0 text-blue-600">$1,727.00</Title>
+                  <Title level={3} className="!mb-0 text-blue-600">€1,727.00</Title>
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Card className="bg-orange-50 border-orange-200">
                   <Text className="text-orange-600 text-sm block mb-1">Pending Payments</Text>
-                  <Title level={3} className="!mb-0 text-orange-600">$1,840.00</Title>
+                  <Title level={3} className="!mb-0 text-orange-600">€1,840.00</Title>
                 </Card>
               </Col>
             </Row>
