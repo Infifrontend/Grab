@@ -80,6 +80,11 @@ export default function Bids() {
     fetchData();
   }, []);
 
+  // Auto-apply filters when search parameters change
+  useEffect(() => {
+    handleSearch();
+  }, [searchParams, bidsData]);
+
   const handleSearch = () => {
     let filtered = [...bidsData];
 
@@ -91,14 +96,14 @@ export default function Bids() {
     }
 
     // Filter by route
-    if (searchParams.route) {
+    if (searchParams.route.trim()) {
       filtered = filtered.filter(bid => 
         bid.route.toLowerCase().includes(searchParams.route.toLowerCase())
       );
     }
 
     // Filter by status
-    if (searchParams.status && searchParams.status !== 'all') {
+    if (searchParams.status && searchParams.status !== 'all' && searchParams.status !== '') {
       filtered = filtered.filter(bid => 
         bid.status.toLowerCase() === searchParams.status.toLowerCase()
       );
@@ -108,14 +113,16 @@ export default function Bids() {
     if (searchParams.dateFrom) {
       filtered = filtered.filter(bid => {
         const bidDate = new Date(bid.submitted);
-        return bidDate >= new Date(searchParams.dateFrom);
+        const fromDate = new Date(searchParams.dateFrom);
+        return bidDate >= fromDate;
       });
     }
 
     if (searchParams.dateTo) {
       filtered = filtered.filter(bid => {
         const bidDate = new Date(bid.submitted);
-        return bidDate <= new Date(searchParams.dateTo);
+        const toDate = new Date(searchParams.dateTo);
+        return bidDate <= toDate;
       });
     }
 
@@ -124,7 +131,7 @@ export default function Bids() {
       const minAmount = parseFloat(searchParams.minAmount);
       if (!isNaN(minAmount)) {
         filtered = filtered.filter(bid => {
-          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(',', ''));
+          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(/,/g, ''));
           return bidAmount >= minAmount;
         });
       }
@@ -134,7 +141,7 @@ export default function Bids() {
       const maxAmount = parseFloat(searchParams.maxAmount);
       if (!isNaN(maxAmount)) {
         filtered = filtered.filter(bid => {
-          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(',', ''));
+          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(/,/g, ''));
           return bidAmount <= maxAmount;
         });
       }
@@ -186,6 +193,12 @@ export default function Bids() {
       title: 'Bid ID',
       dataIndex: 'bidId',
       key: 'bidId',
+      sorter: (a: any, b: any) => {
+        const aNum = parseInt(a.bidId.replace('BID-', ''));
+        const bNum = parseInt(b.bidId.replace('BID-', ''));
+        return aNum - bNum;
+      },
+      sortDirections: ['descend', 'ascend'],
     },
     {
       title: 'Route',
