@@ -212,54 +212,103 @@ export default function PaymentOptions() {
         }
       }
 
-      const paymentData = {
+      console.log("Submitting comprehensive booking request...");
+
+      // Collect all stored data safely
+      let parsedBookingData = null;
+      let parsedGroupLeaderData = null;
+      let parsedPassengerData = [];
+      let parsedBundleData = null;
+      let parsedBookingSummary = null;
+
+      try {
+        const storedBookingData = localStorage.getItem("bookingFormData");
+        parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
+      } catch (e) {
+        console.warn("Failed to parse booking data:", e);
+      }
+
+      try {
+        const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
+        parsedGroupLeaderData = storedGroupLeaderData ? JSON.parse(storedGroupLeaderData) : null;
+      } catch (e) {
+        console.warn("Failed to parse group leader data:", e);
+      }
+
+      try {
+        const storedPassengerData = localStorage.getItem("passengerData");
+        parsedPassengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
+      } catch (e) {
+        console.warn("Failed to parse passenger data:", e);
+        parsedPassengerData = [];
+      }
+
+      try {
+        const storedBundleData = localStorage.getItem("selectedBundleData");
+        parsedBundleData = storedBundleData ? JSON.parse(storedBundleData) : null;
+      } catch (e) {
+        console.warn("Failed to parse bundle data:", e);
+      }
+
+      try {
+        const storedBookingSummary = localStorage.getItem("bookingSummary");
+        parsedBookingSummary = storedBookingSummary ? JSON.parse(storedBookingSummary) : null;
+      } catch (e) {
+        console.warn("Failed to parse booking summary:", e);
+      }
+
+      // Create clean payment data object
+      const cleanPaymentData = {
         paymentSchedule,
         paymentMethod,
-        totalAmount,
-        discountedTotal,
-        paymentDiscount: discount,
+        totalAmount: Number(totalAmount) || 0,
+        discountedTotal: Number(discountedTotal) || 0,
+        paymentDiscount: Number(discount) || 0,
         dueNow: paymentSchedule === "full" ? discountedTotal : 
                 paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
                 discountedTotal / 3,
-        selectedPaymentOption: selectedOption,
+        selectedPaymentOption: selectedOption ? {
+          id: selectedOption.id,
+          name: selectedOption.name,
+          discount: selectedOption.discount || 0
+        } : null,
         formData: creditCardData,
-        flightData,
-        selectedServices,
-        bundleData: localStorage.getItem('selectedBundleData') ? JSON.parse(localStorage.getItem('selectedBundleData') || '{}') : null,
-        passengerCount,
+        passengerCount: Number(passengerCount) || 1,
       };
 
-      // Save payment data to localStorage
-      localStorage.setItem("paymentData", JSON.stringify(paymentData));
+      // Create clean flight data object
+      const cleanFlightData = flightData ? {
+        outbound: flightData.outbound ? {
+          id: flightData.outbound.id,
+          airline: flightData.outbound.airline,
+          flightNumber: flightData.outbound.flightNumber,
+          price: Number(flightData.outbound.price) || 0,
+          departureTime: flightData.outbound.departureTime,
+          arrivalTime: flightData.outbound.arrivalTime,
+        } : null,
+        return: flightData.return ? {
+          id: flightData.return.id,
+          airline: flightData.return.airline,
+          flightNumber: flightData.return.flightNumber,
+          price: Number(flightData.return.price) || 0,
+          departureTime: flightData.return.departureTime,
+          arrivalTime: flightData.return.arrivalTime,
+        } : null,
+      } : null;
 
-      console.log("Submitting comprehensive booking request...");
-
-      // Collect all stored data
-      const storedBookingData = localStorage.getItem("bookingFormData");
-      const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
-      const storedPassengerData = localStorage.getItem("passengerData");
-      const storedBundleData = localStorage.getItem("selectedBundleData");
-      const storedBookingSummary = localStorage.getItem("bookingSummary");
-
-      const parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
-      const parsedGroupLeaderData = storedGroupLeaderData ? JSON.parse(storedGroupLeaderData) : null;
-      const parsedPassengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
-      const parsedBundleData = storedBundleData ? JSON.parse(storedBundleData) : null;
-      const parsedBookingSummary = storedBookingSummary ? JSON.parse(storedBookingSummary) : null;
-
-      // Prepare comprehensive booking payload
+      // Prepare comprehensive booking payload with clean data
       const comprehensiveBookingData = {
         bookingData: parsedBookingData,
-        flightData,
+        flightData: cleanFlightData,
         bundleData: parsedBundleData,
-        selectedServices,
+        selectedServices: selectedServices || [],
         groupLeaderData: parsedGroupLeaderData,
-        paymentData,
+        paymentData: cleanPaymentData,
         passengerData: parsedPassengerData,
         bookingSummary: parsedBookingSummary,
       };
 
-      console.log("Submitting comprehensive booking data:", comprehensiveBookingData);
+      console.log("Submitting clean booking data:", comprehensiveBookingData);
 
       // Submit to the comprehensive group booking endpoint
       const response = await fetch("/api/group-bookings", {
@@ -274,7 +323,10 @@ export default function PaymentOptions() {
         const result = await response.json();
         console.log("Comprehensive booking created successfully:", result);
         
-        // Clear localStorage after successful submission
+        // Save payment data to localStorage after successful submission
+        localStorage.setItem("paymentData", JSON.stringify(cleanPaymentData));
+        
+        // Clear other localStorage items after successful submission
         const keysToRemove = [
           "bookingFormData",
           "selectedFlightData",
@@ -282,7 +334,6 @@ export default function PaymentOptions() {
           "selectedServices",
           "groupLeaderData",
           "bookingSummary",
-          "paymentData",
           "passengerData",
         ];
         keysToRemove.forEach((key) => localStorage.removeItem(key));
@@ -290,17 +341,34 @@ export default function PaymentOptions() {
         // Navigate to booking details page with actual booking reference
         if (result.booking?.bookingReference) {
           setLocation(`/booking-details/${result.booking.bookingReference}`);
+        } else if (result.bookingReference) {
+          setLocation(`/booking-details/${result.bookingReference}`);
         } else {
           setLocation("/dashboard");
         }
       } else {
-        const errorData = await response.json();
-        console.error("Booking submission failed:", errorData);
-        alert("Failed to submit booking. Please try again.");
+        let errorMessage = "Failed to submit booking. Please try again.";
+        try {
+          const errorData = await response.json();
+          console.error("Booking submission failed:", errorData);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+        }
+        alert(errorMessage);
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
-      alert("An error occurred while submitting your booking. Please try again.");
+      let errorMessage = "An error occurred while submitting your booking. Please try again.";
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        }
+      }
+      alert(errorMessage);
     }
   };
 

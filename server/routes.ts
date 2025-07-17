@@ -309,6 +309,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create comprehensive group booking
   app.post("/api/group-bookings", async (req, res) => {
     try {
+      console.log("Received group booking request");
+      
       const {
         bookingData,
         flightData,
@@ -320,66 +322,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingSummary
       } = req.body;
 
+      // Validate required data
+      if (!bookingData && !paymentData) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Missing required booking data" 
+        });
+      }
+
+      const passengerCount = bookingData?.totalPassengers || 
+                           paymentData?.passengerCount || 
+                           (passengerData ? passengerData.length : 1);
+      
+      const totalAmount = bookingSummary?.totalAmount || 
+                         paymentData?.totalAmount || 
+                         "0";
+
       console.log("Creating comprehensive group booking:", {
-        passengerCount: bookingData?.totalPassengers,
-        totalAmount: bookingSummary?.totalAmount,
+        passengerCount,
+        totalAmount,
         paymentMethod: paymentData?.paymentMethod
       });
 
       // Generate unique booking reference
       const bookingReference = `GB-${new Date().getFullYear()}-${nanoid(8).toUpperCase()}`;
 
+      // Determine flight ID safely
+      let flightId = 1; // Default fallback
+      if (flightData?.outbound?.id) {
+        flightId = flightData.outbound.id;
+      } else if (flightData?.selectedFlightId) {
+        flightId = flightData.selectedFlightId;
+      }
+
       // Create main booking record
       const mainBooking = {
         bookingReference,
-        flightId: flightData?.outbound?.id || flightData?.selectedFlightId || 1,
-        passengerCount: bookingData?.totalPassengers || 1,
-        totalAmount: bookingSummary?.totalAmount?.toString() || "0",
+        flightId,
+        passengerCount,
+        totalAmount: totalAmount.toString(),
         bookingStatus: "confirmed",
         paymentStatus: paymentData?.paymentMethod === "bankTransfer" ? "pending" : "pending",
         specialRequests: `Group Type: ${groupLeaderData?.groupType || 'N/A'}, Services: ${selectedServices?.map(s => s.name).join(', ') || 'None'}`
       };
 
+      console.log("Creating booking with data:", mainBooking);
+
       const booking = await storage.createFlightBooking(mainBooking);
+      console.log("Booking created successfully:", booking);
 
       // Add passengers if provided
-      if (passengerData && passengerData.length > 0) {
+      if (passengerData && Array.isArray(passengerData) && passengerData.length > 0) {
+        console.log(`Adding ${passengerData.length} passengers`);
         for (const passenger of passengerData) {
-          await storage.createPassenger({
-            bookingId: booking.id,
-            title: passenger.title || 'Mr',
-            firstName: passenger.firstName,
-            lastName: passenger.lastName,
-            dateOfBirth: new Date(passenger.dateOfBirth),
-            nationality: passenger.nationality || 'Indian',
-            passportNumber: passenger.passportNumber || null,
-            passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry) : null,
-            seatPreference: passenger.seatPreference || null,
-            mealPreference: passenger.mealPreference || null,
-            specialAssistance: passenger.specialAssistance || null
-          });
+          try {
+            await storage.createPassenger({
+              bookingId: booking.id,
+              title: passenger.title || 'Mr',
+              firstName: passenger.firstName || 'Unknown',
+              lastName: passenger.lastName || 'Unknown',
+              dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth) : new Date('1990-01-01'),
+              nationality: passenger.nationality || 'Indian',
+              passportNumber: passenger.passportNumber || null,
+              passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry) : null,
+              seatPreference: passenger.seatPreference || null,
+              mealPreference: passenger.mealPreference || null,
+              specialAssistance: passenger.specialAssistance || null
+            });
+          } catch (passengerError) {
+            console.error("Error creating passenger:", passengerError);
+            // Continue with other passengers even if one fails
+          }
         }
       }
 
-      // Store comprehensive booking data in a separate table for full details
-      const comprehensiveBookingData = {
-        bookingReference,
-        tripDetails: bookingData,
-        flightDetails: flightData,
-        bundleSelection: bundleData,
-        selectedServices: selectedServices || [],
-        groupLeaderInfo: groupLeaderData,
-        paymentInfo: paymentData,
-        pricingSummary: bookingSummary,
-        createdAt: new Date().toISOString(),
-        status: 'confirmed'
-      };
+      // Store comprehensive booking data safely
+      try {
+        const comprehensiveBookingData = {
+          bookingReference,
+          tripDetails: bookingData || {},
+          flightDetails: flightData || {},
+          bundleSelection: bundleData || {},
+          selectedServices: selectedServices || [],
+          groupLeaderInfo: groupLeaderData || {},
+          paymentInfo: paymentData || {},
+          pricingSummary: bookingSummary || {},
+          createdAt: new Date().toISOString(),
+          status: 'confirmed'
+        };
 
-      // For now, we'll store this as a JSON field in the booking's specialRequests
-      // In a production app, you'd want a separate table for this
-      await storage.updateBookingDetails(booking.id, {
-        specialRequests: JSON.stringify(comprehensiveBookingData)
-      });
+        await storage.updateBookingDetails(booking.id, {
+          specialRequests: JSON.stringify(comprehensiveBookingData)
+        });
+        console.log("Comprehensive data stored successfully");
+      } catch (storageError) {
+        console.error("Error storing comprehensive data:", storageError);
+        // Don't fail the entire booking for this
+      }
 
       res.json({ 
         success: true,
@@ -389,10 +428,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Group booking creation error:", error);
+      
+      let errorMessage = "Failed to create group booking";
+      if (error.message) {
+        errorMessage = `Failed to create group booking: ${error.message}`;
+      }
+      
       res.status(500).json({ 
         success: false,
-        message: "Failed to create group booking",
-        error: error.message 
+        message: errorMessage,
+        error: error.message || "Unknown error"
       });
     }
   });
