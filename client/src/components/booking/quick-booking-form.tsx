@@ -128,7 +128,7 @@ export default function QuickBookingForm() {
 
       const searchResponse = await apiRequest("POST", "/api/search", searchData);
       const searchResult = await searchResponse.json();
-      
+
       if (!searchResult.flights || searchResult.flights.length === 0) {
         message.error("No flights found for your search criteria");
         return;
@@ -138,7 +138,7 @@ export default function QuickBookingForm() {
       localStorage.setItem('searchResults', JSON.stringify(searchResult.flights));
       localStorage.setItem('searchCriteria', JSON.stringify(searchData));
       localStorage.setItem('passengerCount', totalPassengers.toString());
-      
+
       // Store all form data for consistent booking flow
       localStorage.setItem('bookingFormData', JSON.stringify({
         origin: values.origin,
@@ -152,9 +152,9 @@ export default function QuickBookingForm() {
         cabin: values.cabin,
         totalPassengers
       }));
-      
+
       message.success(`Found ${searchResult.flights.length} flights! Redirecting to flight selection...`);
-      
+
       // Navigate to flight search bundle page
       setLocation("/flight-search-bundle");
     } catch (error) {

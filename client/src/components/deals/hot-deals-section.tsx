@@ -59,11 +59,11 @@ export default function HotDealsSection() {
             {/* Pricing and Rating */}
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <div className="original-price">₹{deal.originalPrice}</div>
-                <div className="discounted-price">₹{deal.discountedPrice}</div>
+                <div className="original-price">${deal.originalPrice}</div>
+                <div className="discounted-price">${deal.discountedPrice}</div>
                 <div className="text-xs text-gray-500">per person</div>
               </div>
-              
+
               <div className="text-right">
                 <div className="flex items-center gap-2 mb-1">
                   <Rate disabled defaultValue={parseFloat(deal.rating)} className="text-sm" />
@@ -84,7 +84,7 @@ export default function HotDealsSection() {
                   {deal.groupSizeMin}-{deal.groupSizeMax} pax
                 </div>
               </div>
-              
+
               <div className="availability-item">
                 <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
                   <CheckCircle className="w-4 h-4" />
