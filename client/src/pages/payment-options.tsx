@@ -181,7 +181,7 @@ export default function PaymentOptions() {
   const availablePaymentOptions = getAvailablePaymentOptions();
 
   const handleBack = () => {
-    setLocation("/group-leader");
+    setLocation("/review-confirmation");
   };
 
   const handleContinue = async () => {
@@ -734,7 +734,7 @@ export default function PaymentOptions() {
             className="text-gray-600 hover:text-gray-800 flex items-center"
             size="large"
           >
-            Back to Group Leader
+            Back to Review & Confirmation
           </Button>
 
           <Button
