@@ -578,10 +578,10 @@ export default function FlightSearchResults() {
                   />
                   <div className="flex justify-between">
                     <Text className="text-gray-600 text-sm">
-                      €{priceRange[0]}
+                      ₹{priceRange[0]}
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      €{priceRange[1]}
+                      ₹{priceRange[1]}
                     </Text>
                   </div>
                 </div>
@@ -753,7 +753,7 @@ export default function FlightSearchResults() {
                         <div className="text-right">
                           <div className="mb-3">
                             <Text className="text-2xl font-bold text-gray-900">
-                              €{flight.price}
+                              ${flight.price}
                             </Text>
                             <Text className="text-gray-600 text-sm block">
                               per person

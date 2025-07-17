@@ -976,7 +976,7 @@ export default function FlightSearchBundle() {
         </Col>
         <Col span={8} className="text-right">
           <Text className="text-xl font-bold text-gray-900">
-            €{flight.price}
+            ${flight.price}
           </Text>
           <Text className="text-gray-600 text-sm block">per person</Text>
           <Text className="text-xs text-green-600">
@@ -1031,7 +1031,7 @@ export default function FlightSearchBundle() {
                       <Badge color="green" text="Included" />
                     ) : (
                       <Text className="font-bold text-blue-600">
-                        €{option.price}
+                        ${option.price}
                       </Text>
                     )}
                   </div>
@@ -1459,10 +1459,10 @@ export default function FlightSearchBundle() {
                     />
                     <div className="flex justify-between">
                       <Text className="text-gray-600 text-sm">
-                        €{priceRange[0]}
+                        ${priceRange[0]}
                       </Text>
                       <Text className="text-gray-600 text-sm">
-                        €{priceRange[1]}
+                        ${priceRange[1]}
                       </Text>
                     </div>
                   </div>
@@ -1721,13 +1721,13 @@ export default function FlightSearchBundle() {
                       Flight ({passengerCount} passenger
                       {passengerCount > 1 ? "s" : ""})
                     </Text>
-                    <Text className="font-medium">€{baseCost.toFixed(2)}</Text>
+                    <Text className="font-medium">${baseCost.toFixed(2)}</Text>
                   </div>
                   {bundleCost > 0 && (
                     <div className="flex justify-between">
                       <Text>Extras & Services</Text>
                       <Text className="font-medium">
-                        €{bundleCost.toFixed(2)}
+                        ${bundleCost.toFixed(2)}
                       </Text>
                     </div>
                   )}
@@ -1735,7 +1735,7 @@ export default function FlightSearchBundle() {
                   <div className="flex justify-between text-lg font-bold">
                     <Text>Total</Text>
                     <Text className="text-blue-600">
-                      €{totalCost.toFixed(2)}
+                      ${totalCost.toFixed(2)}
                     </Text>
                   </div>
                 </div>

@@ -889,7 +889,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       Total Booking Amount
                     </Text>
                     <Text className="text-2xl font-bold text-blue-600">
-                      €{parseFloat(booking.totalAmount || "0").toLocaleString()}
+                      ₹{parseFloat(booking.totalAmount || "0").toLocaleString()}
                     </Text>
                   </div>
                 </Col>
@@ -899,7 +899,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       Amount Paid
                     </Text>
                     <Text className="text-2xl font-bold text-green-600">
-                      €
+                      ₹
                       {(
                         parseFloat(booking.totalAmount || "0") *
                         (booking.paymentStatus === "completed" ? 1 : 0.5)
@@ -913,7 +913,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       Remaining Balance
                     </Text>
                     <Text className="text-2xl font-bold text-orange-600">
-                      €
+                      ₹
                       {(
                         parseFloat(booking.totalAmount || "0") *
                         (booking.paymentStatus === "completed" ? 0 : 0.5)

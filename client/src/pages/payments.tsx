@@ -558,7 +558,7 @@ export default function Payments() {
             </Row>
 
             <Form.Item label="Full Payment: ₹4,500.00 (remaining balance)">
-              <div className="text-blue-600 font-medium">Full Payment: €4,500.00 (remaining balance)</div>
+              <div className="text-blue-600 font-medium">Full Payment: $4,500.00 (remaining balance)</div>
             </Form.Item>
 
             <Form.Item

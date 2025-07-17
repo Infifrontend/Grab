@@ -61,7 +61,7 @@ export default function RecentBookingsSection() {
       title: "Amount",
       dataIndex: "totalAmount",
       key: "totalAmount",
-      render: (amount) => amount ? `€${parseFloat(amount).toLocaleString()}` : 'N/A',
+      render: (amount) => amount ? `$${parseFloat(amount).toLocaleString()}` : 'N/A',
     },
     {
       title: "Date",

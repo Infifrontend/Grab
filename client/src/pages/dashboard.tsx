@@ -477,7 +477,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <Text className="font-bold text-lg text-gray-900">€3,750.00</Text>
+                    <Text className="font-bold text-lg text-gray-900">$3,750.00</Text>
                     <Text className="text-sm text-gray-500 block">Jun 01, 2024</Text>
                   </div>
                 </div>
@@ -493,7 +493,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <Text className="font-bold text-lg text-gray-900">€11,250.00</Text>
+                    <Text className="font-bold text-lg text-gray-900">$11,250.00</Text>
                     <Text className="text-sm text-gray-500 block">Jul 10, 2024</Text>
                   </div>
                 </div>

@@ -65,7 +65,7 @@ export default function BookingDetails() {
   }
 
   const { booking, passengers, flightData, comprehensiveData } = bookingDetails;
-
+  
   // Parse comprehensive data for detailed information
   const bookingData = comprehensiveData?.tripDetails;
   const groupLeaderData = comprehensiveData?.groupLeaderInfo;
@@ -419,7 +419,7 @@ export default function BookingDetails() {
                         Total Amount
                       </Text>
                       <Text className="text-gray-900">
-                        €{totalAmount || '5,280.00'}
+                        ${totalAmount || '5,280.00'}
                       </Text>
                     </div>
                   </div>
@@ -436,7 +436,7 @@ export default function BookingDetails() {
                     {selectedServices.map((service: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <Text className="text-gray-900">{service.name}</Text>
-                        <Text className="text-gray-600 font-medium">€{service.price}</Text>
+                        <Text className="text-gray-600 font-medium">${service.price}</Text>
                       </div>
                     ))}
                   </div>
@@ -532,7 +532,7 @@ export default function BookingDetails() {
                     </Text>
                   </div>
                   <Text className="text-2xl font-bold text-gray-900">
-                    €{totalAmount || '5,280.00'}
+                    ${totalAmount || '5,280.00'}
                   </Text>
                 </div>
               </div>

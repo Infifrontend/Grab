@@ -59,8 +59,8 @@ export default function HotDealsSection() {
             {/* Pricing and Rating */}
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <div className="original-price">€{deal.originalPrice}</div>
-                <div className="discounted-price">€{deal.discountedPrice}</div>
+                <div className="original-price">${deal.originalPrice}</div>
+                <div className="discounted-price">${deal.discountedPrice}</div>
                 <div className="text-xs text-gray-500">per person</div>
               </div>
 

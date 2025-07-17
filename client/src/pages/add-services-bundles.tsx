@@ -462,7 +462,7 @@ export default function AddServicesBundles() {
           {service.name}
         </Title>
         <Text className="text-gray-600 text-sm">{service.description}</Text>
-        <Text className="font-bold">€{service.price}</Text>
+        <Text className="font-bold">$${service.price}</Text>
       </div>
       <div className="flex items-center gap-2">
         <Button
@@ -579,7 +579,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Choose your preferred seat
                               </Text>
-                              <Text className="font-bold text-lg">€25</Text>
+                              <Text className="font-bold text-lg">$25</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -625,7 +625,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Relax in premium lounges
                               </Text>
-                              <Text className="font-bold text-lg">€65</Text>
+                              <Text className="font-bold text-lg">$65</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -673,7 +673,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 More space to stretch out
                               </Text>
-                              <Text className="font-bold text-lg">€40</Text>
+                              <Text className="font-bold text-lg">$40</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -732,7 +732,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Additional checked baggage
                               </Text>
-                              <Text className="font-bold text-lg">€45</Text>
+                              <Text className="font-bold text-lg">$45</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -776,7 +776,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 First off the carousel
                               </Text>
-                              <Text className="font-bold text-lg">€20</Text>
+                              <Text className="font-bold text-lg">$20</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -839,7 +839,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Board the aircraft first
                               </Text>
-                              <Text className="font-bold text-lg">€15</Text>
+                              <Text className="font-bold text-lg">$15</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -887,7 +887,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Skip the security queues
                               </Text>
-                              <Text className="font-bold text-lg">€25</Text>
+                              <Text className="font-bold text-lg">$25</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -951,7 +951,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Upgrade your in-flight dining
                               </Text>
-                              <Text className="font-bold text-lg">€35</Text>
+                              <Text className="font-bold text-lg">$35</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -1010,7 +1010,7 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Stay connected during your flight
                               </Text>
-                              <Text className="font-bold text-lg">€20</Text>
+                              <Text className="font-bold text-lg">$20</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -1069,11 +1069,12 @@ export default function AddServicesBundles() {
                               <Text className="text-gray-600 text-sm">
                                 Comprehensive travel protection
                               </Text>
-                              <Text className="font-bold text-lg">€55</Text>
+                              <Text className="font-bold text-lg">$55</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
-                                icon={<MinusOutlined />}                                size="small"
+                                icon={<MinusOutlined />}
+                                size="small"
                                 onClick={() =>
                                   updateServiceCount(
                                     "travel-insurance",
