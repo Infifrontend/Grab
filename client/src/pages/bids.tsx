@@ -20,6 +20,16 @@ export default function Bids() {
   });
   const [bidsData, setBidsData] = useState([]);
   const [paymentHistoryData, setPaymentHistoryData] = useState([]);
+  const [searchParams, setSearchParams] = useState({
+    bidId: '',
+    route: '',
+    status: '',
+    dateFrom: null,
+    dateTo: null,
+    minAmount: '',
+    maxAmount: ''
+  });
+  const [filteredBidsData, setFilteredBidsData] = useState([]);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -55,6 +65,7 @@ export default function Bids() {
         }));
         
         setBidsData(transformedBids);
+        setFilteredBidsData(transformedBids);
 
         // For now, use empty payment history until we have actual payment data
         setPaymentHistoryData([]);
@@ -68,6 +79,82 @@ export default function Bids() {
 
     fetchData();
   }, []);
+
+  const handleSearch = () => {
+    let filtered = [...bidsData];
+
+    // Filter by bid ID
+    if (searchParams.bidId.trim()) {
+      filtered = filtered.filter(bid => 
+        bid.bidId.toLowerCase().includes(searchParams.bidId.toLowerCase())
+      );
+    }
+
+    // Filter by route
+    if (searchParams.route) {
+      filtered = filtered.filter(bid => 
+        bid.route.toLowerCase().includes(searchParams.route.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (searchParams.status && searchParams.status !== 'all') {
+      filtered = filtered.filter(bid => 
+        bid.status.toLowerCase() === searchParams.status.toLowerCase()
+      );
+    }
+
+    // Filter by date range
+    if (searchParams.dateFrom) {
+      filtered = filtered.filter(bid => {
+        const bidDate = new Date(bid.submitted);
+        return bidDate >= new Date(searchParams.dateFrom);
+      });
+    }
+
+    if (searchParams.dateTo) {
+      filtered = filtered.filter(bid => {
+        const bidDate = new Date(bid.submitted);
+        return bidDate <= new Date(searchParams.dateTo);
+      });
+    }
+
+    // Filter by amount range
+    if (searchParams.minAmount.trim()) {
+      const minAmount = parseFloat(searchParams.minAmount);
+      if (!isNaN(minAmount)) {
+        filtered = filtered.filter(bid => {
+          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(',', ''));
+          return bidAmount >= minAmount;
+        });
+      }
+    }
+
+    if (searchParams.maxAmount.trim()) {
+      const maxAmount = parseFloat(searchParams.maxAmount);
+      if (!isNaN(maxAmount)) {
+        filtered = filtered.filter(bid => {
+          const bidAmount = parseFloat(bid.bidAmount.replace('₹', '').replace(',', ''));
+          return bidAmount <= maxAmount;
+        });
+      }
+    }
+
+    setFilteredBidsData(filtered);
+  };
+
+  const handleResetFilters = () => {
+    setSearchParams({
+      bidId: '',
+      route: '',
+      status: '',
+      dateFrom: null,
+      dateTo: null,
+      minAmount: '',
+      maxAmount: ''
+    });
+    setFilteredBidsData(bidsData);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -331,18 +418,18 @@ export default function Bids() {
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Bid ID</Text>
-                  <Input placeholder="BID-2024-001" />
+                  <Input 
+                    placeholder="BID-2024-001" 
+                    value={searchParams.bidId}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, bidId: e.target.value }))}
+                  />
                 </Col>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Route</Text>
-                  <Select
+                  <Input
                     placeholder="New York → London"
-                    style={{ width: '100%' }}
-                    options={[
-                      { value: 'nyc-lon', label: 'New York → London' },
-                      { value: 'la-tokyo', label: 'Los Angeles → Tokyo' },
-                      { value: 'chi-paris', label: 'Chicago → Paris' },
-                    ]}
+                    value={searchParams.route}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, route: e.target.value }))}
                   />
                 </Col>
                 <Col xs={24} md={6}>
@@ -350,11 +437,15 @@ export default function Bids() {
                   <Select
                     placeholder="All Status"
                     style={{ width: '100%' }}
+                    value={searchParams.status || undefined}
+                    onChange={(value) => setSearchParams(prev => ({ ...prev, status: value }))}
                     options={[
                       { value: 'all', label: 'All Status' },
                       { value: 'pending', label: 'Pending' },
                       { value: 'accepted', label: 'Accepted' },
                       { value: 'declined', label: 'Declined' },
+                      { value: 'expired', label: 'Expired' },
+                      { value: 'under review', label: 'Under Review' },
                     ]}
                   />
                 </Col>
@@ -364,7 +455,8 @@ export default function Bids() {
                     style={{ width: '100%' }} 
                     placeholder="DD MMM YYYY" 
                     format="DD MMM YYYY"
-                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                    value={searchParams.dateFrom}
+                    onChange={(date) => setSearchParams(prev => ({ ...prev, dateFrom: date }))}
                   />
                 </Col>
               </Row>
@@ -372,18 +464,48 @@ export default function Bids() {
               <Row gutter={[16, 16]} className="mt-4">
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Date To</Text>
-                  <DatePicker style={{ width: '100%' }} placeholder="dd/mm/yyyy" />
+                  <DatePicker 
+                    style={{ width: '100%' }} 
+                    placeholder="DD MMM YYYY"
+                    format="DD MMM YYYY"
+                    value={searchParams.dateTo}
+                    onChange={(date) => setSearchParams(prev => ({ ...prev, dateTo: date }))}
+                  />
                 </Col>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Min Amount (₹)</Text>
-                  <Input placeholder="500" />
+                  <Input 
+                    placeholder="500" 
+                    value={searchParams.minAmount}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, minAmount: e.target.value }))}
+                    type="number"
+                  />
                 </Col>
                 <Col xs={24} md={6}>
                   <Text className="text-gray-600 text-sm block mb-1">Max Amount (₹)</Text>
-                  <Input placeholder="2000" />
+                  <Input 
+                    placeholder="2000" 
+                    value={searchParams.maxAmount}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, maxAmount: e.target.value }))}
+                    type="number"
+                  />
                 </Col>
-                <Col xs={24} md={6} className="flex items-end">
-                  <Button type="link" className="text-blue-600">Reset Filters</Button>
+                <Col xs={24} md={6} className="flex items-end gap-2">
+                  <Button 
+                    type="primary" 
+                    icon={<SearchOutlined />}
+                    onClick={handleSearch}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Search
+                  </Button>
+                  <Button 
+                    type="link" 
+                    className="text-blue-600"
+                    onClick={handleResetFilters}
+                  >
+                    Reset Filters
+                  </Button>
                 </Col>
               </Row>
             </Card>
@@ -392,14 +514,14 @@ export default function Bids() {
             <Card>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <Title level={4} className="!mb-1">All Bids ({bidsData.length})</Title>
+                  <Title level={4} className="!mb-1">All Bids ({filteredBidsData.length})</Title>
                   <Text className="text-gray-600">Manage and track all your group bidding requests</Text>
                 </div>
               </div>
 
               <Table
                 columns={bidsColumns}
-                dataSource={bidsData}
+                dataSource={filteredBidsData}
                 rowKey="bidId"
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: 1200 }}
