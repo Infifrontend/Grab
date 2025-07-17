@@ -160,7 +160,7 @@ export default function ReviewConfirmation() {
         <div className="mb-8">
           <div className="overflow-x-auto">
             <BookingSteps
-              currentStep={5}
+              currentStep={6}
               size="small"
               className="mb-6 min-w-[800px]"
             />
@@ -554,14 +554,14 @@ export default function ReviewConfirmation() {
           <Button
             type="primary"
             size="large"
-            onClick={() => setLocation("/payment-options")}
+            onClick={handleSubmit}
             className="px-8"
             style={{
               backgroundColor: "#2a0a22",
               borderColor: "#2a0a22",
             }}
           >
-            Continue to Payment
+            Submit Booking Request
           </Button>
         </div>
       </div>

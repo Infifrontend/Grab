@@ -84,7 +84,7 @@ export default function PassengerInfo() {
   ).length;
 
   const handleBack = () => {
-    setLocation("/group-leader");
+    setLocation("/payment-options");
   };
 
   const handleContinue = () => {
@@ -147,7 +147,7 @@ export default function PassengerInfo() {
         <div className="mb-8">
           <div className="overflow-x-auto">
             <BookingSteps
-              currentStep={4}
+              currentStep={5}
               size="small"
               className="mb-6 min-w-[800px]"
             />

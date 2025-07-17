@@ -25,7 +25,6 @@ import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 import dayjs from "dayjs";
-import { message } from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -235,88 +234,18 @@ export default function PaymentOptions() {
         localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
         // Always navigate to passenger info first, then review
-        // setLocation("/passenger-info");
+        setLocation("/passenger-info");
       } catch (storageError) {
         console.error("Storage error:", storageError);
         // Still navigate even if storage fails
-        // setLocation("/passenger-info");
+        setLocation("/passenger-info");
       }
     } catch (errorInfo) {
       console.log("Validation Failed:", errorInfo);
       // If validation fails but it's not a critical error, still allow navigation for non-credit card payments
-      // if (paymentMethod !== "creditCard") {
-      //   setLocation("/passenger-info");
-      // }
-    }
-
-    try {
-      // Only validate form fields if credit card is selected
-      if (paymentMethod === "creditCard") {
-        await form.validateFields();
+      if (paymentMethod !== "creditCard") {
+        setLocation("/passenger-info");
       }
-
-      const values = {
-        paymentSchedule,
-        paymentMethod,
-        totalAmount,
-        paymentDiscount: availablePaymentOptions.find(opt => opt.id === paymentMethod)?.discount || 0,
-        creditCardData: paymentMethod === "creditCard" ? form.getFieldsValue() : null,
-      };
-
-      message.success("Payment completed successfully!");
-
-        // Submit the comprehensive booking request here
-        try {
-          const comprehensiveBookingData = {
-            bookingData: JSON.parse(localStorage.getItem("bookingFormData") || "{}"),
-            flightData: JSON.parse(localStorage.getItem("selectedFlightData") || "{}"),
-            bundleData: JSON.parse(localStorage.getItem("selectedBundleData") || "{}"),
-            selectedServices: JSON.parse(localStorage.getItem("selectedServices") || "[]"),
-            groupLeaderData: JSON.parse(localStorage.getItem("groupLeaderData") || "{}"),
-            paymentData: values,
-            passengerData: JSON.parse(localStorage.getItem("passengerData") || "[]"),
-            bookingSummary: JSON.parse(localStorage.getItem("bookingSummary") || "{}")
-          };
-
-          const response = await fetch("/api/group-bookings", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(comprehensiveBookingData),
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-
-            // Clear localStorage after successful submission
-            const keysToRemove = [
-              "bookingFormData",
-              "selectedFlightData",
-              "selectedBundleData",
-              "selectedServices",
-              "groupLeaderData",
-              "bookingSummary",
-              "paymentData",
-              "passengerData",
-            ];
-            keysToRemove.forEach((key) => localStorage.removeItem(key));
-
-            // Redirect to booking details page
-            if (result.booking?.bookingReference) {
-              setLocation(`/booking-details/${result.booking.bookingReference}`);
-            } else {
-              setLocation("/dashboard");
-            }
-          } else {
-            message.error("Failed to submit booking. Please try again.");
-          }
-        } catch (error) {
-          console.error("Error submitting booking:", error);
-          message.error("An error occurred while submitting your booking. Please try again.");
-        }
-    } catch (errorInfo) {
-      console.log("Validation Failed:", errorInfo);
     }
   };
 
@@ -818,7 +747,7 @@ export default function PaymentOptions() {
               borderColor: "#2a0a22",
             }}
           >
-            Submit Booking Request
+            Continue to Passenger Info
           </Button>
         </div>
       </div>
