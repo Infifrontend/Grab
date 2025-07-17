@@ -89,7 +89,7 @@ export default function GroupLeader() {
         localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
 
         message.success("Group leader information saved locally!");
-        setLocation("/payment-options");
+        setLocation("/passenger-info");
       } catch (error) {
         console.error("Error processing group leader data:", error);
         message.error("Failed to process group leader information");
