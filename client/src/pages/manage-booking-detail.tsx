@@ -21,7 +21,7 @@ export default function ManageBookingDetail() {
   const bookingId = params?.id;
 
   // Fetch booking details from API
-  const { data: bookingDetails, isLoading, error } = useQuery({
+  const { data: bookingDetails, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/booking-details", bookingId],
     queryFn: async () => {
       if (!bookingId) throw new Error("No booking ID provided");
@@ -118,7 +118,7 @@ export default function ManageBookingDetail() {
   }
 
   const { booking, passengers: fetchedPassengers, flightData, comprehensiveData } = bookingDetails;
-  
+
   // Parse comprehensive data for detailed information
   const groupLeaderData = comprehensiveData?.groupLeaderInfo;
   const selectedServices = comprehensiveData?.selectedServices || [];
@@ -173,7 +173,7 @@ export default function ManageBookingDetail() {
       }
 
       message.success('Changes saved successfully');
-      
+
       // Refresh the booking details to reflect the changes
       window.location.reload();
     } catch (error) {
@@ -193,7 +193,7 @@ export default function ManageBookingDetail() {
   const handleDownloadCSVTemplate = () => {
     // Create CSV header with the required fields
     let csvContent = 'First Name,Last Name,Date of Birth,Passport Number,Nationality,Gender,Special Requirements\n';
-    
+
     // Add current passenger data if available
     if (passengers && passengers.length > 0) {
       passengers.forEach((passenger, index) => {
@@ -204,7 +204,7 @@ export default function ManageBookingDetail() {
         const nationality = passenger.nationality || '';
         const gender = passenger.gender || '';
         const specialRequirements = passenger.specialRequirements || passenger.specialRequests || '';
-        
+
         csvContent += `${firstName},${lastName},${dateOfBirth},${passportNumber},${nationality},${gender},"${specialRequirements}"\n`;
       });
     } else {
@@ -817,5 +817,4 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
         )}
       </div>
     </div>
-  );
-}
+  );}

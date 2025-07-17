@@ -1,7 +1,7 @@
 import { 
   users, deals, packages, bookings, searchRequests, flights, flightBookings, passengers, bids, payments, refunds,
   type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest,
-  type Flight, type InsertFlight, type FlightBooking, type InsertFlightBooking, type Passenger, type InsertPassenger,
+  type Flight, type InsertFlight, type InsertFlightBooking, type FlightBooking, type Passenger, type InsertPassenger,
   type Bid, type InsertBid, type Payment, type InsertPayment, type Refund, type InsertRefund
 } from "@shared/schema";
 import { db } from "./db";
@@ -241,6 +241,16 @@ export class DatabaseStorage implements IStorage {
   async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
     await db.update(flightBookings)
       .set(updates)
+      .where(eq(flightBookings.id, bookingId));
+  }
+
+  async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
+    return await db
+      .update(flightBookings)
+      .set({ 
+        passengerCount: passengerCount,
+        updatedAt: new Date()
+      })
       .where(eq(flightBookings.id, bookingId));
   }
 

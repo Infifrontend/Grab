@@ -550,6 +550,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Update the booking's passenger count to match the actual number of passengers
+      await storage.updateBookingPassengerCount(booking.id, passengers.length);
+
       res.json({ 
         success: true, 
         message: "Passengers updated successfully" 
