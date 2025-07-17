@@ -210,12 +210,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Date of Birth"
                     name="dateOfBirth"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select date of birth",
-                      },
-                    ]}
                   >
                     <DatePicker
                       size="large"
@@ -230,9 +224,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Nationality"
                     name="nationality"
-                    rules={[
-                      { required: true, message: "Please select nationality" },
-                    ]}
                   >
                     <Select
                       size="large"
@@ -265,12 +256,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Passport Number"
                     name="passportNumber"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter passport number",
-                      },
-                    ]}
                   >
                     <Input size="large" placeholder="Enter passport number" />
                   </Form.Item>
@@ -279,12 +264,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Passport Expiry Date"
                     name="passportExpiryDate"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select passport expiry date",
-                      },
-                    ]}
                   >
                     <DatePicker
                       size="large"
@@ -308,12 +287,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Street Address"
                     name="streetAddress"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter street address",
-                      },
-                    ]}
                   >
                     <Input size="large" placeholder="Enter street address" />
                   </Form.Item>
@@ -325,7 +298,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="City"
                     name="city"
-                    rules={[{ required: true, message: "Please enter city" }]}
                   >
                     <Input size="large" placeholder="Enter city" />
                   </Form.Item>
@@ -347,9 +319,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Country"
                     name="country"
-                    rules={[
-                      { required: true, message: "Please select country" },
-                    ]}
                   >
                     <Select
                       size="large"
@@ -382,9 +351,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Contact Name"
                     name="emergencyContactName"
-                    rules={[
-                      { required: true, message: "Please enter contact name" },
-                    ]}
                   >
                     <Input size="large" placeholder="Enter contact name" />
                   </Form.Item>
@@ -393,9 +359,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Contact Phone"
                     name="emergencyContactPhone"
-                    rules={[
-                      { required: true, message: "Please enter contact phone" },
-                    ]}
                   >
                     <Input size="large" placeholder="Enter contact phone" />
                   </Form.Item>
@@ -407,9 +370,6 @@ export default function GroupLeader() {
                   <Form.Item
                     label="Relationship"
                     name="emergencyContactRelationship"
-                    rules={[
-                      { required: true, message: "Please select relationship" },
-                    ]}
                   >
                     <Select size="large" placeholder="Select relationship">
                       <Option value="spouse">Spouse</Option>
