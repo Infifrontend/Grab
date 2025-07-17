@@ -84,6 +84,11 @@ export default function ManageBookingDetail() {
   const groupSize = bookingDetails?.booking?.passengerCount || 1;
   const [currentGroupSize, setCurrentGroupSize] = useState(1);
 
+  // Calculate confirmed passengers (those with both first and last names filled)
+  const confirmedPassengersCount = passengers.filter(p => 
+    p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim()
+  ).length;
+
   React.useEffect(() => {
     if (bookingDetails?.booking?.passengerCount) {
       setCurrentGroupSize(bookingDetails.booking.passengerCount);
