@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message, Spin } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
 import { useLocation } from 'wouter';
 import Header from "@/components/layout/header";
@@ -14,64 +14,87 @@ export default function Payments() {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [paymentForm] = Form.useForm();
+  
+  // State for API data
+  const [loading, setLoading] = useState(true);
+  const [paymentStats, setPaymentStats] = useState({
+    totalPayments: 0,
+    pendingPayments: 0,
+    upcomingPayments: 0,
+    refundsProcessed: 0
+  });
+  const [paymentData, setPaymentData] = useState([]);
+  const [paymentSchedule, setPaymentSchedule] = useState([]);
 
   const handleViewPayment = (paymentId: string) => {
     setLocation(`/payment-details/${paymentId}`);
   };
 
-  // Mock payment data
-  const paymentData = [
-    {
-      key: '1',
-      paymentId: 'PAY-1234',
-      bookingId: 'GR-2024-1001',
-      date: '2024-05-15',
-      amount: '₹2,500.00',
-      type: 'Partial Payment',
-      status: 'Completed',
-      method: 'Credit Card',
-    },
-    {
-      key: '2',
-      paymentId: 'PAY-1235',
-      bookingId: 'GR-2024-1001',
-      date: '2024-04-01',
-      amount: '₹1,500.00',
-      type: 'Deposit',
-      status: 'Completed',
-      method: 'Bank Transfer',
-    },
-    {
-      key: '3',
-      paymentId: 'PAY-1236',
-      bookingId: 'GR-2024-0987',
-      date: '2024-05-20',
-      amount: '₹3,200.00',
-      type: 'Full Payment',
-      status: 'Pending',
-      method: 'Credit Card',
-    },
-    {
-      key: '4',
-      paymentId: 'PAY-1237',
-      bookingId: 'GR-2024-0965',
-      date: '2024-05-18',
-      amount: '₹1,800.00',
-      type: 'Split Payment',
-      status: 'Completed',
-      method: 'PayPal',
-    },
-    {
-      key: '5',
-      paymentId: 'PAY-1238',
-      bookingId: 'GR-2024-0932',
-      date: '2024-05-10',
-      amount: '₹950.00',
-      type: 'Partial Payment',
-      status: 'Failed',
-      method: 'Credit Card',
-    },
-  ];
+  // Fetch payment statistics
+  const fetchPaymentStats = async () => {
+    try {
+      const response = await fetch('/api/payments/statistics');
+      if (response.ok) {
+        const stats = await response.json();
+        setPaymentStats(stats);
+      }
+    } catch (error) {
+      console.error('Error fetching payment statistics:', error);
+    }
+  };
+
+  // Fetch payment data
+  const fetchPayments = async () => {
+    try {
+      const response = await fetch('/api/payments');
+      if (response.ok) {
+        const payments = await response.json();
+        setPaymentData(payments);
+      }
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    }
+  };
+
+  // Fetch payment schedule
+  const fetchPaymentSchedule = async () => {
+    try {
+      const response = await fetch('/api/payments/schedule');
+      if (response.ok) {
+        const schedule = await response.json();
+        setPaymentSchedule(schedule);
+      }
+    } catch (error) {
+      console.error('Error fetching payment schedule:', error);
+    }
+  };
+
+  // Load all data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchPaymentStats(),
+        fetchPayments(),
+        fetchPaymentSchedule()
+      ]);
+      setLoading(false);
+    };
+    
+    loadData();
+  }, []);
+
+  // Filter payments based on search and status
+  const filteredPayments = paymentData.filter(payment => {
+    const matchesSearch = !searchText || 
+      payment.paymentId.toLowerCase().includes(searchText.toLowerCase()) ||
+      payment.bookingId.toLowerCase().includes(searchText.toLowerCase());
+    
+    const matchesStatus = statusFilter === "All Status" || 
+      payment.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const columns = [
     {
@@ -189,59 +212,77 @@ export default function Payments() {
         </div>
 
         {/* Summary Cards */}
-        <Row gutter={[24, 24]} className="mb-8">
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="flex justify-center mb-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <span className="text-orange-600 text-xl">💰</span>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Row gutter={[24, 24]} className="mb-8">
+            <Col xs={24} sm={12} lg={6}>
+              <Card className="text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <span className="text-orange-600 text-xl">💰</span>
+                  </div>
                 </div>
-              </div>
-              <Text className="text-gray-600 block mb-2">Total Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">₹12,84,200</Title>
-              <Text className="text-green-600 text-sm">+12% from last month</Text>
-            </Card>
-          </Col>
+                <Text className="text-gray-600 block mb-2">Total Payments</Text>
+                <Title level={3} className="!mb-1 text-gray-900">
+                  ₹{paymentStats.totalPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Title>
+                <Text className="text-green-600 text-sm">+12% from last month</Text>
+              </Card>
+            </Col>
 
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="flex justify-center mb-3">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <span className="text-yellow-600 text-xl">⏳</span>
+            <Col xs={24} sm={12} lg={6}>
+              <Card className="text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <span className="text-yellow-600 text-xl">⏳</span>
+                  </div>
                 </div>
-              </div>
-              <Text className="text-gray-600 block mb-2">Pending Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">₹4,25,600</Title>
-              <Text className="text-gray-500 text-sm">3 bookings with pending payments</Text>
-            </Card>
-          </Col>
+                <Text className="text-gray-600 block mb-2">Pending Payments</Text>
+                <Title level={3} className="!mb-1 text-gray-900">
+                  ₹{paymentStats.pendingPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Title>
+                <Text className="text-gray-500 text-sm">
+                  {paymentData.filter(p => p.status === 'Pending').length} bookings with pending payments
+                </Text>
+              </Card>
+            </Col>
 
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="flex justify-center mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 text-xl">📅</span>
+            <Col xs={24} sm={12} lg={6}>
+              <Card className="text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-600 text-xl">📅</span>
+                  </div>
                 </div>
-              </div>
-              <Text className="text-gray-600 block mb-2">Upcoming Payments</Text>
-              <Title level={3} className="!mb-1 text-gray-900">₹1,87,500</Title>
-              <Text className="text-gray-500 text-sm">Due in the next 30 days</Text>
-            </Card>
-          </Col>
+                <Text className="text-gray-600 block mb-2">Upcoming Payments</Text>
+                <Title level={3} className="!mb-1 text-gray-900">
+                  ₹{paymentStats.upcomingPayments.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Title>
+                <Text className="text-gray-500 text-sm">Due in the next 30 days</Text>
+              </Card>
+            </Col>
 
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="flex justify-center mb-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
-                  <span className="text-cyan-600 text-xl">💳</span>
+            <Col xs={24} sm={12} lg={6}>
+              <Card className="text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                    <span className="text-cyan-600 text-xl">💳</span>
+                  </div>
                 </div>
-              </div>
-              <Text className="text-gray-600 block mb-2">Refunds Processed</Text>
-              <Title level={3} className="!mb-1 text-gray-900">₹32,400</Title>
-              <Text className="text-gray-500 text-sm">2 refunds this month</Text>
-            </Card>
-          </Col>
-        </Row>
+                <Text className="text-gray-600 block mb-2">Refunds Processed</Text>
+                <Title level={3} className="!mb-1 text-gray-900">
+                  ₹{paymentStats.refundsProcessed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Title>
+                <Text className="text-gray-500 text-sm">
+                  {paymentData.filter(p => p.type === 'Refund').length} refunds this month
+                </Text>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         {/* Tabs */}
         <Tabs
@@ -292,7 +333,8 @@ export default function Payments() {
             {/* Payment Table */}
             <Table
               columns={columns}
-              dataSource={paymentData}
+              dataSource={filteredPayments}
+              loading={loading}
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
@@ -378,40 +420,8 @@ export default function Payments() {
                   ),
                 },
               ]}
-              dataSource={[
-                {
-                  key: '1',
-                  paymentId: 'SCH-1001',
-                  bookingId: 'GR-5678',
-                  dueDate: '2023-06-15',
-                  amount: '₹1,800.00',
-                  status: 'Due',
-                },
-                {
-                  key: '2',
-                  paymentId: 'SCH-1002',
-                  bookingId: 'GR-5678',
-                  dueDate: '2023-07-15',
-                  amount: '₹1,800.00',
-                  status: 'Upcoming',
-                },
-                {
-                  key: '3',
-                  paymentId: 'SCH-1003',
-                  bookingId: 'GR-5679',
-                  dueDate: '2023-06-01',
-                  amount: '₹2,500.00',
-                  status: 'Overdue',
-                },
-                {
-                  key: '4',
-                  paymentId: 'SCH-1004',
-                  bookingId: 'GR-5680',
-                  dueDate: '2023-08-01',
-                  amount: '₹3,200.00',
-                  status: 'Upcoming',
-                },
-              ]}
+              dataSource={paymentSchedule}
+              loading={loading}
               pagination={false}
               scroll={{ x: 800 }}
             />

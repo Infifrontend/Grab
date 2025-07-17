@@ -489,6 +489,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed payment data
+  app.post("/api/seed-payment-data", async (_req, res) => {
+    try {
+      await storage.seedPaymentData();
+      res.json({ 
+        success: true, 
+        message: "Payment data seeded successfully" 
+      });
+    } catch (error) {
+      console.error('Payment data seeding error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to seed payment data" 
+      });
+    }
+  });
+
   // Update booking details (group leader info)
   app.put("/api/booking-details/:id", async (req, res) => {
     try {
@@ -600,6 +617,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating passengers:", error);
       res.status(500).json({ message: "Failed to update passengers" });
+    }
+  });
+
+  // Get payment statistics
+  app.get("/api/payments/statistics", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const stats = await storage.getPaymentStatistics(userId ? parseInt(userId as string) : undefined);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment statistics:", error);
+      res.status(500).json({ message: "Failed to fetch payment statistics" });
+    }
+  });
+
+  // Get all payments
+  app.get("/api/payments", async (req, res) => {
+    try {
+      const { userId, status } = req.query;
+      const payments = await storage.getPayments(
+        userId ? parseInt(userId as string) : undefined,
+        status as string
+      );
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  // Get payment schedule (upcoming payments)
+  app.get("/api/payments/schedule", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const schedule = await storage.getPaymentSchedule(userId ? parseInt(userId as string) : undefined);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Failed to fetch payment schedule" });
+    }
+  });
+
+  // Create a new payment
+  app.post("/api/payments", async (req, res) => {
+    try {
+      const paymentData = insertPaymentSchema.parse(req.body);
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid payment data", errors: error.errors });
+      } else {
+        console.error("Payment creation error:", error);
+        res.status(500).json({ message: "Payment creation failed" });
+      }
     }
   });
 

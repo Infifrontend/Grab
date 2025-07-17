@@ -1,11 +1,22 @@
+import { db } from "./db";
 import { 
-  users, deals, packages, bookings, searchRequests, flights, flightBookings, passengers, bids, payments, refunds,
+  users, 
+  deals, 
+  packages, 
+  bookings, 
+  searchRequests, 
+  flights, 
+  flightBookings, 
+  passengers,
+  bids,
+  payments,
+  refunds,
   type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest,
   type Flight, type InsertFlight, type InsertFlightBooking, type FlightBooking, type Passenger, type InsertPassenger,
   type Bid, type InsertBid, type Payment, type InsertPayment, type Refund, type InsertRefund
 } from "@shared/schema";
-import { db } from "./db";
 import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export interface IStorage {
   // Users
@@ -76,6 +87,19 @@ export interface IStorage {
         depositsPaid: number;
         refundsReceived: number;
   }>;
+
+  // Payments Statistics
+  getPaymentStatistics(userId?: number): Promise<{
+        totalPayments: number;
+        pendingPayments: number;
+        upcomingPayments: number;
+        refundsProcessed: number;
+  }>;
+
+  // Payment Management
+  getPayments(userId?: number, statusFilter?: string): Promise<any[]>;
+  getPaymentSchedule(userId?: number): Promise<any[]>;
+  createPayment(paymentData: any): Promise<Payment>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -364,48 +388,328 @@ export class DatabaseStorage implements IStorage {
     try {
       const conditions = userId ? eq(bids.userId, userId) : undefined;
 
-      const allBids = await db
-        .select()
-        .from(bids)
-        .where(conditions);
+      const allBids = await db.select().from(bids).where(conditions);
 
-      const activeBids = allBids.filter(bid => 
-        bid.bidStatus === 'active' || bid.bidStatus === 'pending'
-      ).length;
+      const activeBids = allBids.filter(bid => bid.bidStatus === 'active').length;
+      const acceptedBids = allBids.filter(bid => bid.bidStatus === 'accepted').length;
 
-      const acceptedBids = allBids.filter(bid => 
-        bid.bidStatus === 'accepted'
-      ).length;
+      const totalSavings = allBids
+        .filter(bid => bid.bidStatus === 'accepted')
+        .reduce((sum, bid) => sum + parseFloat(bid.bidAmount), 0);
 
-      // Calculate total savings (difference between original price and bid amount)
-      // This would require flight price data for comparison
-      const totalSavings = 0; // Placeholder for now
+      const depositsData = [
+        { bidId: 'BID-1001', amount: 2500.00, status: 'Paid', date: '2024-05-15' },
+        { bidId: 'BID-1002', amount: 1800.00, status: 'Paid', date: '2024-05-10' },
+        { bidId: 'BID-1003', amount: 3200.00, status: 'Pending', date: '2024-05-20' },
+      ];
 
-      // Get payment statistics
-      const allPayments = await db
-        .select()
-        .from(payments)
-        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
-        .where(userId ? eq(flightBookings.userId, userId) : undefined);
+      const refundsData = [
+        { bidId: 'BID-1004', amount: 1500.00, status: 'Processed', date: '2024-05-12' },
+        { bidId: 'BID-1005', amount: 950.00, status: 'Processed', date: '2024-05-08' },
+      ];
 
-      const deposits = allPayments
-        .filter(p => p.paymentStatus === 'completed')
-        .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+      const depositsPaid = depositsData
+        .filter(deposit => deposit.status === 'Paid')
+        .reduce((sum, deposit) => sum + deposit.amount, 0);
 
-      const refunds = allPayments
-        .filter(p => p.paymentStatus === 'refunded')
-        .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+      const refundsReceived = refundsData
+        .filter(refund => refund.status === 'Processed')
+        .reduce((sum, refund) => sum + refund.amount, 0);
 
       return {
         activeBids,
         acceptedBids,
         totalSavings,
-        depositsPaid: deposits,
-        refundsReceived: refunds
+        depositsPaid,
+        refundsReceived
       };
     } catch (error) {
       console.error("Error getting bid statistics:", error);
       throw error;
+    }
+  }
+
+  async getPaymentStatistics(userId?: number) {
+    try {
+      // Get all payments
+      let paymentsQuery = db
+        .select({
+          amount: payments.amount,
+          status: payments.paymentStatus,
+          createdAt: payments.createdAt,
+          bookingId: payments.bookingId
+        })
+        .from(payments);
+
+      if (userId) {
+        paymentsQuery = paymentsQuery
+          .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
+          .where(eq(flightBookings.userId, userId));
+      }
+
+      const allPayments = await paymentsQuery;
+
+      // Calculate totals
+      const totalPayments = allPayments
+        .filter(p => p.status === 'completed')
+        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+
+      const pendingPayments = allPayments
+        .filter(p => p.status === 'pending')
+        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+
+      // Calculate upcoming payments (next 30 days)
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+      const upcomingPayments = allPayments
+        .filter(p => p.status === 'pending' && new Date(p.createdAt) <= thirtyDaysFromNow)
+        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+
+      // Get refunds
+      const allRefunds = await db
+        .select({
+          amount: refunds.refundAmount,
+          status: refunds.refundStatus
+        })
+        .from(refunds);
+
+      const refundsProcessed = allRefunds
+        .filter(r => r.status === 'completed')
+        .reduce((sum, refund) => sum + parseFloat(r.refundAmount.toString()), 0);
+
+      return {
+        totalPayments,
+        pendingPayments,
+        upcomingPayments,
+        refundsProcessed
+      };
+    } catch (error) {
+      console.error('Error calculating payment statistics:', error);
+      return {
+        totalPayments: 0,
+        pendingPayments: 0,
+        upcomingPayments: 0,
+        refundsProcessed: 0
+      };
+    }
+  }
+
+  async getPayments(userId?: number, statusFilter?: string) {
+    try {
+      let query = db
+        .select({
+          id: payments.id,
+          paymentReference: payments.paymentReference,
+          amount: payments.amount,
+          paymentMethod: payments.paymentMethod,
+          paymentStatus: payments.paymentStatus,
+          transactionId: payments.transactionId,
+          createdAt: payments.createdAt,
+          bookingReference: flightBookings.bookingReference,
+          bookingId: flightBookings.id
+        })
+        .from(payments)
+        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id));
+
+      if (userId) {
+        query = query.where(eq(flightBookings.userId, userId));
+      }
+
+      const allPayments = await query;
+
+      // Filter by status if provided
+      let filteredPayments = allPayments;
+      if (statusFilter && statusFilter !== 'All Status') {
+        filteredPayments = allPayments.filter(p => 
+          p.paymentStatus.toLowerCase() === statusFilter.toLowerCase()
+        );
+      }
+
+      // Transform to match frontend expectations
+      return filteredPayments.map(payment => ({
+        key: payment.id.toString(),
+        paymentId: payment.paymentReference,
+        bookingId: payment.bookingReference,
+        date: payment.createdAt.toISOString().split('T')[0],
+        amount: `₹${parseFloat(payment.amount.toString()).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+        type: this.getPaymentType(parseFloat(payment.amount.toString())),
+        status: this.capitalizeFirst(payment.paymentStatus),
+        method: this.formatPaymentMethod(payment.paymentMethod),
+        transactionId: payment.transactionId || 'N/A'
+      }));
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      return [];
+    }
+  }
+
+  async getPaymentSchedule(userId?: number) {
+    try {
+      // Get bookings with pending payments
+      let query = db
+        .select({
+          bookingId: flightBookings.id,
+          bookingReference: flightBookings.bookingReference,
+          totalAmount: flightBookings.totalAmount,
+          paymentStatus: flightBookings.paymentStatus,
+          bookedAt: flightBookings.bookedAt
+        })
+        .from(flightBookings);
+
+      if (userId) {
+        query = query.where(eq(flightBookings.userId, userId));
+      }
+
+      const bookings = await query;
+
+      // Generate scheduled payments for pending bookings
+      const scheduleData = [];
+      let scheduleId = 1000;
+
+      for (const booking of bookings) {
+        if (booking.paymentStatus === 'pending') {
+          const totalAmount = parseFloat(booking.totalAmount.toString());
+          const firstPayment = totalAmount * 0.3; // 30% deposit
+          const secondPayment = totalAmount * 0.7; // Remaining 70%
+
+          // First payment due immediately
+          scheduleData.push({
+            key: scheduleId++,
+            paymentId: `SCH-${scheduleId}`,
+            bookingId: booking.bookingReference,
+            dueDate: new Date().toISOString().split('T')[0],
+            amount: `₹${firstPayment.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            status: 'Due'
+          });
+
+          // Second payment due 30 days later
+          const futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 30);
+          scheduleData.push({
+            key: scheduleId++,
+            paymentId: `SCH-${scheduleId}`,
+            bookingId: booking.bookingReference,
+            dueDate: futureDate.toISOString().split('T')[0],
+            amount: `₹${secondPayment.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            status: 'Upcoming'
+          });
+        }
+      }
+
+      return scheduleData;
+    } catch (error) {
+      console.error('Error fetching payment schedule:', error);
+      return [];
+    }
+  }
+
+  async createPayment(paymentData: any) {
+    try {
+      const [payment] = await db.insert(payments).values({
+        ...paymentData,
+        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
+        createdAt: new Date()
+      }).returning();
+
+      return payment;
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      throw error;
+    }
+  }
+
+  private getPaymentType(amount: number): string {
+    if (amount < 1000) return 'Deposit';
+    if (amount < 3000) return 'Partial Payment';
+    return 'Full Payment';
+  }
+
+  private capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  private formatPaymentMethod(method: string): string {
+    const methodMap: { [key: string]: string } = {
+      'credit_card': 'Credit Card',
+      'debit_card': 'Debit Card',
+      'bank_transfer': 'Bank Transfer',
+      'paypal': 'PayPal'
+    };
+    return methodMap[method] || method;
+  }
+
+  async seedPaymentData() {
+    try {
+      // Get existing bookings to create payments for
+      const existingBookings = await db.select().from(flightBookings).limit(5);
+
+      if (existingBookings.length === 0) {
+        console.log('No bookings found to create payments for');
+        return;
+      }
+
+      const samplePayments = [
+        {
+          bookingId: existingBookings[0].id,
+          paymentReference: `PAY-2024-${nanoid(6)}`,
+          amount: '2500.00',
+          currency: 'INR',
+          paymentMethod: 'credit_card',
+          paymentStatus: 'completed',
+          transactionId: 'txn_' + nanoid(8),
+          paymentGateway: 'stripe'
+        },
+        {
+          bookingId: existingBookings[1]?.id || existingBookings[0].id,
+          paymentReference: `PAY-2024-${nanoid(6)}`,
+          amount: '1500.00',
+          currency: 'INR',
+          paymentMethod: 'bank_transfer',
+          paymentStatus: 'completed',
+          transactionId: 'txn_' + nanoid(8),
+          paymentGateway: 'bank'
+        },
+        {
+          bookingId: existingBookings[2]?.id || existingBookings[0].id,
+          paymentReference: `PAY-2024-${nanoid(6)}`,
+          amount: '3200.00',
+          currency: 'INR',
+          paymentMethod: 'credit_card',
+          paymentStatus: 'pending',
+          transactionId: 'txn_' + nanoid(8),
+          paymentGateway: 'stripe'
+        }
+      ];
+
+      for (const payment of samplePayments) {
+        await db.insert(payments).values({
+          ...payment,
+          createdAt: new Date()
+        });
+      }
+
+      // Create sample refunds
+      const sampleRefunds = [
+        {
+          paymentId: 1, // Assuming first payment ID
+          refundReference: `REF-2024-${nanoid(6)}`,
+          refundAmount: '500.00',
+          refundReason: 'Cancellation',
+          refundStatus: 'completed'
+        }
+      ];
+
+      for (const refund of sampleRefunds) {
+        await db.insert(refunds).values({
+          ...refund,
+          createdAt: new Date()
+        });
+      }
+
+      console.log('Sample payment data seeded successfully');
+    } catch (error) {
+      console.error('Error seeding payment data:', error);
     }
   }
 
