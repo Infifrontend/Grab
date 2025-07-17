@@ -11,6 +11,9 @@ const { TextArea } = Input;
 export default function BidDetails() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/bid-details/:id");
+  const [passengers, setPassengers] = useState(25);
+  const [bidAmount, setBidAmount] = useState(850);
+  const [originalBidAmount] = useState(850); // Store original bid amount for validation
 
   // Mock bid data - in real app this would come from API based on ID
   const bidData = {
@@ -23,21 +26,35 @@ export default function BidDetails() {
     destination: 'London (LHR)',
     departureDate: '15/07/2024',
     returnDate: '22/07/2024',
-    passengers: 25,
+    passengers: passengers,
     cabinClass: 'Economy',
-    bidAmount: 850,
+    bidAmount: bidAmount,
     contactName: 'John Smith',
     email: 'john.smith@company.com',
     phone: '+1 (555) 123-4567',
     specialRequests: 'Any special requirements, meal preferences, seating requests, etc.',
     route: 'New York (JFK) → London (LHR)',
-    totalBid: 21250,
-    depositRequired: 2125,
+    totalBid: passengers * bidAmount,
+    depositRequired: (passengers * bidAmount) * 0.1,
     refundPolicy: 'Full refund if bid not accepted'
   };
 
   const handleBack = () => {
     setLocation('/bids');
+  };
+
+  const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAmount = parseInt(e.target.value);
+    if (newAmount >= originalBidAmount) {
+      setBidAmount(newAmount);
+    }
+  };
+
+  const handlePassengersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassengers = parseInt(e.target.value);
+    if (newPassengers > 0) {
+      setPassengers(newPassengers);
+    }
   };
 
   return (
@@ -124,6 +141,8 @@ export default function BidDetails() {
                       placeholder="Corporate Team Building"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -135,6 +154,8 @@ export default function BidDetails() {
                       placeholder="Select category"
                       size="large"
                       className="w-full rounded-md"
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5' }}
                     >
                       <Select.Option value="Corporate">Corporate</Select.Option>
                       <Select.Option value="Leisure">Leisure</Select.Option>
@@ -162,6 +183,8 @@ export default function BidDetails() {
                       placeholder="Departure city"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -173,6 +196,8 @@ export default function BidDetails() {
                       placeholder="Arrival city"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -188,7 +213,8 @@ export default function BidDetails() {
                       placeholder="Select departure date"
                       size="large"
                       className="w-full rounded-md"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5' }}
                     />
                   </div>
                 </Col>
@@ -201,7 +227,8 @@ export default function BidDetails() {
                       placeholder="Select return date"
                       size="large"
                       className="w-full rounded-md"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5' }}
                     />
                   </div>
                 </Col>
@@ -221,9 +248,12 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Number of Passengers</Text>
                     <Input 
-                      value={bidData.passengers}
+                      value={passengers}
+                      onChange={handlePassengersChange}
                       placeholder="25"
                       size="large"
+                      type="number"
+                      min="1"
                       prefix={<UserOutlined className="text-gray-400" />}
                       className="rounded-md"
                     />
@@ -237,6 +267,8 @@ export default function BidDetails() {
                       placeholder="Select class"
                       size="large"
                       className="w-full rounded-md"
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5' }}
                     >
                       <Select.Option value="Economy">Economy</Select.Option>
                       <Select.Option value="Business">Business</Select.Option>
@@ -248,12 +280,18 @@ export default function BidDetails() {
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Bid Amount (per person)</Text>
                     <Input 
-                      value={bidData.bidAmount}
+                      value={bidAmount}
+                      onChange={handleBidAmountChange}
                       placeholder="850"
                       size="large"
+                      type="number"
+                      min={originalBidAmount}
                       prefix={<span className="text-gray-400">₹</span>}
                       className="rounded-md"
                     />
+                    <Text className="text-gray-500 text-sm mt-1">
+                      Minimum bid amount: ₹{originalBidAmount} (can only increase)
+                    </Text>
                   </div>
                 </Col>
               </Row>
@@ -275,6 +313,8 @@ export default function BidDetails() {
                       placeholder="John Smith"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -286,6 +326,8 @@ export default function BidDetails() {
                       placeholder="john.smith@company.com"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -297,6 +339,8 @@ export default function BidDetails() {
                       placeholder="+1 (555) 123-4567"
                       size="large"
                       className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                   </div>
                 </Col>
@@ -311,6 +355,8 @@ export default function BidDetails() {
                 placeholder="Any special requirements, meal preferences, seating requests, etc."
                 rows={4}
                 className="rounded-md"
+                readOnly
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
               />
             </div>
           </div>
@@ -333,19 +379,19 @@ export default function BidDetails() {
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Passengers</Text>
-                  <Text className="text-gray-900 font-semibold text-base">{bidData.passengers} passengers</Text>
+                  <Text className="text-gray-900 font-semibold text-base">{passengers} passengers</Text>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Bid per person</Text>
-                  <Text className="text-blue-600 font-bold text-lg">₹{bidData.bidAmount}</Text>
+                  <Text className="text-blue-600 font-bold text-lg">₹{bidAmount}</Text>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className="text-center">
                   <Text className="text-gray-500 text-sm block mb-1">Total Bid</Text>
-                  <Text className="text-blue-600 font-bold text-2xl">₹{bidData.totalBid.toLocaleString()}</Text>
+                  <Text className="text-blue-600 font-bold text-2xl">₹{(passengers * bidAmount).toLocaleString()}</Text>
                 </div>
               </Col>
             </Row>
@@ -355,7 +401,7 @@ export default function BidDetails() {
             <Col xs={24} md={12}>
               <div className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <Text className="text-gray-700 font-medium">Deposit Required (10%)</Text>
-                <Text className="text-orange-600 font-bold text-lg">₹{bidData.depositRequired.toLocaleString()}</Text>
+                <Text className="text-orange-600 font-bold text-lg">₹{((passengers * bidAmount) * 0.1).toLocaleString()}</Text>
               </div>
             </Col>
             <Col xs={24} md={12}>
