@@ -67,6 +67,15 @@ export interface IStorage {
   getRefundsByPayment(paymentId: number): Promise<Refund[]>;
   createRefund(refund: InsertRefund): Promise<Refund>;
   updateRefundStatus(id: number, status: string): Promise<void>;
+
+  // Bids Statistics
+  getBidStatistics(userId?: number): Promise<{
+        activeBids: number;
+        acceptedBids: number;
+        totalSavings: number;
+        depositsPaid: number;
+        refundsReceived: number;
+  }>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -349,6 +358,92 @@ export class DatabaseStorage implements IStorage {
       updateData.processedAt = new Date();
     }
     await db.update(refunds).set(updateData).where(eq(refunds.id, id));
+  }
+
+  async getBidStatistics(userId?: number) {
+    try {
+      const conditions = userId ? eq(bids.userId, userId) : undefined;
+
+      const allBids = await db
+        .select()
+        .from(bids)
+        .where(conditions);
+
+      const activeBids = allBids.filter(bid => 
+        bid.bidStatus === 'active' || bid.bidStatus === 'pending'
+      ).length;
+
+      const acceptedBids = allBids.filter(bid => 
+        bid.bidStatus === 'accepted'
+      ).length;
+
+      // Calculate total savings (difference between original price and bid amount)
+      // This would require flight price data for comparison
+      const totalSavings = 0; // Placeholder for now
+
+      // Get payment statistics
+      const allPayments = await db
+        .select()
+        .from(payments)
+        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
+        .where(userId ? eq(flightBookings.userId, userId) : undefined);
+
+      const deposits = allPayments
+        .filter(p => p.paymentStatus === 'completed')
+        .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+
+      const refunds = allPayments
+        .filter(p => p.paymentStatus === 'refunded')
+        .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+
+      return {
+        activeBids,
+        acceptedBids,
+        totalSavings,
+        depositsPaid: deposits,
+        refundsReceived: refunds
+      };
+    } catch (error) {
+      console.error("Error getting bid statistics:", error);
+      throw error;
+    }
+  }
+
+  async getBids(userId?: number) {
+    try {
+      const conditions = userId ? eq(bids.userId, userId) : undefined;
+
+      const bidList = await db
+        .select({
+          bid: bids,
+          flight: flights
+        })
+        .from(bids)
+        .innerJoin(flights, eq(bids.flightId, flights.id))
+        .where(conditions)
+        .orderBy(desc(bids.createdAt));
+
+      return bidList.map(item => ({
+        ...item.bid,
+        flight: item.flight
+      }));
+    } catch (error) {
+      console.error("Error getting bids:", error);
+      throw error;
+    }
+  }
+
+  async createBid(bidData: InsertBid) {
+    try {
+      const [bid] = await db
+        .insert(bids)
+        .values(bidData)
+        .returning();
+      return bid;
+    } catch (error) {
+      console.error("Error creating bid:", error);
+      throw error;
+    }
   }
 
   async migrateToDomesticFlights() {

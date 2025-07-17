@@ -412,6 +412,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get bid statistics
+  app.get("/api/bids/statistics", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const stats = await storage.getBidStatistics(userId ? parseInt(userId as string) : undefined);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching bid statistics:", error);
+      res.status(500).json({ message: "Failed to fetch bid statistics" });
+    }
+  });
+
+  // Get all bids
+  app.get("/api/bids", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const bids = await storage.getBids(userId ? parseInt(userId as string) : undefined);
+      res.json(bids);
+    } catch (error) {
+      console.error("Error fetching bids:", error);
+      res.status(500).json({ message: "Failed to fetch bids" });
+    }
+  });
+
+  // Create a new bid
+  app.post("/api/bids", async (req, res) => {
+    try {
+      const bidData = insertBidSchema.parse(req.body);
+      const bid = await storage.createBid(bidData);
+      res.json(bid);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid bid data", errors: error.errors });
+      } else {
+        console.error("Bid creation error:", error);
+        res.status(500).json({ message: "Bid creation failed" });
+      }
+    }
+  });
+
   // Migration endpoint to remove international flights
   app.post("/api/migrate-domestic", async (_req, res) => {
     try {

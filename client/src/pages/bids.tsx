@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Space, Badge, Tabs, Table, Tag, Input, Select, DatePicker } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Row, Col, Typography, Button, Space, Badge, Tabs, Table, Tag, Input, Select, DatePicker, Spin } from 'antd';
 import { SearchOutlined, FilterOutlined, InfoCircleOutlined, CheckCircleOutlined, DollarOutlined, CreditCardOutlined, UndoOutlined } from '@ant-design/icons';
 import { useLocation } from 'wouter';
 import Header from "@/components/layout/header";
@@ -10,175 +10,64 @@ const { RangePicker } = DatePicker;
 export default function Bids() {
   const [activeTab, setActiveTab] = useState("management");
   const [, setLocation] = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [statistics, setStatistics] = useState({
+    activeBids: 0,
+    acceptedBids: 0,
+    totalSavings: 0,
+    depositsPaid: 0,
+    refundsReceived: 0
+  });
+  const [bidsData, setBidsData] = useState([]);
+  const [paymentHistoryData, setPaymentHistoryData] = useState([]);
 
-  // Mock data for bids
-  const bidsData = [
-    {
-      bidId: 'BID-2024-001',
-      route: 'New York → London',
-      passengers: 25,
-      travelDate: '2024-07-22',
-      bidAmount: '₹850',
-      deposit: '₹7125.00',
-      status: 'Pending',
-      payment: 'Paid',
-      submitted: '2024-06-15',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-002',
-      route: 'Los Angeles → Tokyo',
-      passengers: 18,
-      travelDate: '2024-08-10',
-      bidAmount: '₹1200',
-      deposit: '₹2160.00',
-      status: 'Under Review',
-      payment: 'Paid',
-      submitted: '2024-06-18',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-003',
-      route: 'Chicago → Paris',
-      passengers: 32,
-      travelDate: '2024-08-15',
-      bidAmount: '₹950',
-      deposit: '₹3040.00',
-      status: 'Accepted',
-      payment: 'Converted to Booking',
-      submitted: '2024-05-15',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-004',
-      route: 'Miami → Barcelona',
-      passengers: 15,
-      travelDate: '2024-07-28',
-      bidAmount: '₹780',
-      deposit: '₹1170.00',
-      status: 'Declined',
-      payment: 'Refunded',
-      submitted: '2024-04-20',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-005',
-      route: 'Seattle → Amsterdam',
-      passengers: 22,
-      travelDate: '2024-08-05',
-      bidAmount: '₹890',
-      deposit: '₹1958.00',
-      status: 'Expired',
-      payment: 'Refunded',
-      submitted: '2024-03-25',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-006',
-      route: 'Denver → London',
-      passengers: 28,
-      travelDate: '2024-09-12',
-      bidAmount: '₹825',
-      deposit: '₹2310.00',
-      status: 'Counter Offer',
-      payment: 'Refunded',
-      submitted: '2024-02-20',
-      actions: 'View Details'
-    },
-    {
-      bidId: 'BID-2024-007',
-      route: 'Boston → Rome',
-      passengers: 20,
-      travelDate: '2024-09-25',
-      bidAmount: '₹920',
-      deposit: '₹0.00',
-      status: 'Payment Pending',
-      payment: 'Pending',
-      submitted: '2024-06-25',
-      actions: 'View Details'
-    }
-  ];
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch bid statistics
+        const statsResponse = await fetch('/api/bids/statistics');
+        const stats = await statsResponse.json();
+        setStatistics(stats);
 
-  // Mock data for payment history
-  const paymentHistoryData = [
-    {
-      paymentId: 'PAY-2024-001',
-      bidId: 'BID-2024-001',
-      route: 'New York → London',
-      amount: '₹2125.00',
-      type: 'Deposit',
-      status: 'Completed',
-      paymentMethod: 'Credit Card',
-      transactionId: 'TXN-789456123',
-      date: '2024-06-20'
-    },
-    {
-      paymentId: 'PAY-2024-002',
-      bidId: 'BID-2024-002',
-      route: 'Los Angeles → Tokyo',
-      amount: '₹2160.00',
-      type: 'Deposit',
-      status: 'Completed',
-      paymentMethod: 'Bank Transfer',
-      transactionId: 'TXN-789456124',
-      date: '2024-06-18'
-    },
-    {
-      paymentId: 'PAY-2024-003',
-      bidId: 'BID-2024-003',
-      route: 'Chicago → Paris',
-      amount: '₹3040.00',
-      type: 'Deposit',
-      status: 'Converted',
-      paymentMethod: 'Credit Card',
-      transactionId: 'TXN-789456125',
-      date: '2024-05-15'
-    },
-    {
-      paymentId: 'REF-2024-001',
-      bidId: 'BID-2024-004',
-      route: 'Miami → Barcelona',
-      amount: '₹1170.00',
-      type: 'Refund',
-      status: 'Completed',
-      paymentMethod: 'Credit Card',
-      transactionId: 'REF-789456126',
-      date: '2024-05-10'
-    },
-    {
-      paymentId: 'REF-2024-002',
-      bidId: 'BID-2024-005',
-      route: 'Seattle → Amsterdam',
-      amount: '₹1958.00',
-      type: 'Refund',
-      status: 'Completed',
-      paymentMethod: 'Bank Transfer',
-      transactionId: 'REF-789456127',
-      date: '2024-04-15'
-    },
-    {
-      paymentId: 'REF-2024-003',
-      bidId: 'BID-2024-006',
-      route: 'Denver → London',
-      amount: '₹2310.00',
-      type: 'Refund',
-      status: 'Completed',
-      paymentMethod: 'Credit Card',
-      transactionId: 'REF-789456128',
-      date: '2024-03-05'
-    },
-    {
-      paymentId: 'PAY-2024-007',
-      bidId: 'BID-2024-007',
-      route: 'Boston → Rome',
-      amount: '₹1840.00',
-      type: 'Deposit',
-      status: 'Pending',
-      paymentMethod: 'Pending',
-      transactionId: '',
-      date: '2024-06-25'
-    }
-  ];
+        // Fetch bids data
+        const bidsResponse = await fetch('/api/bids');
+        const bids = await bidsResponse.json();
+        
+        // Transform bids data to match table format
+        const transformedBids = bids.map((bid: any) => ({
+          bidId: `BID-${bid.id}`,
+          route: `${bid.flight.origin} → ${bid.flight.destination}`,
+          passengers: bid.passengerCount,
+          travelDate: new Date(bid.flight.departureTime).toLocaleDateString(),
+          bidAmount: `₹${bid.bidAmount}`,
+          deposit: `₹${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
+          status: bid.bidStatus === 'active' ? 'Pending' : 
+                  bid.bidStatus === 'accepted' ? 'Accepted' :
+                  bid.bidStatus === 'rejected' ? 'Declined' :
+                  bid.bidStatus === 'expired' ? 'Expired' : 'Under Review',
+          payment: bid.bidStatus === 'accepted' ? 'Converted to Booking' :
+                   bid.bidStatus === 'rejected' || bid.bidStatus === 'expired' ? 'Refunded' : 'Paid',
+          submitted: new Date(bid.createdAt).toLocaleDateString(),
+          actions: 'View Details'
+        }));
+        
+        setBidsData(transformedBids);
+
+        // For now, use empty payment history until we have actual payment data
+        setPaymentHistoryData([]);
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -360,7 +249,11 @@ export default function Bids() {
                 <InfoCircleOutlined className="text-blue-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Active Bids</Text>
               </div>
-              <Title level={2} className="!mb-0 text-blue-600">3</Title>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <Title level={2} className="!mb-0 text-blue-600">{statistics.activeBids}</Title>
+              )}
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -369,7 +262,11 @@ export default function Bids() {
                 <CheckCircleOutlined className="text-green-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Accepted Bids</Text>
               </div>
-              <Title level={2} className="!mb-0 text-green-600">1</Title>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <Title level={2} className="!mb-0 text-green-600">{statistics.acceptedBids}</Title>
+              )}
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -378,7 +275,11 @@ export default function Bids() {
                 <DollarOutlined className="text-orange-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Total Savings</Text>
               </div>
-              <Title level={2} className="!mb-0 text-orange-600">₹30</Title>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <Title level={2} className="!mb-0 text-orange-600">₹{statistics.totalSavings}</Title>
+              )}
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -387,7 +288,11 @@ export default function Bids() {
                 <CreditCardOutlined className="text-purple-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Deposits Paid</Text>
               </div>
-              <Title level={2} className="!mb-0 text-purple-600">₹6,445</Title>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <Title level={2} className="!mb-0 text-purple-600">₹{statistics.depositsPaid.toFixed(2)}</Title>
+              )}
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
@@ -396,7 +301,11 @@ export default function Bids() {
                 <UndoOutlined className="text-orange-500 text-lg mr-2" />
                 <Text className="text-gray-600 text-sm">Refunds Received</Text>
               </div>
-              <Title level={2} className="!mb-0 text-orange-600">₹5,438</Title>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <Title level={2} className="!mb-0 text-orange-600">₹{statistics.refundsReceived.toFixed(2)}</Title>
+              )}
             </Card>
           </Col>
         </Row>
@@ -483,7 +392,7 @@ export default function Bids() {
             <Card>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <Title level={4} className="!mb-1">All Bids (7)</Title>
+                  <Title level={4} className="!mb-1">All Bids ({bidsData.length})</Title>
                   <Text className="text-gray-600">Manage and track all your group bidding requests</Text>
                 </div>
               </div>
@@ -494,6 +403,7 @@ export default function Bids() {
                 rowKey="bidId"
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: 1200 }}
+                loading={loading}
               />
             </Card>
 
@@ -560,6 +470,7 @@ export default function Bids() {
                 rowKey="paymentId"
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: 1200 }}
+                loading={loading}
               />
             </Card>
 
