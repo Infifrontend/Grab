@@ -495,47 +495,7 @@ export default function ReviewConfirmation() {
               </Space>
             </Card>
 
-            {/* Next Steps */}
-            <Card
-              style={{ backgroundColor: "#f0f9ff", borderColor: "#bae6fd" }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircleOutlined className="text-blue-600" />
-                <Title level={4} className="!mb-0 text-gray-800">
-                  Next Steps
-                </Title>
-              </div>
-
-              <Space direction="vertical" size="middle" className="w-full">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-xs font-medium">1</span>
-                  </div>
-                  <Text className="text-blue-800">
-                    We'll search for the best available flights for your group
-                  </Text>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-xs font-medium">2</span>
-                  </div>
-                  <Text className="text-blue-800">
-                    You'll receive a detailed quote within 24 hours
-                  </Text>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-xs font-medium">3</span>
-                  </div>
-                  <Text className="text-blue-800">
-                    Once approved, you can finalize passenger details and make
-                    payment
-                  </Text>
-                </div>
-              </Space>
-            </Card>
+            
           </Col>
         </Row>
 
