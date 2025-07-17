@@ -416,14 +416,29 @@ export default function PassengerInfo() {
             Back
           </Button>
 
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleContinue}
-            className="px-8"
-          >
-            Continue
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              type="default"
+              size="large"
+              onClick={() => {
+                // Skip passenger info and go directly to review confirmation
+                localStorage.setItem("passengerData", JSON.stringify([]));
+                setLocation("/review-confirmation");
+              }}
+              className="px-8 border-gray-300 text-gray-700 hover:border-gray-400"
+            >
+              Add Passenger Later
+            </Button>
+            
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleContinue}
+              className="px-8"
+            >
+              Continue
+            </Button>
+          </div>
         </div>
       </div>
 
