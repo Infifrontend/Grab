@@ -201,6 +201,91 @@ const standardBundles: BundleOption[] = [
   },
 ];
 
+const services: Record<string, IndividualService[]> = {
+  comfort: [
+    {
+      id: "seat-selection",
+      name: "Seat Selection",
+      description: "Choose your preferred seat",
+      price: 25,
+      category: "comfort"
+    },
+    {
+      id: "airport-lounge",
+      name: "Airport Lounge Access",
+      description: "Relax in premium lounges",
+      price: 65,
+      category: "comfort"
+    },
+    {
+      id: "extra-legroom",
+      name: "Extra Legroom Seat",
+      description: "More space to stretch out",
+      price: 40,
+      category: "comfort"
+    }
+  ],
+  baggage: [
+    {
+      id: "extra-baggage",
+      name: "Extra Baggage (23kg)",
+      description: "Additional checked baggage",
+      price: 45,
+      category: "baggage"
+    },
+    {
+      id: "priority-baggage",
+      name: "Priority Baggage",
+      description: "First off the carousel",
+      price: 20,
+      category: "baggage"
+    }
+  ],
+  convenience: [
+    {
+      id: "priority-boarding",
+      name: "Priority Boarding",
+      description: "Board the aircraft first",
+      price: 15,
+      category: "convenience"
+    },
+    {
+      id: "fast-track-security",
+      name: "Fast Track Security",
+      description: "Skip the security queues",
+      price: 25,
+      category: "convenience"
+    }
+  ],
+  dining: [
+    {
+      id: "premium-meal",
+      name: "Premium Meal",
+      description: "Upgrade your in-flight dining",
+      price: 35,
+      category: "dining"
+    }
+  ],
+  connectivity: [
+    {
+      id: "inflight-wifi",
+      name: "In-flight WiFi",
+      description: "Stay connected during your flight",
+      price: 20,
+      category: "connectivity"
+    }
+  ],
+  insurance: [
+    {
+      id: "travel-insurance",
+      name: "Travel Insurance",
+      description: "Comprehensive travel protection",
+      price: 55,
+      category: "insurance"
+    }
+  ]
+};
+
 export default function AddServicesBundles() {
   const [, setLocation] = useLocation();
   const [selectedBundles, setSelectedBundles] = useState<string[]>([]);
