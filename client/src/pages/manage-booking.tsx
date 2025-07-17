@@ -88,6 +88,10 @@ export default function ManageBooking() {
 
       const bookingDetails = await response.json();
 
+      // Show success message with passenger count
+      const passengerCount = bookingDetails.booking?.passengerCount || bookingDetails.passengers?.length || 1;
+      message.success(`Booking found! ${passengerCount} confirmed passengers`);
+
       // Navigate to the booking details page with the retrieved data
       setLocation(`/manage-booking/${bookingId}`);
     } catch (error) {
@@ -198,8 +202,7 @@ export default function ManageBooking() {
                   Need Help?
                 </Title>
                 <Text className="text-gray-600">
-                  Can't find your booking or need assistance? Our support team
-                  is here to help.
+                  Can't find your booking or need assistance? Check your booking to view confirmed passenger counts and manage your reservation.
                 </Text>
               </div>
 
@@ -281,7 +284,7 @@ export default function ManageBooking() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <TeamOutlined className="text-sm" />
                       <Text className="text-sm">
-                        {booking.passengerCount} passengers
+                        {booking.passengerCount} confirmed passengers
                       </Text>
                     </div>
 
@@ -325,7 +328,7 @@ export default function ManageBooking() {
                     </Title>
                     <Text className="text-gray-500">
                       You haven't made any bookings yet. Start by creating your
-                      first group booking.
+                      first group booking and managing passenger information.
                     </Text>
                   </div>
                   <Button
