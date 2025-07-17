@@ -503,15 +503,7 @@ export default function Bids() {
                     type="number"
                   />
                 </Col>
-                <Col xs={24} md={6} className="flex items-end gap-2">
-                  <Button 
-                    type="primary" 
-                    icon={<SearchOutlined />}
-                    onClick={handleSearch}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Search
-                  </Button>
+                <Col xs={24} md={6} className="flex items-end">
                   <Button 
                     type="link" 
                     className="text-blue-600"
