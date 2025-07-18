@@ -2092,22 +2092,21 @@ export default function BidManagement() {
         .modern-modal .ant-modal-close {
           top: 24px;
           right: 24px;
-          color: rgba(255, 255, 255, 0.8);
+          color: #000000;
           font-size: 20px;
           width: 40px;
           height: 40px;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.05);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          backdrop-filter: blur(10px);
           transition: all 0.3s ease;
         }
 
         .modern-modal .ant-modal-close:hover {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
+          background: rgba(0, 0, 0, 0.1);
+          color: #000000;
           transform: scale(1.1);
         }
 
