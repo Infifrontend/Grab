@@ -781,169 +781,517 @@ export default function BidManagement() {
 
   const renderDashboardContent = () => (
     <div>
-      {/* Stats Cards Row */}
-      <Row gutter={[24, 24]} className="mb-6">
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Active Bids</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">3</Title>
-                  <InfoCircleOutlined className="text-blue-500 ml-2" />
-                </div>
-                <Text className="text-gray-500 text-xs">Awaiting response</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
+      {/* Overview and Insights Tabs */}
+      <div className="mb-6">
+        <Tabs
+          defaultActiveKey="overview"
+          items={[
+            {
+              key: 'overview',
+              label: 'Overview',
+              children: (
+                <div>
+                  {/* Stats Cards Row */}
+                  <Row gutter={[24, 24]} className="mb-6">
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Active Bids</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">3</Title>
+                              <InfoCircleOutlined className="text-blue-500 ml-2" />
+                            </div>
+                            <Text className="text-gray-500 text-xs">Awaiting response</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
 
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Bid Types</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">1</Title>
-                  <SettingOutlined className="text-blue-500 ml-2" />
-                </div>
-                <Text className="text-gray-500 text-xs">Active configurations</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Bid Types</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">1</Title>
+                              <SettingOutlined className="text-blue-500 ml-2" />
+                            </div>
+                            <Text className="text-gray-500 text-xs">Active configurations</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
 
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Monthly Revenue</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$47,250</Title>
-                  <DollarOutlined className="text-blue-500 ml-2" />
-                </div>
-                <Text className="text-green-500 text-xs">+19.3% this month</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Monthly Revenue</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$47,250</Title>
+                              <DollarOutlined className="text-blue-500 ml-2" />
+                            </div>
+                            <Text className="text-green-500 text-xs">+19.3% this month</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
 
-      {/* Second Row Stats */}
-      <Row gutter={[24, 24]} className="mb-6">
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Acceptance Rate</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">72%</Title>
-                  <RiseOutlined className="text-blue-500 ml-2" />
-                </div>
-                <Text className="text-green-500 text-xs">+2.1% this month</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
+                  {/* Second Row Stats */}
+                  <Row gutter={[24, 24]} className="mb-6">
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Acceptance Rate</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">72%</Title>
+                              <RiseOutlined className="text-blue-500 ml-2" />
+                            </div>
+                            <Text className="text-green-500 text-xs">+2.1% this month</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
 
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Avg Bid Value</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$185</Title>
-                  <BarChartOutlined className="text-blue-500 ml-2" />
-                </div>
-                <Text className="text-green-500 text-xs">+5.7% this month</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Avg Bid Value</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$185</Title>
+                              <BarChartOutlined className="text-blue-500 ml-2" />
+                            </div>
+                            <Text className="text-green-500 text-xs">+5.7% this month</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
 
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <Text className="text-gray-500 text-sm">Pending Review</Text>
-                <div className="flex items-center mt-1">
-                  <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold text-red-500">1</Title>
-                  <AlertOutlined className="text-red-500 ml-2" />
-                </div>
-                <Text className="text-gray-500 text-xs">Require attention</Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
+                    <Col xs={24} sm={12} lg={8}>
+                      <Card className="h-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Text className="text-gray-500 text-sm">Pending Review</Text>
+                            <div className="flex items-center mt-1">
+                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold text-red-500">1</Title>
+                              <AlertOutlined className="text-red-500 ml-2" />
+                            </div>
+                            <Text className="text-gray-500 text-xs">Require attention</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
 
-      {/* Action Buttons Row */}
-      <Row gutter={[24, 24]} className="mb-6">
-        <Col xs={24}>
-          <Card>
-            <div className="mb-4">
-              <Title level={4} className="!mb-1">Quick Actions</Title>
-              <Text className="text-gray-500">Frequently used bid management tasks</Text>
-            </div>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={8}>
-                <Button 
-                  type="primary" 
-                  size="large" 
-                  icon={<PlusOutlined />} 
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-                >
-                  Create New Bid
-                </Button>
-              </Col>
-              <Col xs={24} sm={8}>
-                <Button 
-                  size="large" 
-                  icon={<EyeOutlined />} 
-                  className="w-full h-12"
-                >
-                  Review Pending Bids
-                </Button>
-              </Col>
-              <Col xs={24} sm={8}>
-                <Button 
-                  size="large" 
-                  icon={<BarChartOutlined />} 
-                  className="w-full h-12"
-                >
-                  Generate Report
-                </Button>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
+                  {/* Action Buttons Row */}
+                  <Row gutter={[24, 24]} className="mb-6">
+                    <Col xs={24}>
+                      <Card>
+                        <div className="mb-4">
+                          <Title level={4} className="!mb-1">Quick Actions</Title>
+                          <Text className="text-gray-500">Frequently used bid management tasks</Text>
+                        </div>
+                        <Row gutter={[16, 16]}>
+                          <Col xs={24} sm={8}>
+                            <Button 
+                              type="primary" 
+                              size="large" 
+                              icon={<PlusOutlined />} 
+                              className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                            >
+                              Create New Bid
+                            </Button>
+                          </Col>
+                          <Col xs={24} sm={8}>
+                            <Button 
+                              size="large" 
+                              icon={<EyeOutlined />} 
+                              className="w-full h-12"
+                            >
+                              Review Pending Bids
+                            </Button>
+                          </Col>
+                          <Col xs={24} sm={8}>
+                            <Button 
+                              size="large" 
+                              icon={<BarChartOutlined />} 
+                              className="w-full h-12"
+                            >
+                              Generate Report
+                            </Button>
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Col>
+                  </Row>
 
-      {/* Recent Activity */}
-      <Row gutter={[24, 24]}>
-        <Col xs={24}>
-          <Card>
-            <div className="mb-4">
-              <Title level={4} className="!mb-1">Recent Bid Activity</Title>
-              <Text className="text-gray-500">Latest bid submissions and responses</Text>
-            </div>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: activity.color }}
-                    />
-                    <Text className="font-medium">{activity.title}</Text>
-                  </div>
-                  <Text className="text-gray-500 text-sm">{activity.time}</Text>
+                  {/* Recent Activity */}
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24}>
+                      <Card>
+                        <div className="mb-4">
+                          <Title level={4} className="!mb-1">Recent Bid Activity</Title>
+                          <Text className="text-gray-500">Latest bid submissions and responses</Text>
+                        </div>
+                        <div className="space-y-4">
+                          {recentActivities.map((activity, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: activity.color }}
+                                />
+                                <Text className="font-medium">{activity.title}</Text>
+                              </div>
+                              <Text className="text-gray-500 text-sm">{activity.time}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </Col>
-      </Row>
+              ),
+            },
+            {
+              key: 'insights',
+              label: 'Insights',
+              children: (
+                <div>
+                  {/* Insights Alert Cards */}
+                  <Row gutter={[24, 24]} className="mb-6">
+                    <Col xs={24} lg={8}>
+                      <Card className="border-l-4 border-l-green-500">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              <Text strong className="text-green-700">International Route Premium</Text>
+                              <Tag color="red" size="small" className="ml-2">High</Tag>
+                            </div>
+                            <Text className="text-gray-600 text-sm mb-3">
+                              JFK-LHR route shows 85% bid acceptance rate with avg bid of $420. Consider raising minimum thresholds.
+                            </Text>
+                            <div className="mb-2">
+                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <br />
+                              <Text className="text-sm">Increase minimum bid by 15%</Text>
+                            </div>
+                            <div>
+                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <br />
+                              <Text className="text-green-600 font-medium">$16,000/month</Text>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+
+                    <Col xs={24} lg={8}>
+                      <Card className="border-l-4 border-l-orange-500">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              <Text strong className="text-orange-700">Short-haul Bid Decline</Text>
+                              <Tag color="orange" size="small" className="ml-2">Medium</Tag>
+                            </div>
+                            <Text className="text-gray-600 text-sm mb-3">
+                              Domestic routes under 3 hours show declining bid participation (-12% this month).
+                            </Text>
+                            <div className="mb-2">
+                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <br />
+                              <Text className="text-sm">Reduce minimum bid amounts for short routes</Text>
+                            </div>
+                            <div>
+                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <br />
+                              <Text className="text-orange-600 font-medium">$8,500/month</Text>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+
+                    <Col xs={24} lg={8}>
+                      <Card className="border-l-4 border-l-blue-500">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              <Text strong className="text-blue-700">Dynamic Bid Windows</Text>
+                              <Tag color="blue" size="small" className="ml-2">Medium</Tag>
+                            </div>
+                            <Text className="text-gray-600 text-sm mb-3">
+                              High-demand flights could benefit from shorter bid windows to create urgency.
+                            </Text>
+                            <div className="mb-2">
+                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <br />
+                              <Text className="text-sm">Implement 12-hour windows for 90%+ load factor</Text>
+                            </div>
+                            <div>
+                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <br />
+                              <Text className="text-blue-600 font-medium">$12,200/month</Text>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  {/* Route-Level Bid Performance */}
+                  <Row gutter={[24, 24]} className="mb-6">
+                    <Col xs={24}>
+                      <Card>
+                        <div className="mb-4">
+                          <Title level={4} className="!mb-1 flex items-center">
+                            <BarChartOutlined className="mr-2" />
+                            Route-Level Bid Performance
+                          </Title>
+                          <Text className="text-gray-500">Bidding success rates and revenue by route</Text>
+                        </div>
+                        
+                        <Table
+                          dataSource={[
+                            {
+                              key: '1',
+                              route: 'LAX-JFK',
+                              totalBids: 145,
+                              accepted: 89,
+                              successRate: '61.4%',
+                              avgBid: '$285',
+                              revenue: '$25,365',
+                              demand: 'High'
+                            },
+                            {
+                              key: '2',
+                              route: 'JFK-LHR',
+                              totalBids: 89,
+                              accepted: 76,
+                              successRate: '85.4%',
+                              avgBid: '$420',
+                              revenue: '$31,920',
+                              demand: 'Very High'
+                            },
+                            {
+                              key: '3',
+                              route: 'ORD-SFO',
+                              totalBids: 124,
+                              accepted: 78,
+                              successRate: '62.9%',
+                              avgBid: '$195',
+                              revenue: '$15,210',
+                              demand: 'High'
+                            },
+                            {
+                              key: '4',
+                              route: 'MIA-DEN',
+                              totalBids: 76,
+                              accepted: 42,
+                              successRate: '55.3%',
+                              avgBid: '$165',
+                              revenue: '$6,930',
+                              demand: 'Medium'
+                            },
+                            {
+                              key: '5',
+                              route: 'ATL-SEA',
+                              totalBids: 98,
+                              accepted: 67,
+                              successRate: '68.4%',
+                              avgBid: '$225',
+                              revenue: '$15,075',
+                              demand: 'High'
+                            }
+                          ]}
+                          columns={[
+                            {
+                              title: 'Route',
+                              dataIndex: 'route',
+                              key: 'route',
+                            },
+                            {
+                              title: 'Total Bids',
+                              dataIndex: 'totalBids',
+                              key: 'totalBids',
+                            },
+                            {
+                              title: 'Accepted',
+                              dataIndex: 'accepted',
+                              key: 'accepted',
+                            },
+                            {
+                              title: 'Success Rate',
+                              dataIndex: 'successRate',
+                              key: 'successRate',
+                            },
+                            {
+                              title: 'Avg Bid',
+                              dataIndex: 'avgBid',
+                              key: 'avgBid',
+                            },
+                            {
+                              title: 'Revenue',
+                              dataIndex: 'revenue',
+                              key: 'revenue',
+                            },
+                            {
+                              title: 'Demand',
+                              dataIndex: 'demand',
+                              key: 'demand',
+                              render: (demand) => (
+                                <Tag 
+                                  color={
+                                    demand === 'Very High' ? 'red' : 
+                                    demand === 'High' ? 'blue' : 
+                                    'orange'
+                                  }
+                                >
+                                  {demand}
+                                </Tag>
+                              ),
+                            },
+                          ]}
+                          pagination={false}
+                        />
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  {/* Demand & Supply Analysis */}
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24}>
+                      <Card>
+                        <div className="mb-4">
+                          <Title level={4} className="!mb-1 flex items-center">
+                            <RiseOutlined className="mr-2" />
+                            Demand & Supply Analysis
+                          </Title>
+                          <Text className="text-gray-500">Upgrade class demand vs available inventory</Text>
+                        </div>
+
+                        <div className="space-y-6">
+                          {/* Economy to Premium */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Text strong>Economy to Premium</Text>
+                              <Tag color="green">increasing</Tag>
+                            </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex space-x-8">
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-blue-600">78</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-green-600">45</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-purple-600">1.73</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-red-600">$125</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                </div>
+                              </div>
+                              <Text className="text-gray-500">63.4%</Text>
+                            </div>
+                            <Progress percent={63.4} strokeColor="#3b82f6" />
+                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                          </div>
+
+                          {/* Economy to Business */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Text strong>Economy to Business</Text>
+                              <Tag color="blue">stable</Tag>
+                            </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex space-x-8">
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-blue-600">85</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-green-600">25</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-purple-600">2.6</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-red-600">$285</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                </div>
+                              </div>
+                              <Text className="text-gray-500">72.2%</Text>
+                            </div>
+                            <Progress percent={72.2} strokeColor="#1890ff" />
+                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                          </div>
+
+                          {/* Premium to Business */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Text strong>Premium to Business</Text>
+                              <Tag color="red">decreasing</Tag>
+                            </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex space-x-8">
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-blue-600">45</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-green-600">35</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-purple-600">1.29</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                </div>
+                                <div className="text-center">
+                                  <Text className="text-2xl font-bold text-red-600">$180</Text>
+                                  <br />
+                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                </div>
+                              </div>
+                              <Text className="text-gray-500">56.3%</Text>
+                            </div>
+                            <Progress percent={56.3} strokeColor="#f5222d" />
+                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 
