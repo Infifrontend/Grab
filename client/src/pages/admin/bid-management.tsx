@@ -2040,7 +2040,7 @@ export default function BidManagement() {
         </div>
       </Modal>
 
-      <style jsx global>{`
+      <style>{`
         .ant-tabs-nav {
           margin-bottom: 0;
         }
