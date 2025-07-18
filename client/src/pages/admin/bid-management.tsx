@@ -196,10 +196,6 @@ export default function BidManagement() {
       title: 'Fare Terms & Ancillaries',
       content: 'fare-terms',
     },
-    {
-      title: 'Fleet, Terms & Conditions',
-      content: 'terms',
-    },
   ];
 
   const renderActiveBidsContent = () => (
@@ -2045,62 +2041,7 @@ export default function BidManagement() {
                 </div>
               )}
 
-              {/* Step 5: Fleet, Terms & Conditions */}
-              {currentStep === 4 && (
-                <div>
-                  <div className="mb-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <div className="w-1 h-5 bg-red-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-red-600">Fleet, Terms & Conditions</Title>
-                    </div>
-                    <Text className="text-gray-500 text-sm">Final configuration and terms setup</Text>
-                  </div>
-
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">Fleet Type</span>}
-                          name="fleetType"
-                          rules={[{ required: true, message: 'Please select fleet type' }]}
-                        >
-                          <Select placeholder="Select fleet type" size="large">
-                            <Select.Option value="Boeing 737">Boeing 737</Select.Option>
-                            <Select.Option value="Airbus A320">Airbus A320</Select.Option>
-                            <Select.Option value="Boeing 777">Boeing 777</Select.Option>
-                            <Select.Option value="Airbus A350">Airbus A350</Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">Cancellation Policy</span>}
-                          name="cancellationPolicy"
-                          rules={[{ required: true, message: 'Please select cancellation policy' }]}
-                        >
-                          <Select placeholder="Select policy" size="large">
-                            <Select.Option value="flexible">Flexible - Full refund</Select.Option>
-                            <Select.Option value="standard">Standard - 50% refund</Select.Option>
-                            <Select.Option value="strict">Strict - No refund</Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={24}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">Special Notes</span>}
-                          name="specialNotes"
-                        >
-                          <Input.TextArea 
-                            rows={6} 
-                            placeholder="Enter any special terms, conditions, or notes for this bid..."
-                            className="rounded-lg"
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  </div>
-                </div>
-              )}
+              
             </div>
 
             {/* Navigation Footer */}
