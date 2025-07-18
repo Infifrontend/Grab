@@ -212,9 +212,6 @@ export default function QuickBookingForm() {
           <Radio value="roundTrip" className="text-sm">
             Round trip
           </Radio>
-          <Radio value="multiCity" className="text-sm">
-            Multi city
-          </Radio>
         </Radio.Group>
       </div>
 
