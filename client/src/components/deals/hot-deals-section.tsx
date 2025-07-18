@@ -35,7 +35,7 @@ export default function HotDealsSection() {
 
       {/* Deal Content */}
       <div className="p-6">
-        {deals?.map((deal) => (
+        {deals?.map((deal, index) => (
       <div
         key={deal.id}
         className={`space-y-1 p-4 bg-white rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-shadow duration-300 ${
