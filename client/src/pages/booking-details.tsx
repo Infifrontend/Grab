@@ -65,7 +65,7 @@ export default function BookingDetails() {
   }
 
   const { booking, passengers, flightData, comprehensiveData } = bookingDetails;
-  
+
   // Parse comprehensive data for detailed information
   const bookingData = comprehensiveData?.tripDetails;
   const groupLeaderData = comprehensiveData?.groupLeaderInfo;
@@ -290,14 +290,18 @@ export default function BookingDetails() {
                         Airline
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        ✈ {flightData?.return?.airline || 
-                            comprehensiveData?.selectedFlights?.return?.airline || 
-                            'British Airways'}
+                        ✈ {comprehensiveData?.flightDetails?.return?.airline || 
+                          flightData?.return?.airline || 
+                          comprehensiveData?.selectedFlights?.return?.airline || 
+                          flightData?.airline || 
+                          'British Airways'}
                       </Text>
                       <Text className="text-gray-600 text-sm block">
-                        Duration: {flightData?.return?.duration || 
-                                 comprehensiveData?.selectedFlights?.return?.duration || 
-                                 '7h 45m'}
+                        Duration: {comprehensiveData?.flightDetails?.return?.duration || 
+                               flightData?.return?.duration || 
+                               comprehensiveData?.selectedFlights?.return?.duration || 
+                               flightData?.duration || 
+                               '7h 45m'}
                       </Text>
                     </div>
                   </Col>
@@ -307,67 +311,77 @@ export default function BookingDetails() {
                         Flight
                       </Text>
                       <Text className="text-gray-900 font-medium">
-                        {flightData?.return?.flightNumber || 
-                         comprehensiveData?.selectedFlights?.return?.flightNumber || 
-                         'BA 179'}
-                      </Text>
-                      <Text className="text-gray-600 text-sm block">
-                        Aircraft: {flightData?.return?.aircraft || 
-                                 comprehensiveData?.selectedFlights?.return?.aircraft || 
-                                 'Boeing 777-300ER'}
-                      </Text>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={6}>
-                    <div>
-                      <Text className="text-gray-500 text-sm block mb-1">
-                        Departure
-                      </Text>
-                      <Text className="text-gray-900 font-medium">
-                        {flightData?.return?.departureTime 
-                          ? dayjs(flightData.return.departureTime).format('DD MMM YYYY h:mm A')
-                          : bookingData?.returnDate
-                          ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
-                          : 'Jun 22, 2024 12:45 PM'}
-                      </Text>
-                      <Text className="text-gray-600 text-sm block">
-                        {flightData?.return?.origin || 
-                         bookingData?.destination || 
-                         comprehensiveData?.tripDetails?.destination || 
-                         'London (LHR)'}
-                      </Text>
-                      <Text className="text-gray-600 text-sm block">
-                        Class: {bookingData?.cabin || 
-                               comprehensiveData?.tripDetails?.cabin || 
-                               'Economy'}
-                      </Text>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={6}>
-                    <div>
-                      <Text className="text-gray-500 text-sm block mb-1">
-                        Arrival
-                      </Text>
-                      <Text className="text-gray-900 font-medium">
-                        {flightData?.return?.arrivalTime 
-                          ? dayjs(flightData.return.arrivalTime).format('DD MMM YYYY')
-                          : bookingData?.returnDate
-                          ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
-                          : '22 Jun 2024'}
-                      </Text>
-                      <Text className="text-gray-600 text-sm block">
-                        {flightData?.return?.destination || 
-                         bookingData?.origin || 
-                         comprehensiveData?.tripDetails?.origin || 
-                         'New York (JFK)'}
-                      </Text>
-                      <Text className="text-gray-600 text-sm block">
-                        Meal: Standard
-                      </Text>
-                    </div>
-                  </Col>
-                </Row>
-              </Card>
+                        {comprehensiveData?.flightDetails?.return?.flightNumber || 
+                       flightData?.return?.flightNumber || 
+                       comprehensiveData?.selectedFlights?.return?.flightNumber || 
+                       flightData?.flightNumber || 
+                       'BA 179'}
+                    </Text>
+                    <Text className="text-gray-600 text-sm block">
+                      Aircraft: {comprehensiveData?.flightDetails?.return?.aircraft || 
+                               flightData?.return?.aircraft || 
+                               comprehensiveData?.selectedFlights?.return?.aircraft || 
+                               flightData?.aircraft || 
+                               'Boeing 777-300ER'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} sm={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">
+                      Departure
+                    </Text>
+                    <Text className="text-gray-900 font-medium">
+                      {comprehensiveData?.flightDetails?.return?.departureTime 
+                        ? dayjs(comprehensiveData.flightDetails.return.departureTime).format('DD MMM YYYY h:mm A')
+                        : flightData?.return?.departureTime 
+                        ? dayjs(flightData.return.departureTime).format('DD MMM YYYY h:mm A')
+                        : bookingData?.returnDate
+                        ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
+                        : 'Jun 22, 2024 12:45 PM'}
+                    </Text>
+                    <Text className="text-gray-600 text-sm block">
+                      {comprehensiveData?.flightDetails?.return?.origin || 
+                       flightData?.return?.origin || 
+                       bookingData?.destination || 
+                       comprehensiveData?.tripDetails?.destination || 
+                       'London (LHR)'}
+                    </Text>
+                    <Text className="text-gray-600 text-sm block">
+                      Class: {bookingData?.cabin || 
+                             comprehensiveData?.tripDetails?.cabin || 
+                             'Economy'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} sm={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">
+                      Arrival
+                    </Text>
+                    <Text className="text-gray-900 font-medium">
+                      {comprehensiveData?.flightDetails?.return?.arrivalTime 
+                        ? dayjs(comprehensiveData.flightDetails.return.arrivalTime).format('DD MMM YYYY h:mm A')
+                        : flightData?.return?.arrivalTime 
+                        ? dayjs(flightData.return.arrivalTime).format('DD MMM YYYY h:mm A')
+                        : bookingData?.returnDate
+                        ? dayjs(bookingData.returnDate).format('DD MMM YYYY')
+                        : '22 Jun 2024'}
+                    </Text>
+                    <Text className="text-gray-600 text-sm block">
+                      {comprehensiveData?.flightDetails?.return?.destination || 
+                       flightData?.return?.destination || 
+                       bookingData?.origin || 
+                       comprehensiveData?.tripDetails?.origin || 
+                       'New York (JFK)'}
+                    </Text>
+                    <Text className="text-gray-600 text-sm block">
+                      Meal: Standard
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
             )}
 
             {/* Additional Information */}
