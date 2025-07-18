@@ -7,79 +7,99 @@ import { useLocation } from 'wouter';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { BookOpen, TrendingUp, Users, Plane } from 'lucide-react';
 import Header from "@/components/layout/header";
-import type { Booking } from '@shared/schema';
+import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
-
-const chartData = [
-  { month: 'Jan', value: 45 },
-  { month: 'Feb', value: 65 },
-  { month: 'Mar', value: 35 },
-  { month: 'Apr', value: 55 },
-  { month: 'May', value: 40 },
-  { month: 'Jun', value: 75 },
-  { month: 'Jul', value: 60 },
-  { month: 'Aug', value: 85 },
-  { month: 'Sep', value: 50 },
-  { month: 'Oct', value: 45 },
-  { month: 'Nov', value: 60 },
-  { month: 'Dec', value: 55 },
-];
-
-const recentActivities = [
-  {
-    id: 1,
-    title: 'New booking created',
-    description: 'Booking #GR-2024-1005 for Chicago to Paris',
-    time: 'Just now',
-    type: 'booking'
-  },
-  {
-    id: 2,
-    title: 'Passenger added',
-    description: 'Added 3 passengers to booking #GR-2024-1001',
-    time: '2h ago',
-    type: 'passenger'
-  },
-  {
-    id: 3,
-    title: 'Payment received',
-    description: '$4,250.00 for booking #GR-2024-0987',
-    time: '5h ago',
-    type: 'payment'
-  },
-  {
-    id: 4,
-    title: 'Booking confirmed',
-    description: 'Booking #GR-2024-0965 has been confirmed',
-    time: '1d ago',
-    type: 'confirmation'
-  }
-];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [, setLocation] = useLocation();
-  
-  const { data: bookings } = useQuery<Booking[]>({
-    queryKey: ['/api/bookings'],
+
+  // Fetch real data from API
+  const { data: flightBookings = [] } = useQuery({
+    queryKey: ['flight-bookings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/flight-bookings');
+      return response.json();
+    },
   });
 
-  const handleViewBooking = (bookingId: string) => {
-    const id = bookingId === 'GR-2024-1001' ? '1' : 
-               bookingId === 'GR-2024-1002' ? '2' : 
-               bookingId === 'GR-2024-1003' ? '3' : '1';
-    setLocation(`/booking-details/${id}`);
+  const { data: recentBookings = [] } = useQuery({
+    queryKey: ['recent-flight-bookings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/recent-flight-bookings');
+      return response.json();
+    },
+  });
+
+  const { data: payments = [] } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/payments');
+      return response.json();
+    },
+  });
+
+  // Calculate statistics from real data
+  const totalBookings = flightBookings.length;
+  const activeBookings = flightBookings.filter(b => b.bookingStatus === 'confirmed').length;
+  const totalPassengers = flightBookings.reduce((sum, b) => sum + b.passengerCount, 0);
+  const upcomingTrips = flightBookings.filter(b => 
+    b.bookingStatus === 'confirmed' && 
+    b.flight && 
+    new Date(b.flight.departureTime) > new Date()
+  ).length;
+
+  // Generate chart data from bookings
+  const generateChartData = () => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentYear = new Date().getFullYear();
+    
+    const chartData = monthNames.map(month => ({ month, value: 0 }));
+    
+    flightBookings.forEach(booking => {
+      if (booking.createdAt) {
+        const bookingDate = new Date(booking.createdAt);
+        if (bookingDate.getFullYear() === currentYear) {
+          const monthIndex = bookingDate.getMonth();
+          chartData[monthIndex].value += 1;
+        }
+      }
+    });
+    
+    return chartData;
+  };
+
+  const chartData = generateChartData();
+
+  // Generate recent activities from real data
+  const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
+    id: booking.id,
+    title: 'New booking created',
+    description: `Booking #${booking.bookingReference} ${booking.flight ? `for ${booking.flight.origin} to ${booking.flight.destination}` : ''}`,
+    time: booking.createdAt ? getRelativeTime(new Date(booking.createdAt)) : 'Recently',
+    type: 'booking'
+  }));
+
+  function getRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return diffMins <= 1 ? 'Just now' : `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  }
+
+  const handleViewBooking = (bookingReference) => {
+    setLocation(`/booking-details?ref=${bookingReference}`);
   };
 
   const handleNewBooking = () => {
     setLocation('/new-booking');
   };
-
-  const totalBookings = bookings?.length || 0;
-  const activeBookings = bookings?.filter(b => b.status === 'confirmed').length || 0;
-  const totalPassengers = bookings?.reduce((sum, b) => sum + b.passengers, 0) || 0;
-  const upcomingTrips = bookings?.filter(b => new Date(b.date) > new Date()).length || 0;
 
   const tabItems = [
     {
@@ -100,7 +120,7 @@ export default function Dashboard() {
     },
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed':
         return 'var(--infiniti-success)';
@@ -113,38 +133,17 @@ export default function Dashboard() {
     }
   };
 
-  const mockBookingsData = [
-    {
-      key: 1,
-      bookingId: 'GR-2024-1001',
-      groupType: 'Corporate',
-      route: 'New York to London',
-      date: '2024-06-15',
-      returnDate: '2024-06-22',
-      passengers: 32,
-      status: 'confirmed',
-    },
-    {
-      key: 2,
-      bookingId: 'GR-2024-1002',
-      groupType: 'Leisure',
-      route: 'Los Angeles to Tokyo',
-      date: '2024-07-01',
-      returnDate: '2024-07-10',
-      passengers: 15,
-      status: 'pending',
-    },
-    {
-      key: 3,
-      bookingId: 'GR-2024-1003',
-      groupType: 'Educational',
-      route: 'Chicago to Rome',
-      date: '2024-08-10',
-      returnDate: '2024-08-20',
-      passengers: 45,
-      status: 'confirmed',
-    },
-  ];
+  // Transform real booking data for table
+  const bookingsTableData = flightBookings.map((booking, index) => ({
+    key: booking.id,
+    bookingId: booking.bookingReference,
+    groupType: 'Group Travel', // Default since we don't have this field
+    route: booking.flight ? `${booking.flight.origin} to ${booking.flight.destination}` : 'N/A',
+    date: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : 'N/A',
+    returnDate: booking.flight ? new Date(booking.flight.arrivalTime).toISOString().split('T')[0] : null,
+    passengers: booking.passengerCount,
+    status: booking.bookingStatus,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -310,7 +309,7 @@ export default function Dashboard() {
                   </div>
                   
                   <div className="space-y-4">
-                    {recentActivities.map((activity) => (
+                    {recentActivities.length > 0 ? recentActivities.map((activity) => (
                       <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                         <div className="w-2 h-2 bg-[var(--infiniti-primary)] rounded-full mt-2 flex-shrink-0"></div>
                         <div className="flex-1 min-w-0">
@@ -323,7 +322,11 @@ export default function Dashboard() {
                           </Text>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center py-8">
+                        <Text className="text-gray-500">No recent activity</Text>
+                      </div>
+                    )}
                   </div>
                 </Card>
               </Col>
@@ -350,91 +353,106 @@ export default function Dashboard() {
 
             {/* Bookings Table */}
             <Card className="border-0 shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Booking ID
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Group Type
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Route
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Departure
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Return
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Passengers
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {mockBookingsData.map((booking) => (
-                      <tr key={booking.key} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-4">
-                          <span className="font-semibold text-[var(--infiniti-primary)]">{booking.bookingId}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-gray-700 capitalize">{booking.groupType}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-gray-900 font-medium">{booking.route}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-gray-600">
-                            {new Date(booking.date).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            })}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-gray-600">
-                            {booking.returnDate ? new Date(booking.returnDate).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            }) : '-'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-gray-700 font-medium">{booking.passengers}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span 
-                            className="px-3 py-1 rounded-full text-xs font-semibold text-white capitalize"
-                            style={{ backgroundColor: getStatusColor(booking.status) }}
-                          >
-                            {booking.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Button 
-                            type="link" 
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
-                            onClick={() => handleViewBooking(booking.bookingId)}
-                          >
-                            View Details
-                          </Button>
-                        </td>
+              {bookingsTableData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Booking ID
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Group Type
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Route
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Departure
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Return
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Passengers
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {bookingsTableData.map((booking) => (
+                        <tr key={booking.key} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-4 px-4">
+                            <span className="font-semibold text-[var(--infiniti-primary)]">{booking.bookingId}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-700 capitalize">{booking.groupType}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-900 font-medium">{booking.route}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-600">
+                              {booking.date !== 'N/A' ? new Date(booking.date).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              }) : '-'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-600">
+                              {booking.returnDate ? new Date(booking.returnDate).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              }) : '-'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-700 font-medium">{booking.passengers}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span 
+                              className="px-3 py-1 rounded-full text-xs font-semibold text-white capitalize"
+                              style={{ backgroundColor: getStatusColor(booking.status) }}
+                            >
+                              {booking.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Button 
+                              type="link" 
+                              className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
+                              onClick={() => handleViewBooking(booking.bookingId)}
+                            >
+                              View Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <Title level={4} className="text-gray-500 !mb-2">No bookings yet</Title>
+                  <Text className="text-gray-400 mb-6">Start by creating your first group booking</Text>
+                  <Button 
+                    type="primary" 
+                    className="infiniti-btn-primary"
+                    onClick={handleNewBooking}
+                  >
+                    Create New Booking
+                  </Button>
+                </div>
+              )}
             </Card>
           </div>
         )}
@@ -449,55 +467,48 @@ export default function Dashboard() {
 
             {/* Payment History List */}
             <Card className="border-0 shadow-sm">
-              <div className="space-y-1">
-                <div className="flex justify-between items-center p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600 font-semibold">✓</span>
+              {payments.length > 0 ? (
+                <div className="space-y-1">
+                  {payments.map((payment) => (
+                    <div key={payment.id} className="flex justify-between items-center p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          payment.status === 'completed' ? 'bg-green-100' : 
+                          payment.status === 'pending' ? 'bg-yellow-100' : 'bg-gray-100'
+                        }`}>
+                          <span className={`font-semibold ${
+                            payment.status === 'completed' ? 'text-green-600' : 
+                            payment.status === 'pending' ? 'text-yellow-600' : 'text-gray-600'
+                          }`}>
+                            {payment.status === 'completed' ? '✓' : 
+                             payment.status === 'pending' ? '⏳' : '✗'}
+                          </span>
+                        </div>
+                        <div>
+                          <Text className="font-semibold text-gray-900 block">Payment #{payment.id}</Text>
+                          <Text className="text-sm text-gray-500">
+                            For booking {payment.bookingId ? `#${payment.bookingId}` : 'N/A'} • {payment.status}
+                          </Text>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Text className="font-bold text-lg text-gray-900">${payment.amount}</Text>
+                        <Text className="text-sm text-gray-500 block">
+                          {new Date(payment.dueDate).toLocaleDateString()}
+                        </Text>
+                      </div>
                     </div>
-                    <div>
-                      <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1001</Text>
-                      <Text className="text-sm text-gray-500">For booking GR-2024-1001 • Completed</Text>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Text className="font-bold text-lg text-gray-900">$5,280.00</Text>
-                    <Text className="text-sm text-gray-500 block">May 15, 2024</Text>
-                  </div>
+                  ))}
                 </div>
-                
-                <div className="flex justify-between items-center p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold">⏳</span>
-                    </div>
-                    <div>
-                      <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1002</Text>
-                      <Text className="text-sm text-gray-500">For booking GR-2024-1002 • Processing</Text>
-                    </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span className="text-gray-400 text-xl">💳</span>
                   </div>
-                  <div className="text-right">
-                    <Text className="font-bold text-lg text-gray-900">$3,750.00</Text>
-                    <Text className="text-sm text-gray-500 block">Jun 01, 2024</Text>
-                  </div>
+                  <Title level={4} className="text-gray-500 !mb-2">No payment history</Title>
+                  <Text className="text-gray-400">Your payment transactions will appear here</Text>
                 </div>
-                
-                <div className="flex justify-between items-center p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600 font-semibold">✓</span>
-                    </div>
-                    <div>
-                      <Text className="font-semibold text-gray-900 block">Payment PAY-2024-1003</Text>
-                      <Text className="text-sm text-gray-500">For booking GR-2024-1003 • Completed</Text>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Text className="font-bold text-lg text-gray-900">$11,250.00</Text>
-                    <Text className="text-sm text-gray-500 block">Jul 10, 2024</Text>
-                  </div>
-                </div>
-              </div>
+              )}
             </Card>
           </div>
         )}
@@ -526,7 +537,10 @@ export default function Dashboard() {
                         </Badge>
                       </div>
                       <Text className="text-gray-600 text-sm leading-relaxed">
-                        Your group bookings increase by 40% during June-August. Consider booking early for better rates.
+                        {totalBookings > 0 ? 
+                          `You have ${totalBookings} total bookings with ${totalPassengers} passengers. Consider booking early for better rates.` :
+                          'Start creating bookings to see your patterns and get personalized insights.'
+                        }
                       </Text>
                     </div>
                   </div>
@@ -547,59 +561,16 @@ export default function Dashboard() {
                         </Badge>
                       </div>
                       <Text className="text-gray-600 text-sm leading-relaxed">
-                        Early payments (45+ days before travel) save an average of 12% on total booking costs.
+                        {activeBookings > 0 ? 
+                          `You have ${activeBookings} confirmed bookings. Early payments typically save 12% on average.` :
+                          'Track your payment patterns here once you start making bookings.'
+                        }
                       </Text>
                     </div>
                   </div>
                 </Card>
               </Col>
             </Row>
-
-            {/* Top Routes Section */}
-            <Card className="border-0 shadow-sm mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <Plane className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <Title level={4} className="!mb-0 text-gray-900">Top Routes</Title>
-                  <Text className="text-gray-500 text-sm">Your most frequently booked destinations</Text>
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Route</th>
-                      <th className="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Bookings</th>
-                      <th className="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Cost</th>
-                      <th className="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Savings</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    <tr className="hover:bg-gray-50 transition-colors">
-                      <td className="py-4 text-gray-900 font-medium">New York → London</td>
-                      <td className="py-4 text-center text-gray-600">4</td>
-                      <td className="py-4 text-center text-gray-600">$1,250</td>
-                      <td className="py-4 text-center text-green-600 font-semibold">$320</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 transition-colors">
-                      <td className="py-4 text-gray-900 font-medium">Los Angeles → Las Vegas</td>
-                      <td className="py-4 text-center text-gray-600">3</td>
-                      <td className="py-4 text-center text-gray-600">$450</td>
-                      <td className="py-4 text-center text-green-600 font-semibold">$120</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 transition-colors">
-                      <td className="py-4 text-gray-900 font-medium">Chicago → Paris</td>
-                      <td className="py-4 text-center text-gray-600">2</td>
-                      <td className="py-4 text-center text-gray-600">$1,180</td>
-                      <td className="py-4 text-center text-green-600 font-semibold">$240</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
 
             {/* Recommendations Section */}
             <Card className="border-0 shadow-sm">
@@ -637,18 +608,18 @@ export default function Dashboard() {
                 <Col xs={24} lg={12}>
                   <div className="border border-gray-100 rounded-lg p-6 hover:shadow-sm transition-shadow">
                     <div className="flex justify-between items-start mb-4">
-                      <Text className="font-semibold text-gray-900 text-base">Las Vegas Package Deal</Text>
+                      <Text className="font-semibold text-gray-900 text-base">Group Travel Packages</Text>
                       <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
                         AVAILABLE NOW
                       </Badge>
                     </div>
                     <Text className="text-gray-600 text-sm mb-4 leading-relaxed">
-                      Based on your searches, our Las Vegas weekend package offers 15% savings for groups of 10+.
+                      Explore our group packages that offer up to 15% savings for groups of 10 or more passengers.
                     </Text>
                     <div className="flex justify-between items-center">
-                      <Text className="text-sm text-green-600 font-semibold">Potential savings: $200</Text>
+                      <Text className="text-sm text-green-600 font-semibold">Potential savings: 15%</Text>
                       <Button type="link" className="text-[var(--infiniti-primary)] p-0 text-sm font-medium">
-                        View Package →
+                        View Packages →
                       </Button>
                     </div>
                   </div>
