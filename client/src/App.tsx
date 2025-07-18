@@ -22,7 +22,7 @@ import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
 import PaymentDetails from "@/pages/payment-details";
-import bids from "@/pages/bids";
+import Bids from "@/pages/bids";
 import BidDetails from "@/pages/bid-details";
 import FlightSearchResults from "@/pages/flight-search-results";
 import FlightSearchBundle from "@/pages/flight-search-bundle";
@@ -44,6 +44,8 @@ function Router() {
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
+      <Route path="/bids" component={Bids} />
+      <Route path="/bid-details/:id" component={BidDetails} />
       <Route path="/settings" component={Settings} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
