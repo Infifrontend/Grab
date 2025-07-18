@@ -10,6 +10,8 @@ import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
+import AdminLogin from "@/pages/admin-login";
+import AdminDashboard from "@/pages/admin-dashboard";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
@@ -37,17 +39,8 @@ function Router() {
       <Route path="/payments" component={Payments} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route path="/settings" component={Settings} />
-      <Route path="/bids" component={bids} />
-      <Route path="/bid-details/:id" component={BidDetails} />
-      <Route path="/flight-search-results" component={FlightSearchResults} />
-      <Route path="/flight-search-bundle" component={FlightSearchBundle} />
-      <Route path="/add-services-bundles" component={AddServicesBundles} />
-      <Route path="/new-booking" component={NewBooking} />
-      <Route path="/group-leader" component={GroupLeader} />
-      <Route path="/payment-options" component={PaymentOptions} />
-      <Route path="/passenger-info" component={PassengerInfo} />
-      <Route path="/review-confirmation" component={ReviewConfirmation} />
-      <Route path="/download-itinerary/:id" component={DownloadItinerary} />
+      <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
