@@ -978,57 +978,59 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex">
-        {/* Sidebar - Made sticky */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-0 shadow-xl z-30">
-          <div className="p-6">
-            <nav className="space-y-2">
-              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                  <span className="text-blue-600 text-xs">📊</span>
+        {/* Sidebar - Fixed with independent scroll */}
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 h-screen fixed top-0 left-0 shadow-xl z-30 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+            <div className="p-6">
+              <nav className="space-y-2">
+                <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-blue-600 text-xs">📊</span>
+                  </div>
+                  <Text className="text-white font-medium">Dashboard</Text>
                 </div>
-                <Text className="text-white font-medium">Dashboard</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🎯</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">🎯</span>
+                  </div>
+                  <Text className="text-current">Offer Management</Text>
                 </div>
-                <Text className="text-current">Offer Management</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📋</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📋</span>
+                  </div>
+                  <Text className="text-current">Bid Management</Text>
                 </div>
-                <Text className="text-current">Bid Management</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📅</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📅</span>
+                  </div>
+                  <Text className="text-current">Bookings</Text>
                 </div>
-                <Text className="text-current">Bookings</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">⚙️</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">⚙️</span>
+                  </div>
+                  <Text className="text-current">CMS</Text>
                 </div>
-                <Text className="text-current">CMS</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🔧</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">🔧</span>
+                  </div>
+                  <Text className="text-current">Admin Settings</Text>
                 </div>
-                <Text className="text-current">Admin Settings</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📊</span>
+                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📊</span>
+                  </div>
+                  <Text className="text-current">Reports</Text>
                 </div>
-                <Text className="text-current">Reports</Text>
-              </div>
-            </nav>
+              </nav>
+            </div>
           </div>
           
           {/* User Info at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
+          <div className="flex-shrink-0 p-6 border-t border-slate-700 bg-slate-900">
             <div className="flex items-center space-x-3">
               <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
                 <span className="text-white font-medium">JD</span>
@@ -1049,8 +1051,9 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-6">
+        {/* Main Content - With independent scroll */}
+        <div className="flex-1 ml-64 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="p-6">
           {/* Dashboard Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -1118,10 +1121,46 @@ export default function AdminDashboard() {
           {activeTab === 'bookings' && renderBookingAnalyticsContent()}
           {activeTab === 'offers' && renderOfferAnalyticsContent()}
           {activeTab === 'insights' && renderInsightsForecastsContent()}
+          </div>
         </div>
       </div>
 
       <style jsx global>{`
+        /* Custom scrollbar styles */
+        .scrollbar-thin {
+          scrollbar-width: thin;
+        }
+        
+        .scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
+          background-color: #475569;
+          border-radius: 4px;
+        }
+        
+        .scrollbar-track-slate-800::-webkit-scrollbar-track {
+          background-color: #1e293b;
+        }
+        
+        .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+          background-color: #d1d5db;
+          border-radius: 4px;
+        }
+        
+        .scrollbar-track-gray-100::-webkit-scrollbar-track {
+          background-color: #f3f4f6;
+        }
+        
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #6b7280;
+        }
         .stats-card {
           border-radius: 16px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
