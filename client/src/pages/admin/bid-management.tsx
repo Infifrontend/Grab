@@ -27,8 +27,8 @@ import {
   PlusOutlined,
   EyeOutlined,
   FileSearchOutlined,
-  TrendingUpOutlined,
-  TrendingDownOutlined,
+  RiseOutlined,
+  FallOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
@@ -382,7 +382,7 @@ export default function BidManagement() {
                   <Col xs={24} sm={12} lg={8}>
                     <Card>
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <TrendingDownOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
+                        <FallOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
                         <div>
                           <Statistic
                             title="Monthly Revenue"
@@ -401,7 +401,7 @@ export default function BidManagement() {
                   <Col xs={24} sm={12} lg={8}>
                     <Card>
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <TrendingDownOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
+                        <FallOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
                         <div>
                           <Statistic
                             title="Acceptance Rate"
@@ -420,7 +420,7 @@ export default function BidManagement() {
                   <Col xs={24} sm={12} lg={8}>
                     <Card>
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <TrendingDownOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
+                        <FallOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />
                         <div>
                           <Statistic
                             title="Avg Bid Value"
