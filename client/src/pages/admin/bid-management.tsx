@@ -1863,72 +1863,97 @@ export default function BidManagement() {
                       <div className="w-1 h-5 bg-purple-500 rounded"></div>
                       <Title level={5} className="!mb-0 text-purple-600">Bid Pricing & Currency</Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Configure pricing parameters and currency settings</Text>
+                    <Text className="text-gray-500 text-sm">Configure bidding schedule and automation settings</Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Minimum Bid Amount</span>}
-                          name="minBidAmount"
-                          rules={[{ required: true, message: 'Please enter minimum bid amount' }]}
+                          label={<span className="font-semibold text-gray-700">Bid Start Time</span>}
+                          name="bidStartTime"
+                          rules={[{ required: true, message: 'Please select bid start time' }]}
                         >
-                          <InputNumber 
-                            min={0} 
+                          <DatePicker 
+                            showTime={{ format: 'HH:mm' }}
+                            format="DD/MM/YYYY HH:mm"
+                            placeholder="Select start time"
                             className="w-full" 
-                            placeholder="100"
                             size="large"
-                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                           />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Maximum Bid Amount</span>}
-                          name="maxBidAmount"
-                          rules={[{ required: true, message: 'Please enter maximum bid amount' }]}
+                          label={<span className="font-semibold text-gray-700">Bid End Time</span>}
+                          name="bidEndTime"
+                          rules={[{ required: true, message: 'Please select bid end time' }]}
                         >
-                          <InputNumber 
-                            min={0} 
+                          <DatePicker 
+                            showTime={{ format: 'HH:mm' }}
+                            format="DD/MM/YYYY HH:mm"
+                            placeholder="Select end time"
                             className="w-full" 
-                            placeholder="500"
                             size="large"
-                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                           />
                         </Form.Item>
                       </Col>
                       <Col span={24}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">Currency</span>}
-                          name="currency"
-                          rules={[{ required: true, message: 'Please select currency' }]}
-                        >
-                          <Radio.Group className="w-full">
-                            <Space direction="vertical" className="w-full">
-                              <Radio value="USD" className="w-full p-3 border rounded-lg hover:bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">USD - US Dollar</span>
-                                  <span className="text-gray-500">$</span>
-                                </div>
-                              </Radio>
-                              <Radio value="EUR" className="w-full p-3 border rounded-lg hover:bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">EUR - Euro</span>
-                                  <span className="text-gray-500">€</span>
-                                </div>
-                              </Radio>
-                              <Radio value="GBP" className="w-full p-3 border rounded-lg hover:bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">GBP - British Pound</span>
-                                  <span className="text-gray-500">£</span>
-                                </div>
-                              </Radio>
-                            </Space>
-                          </Radio.Group>
-                        </Form.Item>
+                        <div className="space-y-4">
+                          <div className="p-4 border rounded-lg">
+                            <Form.Item
+                              label={<span className="font-semibold text-gray-700">Auto-Award Top Bidder</span>}
+                              name="autoAwardTopBidder"
+                              valuePropName="checked"
+                              className="!mb-2"
+                            >
+                              <Switch 
+                                size="default"
+                                checkedChildren="ON"
+                                unCheckedChildren="OFF"
+                              />
+                            </Form.Item>
+                            <Text className="text-gray-500 text-sm">
+                              Automatically accept the highest valid bid when bidding ends
+                            </Text>
+                          </div>
+                          
+                          <div className="p-4 border rounded-lg">
+                            <Form.Item
+                              label={<span className="font-semibold text-gray-700">Manual Review Option</span>}
+                              name="manualReviewOption"
+                              valuePropName="checked"
+                              className="!mb-2"
+                            >
+                              <Switch 
+                                size="default"
+                                checkedChildren="ON"
+                                unCheckedChildren="OFF"
+                              />
+                            </Form.Item>
+                            <Text className="text-gray-500 text-sm">
+                              Allow manual review and approval before awarding bids
+                            </Text>
+                          </div>
+                          
+                          <div className="p-4 border rounded-lg">
+                            <Form.Item
+                              label={<span className="font-semibold text-gray-700">Auto Refund Non-Winners</span>}
+                              name="autoRefundNonWinners"
+                              valuePropName="checked"
+                              className="!mb-2"
+                            >
+                              <Switch 
+                                size="default"
+                                checkedChildren="ON"
+                                unCheckedChildren="OFF"
+                              />
+                            </Form.Item>
+                            <Text className="text-gray-500 text-sm">
+                              Automatically refund unsuccessful bidders when bids are awarded
+                            </Text>
+                          </div>
+                        </div>
                       </Col>
                     </Row>
                   </div>
