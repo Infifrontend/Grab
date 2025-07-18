@@ -131,15 +131,15 @@
   /* Equal height for Quick Booking and Hot Deals sections */
   .lg\:col-span-5 .deal-card,
   .lg\:col-span-7 .deal-card,
-  .lg\:col-span-5 > .ant-card,
-  .lg\:col-span-7 > .ant-card {
+  .lg\:col-span-5>.ant-card,
+  .lg\:col-span-7>.ant-card {
     height: 600px;
     display: flex;
     flex-direction: column;
   }
 
-  .lg\:col-span-5 .deal-card > div:last-child,
-  .lg\:col-span-7 .deal-card > div:last-child {
+  .lg\:col-span-5 .deal-card>div:last-child,
+  .lg\:col-span-7 .deal-card>div:last-child {
     flex: 1;
     overflow-y: auto;
   }
@@ -237,25 +237,25 @@
   }
 
   /* Marquee Animation */
-  .marquee-container {
-    overflow: hidden;
-    white-space: nowrap;
-    width: 100%;
-  }
-
-  .marquee-text {
-    display: inline-block;
-    animation: marquee 20s linear infinite;
-  }
-
   @keyframes marquee {
     0% {
-      transform: translateX(100%);
+      transform: translateX(0%);
     }
 
     100% {
-      transform: translateX(-100%);
+      transform: translateX(-50%);
     }
+  }
+
+  .marquee-wrapper {
+    position: relative;
+  }
+
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+    display: inline-flex;
+    width: fit-content;
+    /* Ensures smooth loop */
   }
 
   /* Custom scrollbar for vertical scrolling */

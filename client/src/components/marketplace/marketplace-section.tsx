@@ -1,19 +1,21 @@
-import { useState } from 'react';
-import { Card, Form, Input, DatePicker, Select, Button, Row, Col } from 'antd';
-import { useQuery } from '@tanstack/react-query';
-import { CheckCircle } from 'lucide-react';
-import type { Package } from '@shared/schema';
+import { useState } from "react";
+import { Card, Form, Input, DatePicker, Select, Button, Row, Col } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { CheckCircle } from "lucide-react";
+import type { Package } from "@shared/schema";
 
 const { Option } = Select;
 
 export default function MarketplaceSection() {
-  const [searchDestination, setSearchDestination] = useState<string>('');
+  const [searchDestination, setSearchDestination] = useState<string>("");
 
   const { data: packages, isLoading } = useQuery<Package[]>({
-    queryKey: ['/api/packages', searchDestination],
+    queryKey: ["/api/packages", searchDestination],
     queryFn: async () => {
-      const response = await fetch(`/api/packages${searchDestination ? `?destination=${encodeURIComponent(searchDestination)}` : ''}`);
-      if (!response.ok) throw new Error('Failed to fetch packages');
+      const response = await fetch(
+        `/api/packages${searchDestination ? `?destination=${encodeURIComponent(searchDestination)}` : ""}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch packages");
       return response.json();
     },
   });
@@ -23,7 +25,7 @@ export default function MarketplaceSection() {
   };
 
   const handleBookPackage = (packageId: number) => {
-    console.log('Booking package:', packageId);
+    console.log("Booking package:", packageId);
     // Implement booking logic
   };
 
@@ -32,7 +34,9 @@ export default function MarketplaceSection() {
       {/* Header */}
       <div className="section-header">
         <h2 className="text-xl font-semibold mb-1">Your Marketplace</h2>
-        <p className="text-sm opacity-90">Discover exclusive travel packages and deals</p>
+        <p className="text-sm opacity-90">
+          Discover exclusive travel packages and deals
+        </p>
       </div>
 
       <div className="p-6">
@@ -41,8 +45,8 @@ export default function MarketplaceSection() {
           <Row gutter={16} align="bottom">
             <Col xs={24} sm={6}>
               <Form.Item label="Destination" className="mb-0">
-                <Input 
-                  placeholder="Search destination" 
+                <Input
+                  placeholder="Search destination"
                   value={searchDestination}
                   onChange={(e) => setSearchDestination(e.target.value)}
                 />
@@ -74,8 +78,8 @@ export default function MarketplaceSection() {
               </Form.Item>
             </Col>
             <Col xs={24} sm={3}>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 onClick={handleSearch}
                 className="infiniti-btn-primary w-full"
               >
@@ -106,11 +110,21 @@ export default function MarketplaceSection() {
               <Card key={pkg.id} className="package-card">
                 {/* Package Header */}
                 <div className="p-4 border-b border-gray-100">
-                  <div className="text-xs text-gray-500 mb-1">{pkg.location}</div>
-                  <div className="text-base font-semibold text-gray-800 mb-3">{pkg.title}</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {pkg.location}
+                  </div>
+                  <div
+                    className="text-base font-semibold text-gray-800 mb-3 truncate w-full max-w-[200px]"
+                    title={pkg.title}
+                  >
+                    {" "}
+                    {pkg.title}{" "}
+                  </div>
                   <div className="package-price">${pkg.price}</div>
                   {pkg.originalPrice && (
-                    <div className="text-sm text-gray-400 line-through">${pkg.originalPrice}</div>
+                    <div className="text-sm text-gray-400 line-through">
+                      ${pkg.originalPrice}
+                    </div>
                   )}
                 </div>
 
@@ -118,7 +132,10 @@ export default function MarketplaceSection() {
                 <div className="p-4 bg-gray-50">
                   <ul className="space-y-1">
                     {pkg.features?.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-xs text-gray-600">
+                      <li
+                        key={index}
+                        className="flex items-start gap-2 text-xs text-gray-600"
+                      >
                         <CheckCircle className="w-3 h-3 mt-0.5 infiniti-success-text flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
@@ -128,8 +145,8 @@ export default function MarketplaceSection() {
 
                 {/* Package Footer */}
                 <div className="p-4">
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     className="w-full infiniti-btn-primary"
                     onClick={() => handleBookPackage(pkg.id)}
                   >
