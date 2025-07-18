@@ -27,7 +27,7 @@ import {
   EyeOutlined,
   UploadOutlined,
   FileTextOutlined,
-  ImageOutlined,
+  PictureOutlined,
   SettingOutlined,
   GlobalOutlined
 } from "@ant-design/icons";
@@ -362,7 +362,7 @@ export default function CMS() {
                       hoverable
                       cover={
                         <div className="h-32 bg-gray-100 flex items-center justify-center">
-                          <ImageOutlined className="text-2xl text-gray-400" />
+                          <PictureOutlined className="text-2xl text-gray-400" />
                         </div>
                       }
                       actions={[
