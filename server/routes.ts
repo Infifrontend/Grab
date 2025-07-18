@@ -595,6 +595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create bid configuration
   app.post("/api/bid-configurations", async (req, res) => {
     try {
+      console.log("Received bid configuration request:", req.body);
+
       const {
         bidTitle,
         flightType,
@@ -618,62 +620,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otherNotes
       } = req.body;
 
-      // Find a flight that matches the route or create a default one
-      let flightId = 1; // Default fallback
-      try {
-        const flights = await storage.getFlights(origin, destination, new Date(travelDate));
-        if (flights.length > 0) {
-          flightId = flights[0].id;
-        }
-      } catch (error) {
-        console.log("Using default flight ID");
+      // Validate required fields
+      if (!bidTitle || !origin || !destination || !travelDate || !bidStartTime || !bidEndTime) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: bidTitle, origin, destination, travelDate, bidStartTime, bidEndTime"
+        });
       }
 
-      // Create bid configuration in the bids table
+      // Find or create a flight that matches the route
+      let flightId = 1; // Default fallback
+      try {
+        // First try to find an existing flight
+        const flights = await storage.getFlights(origin, destination, new Date(travelDate));
+        
+        if (flights.length > 0) {
+          flightId = flights[0].id;
+          console.log(`Found existing flight with ID: ${flightId}`);
+        } else {
+          // Create a new flight for this route if none exists
+          console.log(`No flights found for route ${origin} to ${destination}, creating new flight`);
+          
+          const newFlight = await storage.createFlight({
+            flightNumber: `BC${Math.floor(1000 + Math.random() * 9000)}`,
+            airline: "Bid Configuration Flight",
+            aircraft: "Configuration",
+            origin: origin,
+            destination: destination,
+            departureTime: new Date(travelDate),
+            arrivalTime: new Date(new Date(travelDate).getTime() + 2 * 60 * 60 * 1000), // +2 hours
+            duration: "2h 0m",
+            price: "0",
+            availableSeats: totalSeatsAvailable || 50,
+            totalSeats: totalSeatsAvailable || 50,
+            cabin: "economy",
+            stops: 0
+          });
+          
+          flightId = newFlight.id;
+          console.log(`Created new flight with ID: ${flightId}`);
+        }
+      } catch (flightError) {
+        console.error("Error handling flight:", flightError);
+        // Continue with default flight ID
+      }
+
+      // Parse dates properly
+      let validUntilDate;
+      try {
+        validUntilDate = new Date(bidEndTime);
+        if (isNaN(validUntilDate.getTime())) {
+          throw new Error("Invalid bid end time");
+        }
+      } catch (dateError) {
+        console.error("Date parsing error:", dateError);
+        return res.status(400).json({
+          success: false,
+          message: "Invalid date format for bid end time"
+        });
+      }
+
+      // Create comprehensive configuration data
+      const configurationData = {
+        title: bidTitle,
+        flightType: flightType || "Domestic",
+        origin,
+        destination,
+        travelDate,
+        departureTimeRange,
+        totalSeatsAvailable: totalSeatsAvailable || 50,
+        minSeatsPerBid: minSeatsPerBid || 1,
+        maxSeatsPerBid: maxSeatsPerBid || 10,
+        maxSeatsPerUser: maxSeatsPerUser || 5,
+        bidStartTime,
+        bidEndTime,
+        autoAwardTopBidder: autoAwardTopBidder || false,
+        manualReviewOption: manualReviewOption || false,
+        autoRefundNonWinners: autoRefundNonWinners || false,
+        fareType: fareType || "Economy",
+        baggageAllowance: baggageAllowance || 20,
+        cancellationTerms: cancellationTerms || "Standard",
+        mealIncluded: mealIncluded || false,
+        otherNotes: otherNotes || "",
+        configType: "bid_configuration",
+        createdAt: new Date().toISOString(),
+        status: "active"
+      };
+
+      // Create bid configuration record
       const bidData = {
-        userId: 1, // Default admin user
+        userId: 1, // Default admin user - you might want to get this from session/auth
         flightId: flightId,
-        bidAmount: "0", // Will be set by users when they place bids
+        bidAmount: "0", // Initial amount, will be set by actual bidders
         passengerCount: minSeatsPerBid || 1,
         bidStatus: "active",
-        validUntil: new Date(bidEndTime),
-        notes: JSON.stringify({
-          title: bidTitle,
-          flightType,
-          origin,
-          destination,
-          travelDate,
-          departureTimeRange,
-          totalSeatsAvailable,
-          minSeatsPerBid,
-          maxSeatsPerBid,
-          maxSeatsPerUser,
-          bidStartTime,
-          bidEndTime,
-          autoAwardTopBidder,
-          manualReviewOption,
-          autoRefundNonWinners,
-          fareType,
-          baggageAllowance,
-          cancellationTerms,
-          mealIncluded,
-          otherNotes,
-          configType: "bid_configuration"
-        })
+        validUntil: validUntilDate,
+        notes: JSON.stringify(configurationData)
       };
+
+      console.log("Creating bid configuration with data:", bidData);
 
       const bidConfig = await storage.createBid(bidData);
       
+      console.log("Bid configuration created successfully:", bidConfig);
+
       res.json({
         success: true,
         bidConfiguration: bidConfig,
         message: `Bid configuration "${bidTitle}" created successfully`
       });
+
     } catch (error) {
       console.error("Error creating bid configuration:", error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to create bid configuration";
+      
+      if (error.message) {
+        if (error.message.includes("UNIQUE constraint")) {
+          errorMessage = "A bid configuration with these details already exists";
+        } else if (error.message.includes("NOT NULL constraint")) {
+          errorMessage = "Missing required information for bid configuration";
+        } else if (error.message.includes("FOREIGN KEY constraint")) {
+          errorMessage = "Invalid flight or user reference";
+        } else {
+          errorMessage = `Failed to create bid configuration: ${error.message}`;
+        }
+      }
+
       res.status(500).json({ 
         success: false, 
-        message: "Failed to create bid configuration" 
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });

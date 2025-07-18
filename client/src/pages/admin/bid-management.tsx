@@ -176,25 +176,65 @@ export default function BidManagement() {
   const handleFinish = async (values: any) => {
     setLoading(true);
     try {
-      console.log('Form values:', values);
+      console.log('Form values before submission:', values);
       
-      const response = await apiRequest('POST', '/api/bid-configurations', values);
+      // Validate required fields on frontend
+      if (!values.bidTitle || !values.origin || !values.destination || !values.travelDate || !values.bidStartTime || !values.bidEndTime) {
+        message.error('Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+
+      // Format the data properly
+      const formattedData = {
+        ...values,
+        travelDate: values.travelDate ? values.travelDate.format('YYYY-MM-DD') : null,
+        bidStartTime: values.bidStartTime ? values.bidStartTime.toISOString() : null,
+        bidEndTime: values.bidEndTime ? values.bidEndTime.toISOString() : null,
+        departureTimeRange: values.departureTimeRange ? values.departureTimeRange.map(time => time.format('HH:mm')).join(' - ') : null
+      };
+
+      console.log('Formatted data for submission:', formattedData);
+      
+      const response = await apiRequest('POST', '/api/bid-configurations', formattedData);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API response error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+      
       const result = await response.json();
+      console.log('API response result:', result);
       
       if (result.success) {
         // Show success message
-        message.success(`Bid configuration "${values.bidTitle}" created successfully!`);
+        message.success(result.message || `Bid configuration "${values.bidTitle}" created successfully!`);
         
         // Close modal and reset form
         setCreateBidModalVisible(false);
         setCurrentStep(0);
         form.resetFields();
       } else {
+        console.error('API returned error:', result);
         message.error(result.message || 'Failed to create bid configuration');
       }
     } catch (error) {
       console.error('Error creating bid configuration:', error);
-      message.error('Failed to create bid configuration. Please try again.');
+      
+      // Show more specific error message
+      let errorMessage = 'Failed to create bid configuration. Please try again.';
+      if (error.message) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('API Error')) {
+          errorMessage = 'Server error. Please try again or contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

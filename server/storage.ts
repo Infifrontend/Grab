@@ -740,10 +740,28 @@ export class DatabaseStorage implements IStorage {
 
   async createBid(bidData: InsertBid) {
     try {
+      console.log("Creating bid with data:", bidData);
+      
+      // Validate required fields before insertion
+      if (!bidData.userId || !bidData.flightId || !bidData.bidAmount || !bidData.bidStatus) {
+        throw new Error("Missing required fields for bid creation");
+      }
+
+      // Ensure validUntil is a proper Date object
+      if (bidData.validUntil && !(bidData.validUntil instanceof Date)) {
+        bidData.validUntil = new Date(bidData.validUntil);
+      }
+
       const [bid] = await db
         .insert(bids)
-        .values(bidData)
+        .values({
+          ...bidData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
         .returning();
+        
+      console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
       console.error("Error creating bid:", error);
