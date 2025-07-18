@@ -67,8 +67,6 @@ export const flights = pgTable("flights", {
   aircraft: text("aircraft").notNull(),
   origin: text("origin").notNull(),
   destination: text("destination").notNull(),
-  originIATA: text("origin_iata").notNull(),
-  destinationIATA: text("destination_iata").notNull(),
   departureTime: timestamp("departure_time").notNull(),
   arrivalTime: timestamp("arrival_time").notNull(),
   duration: text("duration").notNull(),
