@@ -12,6 +12,12 @@ import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
 import AdminLogin from "@/pages/admin/admin-login";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
+import BidManagement from "@/pages/admin/bid-management";
+import OfferManagement from "@/pages/admin/offer-management";
+import Bookings from "@/pages/admin/bookings";
+import CMS from "@/pages/admin/cms";
+import AdminSettings from "@/pages/admin/admin-settings";
+import Reports from "@/pages/admin/reports";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
@@ -41,6 +47,12 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/bid-management" component={BidManagement} />
+      <Route path="/admin/offer-management" component={OfferManagement} />
+      <Route path="/admin/bookings" component={Bookings} />
+      <Route path="/admin/cms" component={CMS} />
+      <Route path="/admin/admin-settings" component={AdminSettings} />
+      <Route path="/admin/reports" component={Reports} />
       <Route component={NotFound} />
     </Switch>
   );
