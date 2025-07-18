@@ -994,7 +994,10 @@ export default function AdminDashboard() {
                 </div>
                 <Text className="text-current">Offer Management</Text>
               </div>
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bid-management')}
+              >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📋</span>
                 </div>

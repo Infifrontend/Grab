@@ -27,6 +27,7 @@ import PassengerInfo from "./pages/passenger-info";
 import PaymentOptions from "./pages/payment-options";
 import ReviewConfirmation from "./pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
+import { lazy } from 'react';
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/bid-management" component={lazy(() => import("./pages/admin/bid-management"))} />
       <Route component={NotFound} />
     </Switch>
   );
