@@ -662,9 +662,23 @@ export default function OfferManagement() {
       </div>
 
       <style jsx global>{`
+        .ant-tabs-nav-list {
+          display: flex;
+          width: 100%;
+        }
+
         .ant-tabs-tab {
           padding: 12px 20px;
           font-weight: 500;
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .ant-tabs-tab .ant-tabs-tab-btn {
+          width: 100%;
+          text-align: center;
         }
 
         .ant-tabs-tab-active {
