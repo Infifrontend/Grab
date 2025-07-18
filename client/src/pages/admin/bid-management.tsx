@@ -1584,27 +1584,19 @@ export default function BidManagement() {
         className="modern-modal"
       >
         {/* Custom Modal Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 -m-6 mb-0 px-8 py-6 rounded-t-lg">
+        <div className="bg-white -m-6 mb-0 px-8 py-6 rounded-t-lg border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <PlusOutlined className="text-white text-xl" />
+              <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
+                <PlusOutlined className="text-blue-600 text-xl" />
               </div>
               <div>
-                <Title level={3} className="!mb-1 text-white font-bold">
+                <Title level={3} className="!mb-1 text-gray-800 font-bold">
                   Create New Bid Configuration
                 </Title>
-                <Text className="text-blue-100 text-base">
+                <Text className="text-gray-600 text-base">
                   Set up a new bidding configuration for your airline route
                 </Text>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-                <Text className="text-white/80 text-sm font-medium">Progress</Text>
-                <div className="text-white font-bold text-lg">
-                  {currentStep + 1} / {steps.length}
-                </div>
               </div>
             </div>
           </div>
@@ -1616,14 +1608,14 @@ export default function BidManagement() {
             layout="vertical"
             onFinish={handleFinish}
           >
-            {/* Modern Progress Steps */}
+            {/* Simple Steps Display */}
             <div className="mb-10">
               <div className="relative">
                 {/* Progress Bar Background */}
                 <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
                 {/* Active Progress Bar */}
                 <div 
-                  className="absolute top-6 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 z-10 transition-all duration-500"
+                  className="absolute top-6 left-0 h-0.5 bg-blue-500 z-10"
                   style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
                 ></div>
                 
@@ -1633,12 +1625,12 @@ export default function BidManagement() {
                     <div key={step.title} className="flex flex-col items-center">
                       {/* Step Circle */}
                       <div className={`
-                        w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border-4
+                        w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-4
                         ${index < currentStep 
-                          ? 'bg-green-500 border-green-500 text-white shadow-lg scale-110' 
+                          ? 'bg-green-500 border-green-500 text-white' 
                           : index === currentStep 
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 border-blue-500 text-white shadow-xl scale-110 animate-pulse' 
-                          : 'bg-white border-gray-300 text-gray-500 hover:border-gray-400'
+                          ? 'bg-blue-500 border-blue-500 text-white' 
+                          : 'bg-white border-gray-300 text-gray-500'
                         }
                       `}>
                         {index < currentStep ? (
@@ -1651,16 +1643,11 @@ export default function BidManagement() {
                       {/* Step Title */}
                       <div className="mt-3 text-center max-w-[140px]">
                         <Text className={`
-                          text-sm font-semibold transition-colors duration-300
+                          text-sm font-semibold
                           ${index <= currentStep ? 'text-gray-800' : 'text-gray-500'}
                         `}>
                           {step.title}
                         </Text>
-                        {index === currentStep && (
-                          <div className="mt-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto animate-pulse"></div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   ))}
