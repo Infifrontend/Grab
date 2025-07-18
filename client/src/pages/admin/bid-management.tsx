@@ -1672,6 +1672,36 @@ export default function BidManagement() {
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
+                          label={<span className="font-semibold text-gray-700">Bid Title</span>}
+                          name="bidTitle"
+                          rules={[{ required: true, message: 'Please enter bid title' }]}
+                        >
+                          <Input 
+                            placeholder="Enter bid configuration title" 
+                            size="large"
+                            className="rounded-md"
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Flight Type</span>}
+                          name="flightType"
+                          rules={[{ required: true, message: 'Please select flight type' }]}
+                        >
+                          <Select 
+                            placeholder="Select flight type" 
+                            size="large"
+                            className="w-full"
+                          >
+                            <Select.Option value="Domestic">Domestic</Select.Option>
+                            <Select.Option value="International">International</Select.Option>
+                            <Select.Option value="Regional">Regional</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
                           label={<span className="font-semibold text-gray-700">From</span>}
                           name="origin"
                           rules={[{ required: true, message: 'Please select origin' }]}
