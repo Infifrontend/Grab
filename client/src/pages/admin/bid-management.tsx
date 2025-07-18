@@ -28,7 +28,8 @@ import {
   TimePicker,
   Radio,
   Checkbox,
-  Divider
+  Divider,
+  message
 } from 'antd';
 import {
   DashboardOutlined,
@@ -172,11 +173,31 @@ export default function BidManagement() {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleFinish = (values: any) => {
-    console.log('Form values:', values);
-    setCreateBidModalVisible(false);
-    setCurrentStep(0);
-    form.resetFields();
+  const handleFinish = async (values: any) => {
+    setLoading(true);
+    try {
+      console.log('Form values:', values);
+      
+      const response = await apiRequest('POST', '/api/bid-configurations', values);
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message
+        message.success(`Bid configuration "${values.bidTitle}" created successfully!`);
+        
+        // Close modal and reset form
+        setCreateBidModalVisible(false);
+        setCurrentStep(0);
+        form.resetFields();
+      } else {
+        message.error(result.message || 'Failed to create bid configuration');
+      }
+    } catch (error) {
+      console.error('Error creating bid configuration:', error);
+      message.error('Failed to create bid configuration. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const steps = [
@@ -2068,6 +2089,7 @@ export default function BidManagement() {
                     type="primary" 
                     onClick={() => form.submit()}
                     className="px-6 bg-green-600 hover:bg-green-700"
+                    loading={loading}
                   >
                     <PlusOutlined className="mr-1" />
                     Create Bid

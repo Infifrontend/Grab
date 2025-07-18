@@ -592,6 +592,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create bid configuration
+  app.post("/api/bid-configurations", async (req, res) => {
+    try {
+      const {
+        bidTitle,
+        flightType,
+        origin,
+        destination,
+        travelDate,
+        departureTimeRange,
+        totalSeatsAvailable,
+        minSeatsPerBid,
+        maxSeatsPerBid,
+        maxSeatsPerUser,
+        bidStartTime,
+        bidEndTime,
+        autoAwardTopBidder,
+        manualReviewOption,
+        autoRefundNonWinners,
+        fareType,
+        baggageAllowance,
+        cancellationTerms,
+        mealIncluded,
+        otherNotes
+      } = req.body;
+
+      // Find a flight that matches the route or create a default one
+      let flightId = 1; // Default fallback
+      try {
+        const flights = await storage.getFlights(origin, destination, new Date(travelDate));
+        if (flights.length > 0) {
+          flightId = flights[0].id;
+        }
+      } catch (error) {
+        console.log("Using default flight ID");
+      }
+
+      // Create bid configuration in the bids table
+      const bidData = {
+        userId: 1, // Default admin user
+        flightId: flightId,
+        bidAmount: "0", // Will be set by users when they place bids
+        passengerCount: minSeatsPerBid || 1,
+        bidStatus: "active",
+        validUntil: new Date(bidEndTime),
+        notes: JSON.stringify({
+          title: bidTitle,
+          flightType,
+          origin,
+          destination,
+          travelDate,
+          departureTimeRange,
+          totalSeatsAvailable,
+          minSeatsPerBid,
+          maxSeatsPerBid,
+          maxSeatsPerUser,
+          bidStartTime,
+          bidEndTime,
+          autoAwardTopBidder,
+          manualReviewOption,
+          autoRefundNonWinners,
+          fareType,
+          baggageAllowance,
+          cancellationTerms,
+          mealIncluded,
+          otherNotes,
+          configType: "bid_configuration"
+        })
+      };
+
+      const bidConfig = await storage.createBid(bidData);
+      
+      res.json({
+        success: true,
+        bidConfiguration: bidConfig,
+        message: `Bid configuration "${bidTitle}" created successfully`
+      });
+    } catch (error) {
+      console.error("Error creating bid configuration:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to create bid configuration" 
+      });
+    }
+  });
+
   // Migration endpoint to remove international flights
   app.post("/api/migrate-domestic", async (_req, res) => {
     try {
