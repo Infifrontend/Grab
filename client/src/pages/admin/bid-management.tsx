@@ -1574,54 +1574,98 @@ export default function BidManagement() {
 
       {/* Create New Bid Modal */}
       <Modal
-        title={
-          <div className="flex items-center space-x-3 p-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <PlusOutlined className="text-white text-lg" />
-            </div>
-            <div>
-              <Title level={4} className="!mb-0 text-gray-800">Create New Bid</Title>
-              <Text className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}</Text>
-            </div>
-          </div>
-        }
+        title={null}
         visible={createBidModalVisible}
         onCancel={handleModalCancel}
         footer={null}
-        width={900}
+        width={1000}
         centered
         destroyOnClose
         className="modern-modal"
       >
-        <div className="px-6 pb-6">
+        {/* Custom Modal Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 -m-6 mb-0 px-8 py-6 rounded-t-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <PlusOutlined className="text-white text-xl" />
+              </div>
+              <div>
+                <Title level={3} className="!mb-1 text-white font-bold">
+                  Create New Bid Configuration
+                </Title>
+                <Text className="text-blue-100 text-base">
+                  Set up a new bidding configuration for your airline route
+                </Text>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                <Text className="text-white/80 text-sm font-medium">Progress</Text>
+                <div className="text-white font-bold text-lg">
+                  {currentStep + 1} / {steps.length}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-8 py-6">
           <Form
             form={form}
             layout="vertical"
             onFinish={handleFinish}
           >
-            {/* Progress Steps */}
-            <div className="mb-8">
-              <Steps 
-                current={currentStep} 
-                size="small"
-                className="custom-steps"
-              >
-                {steps.map((item, index) => (
-                  <Steps.Step 
-                    key={item.title} 
-                    title={item.title}
-                    icon={
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        index < currentStep ? 'bg-green-500 text-white' :
-                        index === currentStep ? 'bg-blue-500 text-white' :
-                        'bg-gray-200 text-gray-500'
-                      }`}>
-                        {index + 1}
+            {/* Modern Progress Steps */}
+            <div className="mb-10">
+              <div className="relative">
+                {/* Progress Bar Background */}
+                <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+                {/* Active Progress Bar */}
+                <div 
+                  className="absolute top-6 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 z-10 transition-all duration-500"
+                  style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                ></div>
+                
+                {/* Steps */}
+                <div className="relative flex justify-between z-20">
+                  {steps.map((step, index) => (
+                    <div key={step.title} className="flex flex-col items-center">
+                      {/* Step Circle */}
+                      <div className={`
+                        w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border-4
+                        ${index < currentStep 
+                          ? 'bg-green-500 border-green-500 text-white shadow-lg scale-110' 
+                          : index === currentStep 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 border-blue-500 text-white shadow-xl scale-110 animate-pulse' 
+                          : 'bg-white border-gray-300 text-gray-500 hover:border-gray-400'
+                        }
+                      `}>
+                        {index < currentStep ? (
+                          <span className="text-lg">✓</span>
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
                       </div>
-                    }
-                  />
-                ))}
-              </Steps>
+                      
+                      {/* Step Title */}
+                      <div className="mt-3 text-center max-w-[140px]">
+                        <Text className={`
+                          text-sm font-semibold transition-colors duration-300
+                          ${index <= currentStep ? 'text-gray-800' : 'text-gray-500'}
+                        `}>
+                          {step.title}
+                        </Text>
+                        {index === currentStep && (
+                          <div className="mt-1">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto animate-pulse"></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Step Content */}
@@ -2048,45 +2092,44 @@ export default function BidManagement() {
           border-color: #3b82f6;
         }
 
-        .modern-modal .ant-modal-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border-bottom: none;
-          padding: 0;
-        }
-
-        .modern-modal .ant-modal-title {
-          color: white !important;
-        }
-
-        .modern-modal .ant-modal-close-x {
-          color: white !important;
-          font-size: 18px;
-          top: 20px;
-          right: 24px;
-        }
-
         .modern-modal .ant-modal-content {
           border-radius: 16px;
           overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         .modern-modal .ant-modal-body {
           padding: 0;
         }
 
-        .custom-steps .ant-steps-item {
-          overflow: visible;
+        .modern-modal .ant-modal-close {
+          top: 24px;
+          right: 24px;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 20px;
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(10px);
+          transition: all 0.3s ease;
         }
 
-        .custom-steps .ant-steps-item-title {
-          margin-top: 8px;
-          font-size: 12px;
-          font-weight: 500;
+        .modern-modal .ant-modal-close:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          transform: scale(1.1);
         }
 
-        .custom-steps .ant-steps-item-icon {
-          margin-right: 0;
+        .modern-modal .ant-modal-close-x {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
         }
 
         .ant-radio-wrapper {
