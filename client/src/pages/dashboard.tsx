@@ -15,6 +15,15 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [, setLocation] = useLocation();
 
+  // Fetch booking overview data for charts
+  const { data: bookingOverview } = useQuery({
+    queryKey: ['booking-overview'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/booking-overview');
+      return response.json();
+    },
+  });
+
   // Fetch real data from API
   const { data: flightBookings = [] } = useQuery({
     queryKey: ['flight-bookings'],
@@ -40,37 +49,18 @@ export default function Dashboard() {
     },
   });
 
-  // Calculate statistics from real data
-  const totalBookings = flightBookings.length;
-  const activeBookings = flightBookings.filter(b => b.bookingStatus === 'confirmed').length;
-  const totalPassengers = flightBookings.reduce((sum, b) => sum + b.passengerCount, 0);
+  // Calculate statistics from booking overview API or fallback to direct calculation
+  const totalBookings = bookingOverview?.totalBookings || flightBookings.length;
+  const activeBookings = bookingOverview?.statusData?.confirmed || flightBookings.filter(b => b.bookingStatus === 'confirmed').length;
+  const totalPassengers = bookingOverview?.totalPassengers || flightBookings.reduce((sum, b) => sum + b.passengerCount, 0);
   const upcomingTrips = flightBookings.filter(b => 
     b.bookingStatus === 'confirmed' && 
     b.flight && 
     new Date(b.flight.departureTime) > new Date()
   ).length;
 
-  // Generate chart data from bookings
-  const generateChartData = () => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentYear = new Date().getFullYear();
-    
-    const chartData = monthNames.map(month => ({ month, value: 0 }));
-    
-    flightBookings.forEach(booking => {
-      if (booking.createdAt) {
-        const bookingDate = new Date(booking.createdAt);
-        if (bookingDate.getFullYear() === currentYear) {
-          const monthIndex = bookingDate.getMonth();
-          chartData[monthIndex].value += 1;
-        }
-      }
-    });
-    
-    return chartData;
-  };
-
-  const chartData = generateChartData();
+  // Use chart data from API with enhanced information
+  const chartData = bookingOverview?.monthlyData || [];
 
   // Generate recent activities from real data
   const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
@@ -281,22 +271,33 @@ export default function Dashboard() {
                   </div>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
+                      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <XAxis 
                           dataKey="month" 
                           axisLine={false}
                           tickLine={false}
                           className="text-xs text-gray-500"
                         />
-                        <YAxis hide />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          className="text-xs text-gray-500"
+                        />
                         <Bar 
-                          dataKey="value" 
+                          dataKey="bookings" 
                           fill="var(--infiniti-primary)"
                           radius={[4, 4, 0, 0]}
+                          name="Bookings"
                         />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
+                  {bookingOverview && (
+                    <div className="mt-4 flex justify-between text-sm text-gray-600">
+                      <span>Total Revenue: ${bookingOverview.totalRevenue.toLocaleString()}</span>
+                      <span>Avg per Month: {Math.round(totalBookings / 12)} bookings</span>
+                    </div>
+                  )}
                 </Card>
               </Col>
 

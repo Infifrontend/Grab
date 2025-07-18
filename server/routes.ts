@@ -238,6 +238,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get booking overview statistics for dashboard charts
+  app.get("/api/booking-overview", async (req, res) => {
+    try {
+      const flightBookings = await storage.getFlightBookings();
+      
+      // Generate monthly booking statistics
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const currentYear = new Date().getFullYear();
+      
+      const monthlyData = monthNames.map(month => ({ 
+        month, 
+        bookings: 0, 
+        revenue: 0,
+        passengers: 0 
+      }));
+      
+      flightBookings.forEach(booking => {
+        if (booking.createdAt) {
+          const bookingDate = new Date(booking.createdAt);
+          if (bookingDate.getFullYear() === currentYear) {
+            const monthIndex = bookingDate.getMonth();
+            monthlyData[monthIndex].bookings += 1;
+            monthlyData[monthIndex].revenue += parseFloat(booking.totalAmount || '0');
+            monthlyData[monthIndex].passengers += booking.passengerCount || 0;
+          }
+        }
+      });
+
+      // Add status breakdown
+      const statusData = {
+        confirmed: flightBookings.filter(b => b.bookingStatus === 'confirmed').length,
+        pending: flightBookings.filter(b => b.bookingStatus === 'pending').length,
+        cancelled: flightBookings.filter(b => b.bookingStatus === 'cancelled').length,
+      };
+
+      res.json({
+        monthlyData,
+        statusData,
+        totalBookings: flightBookings.length,
+        totalRevenue: flightBookings.reduce((sum, b) => sum + parseFloat(b.totalAmount || '0'), 0),
+        totalPassengers: flightBookings.reduce((sum, b) => sum + (b.passengerCount || 0), 0)
+      });
+    } catch (error) {
+      console.error("Error fetching booking overview:", error);
+      res.status(500).json({ message: "Failed to fetch booking overview" });
+    }
+  });
+
   // Get booking details by ID (for booking details page)
   app.get("/api/booking-details/:id", async (req, res) => {
     try {
