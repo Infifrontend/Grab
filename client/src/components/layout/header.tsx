@@ -26,7 +26,7 @@ const navigationItems = [
   { key: "payments", label: "Payments", path: "/payments" },
   { key: "bids", label: "Bids", path: "/bids" },
   { key: "settings", label: "Settings", path: "/settings" },
-  { key: "admin", label: "Admin", path: "/admin-login" },
+  { key: "admin", label: "Admin", path: "/admin/login" },
 ];
 
 // Custom dropdown content instead of using Ant Design's menu items

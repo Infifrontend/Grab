@@ -10,8 +10,8 @@ import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
-import AdminLogin from "@/pages/admin-login";
-import AdminDashboard from "@/pages/admin-dashboard";
+import AdminLogin from "@/pages/admin/admin-login";
+import AdminDashboard from "@/pages/admin/admin-dashboard";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
@@ -39,8 +39,8 @@ function Router() {
       <Route path="/payments" component={Payments} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route path="/settings" component={Settings} />
-      <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
