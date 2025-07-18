@@ -383,7 +383,7 @@ export default function BidManagement() {
                 <Title level={5} className="!mb-0 !mr-3">LAX→JFK Business Upgrade</Title>
                 <Tag color="green" className="text-xs">Active</Tag>
               </div>
-              
+
               <Row gutter={[32, 16]}>
                 <Col span={6}>
                   <div>
@@ -410,12 +410,12 @@ export default function BidManagement() {
                   </div>
                 </Col>
               </Row>
-              
+
               <div className="mt-4">
                 <Text className="text-gray-400 text-xs">Created: 2024-09-15</Text>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2 ml-6">
               <Button type="text" icon={<EyeOutlined />} size="small">
                 View
@@ -441,7 +441,7 @@ export default function BidManagement() {
                 <Title level={5} className="!mb-0 !mr-3">ORD→SFO Premium Economy Upgrade</Title>
                 <Tag color="orange" className="text-xs">Draft</Tag>
               </div>
-              
+
               <Row gutter={[32, 16]}>
                 <Col span={6}>
                   <div>
@@ -468,12 +468,12 @@ export default function BidManagement() {
                   </div>
                 </Col>
               </Row>
-              
+
               <div className="mt-4">
                 <Text className="text-gray-400 text-xs">Created: 2024-09-14</Text>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2 ml-6">
               <Button type="text" icon={<EyeOutlined />} size="small">
                 View
@@ -498,7 +498,7 @@ export default function BidManagement() {
                 <Title level={5} className="!mb-0 !mr-3">JFK→LHR First Class Upgrade</Title>
                 <Tag color="red" className="text-xs">Inactive</Tag>
               </div>
-              
+
               <Row gutter={[32, 16]}>
                 <Col span={6}>
                   <div>
@@ -525,12 +525,12 @@ export default function BidManagement() {
                   </div>
                 </Col>
               </Row>
-              
+
               <div className="mt-4">
                 <Text className="text-gray-400 text-xs">Created: 2024-09-10</Text>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2 ml-6">
               <Button type="text" icon={<EyeOutlined />} size="small">
                 View
@@ -1140,7 +1140,7 @@ export default function BidManagement() {
                           </Title>
                           <Text className="text-gray-500">Bidding success rates and revenue by route</Text>
                         </div>
-                        
+
                         <Table
                           dataSource={[
                             {
@@ -1639,7 +1639,7 @@ export default function BidManagement() {
                   className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
                   style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
                 ></div>
-                
+
                 {/* Steps */}
                 <div className="relative flex justify-between z-20">
                   {steps.map((step, index) => (
@@ -1660,7 +1660,7 @@ export default function BidManagement() {
                           <span>{index + 1}</span>
                         )}
                       </div>
-                      
+
                       {/* Step Title */}
                       <div className="mt-2 text-center max-w-[120px]">
                         <Text className={`
@@ -1688,7 +1688,7 @@ export default function BidManagement() {
                     </div>
                     <Text className="text-gray-500 text-sm">Configure the basic flight information for bidding</Text>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
@@ -1808,51 +1808,46 @@ export default function BidManagement() {
                     </div>
                     <Text className="text-gray-500 text-sm">Set up seating classes and availability limits</Text>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">From Class</span>}
-                          name="fromClass"
-                          rules={[{ required: true, message: 'Please select from class' }]}
-                        >
-                          <Select placeholder="Select class" size="large">
-                            <Select.Option value="Economy">Economy</Select.Option>
-                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                            <Select.Option value="Business">Business</Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">To Class</span>}
-                          name="toClass"
-                          rules={[{ required: true, message: 'Please select to class' }]}
-                        >
-                          <Select placeholder="Select class" size="large">
-                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                            <Select.Option value="Business">Business</Select.Option>
-                            <Select.Option value="First">First</Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          label={<span className="font-semibold text-gray-700">Maximum Bids</span>}
-                          name="maxBids"
-                          rules={[{ required: true, message: 'Please enter maximum bids' }]}
+                          label={<span className="font-semibold text-gray-700">Total Seats Available</span>}
+                          name="totalSeatsAvailable"
+                          rules={[{ required: true, message: 'Please enter total seats available' }]}
                         >
                           <InputNumber min={1} className="w-full" placeholder="50" size="large" />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Available Seats</span>}
-                          name="availableSeats"
-                          rules={[{ required: true, message: 'Please enter available seats' }]}
+                          label={<span className="font-semibold text-gray-700">Min Seats per Bid</span>}
+                          name="minSeatsPerBid"
+                          rules={[{ required: true, message: 'Please enter minimum seats per bid' }]}
                         >
-                          <InputNumber min={1} className="w-full" placeholder="25" size="large" />
+                          <InputNumber min={1} className="w-full" placeholder="5" size="large" />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Max Seats per Bid</span>}
+                          name="maxSeatsPerBid"
+                          rules={[{ required: true, message: 'Please enter maximum seats per bid' }]}
+                        >
+                          <InputNumber min={1} className="w-full" placeholder="20" size="large" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Max Seats per User</span>}
+                          name="maxSeatsPerUser"
+                          rules={[{ required: true, message: 'Please enter maximum seats per user' }]}
+                        >
+                          <InputNumber min={1} className="w-full" placeholder="10" size="large" />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -1870,7 +1865,7 @@ export default function BidManagement() {
                     </div>
                     <Text className="text-gray-500 text-sm">Configure pricing parameters and currency settings</Text>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
@@ -1950,7 +1945,7 @@ export default function BidManagement() {
                     </div>
                     <Text className="text-gray-500 text-sm">Set up timing and automated bidding rules</Text>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
@@ -2023,7 +2018,7 @@ export default function BidManagement() {
                     </div>
                     <Text className="text-gray-500 text-sm">Final configuration and terms setup</Text>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
