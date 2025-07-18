@@ -298,50 +298,148 @@ export default function AdminDashboard() {
 
   const renderBookingAnalyticsContent = () => (
     <>
+      {/* Stats Cards */}
       <Row gutter={[24, 24]} className="mb-8">
-        <Col xs={24} lg={16}>
+        <Col xs={24} sm={12} lg={8}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Avg Booking Value</Text>
+                <Title level={3} className="!mb-0 text-gray-900">$2284</Title>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <DollarOutlined className="text-blue-600 text-xl" />
+              </div>
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={8}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Confirmation Rate</Text>
+                <Title level={3} className="!mb-0 text-gray-900">78.7%</Title>
+              </div>
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <span className="text-green-600 text-xl">✓</span>
+              </div>
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={8}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Cancellation Rate</Text>
+                <Title level={3} className="!mb-0 text-gray-900">6.6%</Title>
+              </div>
+              <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                <span className="text-red-600 text-xl">⚠</span>
+              </div>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Booking Volume Trends */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24}>
           <Card className="chart-card">
             <div className="mb-6">
-              <Title level={4} className="!mb-1 text-gray-900">Booking Trends by Category</Title>
-              <Text className="text-gray-500">Domestic vs International vs Corporate bookings</Text>
+              <Title level={4} className="!mb-1 text-gray-900">Booking Volume Trends</Title>
+              <Text className="text-gray-500">Daily booking patterns and seasonal trends</Text>
             </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={bookingTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Area type="monotone" dataKey="international" stackId="1" stroke="#4F46E5" fill="#4F46E5" />
-                  <Area type="monotone" dataKey="domestic" stackId="1" stroke="#10B981" fill="#10B981" />
-                  <Area type="monotone" dataKey="corporate" stackId="1" stroke="#F59E0B" fill="#F59E0B" />
+                <AreaChart data={revenueBookingsData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="bookings" 
+                    stroke="#4F46E5" 
+                    fill="#A5B4FC" 
+                    fillOpacity={0.6}
+                    strokeWidth={2}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>
         </Col>
-        <Col xs={24} lg={8}>
-          <Card className="stats-card">
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Text className="text-gray-600">Conversion Rate</Text>
-                  <Text className="font-bold text-xl text-green-600">68.5%</Text>
+      </Row>
+
+      {/* Route Performance */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Route Performance</Title>
+              <Text className="text-gray-500">Bookings by route</Text>
+            </div>
+            <div className="space-y-4">
+              {[
+                { route: 'ATL → SEA', bookings: 4.0 },
+                { route: 'DEN → BOS', bookings: 3.5 },
+                { route: 'MIA → SFO', bookings: 3.0 },
+                { route: 'ORD → LAX', bookings: 2.5 },
+                { route: 'LAX → JFK', bookings: 2.0 }
+              ].map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <Text className="text-gray-700 font-medium">{item.route}</Text>
+                  <div className="flex items-center space-x-3 w-40">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full" 
+                        style={{ width: `${(item.bookings / 4.0) * 100}%` }}
+                      ></div>
+                    </div>
+                    <Text className="text-gray-600 text-sm w-8">{item.bookings}</Text>
+                  </div>
                 </div>
-                <Progress percent={68.5} strokeColor="#10B981" showInfo={false} />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Text className="text-gray-600">Avg. Booking Value</Text>
-                  <Text className="font-bold text-xl text-blue-600">$2,284</Text>
+              ))}
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Revenue by Route</Title>
+              <Text className="text-gray-500">Revenue distribution</Text>
+            </div>
+            <div className="space-y-4">
+              {[
+                { route: 'ATL → SEA', revenue: 4.0 },
+                { route: 'DEN → BOS', revenue: 3.5 },
+                { route: 'MIA → SFO', revenue: 3.0 },
+                { route: 'ORD → LAX', revenue: 2.5 },
+                { route: 'LAX → JFK', revenue: 2.0 }
+              ].map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <Text className="text-gray-700 font-medium">{item.route}</Text>
+                  <div className="flex items-center space-x-3 w-40">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full" 
+                        style={{ width: `${(item.revenue / 4.0) * 100}%` }}
+                      ></div>
+                    </div>
+                    <Text className="text-gray-600 text-sm w-8">{item.revenue}</Text>
+                  </div>
                 </div>
-                <Progress percent={85} strokeColor="#4F46E5" showInfo={false} />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Text className="text-gray-600">Customer Satisfaction</Text>
-                  <Text className="font-bold text-xl text-purple-600">4.8/5</Text>
-                </div>
-                <Progress percent={96} strokeColor="#8B5CF6" showInfo={false} />
-              </div>
+              ))}
             </div>
           </Card>
         </Col>
@@ -351,48 +449,200 @@ export default function AdminDashboard() {
 
   const renderOfferAnalyticsContent = () => (
     <>
+      {/* Stats Cards */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Total Offers</Text>
+                <Title level={3} className="!mb-0 text-gray-900">847</Title>
+              </div>
+              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <GiftOutlined className="text-purple-600 text-xl" />
+              </div>
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Offer Revenue</Text>
+                <Title level={3} className="!mb-0 text-gray-900">$1.2M</Title>
+              </div>
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <DollarOutlined className="text-green-600 text-xl" />
+              </div>
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Avg Conversion</Text>
+                <Title level={3} className="!mb-0 text-gray-900">34.5%</Title>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <span className="text-blue-600 text-xl">🎯</span>
+              </div>
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="stats-card">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Text className="text-gray-500 text-sm block mb-2">Active Offers</Text>
+                <Title level={3} className="!mb-0 text-gray-900">234</Title>
+              </div>
+              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                <LineChartOutlined className="text-orange-600 text-xl" />
+              </div>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Top Performing Offers */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col xs={24}>
           <Card className="chart-card">
             <div className="mb-6">
-              <Title level={4} className="!mb-1 text-gray-900">Offer Performance Analysis</Title>
-              <Text className="text-gray-500">Track conversion rates and revenue by offer type</Text>
+              <Title level={4} className="!mb-1 text-gray-900">Top Performing Offers</Title>
+              <Text className="text-gray-500">Best converting offers by revenue and booking volume</Text>
             </div>
-            <Table
-              dataSource={offerPerformanceData}
-              pagination={false}
-              columns={[
-                {
-                  title: 'Offer Name',
-                  dataIndex: 'name',
-                  key: 'name',
-                  render: (text) => <Text className="font-medium">{text}</Text>
-                },
-                {
-                  title: 'Conversions',
-                  dataIndex: 'conversions',
-                  key: 'conversions',
-                  render: (value) => <Text>{value.toLocaleString()}</Text>
-                },
-                {
-                  title: 'Revenue',
-                  dataIndex: 'revenue',
-                  key: 'revenue',
-                  render: (value) => <Text className="font-bold text-green-600">${value.toLocaleString()}</Text>
-                },
-                {
-                  title: 'CTR',
-                  dataIndex: 'ctr',
-                  key: 'ctr',
-                  render: (value) => (
-                    <div className="flex items-center space-x-2">
-                      <Text>{value}%</Text>
-                      <Progress percent={value} size="small" strokeColor="#4F46E5" showInfo={false} className="w-16" />
+            <div className="space-y-6">
+              {[
+                { name: 'Premium Meal Bundle', category: 'Food & Beverage', bookings: 543, revenue: 271500, conversion: 42.3 },
+                { name: 'Extra Baggage Deal', category: 'Baggage', bookings: 467, revenue: 219150, conversion: 38.9 },
+                { name: 'Seat Upgrade Package', category: 'Seating', bookings: 412, revenue: 206000, conversion: 35.2 },
+                { name: 'Wi-Fi & Entertainment', category: 'Connectivity', bookings: 389, revenue: 155600, conversion: 31.8 },
+                { name: 'Travel Insurance Plus', category: 'Insurance', bookings: 356, revenue: 142400, conversion: 29.4 }
+              ].map((offer, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <GiftOutlined className="text-purple-600" />
                     </div>
-                  )
-                }
-              ]}
-            />
+                    <div>
+                      <Text className="font-semibold text-gray-900 text-base block">{offer.name}</Text>
+                      <Text className="text-gray-500 text-sm">{offer.category}</Text>
+                    </div>
+                    <div>
+                      <Text className="text-gray-600 text-sm">{offer.bookings} bookings</Text>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <Text className="font-bold text-green-600 text-lg">
+                        ${offer.revenue.toLocaleString()}
+                      </Text>
+                      <Text className="text-gray-500 text-sm">Revenue</Text>
+                    </div>
+                    <div className="text-right">
+                      <Text className="font-bold text-blue-600 text-lg">
+                        {offer.conversion}%
+                      </Text>
+                      <Text className="text-gray-500 text-sm">Conversion</Text>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Charts Row */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Offer Category Performance</Title>
+              <Text className="text-gray-500">Revenue by category</Text>
+            </div>
+            <div className="h-80 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Food & Beverage', value: 35, color: '#4F46E5' },
+                      { name: 'Baggage', value: 25, color: '#10B981' },
+                      { name: 'Seating', value: 20, color: '#F59E0B' },
+                      { name: 'Connectivity', value: 12, color: '#EF4444' },
+                      { name: 'Insurance', value: 8, color: '#8B5CF6' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={120}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Food & Beverage', value: 35, color: '#4F46E5' },
+                      { name: 'Baggage', value: 25, color: '#10B981' },
+                      { name: 'Seating', value: 20, color: '#F59E0B' },
+                      { name: 'Connectivity', value: 12, color: '#EF4444' },
+                      { name: 'Insurance', value: 8, color: '#8B5CF6' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Monthly Offer Performance</Title>
+              <Text className="text-gray-500">Offers created vs performance</Text>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={[
+                  { month: 'Jan', performance: 45 },
+                  { month: 'Feb', performance: 52 },
+                  { month: 'Mar', performance: 48 },
+                  { month: 'Apr', performance: 61 },
+                  { month: 'May', performance: 58 },
+                  { month: 'Jun', performance: 68 },
+                  { month: 'Jul', performance: 74 },
+                  { month: 'Aug', performance: 71 },
+                  { month: 'Sep', performance: 76 },
+                  { month: 'Oct', performance: 73 },
+                  { month: 'Nov', performance: 68 },
+                  { month: 'Dec', performance: 71 }
+                ]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="performance" 
+                    stroke="#8B5CF6" 
+                    strokeWidth={3}
+                    dot={{ fill: '#8B5CF6', r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
         </Col>
       </Row>
