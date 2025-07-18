@@ -556,15 +556,6 @@ export default function OfferManagement() {
           {/* Page Header */}
           <div className="mb-6">
             <Title level={2} className="!mb-1 text-gray-900">
-              Offers Management
-            </Title>
-            <Text className="text-gray-600">
-              Welcome to Group Retail Administration Portal
-            </Text>
-          </div>
-
-          <div className="mb-6">
-            <Title level={3} className="!mb-1 text-gray-900">
               Offer Management
             </Title>
             <Text className="text-gray-600">
