@@ -88,7 +88,328 @@ export default function OfferManagement() {
               ),
               children: (
                 <div>
-                  <Text className="text-gray-500">Overview content will be displayed here</Text>
+                  {/* Stats Cards */}
+                  <Row gutter={[24, 24]} className="mb-8">
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Active Policies</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-blue-600">12</Title>
+                      </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Ancillaries</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-green-600">24</Title>
+                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mt-2">
+                          <span className="text-green-600 text-xs">✓</span>
+                        </div>
+                      </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Active Discounts</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-purple-600">8</Title>
+                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mx-auto mt-2">
+                          <PercentageOutlined className="text-purple-600 text-xs" />
+                        </div>
+                      </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Active Promo Codes</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-orange-600">15</Title>
+                        <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mx-auto mt-2">
+                          <span className="text-orange-600 text-xs">🎟️</span>
+                        </div>
+                      </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Active Offers</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-pink-600">18</Title>
+                        <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center mx-auto mt-2">
+                          <GiftOutlined className="text-pink-600 text-xs" />
+                        </div>
+                      </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={4}>
+                      <Card className="text-center">
+                        <div className="mb-2">
+                          <Text className="text-gray-500 text-sm">Total Revenue</Text>
+                        </div>
+                        <Title level={3} className="!mb-0 text-green-600">$2450K</Title>
+                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mt-2">
+                          <DollarOutlined className="text-green-600 text-xs" />
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  {/* Performance Sections */}
+                  <Row gutter={[24, 24]} className="mb-8">
+                    {/* Ancillary Performance */}
+                    <Col xs={24} lg={12}>
+                      <Card>
+                        <div className="mb-6">
+                          <Title level={4} className="!mb-1">Ancillary Performance & Usage</Title>
+                          <Text className="text-gray-500">Detailed statistics based on customer usage and revenue</Text>
+                        </div>
+
+                        <div className="space-y-6">
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <Title level={5} className="!mb-0">Extra Leg Room Seat</Title>
+                              <div className="flex items-center text-green-600">
+                                <RiseOutlined className="mr-1" />
+                                <Text className="text-green-600">+22.7%</Text>
+                              </div>
+                            </div>
+                            <Row gutter={[16, 16]}>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Total Bookings</Text>
+                                  <Text className="block font-semibold">15,420</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Conversion Rate</Text>
+                                  <Text className="block font-semibold">45.2%</Text>
+                                  <Progress percent={45} strokeColor="#1890ff" showInfo={false} size="small" />
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Revenue</Text>
+                                  <Text className="block font-semibold text-green-600">$693,300</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Satisfaction</Text>
+                                  <Text className="block font-semibold">4.6/5</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                          </div>
+
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <Title level={5} className="!mb-0">Premium Meal Service</Title>
+                              <div className="flex items-center text-green-600">
+                                <RiseOutlined className="mr-1" />
+                                <Text className="text-green-600">+18.3%</Text>
+                              </div>
+                            </div>
+                            <Row gutter={[16, 16]}>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Total Bookings</Text>
+                                  <Text className="block font-semibold">23,450</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Conversion Rate</Text>
+                                  <Text className="block font-semibold">38.7%</Text>
+                                  <Progress percent={39} strokeColor="#1890ff" showInfo={false} size="small" />
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Revenue</Text>
+                                  <Text className="block font-semibold text-green-600">$657,260</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Satisfaction</Text>
+                                  <Text className="block font-semibold">4.4/5</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                          </div>
+
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <Title level={5} className="!mb-0">Priority Boarding</Title>
+                              <div className="flex items-center text-green-600">
+                                <RiseOutlined className="mr-1" />
+                                <Text className="text-green-600">+15.9%</Text>
+                              </div>
+                            </div>
+                            <Row gutter={[16, 16]}>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Total Bookings</Text>
+                                  <Text className="block font-semibold">34,560</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Conversion Rate</Text>
+                                  <Text className="block font-semibold">42.8%</Text>
+                                  <Progress percent={43} strokeColor="#1890ff" showInfo={false} size="small" />
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Revenue</Text>
+                                  <Text className="block font-semibold text-green-600">$518,400</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Satisfaction</Text>
+                                  <Text className="block font-semibold">4.7/5</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+
+                    {/* Offer Performance */}
+                    <Col xs={24} lg={12}>
+                      <Card>
+                        <div className="mb-6">
+                          <Title level={4} className="!mb-1">Offer Performance & Usage</Title>
+                          <Text className="text-gray-500">Comprehensive offer metrics and customer behavior</Text>
+                        </div>
+
+                        <div className="space-y-6">
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <Title level={5} className="!mb-0">Business Traveler Offer</Title>
+                              <div className="flex items-center text-green-600">
+                                <RiseOutlined className="mr-1" />
+                                <Text className="text-green-600">+23.4%</Text>
+                              </div>
+                            </div>
+                            <Text className="text-gray-500 text-sm">BTO001</Text>
+                            <Row gutter={[16, 16]} className="mt-3">
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Adoption Rate</Text>
+                                  <Text className="block font-semibold">34%</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Total Orders</Text>
+                                  <Text className="block font-semibold">2,450</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Customer Satisfaction</Text>
+                                  <Text className="block font-semibold">4.8/5</Text>
+                                  <Progress percent={96} strokeColor="#52c41a" showInfo={false} size="small" />
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Revenue</Text>
+                                  <Text className="block font-semibold text-green-600">$134,000</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Avg Value</Text>
+                                  <Text className="block font-semibold">$547</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Repeat Purchase</Text>
+                                  <Text className="block font-semibold">67%</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                          </div>
+
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <Title level={5} className="!mb-0">Family Fun Package</Title>
+                              <div className="flex items-center text-green-600">
+                                <RiseOutlined className="mr-1" />
+                                <Text className="text-green-600">+18.7%</Text>
+                              </div>
+                            </div>
+                            <Text className="text-gray-500 text-sm">FFP002</Text>
+                            <Row gutter={[16, 16]} className="mt-3">
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Adoption Rate</Text>
+                                  <Text className="block font-semibold">28%</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Total Orders</Text>
+                                  <Text className="block font-semibold">1,890</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Customer Satisfaction</Text>
+                                  <Text className="block font-semibold">4.3/5</Text>
+                                  <Progress percent={86} strokeColor="#52c41a" showInfo={false} size="small" />
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Revenue</Text>
+                                  <Text className="block font-semibold text-green-600">$98,000</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Avg Value</Text>
+                                  <Text className="block font-semibold">$519</Text>
+                                </div>
+                                <div className="mt-2">
+                                  <Text className="text-gray-500 text-sm">Repeat Purchase</Text>
+                                  <Text className="block font-semibold">45%</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  {/* Top Performing Cards */}
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24} lg={8}>
+                      <Card className="text-center">
+                        <div className="mb-4">
+                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-green-600 text-2xl">🏆</span>
+                          </div>
+                        </div>
+                        <Title level={4} className="!mb-1">Top Converting Ancillary</Title>
+                        <Title level={3} className="!mb-1 text-green-600">Extra Leg Room Seat</Title>
+                        <Text className="text-green-600">45.2%</Text>
+                        <br />
+                        <Text className="text-gray-500 text-sm">Conversion Rate</Text>
+                      </Card>
+                    </Col>
+                    <Col xs={24} lg={8}>
+                      <Card className="text-center">
+                        <div className="mb-4">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-blue-600 text-2xl">💰</span>
+                          </div>
+                        </div>
+                        <Title level={4} className="!mb-1">Highest Revenue Offer</Title>
+                        <Title level={3} className="!mb-1 text-blue-600">Business Traveler Offer</Title>
+                        <Text className="text-blue-600">$134K</Text>
+                        <br />
+                        <Text className="text-gray-500 text-sm">Total Revenue</Text>
+                      </Card>
+                    </Col>
+                    <Col xs={24} lg={8}>
+                      <Card className="text-center">
+                        <div className="mb-4">
+                          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-purple-600 text-2xl">📈</span>
+                          </div>
+                        </div>
+                        <Title level={4} className="!mb-1">Fastest Growing</Title>
+                        <Title level={3} className="!mb-1 text-purple-600">Extra Leg Room Seat</Title>
+                        <Text className="text-purple-600">+22.7%</Text>
+                        <br />
+                        <Text className="text-gray-500 text-sm">Growth Rate</Text>
+                      </Card>
+                    </Col>
+                  </Row>
                 </div>
               ),
             },
@@ -602,329 +923,6 @@ export default function OfferManagement() {
           ]}
         />
       </Card>
-
-      {/* Stats Cards */}
-      <Row gutter={[24, 24]} className="mb-8">
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Active Policies</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-blue-600">12</Title>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Ancillaries</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-green-600">24</Title>
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mt-2">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Active Discounts</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-purple-600">8</Title>
-            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mx-auto mt-2">
-              <PercentageOutlined className="text-purple-600 text-xs" />
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Active Promo Codes</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-orange-600">15</Title>
-            <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mx-auto mt-2">
-              <span className="text-orange-600 text-xs">🎟️</span>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Active Offers</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-pink-600">18</Title>
-            <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center mx-auto mt-2">
-              <GiftOutlined className="text-pink-600 text-xs" />
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={4}>
-          <Card className="text-center">
-            <div className="mb-2">
-              <Text className="text-gray-500 text-sm">Total Revenue</Text>
-            </div>
-            <Title level={3} className="!mb-0 text-green-600">$2450K</Title>
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mt-2">
-              <DollarOutlined className="text-green-600 text-xs" />
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Performance Sections */}
-      <Row gutter={[24, 24]} className="mb-8">
-        {/* Ancillary Performance */}
-        <Col xs={24} lg={12}>
-          <Card>
-            <div className="mb-6">
-              <Title level={4} className="!mb-1">Ancillary Performance & Usage</Title>
-              <Text className="text-gray-500">Detailed statistics based on customer usage and revenue</Text>
-            </div>
-
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={5} className="!mb-0">Extra Leg Room Seat</Title>
-                  <div className="flex items-center text-green-600">
-                    <RiseOutlined className="mr-1" />
-                    <Text className="text-green-600">+22.7%</Text>
-                  </div>
-                </div>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Total Bookings</Text>
-                      <Text className="block font-semibold">15,420</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Conversion Rate</Text>
-                      <Text className="block font-semibold">45.2%</Text>
-                      <Progress percent={45} strokeColor="#1890ff" showInfo={false} size="small" />
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Revenue</Text>
-                      <Text className="block font-semibold text-green-600">$693,300</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Satisfaction</Text>
-                      <Text className="block font-semibold">4.6/5</Text>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={5} className="!mb-0">Premium Meal Service</Title>
-                  <div className="flex items-center text-green-600">
-                    <RiseOutlined className="mr-1" />
-                    <Text className="text-green-600">+18.3%</Text>
-                  </div>
-                </div>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Total Bookings</Text>
-                      <Text className="block font-semibold">23,450</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Conversion Rate</Text>
-                      <Text className="block font-semibold">38.7%</Text>
-                      <Progress percent={39} strokeColor="#1890ff" showInfo={false} size="small" />
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Revenue</Text>
-                      <Text className="block font-semibold text-green-600">$657,260</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Satisfaction</Text>
-                      <Text className="block font-semibold">4.4/5</Text>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={5} className="!mb-0">Priority Boarding</Title>
-                  <div className="flex items-center text-green-600">
-                    <RiseOutlined className="mr-1" />
-                    <Text className="text-green-600">+15.9%</Text>
-                  </div>
-                </div>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Total Bookings</Text>
-                      <Text className="block font-semibold">34,560</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Conversion Rate</Text>
-                      <Text className="block font-semibold">42.8%</Text>
-                      <Progress percent={43} strokeColor="#1890ff" showInfo={false} size="small" />
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Revenue</Text>
-                      <Text className="block font-semibold text-green-600">$518,400</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Satisfaction</Text>
-                      <Text className="block font-semibold">4.7/5</Text>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            </div>
-          </Card>
-        </Col>
-
-        {/* Offer Performance */}
-        <Col xs={24} lg={12}>
-          <Card>
-            <div className="mb-6">
-              <Title level={4} className="!mb-1">Offer Performance & Usage</Title>
-              <Text className="text-gray-500">Comprehensive offer metrics and customer behavior</Text>
-            </div>
-
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={5} className="!mb-0">Business Traveler Offer</Title>
-                  <div className="flex items-center text-green-600">
-                    <RiseOutlined className="mr-1" />
-                    <Text className="text-green-600">+23.4%</Text>
-                  </div>
-                </div>
-                <Text className="text-gray-500 text-sm">BTO001</Text>
-                <Row gutter={[16, 16]} className="mt-3">
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Adoption Rate</Text>
-                      <Text className="block font-semibold">34%</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Total Orders</Text>
-                      <Text className="block font-semibold">2,450</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Customer Satisfaction</Text>
-                      <Text className="block font-semibold">4.8/5</Text>
-                      <Progress percent={96} strokeColor="#52c41a" showInfo={false} size="small" />
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Revenue</Text>
-                      <Text className="block font-semibold text-green-600">$134,000</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Avg Value</Text>
-                      <Text className="block font-semibold">$547</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Repeat Purchase</Text>
-                      <Text className="block font-semibold">67%</Text>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={5} className="!mb-0">Family Fun Package</Title>
-                  <div className="flex items-center text-green-600">
-                    <RiseOutlined className="mr-1" />
-                    <Text className="text-green-600">+18.7%</Text>
-                  </div>
-                </div>
-                <Text className="text-gray-500 text-sm">FFP002</Text>
-                <Row gutter={[16, 16]} className="mt-3">
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Adoption Rate</Text>
-                      <Text className="block font-semibold">28%</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Total Orders</Text>
-                      <Text className="block font-semibold">1,890</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Customer Satisfaction</Text>
-                      <Text className="block font-semibold">4.3/5</Text>
-                      <Progress percent={86} strokeColor="#52c41a" showInfo={false} size="small" />
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <Text className="text-gray-500 text-sm">Revenue</Text>
-                      <Text className="block font-semibold text-green-600">$98,000</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Avg Value</Text>
-                      <Text className="block font-semibold">$519</Text>
-                    </div>
-                    <div className="mt-2">
-                      <Text className="text-gray-500 text-sm">Repeat Purchase</Text>
-                      <Text className="block font-semibold">45%</Text>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Top Performing Cards */}
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={8}>
-          <Card className="text-center">
-            <div className="mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-green-600 text-2xl">🏆</span>
-              </div>
-            </div>
-            <Title level={4} className="!mb-1">Top Converting Ancillary</Title>
-            <Title level={3} className="!mb-1 text-green-600">Extra Leg Room Seat</Title>
-            <Text className="text-green-600">45.2%</Text>
-            <br />
-            <Text className="text-gray-500 text-sm">Conversion Rate</Text>
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card className="text-center">
-            <div className="mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-blue-600 text-2xl">💰</span>
-              </div>
-            </div>
-            <Title level={4} className="!mb-1">Highest Revenue Offer</Title>
-            <Title level={3} className="!mb-1 text-blue-600">Business Traveler Offer</Title>
-            <Text className="text-blue-600">$134K</Text>
-            <br />
-            <Text className="text-gray-500 text-sm">Total Revenue</Text>
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card className="text-center">
-            <div className="mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-purple-600 text-2xl">📈</span>
-              </div>
-            </div>
-            <Title level={4} className="!mb-1">Fastest Growing</Title>
-            <Title level={3} className="!mb-1 text-purple-600">Extra Leg Room Seat</Title>
-            <Text className="text-purple-600">+22.7%</Text>
-            <br />
-            <Text className="text-gray-500 text-sm">Growth Rate</Text>
-          </Card>
-        </Col>
-      </Row>
     </>
   );
 
