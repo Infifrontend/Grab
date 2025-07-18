@@ -4,7 +4,7 @@ import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Tabl
 import { DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
 import { BookOpen, TrendingUp, Users, Plane } from 'lucide-react';
 import Header from "@/components/layout/header";
 import { apiRequest } from "@/lib/queryClient";
@@ -59,8 +59,23 @@ export default function Dashboard() {
     new Date(b.flight.departureTime) > new Date()
   ).length;
 
-  // Use chart data from API with enhanced information
-  const chartData = bookingOverview?.monthlyData || [];
+  // Use chart data from API with enhanced information, provide fallback data
+  const chartData = bookingOverview?.monthlyData && bookingOverview.monthlyData.length > 0 
+    ? bookingOverview.monthlyData 
+    : [
+        { month: 'Jan', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Feb', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Mar', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Apr', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'May', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Jun', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Jul', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Aug', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Sep', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Oct', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Nov', bookings: 0, revenue: 0, passengers: 0 },
+        { month: 'Dec', bookings: 0, revenue: 0, passengers: 0 }
+      ];
 
   // Generate recent activities from real data
   const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
@@ -272,20 +287,30 @@ export default function Dashboard() {
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis 
                           dataKey="month" 
                           axisLine={false}
                           tickLine={false}
-                          className="text-xs text-gray-500"
+                          tick={{ fontSize: 12, fill: '#6b7280' }}
                         />
                         <YAxis 
                           axisLine={false}
                           tickLine={false}
-                          className="text-xs text-gray-500"
+                          tick={{ fontSize: 12, fill: '#6b7280' }}
+                        />
+                        <Tooltip 
+                          cursor={{ fill: 'rgba(79, 70, 229, 0.1)' }}
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
                         />
                         <Bar 
                           dataKey="bookings" 
-                          fill="var(--infiniti-primary)"
+                          fill="#4F46E5"
                           radius={[4, 4, 0, 0]}
                           name="Bookings"
                         />
