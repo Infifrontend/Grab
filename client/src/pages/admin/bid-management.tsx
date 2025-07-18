@@ -52,9 +52,12 @@ import {
   MoreOutlined,
   InfoCircleOutlined,
   DollarOutlined,
-  AlertOutlined
+  AlertOutlined,
+  EnvironmentOutlined
 } from '@ant-design/icons';
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
 
@@ -65,6 +68,17 @@ export default function BidManagement() {
   const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
 
   useEffect(() => {
     // Check if admin is logged in
@@ -73,6 +87,13 @@ export default function BidManagement() {
       setLocation('/admin/login');
     }
   }, [setLocation]);
+
+  useEffect(() => {
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
@@ -1707,15 +1728,23 @@ export default function BidManagement() {
                           rules={[{ required: true, message: 'Please select origin airport' }]}
                         >
                           <Select 
-                            placeholder="Select origin airport" 
+                            mode="combobox"
+                            placeholder="Search city / airport" 
                             size="large"
                             showSearch
-                            optionFilterProp="children"
+                            filterOption={(input, option) =>
+                              (option?.value ?? "")
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                            suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                            notFoundContent="No locations found"
                           >
-                            <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
-                            <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
-                            <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
-                            <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                            {originOptions.map((location) => (
+                              <Select.Option key={location} value={location}>
+                                {location}
+                              </Select.Option>
+                            ))}
                           </Select>
                         </Form.Item>
                       </Col>
@@ -1726,15 +1755,23 @@ export default function BidManagement() {
                           rules={[{ required: true, message: 'Please select destination airport' }]}
                         >
                           <Select 
-                            placeholder="Select destination airport" 
+                            mode="combobox"
+                            placeholder="Search city / airport" 
                             size="large"
                             showSearch
-                            optionFilterProp="children"
+                            filterOption={(input, option) =>
+                              (option?.value ?? "")
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                            }
+                            suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                            notFoundContent="No locations found"
                           >
-                            <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
-                            <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
-                            <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
-                            <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                            {destinationOptions.map((location) => (
+                              <Select.Option key={location} value={location}>
+                                {location}
+                              </Select.Option>
+                            ))}
                           </Select>
                         </Form.Item>
                       </Col>
