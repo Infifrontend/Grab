@@ -121,6 +121,478 @@ export default function BidManagement() {
     }
   ];
 
+  const renderActiveBidsContent = () => (
+    <div>
+      {/* Active Bids Header */}
+      <div className="mb-6">
+        <Title level={4} className="!mb-1">Active Bids Requiring Attention</Title>
+        <Text className="text-gray-500">Monitor and respond to passenger upgrade bids</Text>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Input 
+            placeholder="Search by passenger name or flight number..."
+            prefix={<SearchOutlined />}
+            style={{ width: 300 }}
+          />
+        </div>
+        <Select placeholder="Filter by status" style={{ width: 150 }}>
+          <Select.Option value="pending">Pending</Select.Option>
+          <Select.Option value="reviewed">Reviewed</Select.Option>
+          <Select.Option value="counter">Counter Offer</Select.Option>
+        </Select>
+      </div>
+
+      {/* Active Bids Table */}
+      <Table
+        dataSource={[
+          {
+            key: '1',
+            bidId: 'BID001',
+            passenger: { name: 'John Smith', email: 'john.smith@email.com' },
+            flight: { number: 'GR-4521', route: 'LAX → JFK', date: '2024-06-23' },
+            upgrade: 'Economy → Business',
+            bidAmount: '$250',
+            maxBid: '$280',
+            successRate: '75%',
+            timeLeft: '18h 49m',
+            status: 'pending'
+          },
+          {
+            key: '2',
+            bidId: 'BID002',
+            passenger: { name: 'Sarah Johnson', email: 'sarah.johnson@email.com' },
+            flight: { number: 'GR-7834', route: 'ORD → SFO', date: '2024-06-26' },
+            upgrade: 'Economy → Premium Economy',
+            bidAmount: '$120',
+            maxBid: '$150',
+            successRate: '65%',
+            timeLeft: '42h 20m',
+            status: 'pending'
+          },
+          {
+            key: '3',
+            bidId: 'BID003',
+            passenger: { name: 'Mike Davis', email: 'mike.davis@email.com' },
+            flight: { number: 'GR-2156', route: 'JFK → LHR', date: '2024-06-27' },
+            upgrade: 'Premium Economy → Business',
+            bidAmount: '$450',
+            maxBid: '$500',
+            successRate: '60%',
+            timeLeft: '68h 10m',
+            status: 'pending'
+          }
+        ]}
+        columns={[
+          {
+            title: 'Bid Details',
+            dataIndex: 'bidId',
+            key: 'bidDetails',
+            render: (bidId, record) => (
+              <div>
+                <Text strong>{bidId}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">{record.upgrade}</Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Passenger',
+            dataIndex: 'passenger',
+            key: 'passenger',
+            render: (passenger) => (
+              <div>
+                <Text strong>{passenger.name}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">{passenger.email}</Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Flight Info',
+            dataIndex: 'flight',
+            key: 'flightInfo',
+            render: (flight) => (
+              <div>
+                <Text strong>{flight.number}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">{flight.route}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">{flight.date}</Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Upgrade',
+            dataIndex: 'upgrade',
+            key: 'upgrade',
+          },
+          {
+            title: 'Bid Amount',
+            dataIndex: 'bidAmount',
+            key: 'bidAmount',
+            render: (amount, record) => (
+              <div>
+                <Text strong>{amount}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">Max {record.maxBid}</Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Success Rate',
+            dataIndex: 'successRate',
+            key: 'successRate',
+            render: (rate) => (
+              <div>
+                <Text>{rate}</Text>
+                <Progress percent={parseInt(rate)} size="small" showInfo={false} />
+              </div>
+            ),
+          },
+          {
+            title: 'Time Left',
+            dataIndex: 'timeLeft',
+            key: 'timeLeft',
+            render: (time, record) => (
+              <Tag color={record.timeLeft.includes('18h') ? 'red' : 'blue'}>{time}</Tag>
+            ),
+          },
+          {
+            title: 'Actions',
+            key: 'actions',
+            render: (_, record) => (
+              <Button type="link" icon={<EyeOutlined />}>
+                Details
+              </Button>
+            ),
+          },
+        ]}
+        pagination={false}
+      />
+    </div>
+  );
+
+  const renderBidSetupContent = () => (
+    <Card>
+      <Title level={4}>Bid Configuration</Title>
+      <Text>Configure bidding rules, minimum amounts, and acceptance criteria.</Text>
+      {/* Add bid setup form here */}
+    </Card>
+  );
+
+  const renderPaymentsContent = () => (
+    <div>
+      {/* Payment Stats */}
+      <Row gutter={[24, 24]} className="mb-6">
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Total Transactions"
+              value={6}
+              suffix="This month"
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue"
+              value={678.30}
+              prefix="$"
+              suffix="Net amount"
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Pending Refunds"
+              value={1}
+              suffix="Require processing"
+              valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Failed Payments"
+              value={1}
+              suffix="Need attention"
+              valueStyle={{ color: '#ff4d4f' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Payment Transactions Table */}
+      <Card className="mb-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <Title level={4} className="!mb-1">Payment & Refund Transactions</Title>
+            <Text className="text-gray-500">View and manage all payment transactions and refund requests</Text>
+          </div>
+          <div className="flex space-x-2">
+            <Select placeholder="Filter by type" style={{ width: 120 }}>
+              <Select.Option value="payment">Payment</Select.Option>
+              <Select.Option value="refund">Refund</Select.Option>
+            </Select>
+            <Select placeholder="Status" style={{ width: 120 }}>
+              <Select.Option value="completed">Completed</Select.Option>
+              <Select.Option value="pending">Pending</Select.Option>
+              <Select.Option value="failed">Failed</Select.Option>
+            </Select>
+          </div>
+        </div>
+
+        <Table
+          dataSource={[
+            {
+              key: '1',
+              transactionId: 'TXN-001234567',
+              passenger: { name: 'John Smith', email: 'john.smith@email.com' },
+              flight: { number: 'GR-4521', route: 'LAX → JFK' },
+              type: 'Payment',
+              amount: '$250 USD',
+              method: 'Credit Card ****4532',
+              status: 'Completed',
+              date: '2024-06-23 16:30'
+            },
+            {
+              key: '2',
+              transactionId: 'REF-001234566',
+              passenger: { name: 'Sarah Johnson', email: 'sarah.johnson@email.com' },
+              flight: { number: 'GR-7834', route: 'ORD → SFO' },
+              type: 'Refund',
+              amount: '$120 USD',
+              method: 'Credit Card ****6876',
+              status: 'Pending',
+              date: '2024-06-24 09:15'
+            }
+          ]}
+          columns={[
+            {
+              title: 'Transaction ID',
+              dataIndex: 'transactionId',
+              key: 'transactionId',
+              render: (id, record) => (
+                <div>
+                  <Text strong>{id}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">Bid {record.flight.number}</Text>
+                </div>
+              ),
+            },
+            {
+              title: 'Passenger',
+              dataIndex: 'passenger',
+              key: 'passenger',
+              render: (passenger) => (
+                <div>
+                  <Text>{passenger.name}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">{passenger.email}</Text>
+                </div>
+              ),
+            },
+            {
+              title: 'Flight Details',
+              dataIndex: 'flight',
+              key: 'flight',
+              render: (flight) => (
+                <div>
+                  <Text>{flight.number}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">{flight.route}</Text>
+                </div>
+              ),
+            },
+            {
+              title: 'Type',
+              dataIndex: 'type',
+              key: 'type',
+              render: (type) => (
+                <Tag color={type === 'Payment' ? 'blue' : 'orange'}>{type}</Tag>
+              ),
+            },
+            {
+              title: 'Amount',
+              dataIndex: 'amount',
+              key: 'amount',
+            },
+            {
+              title: 'Payment Method',
+              dataIndex: 'method',
+              key: 'method',
+            },
+            {
+              title: 'Status',
+              dataIndex: 'status',
+              key: 'status',
+              render: (status) => (
+                <Tag color={status === 'Completed' ? 'green' : status === 'Pending' ? 'orange' : 'red'}>
+                  {status}
+                </Tag>
+              ),
+            },
+            {
+              title: 'Date',
+              dataIndex: 'date',
+              key: 'date',
+            },
+            {
+              title: 'Actions',
+              key: 'actions',
+              render: () => (
+                <Button type="link" icon={<EyeOutlined />} size="small">
+                  View
+                </Button>
+              ),
+            },
+          ]}
+          pagination={false}
+        />
+      </Card>
+
+      {/* Pending Refund Requests */}
+      <Card>
+        <div className="mb-4">
+          <Title level={4} className="!mb-1">Pending Refund Requests</Title>
+          <Text className="text-gray-500">Refund requests that require manual processing</Text>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <Text strong>Sarah Johnson</Text>
+                <br />
+                <Text className="text-gray-500">GR-7834 • ORD → SFO</Text>
+              </div>
+              <Tag color="orange">Pending</Tag>
+            </div>
+            <Row gutter={[16, 16]}>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Refund Amount</Text>
+                <Text strong>$120</Text>
+              </Col>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Payment Method</Text>
+                <Text>Credit Card ****6876</Text>
+              </Col>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Request Date</Text>
+                <Text>2024-06-24 09:15</Text>
+              </Col>
+            </Row>
+            <div className="mt-3">
+              <Text className="text-gray-500 block mb-1">Reason</Text>
+              <Text>Refund for cancelled bid</Text>
+            </div>
+            <div className="mt-4 flex space-x-2">
+              <Button type="primary" size="small">Approve Refund</Button>
+              <Button size="small">Review Details</Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+
+  const renderHistoryContent = () => (
+    <div>
+      <div className="mb-6">
+        <Title level={4} className="!mb-1">Bid History</Title>
+        <Text className="text-gray-500">View completed and closed bids</Text>
+      </div>
+
+      <Table
+        dataSource={[
+          {
+            key: '1',
+            bidId: 'BID004',
+            passenger: 'Emily Chen',
+            flight: { number: 'GR-9876', route: 'SEA → BOS' },
+            originalBid: '$200',
+            finalAmount: '$200',
+            status: 'Accepted',
+            completedDate: '2024-06-22',
+            revenue: '$200'
+          },
+          {
+            key: '2',
+            bidId: 'BID005',
+            passenger: 'Robert Wilson',
+            flight: { number: 'GR-5432', route: 'ATL → PHX' },
+            originalBid: '$75',
+            finalAmount: '$0',
+            status: 'Rejected',
+            completedDate: '2024-06-21',
+            revenue: '$0'
+          }
+        ]}
+        columns={[
+          {
+            title: 'Bid ID',
+            dataIndex: 'bidId',
+            key: 'bidId',
+          },
+          {
+            title: 'Passenger',
+            dataIndex: 'passenger',
+            key: 'passenger',
+          },
+          {
+            title: 'Flight',
+            dataIndex: 'flight',
+            key: 'flight',
+            render: (flight) => (
+              <div>
+                <Text>{flight.number}</Text>
+                <br />
+                <Text className="text-gray-500 text-sm">{flight.route}</Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Original Bid',
+            dataIndex: 'originalBid',
+            key: 'originalBid',
+          },
+          {
+            title: 'Final Amount',
+            dataIndex: 'finalAmount',
+            key: 'finalAmount',
+          },
+          {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => (
+              <Tag color={status === 'Accepted' ? 'green' : 'red'}>{status}</Tag>
+            ),
+          },
+          {
+            title: 'Completed Date',
+            dataIndex: 'completedDate',
+            key: 'completedDate',
+          },
+          {
+            title: 'Revenue',
+            dataIndex: 'revenue',
+            key: 'revenue',
+          },
+        ]}
+        pagination={false}
+      />
+    </div>
+  );
+
   const renderDashboardContent = () => (
     <div>
       {/* Stats Cards Row */}
@@ -308,12 +780,7 @@ export default function BidManagement() {
           Active Bids
         </span>
       ),
-      children: (
-        <Card>
-          <Title level={4}>Active Bids Management</Title>
-          <Text>Monitor and manage currently active passenger bidding requests.</Text>
-        </Card>
-      ),
+      children: renderActiveBidsContent(),
     },
     {
       key: '3',
@@ -323,12 +790,7 @@ export default function BidManagement() {
           Bid Setup
         </span>
       ),
-      children: (
-        <Card>
-          <Title level={4}>Bid Configuration</Title>
-          <Text>Configure bidding rules, minimum amounts, and acceptance criteria.</Text>
-        </Card>
-      ),
+      children: renderBidSetupContent(),
     },
     {
       key: '4',
@@ -338,12 +800,7 @@ export default function BidManagement() {
           Payments
         </span>
       ),
-      children: (
-        <Card>
-          <Title level={4}>Bid Payments</Title>
-          <Text>Track and manage payments for accepted bids.</Text>
-        </Card>
-      ),
+      children: renderPaymentsContent(),
     },
     {
       key: '5',
@@ -353,12 +810,7 @@ export default function BidManagement() {
           History
         </span>
       ),
-      children: (
-        <Card>
-          <Title level={4}>Bid History</Title>
-          <Text>View historical bid data and performance analytics.</Text>
-        </Card>
-      ),
+      children: renderHistoryContent(),
     },
   ];
 
