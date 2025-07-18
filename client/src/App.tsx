@@ -63,7 +63,7 @@ function Router() {
       <Route path="/passenger-info" component={PassengerInfo} />
       <Route path="/payment-options" component={PaymentOptions} />
       <Route path="/review-confirmation" component={ReviewConfirmation} />
-      <Route path="/download-itinerary" component={DownloadItinerary} />
+      <Route path="/download-itinerary/:id" component={DownloadItinerary} />
       <Route component={NotFound} />
     </Switch>
   );

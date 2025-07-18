@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 
 export default function DownloadItinerary() {
   const [, setLocation] = useLocation();
-  const [, params] = useRoute("/download-itinerary/:id");
+  const [match, params] = useRoute("/download-itinerary/:id");
   const printRef = useRef(null);
 
   const bookingId = params?.id;
@@ -37,7 +37,11 @@ export default function DownloadItinerary() {
   });
 
   const handleBackToBookingDetails = () => {
-    setLocation(`/booking-details/${params?.id || "GR-2024-002"}`);
+    if (bookingId) {
+      setLocation(`/booking-details/${bookingId}`);
+    } else {
+      setLocation('/dashboard');
+    }
   };
 
   const handleDownloadPDF = async () => {
