@@ -772,6 +772,61 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async updateFlightIATACodes() {
+    console.log('Starting migration to add IATA codes to flights...');
+
+    try {
+      // Get all existing flights
+      const existingFlights = await db.select().from(flights);
+      console.log(`Found ${existingFlights.length} flights to update with IATA codes`);
+
+      // IATA code mapping for Indian cities
+      const iataMapping: Record<string, string> = {
+        'Delhi': 'DEL',
+        'Mumbai': 'BOM',
+        'Bangalore': 'BLR',
+        'Chennai': 'MAA',
+        'Kolkata': 'CCU',
+        'Hyderabad': 'HYD',
+        'Pune': 'PNQ',
+        'Ahmedabad': 'AMD',
+        'Kochi': 'COK',
+        'Goa': 'GOI',
+        'Jaipur': 'JAI',
+        'Lucknow': 'LKO',
+        'Chandigarh': 'IXC',
+        'Coimbatore': 'CJB',
+        'Indore': 'IDR',
+        'Bhubaneswar': 'BBI',
+        'Visakhapatnam': 'VTZ',
+        'Nagpur': 'NAG',
+        'Vadodara': 'BDQ',
+        'Thiruvananthapuram': 'TRV'
+      };
+
+      // Update each flight with IATA codes
+      for (const flight of existingFlights) {
+        const originIATA = iataMapping[flight.origin] || 'XXX';
+        const destinationIATA = iataMapping[flight.destination] || 'XXX';
+
+        await db.update(flights)
+          .set({
+            originIATA,
+            destinationIATA
+          })
+          .where(eq(flights.id, flight.id));
+
+        console.log(`Updated flight ${flight.flightNumber}: ${flight.origin} (${originIATA}) → ${flight.destination} (${destinationIATA})`);
+      }
+
+      console.log('✅ IATA codes migration completed successfully!');
+      return { success: true, message: 'IATA codes added successfully' };
+    } catch (error) {
+      console.error('❌ Error adding IATA codes:', error);
+      throw error;
+    }
+  }
+
   async migrateToDomesticFlights() {
     console.log('Starting migration to domestic flights only...');
 

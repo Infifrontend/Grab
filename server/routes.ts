@@ -52,14 +52,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const flights = await storage.getFlights("", "", undefined); // Fetch all flights
 
-      // Extract unique locations from origin and destination
-      const locations = new Set<string>();
+      // Extract unique locations with IATA codes from origin and destination
+      const locationMap = new Map<string, string>();
       flights.forEach((flight) => {
-        locations.add(flight.origin);
-        locations.add(flight.destination);
+        if (flight.origin && flight.originIATA) {
+          locationMap.set(flight.origin, `${flight.origin} (${flight.originIATA})`);
+        }
+        if (flight.destination && flight.destinationIATA) {
+          locationMap.set(flight.destination, `${flight.destination} (${flight.destinationIATA})`);
+        }
       });
 
-      const uniqueLocations = Array.from(locations).sort();
+      const uniqueLocations = Array.from(locationMap.values()).sort();
       res.json({ locations: uniqueLocations });
     } catch (error) {
       console.error("Error fetching flight locations:", error);
@@ -71,13 +75,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/search", async (req, res) => {
     try {
       console.log("Search request received:", req.body);
-      const searchData = insertSearchRequestSchema.parse(req.body);
+      
+      // Extract city names from formatted input "City (IATA)" format
+      const extractCityName = (formattedLocation: string) => {
+        const match = formattedLocation.match(/^([^(]+)/);
+        return match ? match[1].trim() : formattedLocation;
+      };
+
+      const originCity = extractCityName(req.body.origin);
+      const destinationCity = extractCityName(req.body.destination);
+
+      const searchData = {
+        ...req.body,
+        origin: originCity,
+        destination: destinationCity,
+        departureDate: new Date(req.body.departureDate),
+        returnDate: req.body.returnDate ? new Date(req.body.returnDate) : null
+      };
+
       await storage.createSearchRequest(searchData);
 
       // Search for outbound flights
       const outboundFlights = await storage.getFlights(
-        searchData.origin,
-        searchData.destination,
+        originCity,
+        destinationCity,
         searchData.departureDate,
       );
 
@@ -86,17 +107,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a round trip, also search for return flights
       if (searchData.tripType === "roundTrip" && searchData.returnDate) {
         returnFlights = await storage.getReturnFlights(
-          searchData.destination,
-          searchData.origin,
+          destinationCity,
+          originCity,
           searchData.returnDate,
         );
         console.log(
-          `Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`,
+          `Found ${returnFlights.length} return flights for ${destinationCity} to ${originCity}`,
         );
       }
 
       console.log(
-        `Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
+        `Found ${outboundFlights.length} outbound flights for ${originCity} to ${destinationCity}`,
       );
       console.log("Outbound flight data sample:", outboundFlights.slice(0, 2));
 
@@ -606,6 +627,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: "Failed to migrate flights",
+      });
+    }
+  });
+
+  // Migration endpoint to add IATA codes to flights
+  app.post("/api/update-iata-codes", async (_req, res) => {
+    try {
+      await storage.updateFlightIATACodes();
+
+      res.json({
+        success: true,
+        message: "Successfully updated flights with IATA codes",
+      });
+    } catch (error) {
+      console.error("IATA codes migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to update IATA codes",
       });
     }
   });
