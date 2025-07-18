@@ -31,21 +31,7 @@ export default function NewBooking() {
   };
 
   const handleContinueToFlightSearch = () => {
-    console.log("Continuing to flight search...");
-
-    // Get form values and save to localStorage for the Flight Search Bundle page
-    const formValues = form.getFieldsValue();
-    localStorage.setItem('selectedTripType', tripType);
-    localStorage.setItem('searchOrigin', formValues.origin || '');
-    localStorage.setItem('searchDestination', formValues.destination || '');
-    localStorage.setItem('searchDepartureDate', formValues.departureDate?.format('YYYY-MM-DD') || '');
-    localStorage.setItem('searchReturnDate', formValues.returnDate?.format('YYYY-MM-DD') || '');
-    localStorage.setItem('searchAdults', formValues.adults?.toString() || '0');
-    localStorage.setItem('searchKids', formValues.kids?.toString() || '0');
-    localStorage.setItem('searchInfants', formValues.infants?.toString() || '0');
-    localStorage.setItem('searchCabin', formValues.cabin || 'Economy');
-
-    // Navigate to flight search bundle page
+    console.log("Continue to Flight Search");
     setLocation("/flight-search-bundle");
   };
 
