@@ -177,13 +177,6 @@ export default function BidManagement() {
     setLoading(true);
     try {
       console.log('Form values before submission:', values);
-      
-      // Validate required fields on frontend
-      if (!values.bidTitle || !values.origin || !values.destination || !values.travelDate || !values.bidStartTime || !values.bidEndTime) {
-        message.error('Please fill in all required fields');
-        setLoading(false);
-        return;
-      }
 
       // Format the data properly
       const formattedData = {
@@ -209,7 +202,7 @@ export default function BidManagement() {
       
       if (result.success) {
         // Show success message
-        message.success(result.message || `Bid configuration "${values.bidTitle}" created successfully!`);
+        message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
         
         // Close modal and reset form
         setCreateBidModalVisible(false);
@@ -1752,7 +1745,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid Title</span>}
                           name="bidTitle"
-                          rules={[{ required: true, message: 'Please enter bid title' }]}
                         >
                           <Input 
                             placeholder="Enter bid configuration title" 
@@ -1765,7 +1757,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Flight Type</span>}
                           name="flightType"
-                          rules={[{ required: true, message: 'Please select flight type' }]}
                         >
                           <Select 
                             placeholder="Select flight type" 
@@ -1782,7 +1773,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Origin Airport (IATA Code)</span>}
                           name="origin"
-                          rules={[{ required: true, message: 'Please select origin airport' }]}
                         >
                           <Select 
                             mode="combobox"
@@ -1809,7 +1799,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Destination Airport (IATA Code)</span>}
                           name="destination"
-                          rules={[{ required: true, message: 'Please select destination airport' }]}
                         >
                           <Select 
                             mode="combobox"
@@ -1836,7 +1825,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Travel Date</span>}
                           name="travelDate"
-                          rules={[{ required: true, message: 'Please select travel date' }]}
                         >
                           <DatePicker className="w-full" size="large" />
                         </Form.Item>
@@ -1845,7 +1833,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Preferred Departure Time Range</span>}
                           name="departureTimeRange"
-                          rules={[{ required: true, message: 'Please select departure time range' }]}
                         >
                           <TimePicker.RangePicker className="w-full" format="HH:mm" size="large" />
                         </Form.Item>
@@ -1872,7 +1859,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Total Seats Available</span>}
                           name="totalSeatsAvailable"
-                          rules={[{ required: true, message: 'Please enter total seats available' }]}
                         >
                           <InputNumber min={1} className="w-full" placeholder="50" size="large" />
                         </Form.Item>
@@ -1881,7 +1867,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Min Seats per Bid</span>}
                           name="minSeatsPerBid"
-                          rules={[{ required: true, message: 'Please enter minimum seats per bid' }]}
                         >
                           <InputNumber min={1} className="w-full" placeholder="5" size="large" />
                         </Form.Item>
@@ -1893,7 +1878,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Max Seats per Bid</span>}
                           name="maxSeatsPerBid"
-                          rules={[{ required: true, message: 'Please enter maximum seats per bid' }]}
                         >
                           <InputNumber min={1} className="w-full" placeholder="20" size="large" />
                         </Form.Item>
@@ -1902,7 +1886,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Max Seats per User</span>}
                           name="maxSeatsPerUser"
-                          rules={[{ required: true, message: 'Please enter maximum seats per user' }]}
                         >
                           <InputNumber min={1} className="w-full" placeholder="10" size="large" />
                         </Form.Item>
@@ -1929,7 +1912,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid Start Time</span>}
                           name="bidStartTime"
-                          rules={[{ required: true, message: 'Please select bid start time' }]}
                         >
                           <DatePicker 
                             showTime={{ format: 'HH:mm' }}
@@ -1944,7 +1926,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid End Time</span>}
                           name="bidEndTime"
-                          rules={[{ required: true, message: 'Please select bid end time' }]}
                         >
                           <DatePicker 
                             showTime={{ format: 'HH:mm' }}
@@ -2034,7 +2015,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Fare Type</span>}
                           name="fareType"
-                          rules={[{ required: true, message: 'Please select fare type' }]}
                         >
                           <Select placeholder="Select fare type" size="large">
                             <Select.Option value="Economy">Economy</Select.Option>
@@ -2050,7 +2030,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Baggage Allowance (kg)</span>}
                           name="baggageAllowance"
-                          rules={[{ required: true, message: 'Please enter baggage allowance' }]}
                         >
                           <InputNumber min={0} max={100} className="w-full" placeholder="20" size="large" />
                         </Form.Item>
@@ -2059,7 +2038,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Cancellation Terms</span>}
                           name="cancellationTerms"
-                          rules={[{ required: true, message: 'Please select cancellation terms' }]}
                         >
                           <Select placeholder="Select cancellation terms" size="large">
                             <Select.Option value="Flexible - Free cancellation">Flexible - Free cancellation</Select.Option>
