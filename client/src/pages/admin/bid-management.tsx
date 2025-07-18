@@ -46,7 +46,6 @@ import {
   DeleteOutlined,
   MoreOutlined,
   InfoCircleOutlined,
-  TrendingUpOutlined,
   DollarOutlined,
   AlertOutlined
 } from '@ant-design/icons';
@@ -181,7 +180,7 @@ export default function BidManagement() {
                 <Text className="text-gray-500 text-sm">Acceptance Rate</Text>
                 <div className="flex items-center mt-1">
                   <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">72%</Title>
-                  <TrendingUpOutlined className="text-blue-500 ml-2" />
+                  <RiseOutlined className="text-blue-500 ml-2" />
                 </div>
                 <Text className="text-green-500 text-xs">+2.1% this month</Text>
               </div>
