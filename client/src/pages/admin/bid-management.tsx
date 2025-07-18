@@ -23,7 +23,12 @@ import {
   Modal,
   Form,
   InputNumber,
-  Switch
+  Switch,
+  Steps,
+  TimePicker,
+  Radio,
+  Checkbox,
+  Divider
 } from 'antd';
 import {
   DashboardOutlined,
@@ -57,6 +62,9 @@ export default function BidManagement() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('1');
+  const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     // Check if admin is logged in
@@ -119,6 +127,58 @@ export default function BidManagement() {
       title: 'Bid BID005 - Rejected (below minimum)',
       time: '8 hours ago'
     }
+  ];
+
+  const handleCreateBid = () => {
+    setCreateBidModalVisible(true);
+    setCurrentStep(0);
+    form.resetFields();
+  };
+
+  const handleModalCancel = () => {
+    setCreateBidModalVisible(false);
+    setCurrentStep(0);
+    form.resetFields();
+  };
+
+  const handleNext = () => {
+    form.validateFields().then(() => {
+      setCurrentStep(currentStep + 1);
+    });
+  };
+
+  const handlePrev = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const handleFinish = (values: any) => {
+    console.log('Form values:', values);
+    setCreateBidModalVisible(false);
+    setCurrentStep(0);
+    form.resetFields();
+  };
+
+  const steps = [
+    {
+      title: 'Flight & Route Details',
+      content: 'flight-details',
+    },
+    {
+      title: 'Seat Configurations & Limits',
+      content: 'seat-config',
+    },
+    {
+      title: 'Bid Pricing & Currency',
+      content: 'pricing',
+    },
+    {
+      title: 'Bidding Schedule & Rules',
+      content: 'schedule',
+    },
+    {
+      title: 'Fleet, Terms & Conditions',
+      content: 'terms',
+    },
   ];
 
   const renderActiveBidsContent = () => (
@@ -287,6 +347,7 @@ export default function BidManagement() {
           type="primary" 
           icon={<PlusOutlined />}
           className="bg-blue-600 hover:bg-blue-700"
+          onClick={handleCreateBid}
         >
           Create New Bid
         </Button>
@@ -902,6 +963,7 @@ export default function BidManagement() {
                               size="large" 
                               icon={<PlusOutlined />} 
                               className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                              onClick={handleCreateBid}
                             >
                               Create New Bid
                             </Button>
@@ -1510,6 +1572,314 @@ export default function BidManagement() {
         </div>
       </div>
 
+      {/* Create New Bid Modal */}
+      <Modal
+        title="Create New Bid"
+        visible={createBidModalVisible}
+        onCancel={handleModalCancel}
+        footer={null}
+        width={800}
+        centered
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleFinish}
+          className="mt-4"
+        >
+          <Steps current={currentStep} className="mb-8">
+            {steps.map(item => (
+              <Steps.Step key={item.title} title={item.title} />
+            ))}
+          </Steps>
+
+          <div className="min-h-96">
+            {/* Step 1: Flight & Route Details */}
+            {currentStep === 0 && (
+              <div>
+                <Title level={4} className="!mb-6 text-blue-600">Flight & Route Details</Title>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="From"
+                      name="origin"
+                      rules={[{ required: true, message: 'Please select origin' }]}
+                    >
+                      <Select placeholder="Select origin airport">
+                        <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
+                        <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
+                        <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
+                        <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="To"
+                      name="destination"
+                      rules={[{ required: true, message: 'Please select destination' }]}
+                    >
+                      <Select placeholder="Select destination airport">
+                        <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
+                        <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
+                        <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
+                        <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Flight Date"
+                      name="flightDate"
+                      rules={[{ required: true, message: 'Please select flight date' }]}
+                    >
+                      <DatePicker className="w-full" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Flight Time"
+                      name="flightTime"
+                      rules={[{ required: true, message: 'Please select flight time' }]}
+                    >
+                      <TimePicker className="w-full" format="HH:mm" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Step 2: Seat Configurations & Limits */}
+            {currentStep === 1 && (
+              <div>
+                <Title level={4} className="!mb-6 text-blue-600">Seat Configurations & Limits</Title>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="From Class"
+                      name="fromClass"
+                      rules={[{ required: true, message: 'Please select from class' }]}
+                    >
+                      <Select placeholder="Select class">
+                        <Select.Option value="Economy">Economy</Select.Option>
+                        <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                        <Select.Option value="Business">Business</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="To Class"
+                      name="toClass"
+                      rules={[{ required: true, message: 'Please select to class' }]}
+                    >
+                      <Select placeholder="Select class">
+                        <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                        <Select.Option value="Business">Business</Select.Option>
+                        <Select.Option value="First">First</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Maximum Bids"
+                      name="maxBids"
+                      rules={[{ required: true, message: 'Please enter maximum bids' }]}
+                    >
+                      <InputNumber min={1} className="w-full" placeholder="50" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Available Seats"
+                      name="availableSeats"
+                      rules={[{ required: true, message: 'Please enter available seats' }]}
+                    >
+                      <InputNumber min={1} className="w-full" placeholder="25" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Step 3: Bid Pricing & Currency */}
+            {currentStep === 2 && (
+              <div>
+                <Title level={4} className="!mb-6 text-blue-600">Bid Pricing & Currency</Title>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Minimum Bid Amount"
+                      name="minBidAmount"
+                      rules={[{ required: true, message: 'Please enter minimum bid amount' }]}
+                    >
+                      <InputNumber 
+                        min={0} 
+                        className="w-full" 
+                        placeholder="100"
+                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Maximum Bid Amount"
+                      name="maxBidAmount"
+                      rules={[{ required: true, message: 'Please enter maximum bid amount' }]}
+                    >
+                      <InputNumber 
+                        min={0} 
+                        className="w-full" 
+                        placeholder="500"
+                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={24}>
+                    <Form.Item
+                      label="Currency"
+                      name="currency"
+                      rules={[{ required: true, message: 'Please select currency' }]}
+                    >
+                      <Radio.Group>
+                        <Radio value="USD">USD - US Dollar</Radio>
+                        <Radio value="EUR">EUR - Euro</Radio>
+                        <Radio value="GBP">GBP - British Pound</Radio>
+                      </Radio.Group>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Step 4: Bidding Schedule & Rules */}
+            {currentStep === 3 && (
+              <div>
+                <Title level={4} className="!mb-6 text-blue-600">Bidding Schedule & Rules</Title>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Bidding Start Time"
+                      name="biddingStartTime"
+                      rules={[{ required: true, message: 'Please select start time' }]}
+                    >
+                      <DatePicker showTime className="w-full" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Bidding End Time"
+                      name="biddingEndTime"
+                      rules={[{ required: true, message: 'Please select end time' }]}
+                    >
+                      <DatePicker showTime className="w-full" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={24}>
+                    <Form.Item
+                      label="Auto Accept Rules"
+                      name="autoAcceptRules"
+                    >
+                      <Checkbox.Group>
+                        <Row>
+                          <Col span={24}>
+                            <Checkbox value="highestBid">Auto-accept highest valid bid</Checkbox>
+                          </Col>
+                          <Col span={24}>
+                            <Checkbox value="minimumThreshold">Auto-accept bids above minimum threshold</Checkbox>
+                          </Col>
+                          <Col span={24}>
+                            <Checkbox value="firstComeFirstServe">First come, first serve basis</Checkbox>
+                          </Col>
+                        </Row>
+                      </Checkbox.Group>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Step 5: Fleet, Terms & Conditions */}
+            {currentStep === 4 && (
+              <div>
+                <Title level={4} className="!mb-6 text-blue-600">Fleet, Terms & Conditions</Title>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Fleet Type"
+                      name="fleetType"
+                      rules={[{ required: true, message: 'Please select fleet type' }]}
+                    >
+                      <Select placeholder="Select fleet type">
+                        <Select.Option value="Boeing 737">Boeing 737</Select.Option>
+                        <Select.Option value="Airbus A320">Airbus A320</Select.Option>
+                        <Select.Option value="Boeing 777">Boeing 777</Select.Option>
+                        <Select.Option value="Airbus A350">Airbus A350</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Cancellation Policy"
+                      name="cancellationPolicy"
+                      rules={[{ required: true, message: 'Please select cancellation policy' }]}
+                    >
+                      <Select placeholder="Select policy">
+                        <Select.Option value="flexible">Flexible - Full refund</Select.Option>
+                        <Select.Option value="standard">Standard - 50% refund</Select.Option>
+                        <Select.Option value="strict">Strict - No refund</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={24}>
+                    <Form.Item
+                      label="Special Notes"
+                      name="specialNotes"
+                    >
+                      <Input.TextArea 
+                        rows={4} 
+                        placeholder="Enter any special terms, conditions, or notes for this bid..."
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            )}
+          </div>
+
+          <Divider />
+
+          {/* Modal Footer */}
+          <div className="flex justify-between">
+            <div>
+              {currentStep > 0 && (
+                <Button onClick={handlePrev}>
+                  Previous
+                </Button>
+              )}
+            </div>
+            <div className="space-x-2">
+              <Button onClick={handleModalCancel}>
+                Cancel
+              </Button>
+              {currentStep < steps.length - 1 && (
+                <Button type="primary" onClick={handleNext}>
+                  Next
+                </Button>
+              )}
+              {currentStep === steps.length - 1 && (
+                <Button type="primary" onClick={() => form.submit()}>
+                  Create Bid
+                </Button>
+              )}
+            </div>
+          </div>
+        </Form>
+      </Modal>
+
       <style jsx global>{`
         .ant-tabs-nav {
           margin-bottom: 0;
@@ -1542,6 +1912,24 @@ export default function BidManagement() {
 
         .ant-statistic-content {
           color: #1f2937;
+        }
+
+        .ant-steps-item-process .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+
+        .ant-modal-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+
+        .ant-modal-title {
+          color: white !important;
+        }
+
+        .ant-modal-close-x {
+          color: white !important;
         }
       `}</style>
     </div>
