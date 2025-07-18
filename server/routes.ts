@@ -775,30 +775,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get booking reviews
-  app.get('/api/booking-reviews', async (req, res) => {
-    try {
-      // Mock data for now - replace with actual reviews table query when available
-      const mockReviews = [
-        { id: 1, bookingId: 'BK123456', rating: 5, comment: 'Excellent service', createdAt: new Date() },
-        { id: 2, bookingId: 'BK123457', rating: 4, comment: 'Good experience', createdAt: new Date() },
-        { id: 3, bookingId: 'BK123458', rating: 5, comment: 'Perfect booking', createdAt: new Date() },
-        { id: 4, bookingId: 'BK123459', rating: 3, comment: 'Average service', createdAt: new Date() },
-        { id: 5, bookingId: 'BK123460', rating: 4, comment: 'Very satisfied', createdAt: new Date() },
-        { id: 6, bookingId: 'BK123461', rating: 5, comment: 'Outstanding', createdAt: new Date() },
-        { id: 7, bookingId: 'BK123462', rating: 2, comment: 'Could be better', createdAt: new Date() },
-        { id: 8, bookingId: 'BK123463', rating: 4, comment: 'Good overall', createdAt: new Date() },
-        { id: 9, bookingId: 'BK123464', rating: 5, comment: 'Highly recommend', createdAt: new Date() },
-        { id: 10, bookingId: 'BK123465', rating: 1, comment: 'Poor experience', createdAt: new Date() },
-      ];
-
-      res.json(mockReviews);
-    } catch (error) {
-      console.error('Error fetching booking reviews:', error);
-      res.status(500).json({ message: 'Failed to fetch booking reviews' });
-    }
-  });
-
   const httpServer = createServer(app);
   return httpServer;
 }
