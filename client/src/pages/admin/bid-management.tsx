@@ -507,7 +507,7 @@ export default function BidManagement() {
               Bid Management
             </Title>
             <Text className="text-gray-600">
-              Welcome to Group Retail Administration Portal
+              Manage passenger upgrade bids and bidding configurations
             </Text>
           </div>
 
