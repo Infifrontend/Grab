@@ -1574,310 +1574,439 @@ export default function BidManagement() {
 
       {/* Create New Bid Modal */}
       <Modal
-        title="Create New Bid"
+        title={
+          <div className="flex items-center space-x-3 p-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <PlusOutlined className="text-white text-lg" />
+            </div>
+            <div>
+              <Title level={4} className="!mb-0 text-gray-800">Create New Bid</Title>
+              <Text className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}</Text>
+            </div>
+          </div>
+        }
         visible={createBidModalVisible}
         onCancel={handleModalCancel}
         footer={null}
-        width={800}
+        width={900}
         centered
         destroyOnClose
+        className="modern-modal"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleFinish}
-          className="mt-4"
-        >
-          <Steps current={currentStep} className="mb-8">
-            {steps.map(item => (
-              <Steps.Step key={item.title} title={item.title} />
-            ))}
-          </Steps>
+        <div className="px-6 pb-6">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFinish}
+          >
+            {/* Progress Steps */}
+            <div className="mb-8">
+              <Steps 
+                current={currentStep} 
+                size="small"
+                className="custom-steps"
+              >
+                {steps.map((item, index) => (
+                  <Steps.Step 
+                    key={item.title} 
+                    title={item.title}
+                    icon={
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        index < currentStep ? 'bg-green-500 text-white' :
+                        index === currentStep ? 'bg-blue-500 text-white' :
+                        'bg-gray-200 text-gray-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                    }
+                  />
+                ))}
+              </Steps>
+            </div>
 
-          <div className="min-h-96">
-            {/* Step 1: Flight & Route Details */}
-            {currentStep === 0 && (
-              <div>
-                <Title level={4} className="!mb-6 text-blue-600">Flight & Route Details</Title>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="From"
-                      name="origin"
-                      rules={[{ required: true, message: 'Please select origin' }]}
-                    >
-                      <Select placeholder="Select origin airport">
-                        <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
-                        <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
-                        <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
-                        <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="To"
-                      name="destination"
-                      rules={[{ required: true, message: 'Please select destination' }]}
-                    >
-                      <Select placeholder="Select destination airport">
-                        <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
-                        <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
-                        <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
-                        <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Flight Date"
-                      name="flightDate"
-                      rules={[{ required: true, message: 'Please select flight date' }]}
-                    >
-                      <DatePicker className="w-full" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Flight Time"
-                      name="flightTime"
-                      rules={[{ required: true, message: 'Please select flight time' }]}
-                    >
-                      <TimePicker className="w-full" format="HH:mm" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            )}
+            {/* Step Content */}
+            <div className="min-h-[500px] bg-gray-50 rounded-lg p-6">
+              {/* Step 1: Flight & Route Details */}
+              {currentStep === 0 && (
+                <div>
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-1 h-6 bg-blue-500 rounded"></div>
+                      <Title level={4} className="!mb-0 text-blue-600">Flight & Route Details</Title>
+                    </div>
+                    <Text className="text-gray-500">Configure the basic flight information for bidding</Text>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Row gutter={[24, 24]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">From</span>}
+                          name="origin"
+                          rules={[{ required: true, message: 'Please select origin' }]}
+                        >
+                          <Select 
+                            placeholder="Select origin airport" 
+                            size="large"
+                            showSearch
+                            optionFilterProp="children"
+                          >
+                            <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
+                            <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
+                            <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
+                            <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">To</span>}
+                          name="destination"
+                          rules={[{ required: true, message: 'Please select destination' }]}
+                        >
+                          <Select 
+                            placeholder="Select destination airport" 
+                            size="large"
+                            showSearch
+                            optionFilterProp="children"
+                          >
+                            <Select.Option value="LAX">Los Angeles (LAX)</Select.Option>
+                            <Select.Option value="JFK">New York JFK (JFK)</Select.Option>
+                            <Select.Option value="ORD">Chicago O'Hare (ORD)</Select.Option>
+                            <Select.Option value="SFO">San Francisco (SFO)</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Flight Date</span>}
+                          name="flightDate"
+                          rules={[{ required: true, message: 'Please select flight date' }]}
+                        >
+                          <DatePicker className="w-full" size="large" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Flight Time</span>}
+                          name="flightTime"
+                          rules={[{ required: true, message: 'Please select flight time' }]}
+                        >
+                          <TimePicker className="w-full" format="HH:mm" size="large" />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              )}
 
-            {/* Step 2: Seat Configurations & Limits */}
-            {currentStep === 1 && (
-              <div>
-                <Title level={4} className="!mb-6 text-blue-600">Seat Configurations & Limits</Title>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="From Class"
-                      name="fromClass"
-                      rules={[{ required: true, message: 'Please select from class' }]}
-                    >
-                      <Select placeholder="Select class">
-                        <Select.Option value="Economy">Economy</Select.Option>
-                        <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                        <Select.Option value="Business">Business</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="To Class"
-                      name="toClass"
-                      rules={[{ required: true, message: 'Please select to class' }]}
-                    >
-                      <Select placeholder="Select class">
-                        <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                        <Select.Option value="Business">Business</Select.Option>
-                        <Select.Option value="First">First</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Maximum Bids"
-                      name="maxBids"
-                      rules={[{ required: true, message: 'Please enter maximum bids' }]}
-                    >
-                      <InputNumber min={1} className="w-full" placeholder="50" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Available Seats"
-                      name="availableSeats"
-                      rules={[{ required: true, message: 'Please enter available seats' }]}
-                    >
-                      <InputNumber min={1} className="w-full" placeholder="25" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            )}
+              {/* Step 2: Seat Configurations & Limits */}
+              {currentStep === 1 && (
+                <div>
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-1 h-6 bg-green-500 rounded"></div>
+                      <Title level={4} className="!mb-0 text-green-600">Seat Configurations & Limits</Title>
+                    </div>
+                    <Text className="text-gray-500">Set up seating classes and availability limits</Text>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Row gutter={[24, 24]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">From Class</span>}
+                          name="fromClass"
+                          rules={[{ required: true, message: 'Please select from class' }]}
+                        >
+                          <Select placeholder="Select class" size="large">
+                            <Select.Option value="Economy">Economy</Select.Option>
+                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                            <Select.Option value="Business">Business</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">To Class</span>}
+                          name="toClass"
+                          rules={[{ required: true, message: 'Please select to class' }]}
+                        >
+                          <Select placeholder="Select class" size="large">
+                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                            <Select.Option value="Business">Business</Select.Option>
+                            <Select.Option value="First">First</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Maximum Bids</span>}
+                          name="maxBids"
+                          rules={[{ required: true, message: 'Please enter maximum bids' }]}
+                        >
+                          <InputNumber min={1} className="w-full" placeholder="50" size="large" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Available Seats</span>}
+                          name="availableSeats"
+                          rules={[{ required: true, message: 'Please enter available seats' }]}
+                        >
+                          <InputNumber min={1} className="w-full" placeholder="25" size="large" />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              )}
 
-            {/* Step 3: Bid Pricing & Currency */}
-            {currentStep === 2 && (
-              <div>
-                <Title level={4} className="!mb-6 text-blue-600">Bid Pricing & Currency</Title>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Minimum Bid Amount"
-                      name="minBidAmount"
-                      rules={[{ required: true, message: 'Please enter minimum bid amount' }]}
-                    >
-                      <InputNumber 
-                        min={0} 
-                        className="w-full" 
-                        placeholder="100"
-                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Maximum Bid Amount"
-                      name="maxBidAmount"
-                      rules={[{ required: true, message: 'Please enter maximum bid amount' }]}
-                    >
-                      <InputNumber 
-                        min={0} 
-                        className="w-full" 
-                        placeholder="500"
-                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item
-                      label="Currency"
-                      name="currency"
-                      rules={[{ required: true, message: 'Please select currency' }]}
-                    >
-                      <Radio.Group>
-                        <Radio value="USD">USD - US Dollar</Radio>
-                        <Radio value="EUR">EUR - Euro</Radio>
-                        <Radio value="GBP">GBP - British Pound</Radio>
-                      </Radio.Group>
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            )}
+              {/* Step 3: Bid Pricing & Currency */}
+              {currentStep === 2 && (
+                <div>
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-1 h-6 bg-purple-500 rounded"></div>
+                      <Title level={4} className="!mb-0 text-purple-600">Bid Pricing & Currency</Title>
+                    </div>
+                    <Text className="text-gray-500">Configure pricing parameters and currency settings</Text>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Row gutter={[24, 24]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Minimum Bid Amount</span>}
+                          name="minBidAmount"
+                          rules={[{ required: true, message: 'Please enter minimum bid amount' }]}
+                        >
+                          <InputNumber 
+                            min={0} 
+                            className="w-full" 
+                            placeholder="100"
+                            size="large"
+                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Maximum Bid Amount</span>}
+                          name="maxBidAmount"
+                          rules={[{ required: true, message: 'Please enter maximum bid amount' }]}
+                        >
+                          <InputNumber 
+                            min={0} 
+                            className="w-full" 
+                            placeholder="500"
+                            size="large"
+                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={24}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Currency</span>}
+                          name="currency"
+                          rules={[{ required: true, message: 'Please select currency' }]}
+                        >
+                          <Radio.Group className="w-full">
+                            <Space direction="vertical" className="w-full">
+                              <Radio value="USD" className="w-full p-3 border rounded-lg hover:bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">USD - US Dollar</span>
+                                  <span className="text-gray-500">$</span>
+                                </div>
+                              </Radio>
+                              <Radio value="EUR" className="w-full p-3 border rounded-lg hover:bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">EUR - Euro</span>
+                                  <span className="text-gray-500">€</span>
+                                </div>
+                              </Radio>
+                              <Radio value="GBP" className="w-full p-3 border rounded-lg hover:bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">GBP - British Pound</span>
+                                  <span className="text-gray-500">£</span>
+                                </div>
+                              </Radio>
+                            </Space>
+                          </Radio.Group>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              )}
 
-            {/* Step 4: Bidding Schedule & Rules */}
-            {currentStep === 3 && (
-              <div>
-                <Title level={4} className="!mb-6 text-blue-600">Bidding Schedule & Rules</Title>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Bidding Start Time"
-                      name="biddingStartTime"
-                      rules={[{ required: true, message: 'Please select start time' }]}
-                    >
-                      <DatePicker showTime className="w-full" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Bidding End Time"
-                      name="biddingEndTime"
-                      rules={[{ required: true, message: 'Please select end time' }]}
-                    >
-                      <DatePicker showTime className="w-full" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item
-                      label="Auto Accept Rules"
-                      name="autoAcceptRules"
-                    >
-                      <Checkbox.Group>
-                        <Row>
-                          <Col span={24}>
-                            <Checkbox value="highestBid">Auto-accept highest valid bid</Checkbox>
-                          </Col>
-                          <Col span={24}>
-                            <Checkbox value="minimumThreshold">Auto-accept bids above minimum threshold</Checkbox>
-                          </Col>
-                          <Col span={24}>
-                            <Checkbox value="firstComeFirstServe">First come, first serve basis</Checkbox>
-                          </Col>
-                        </Row>
-                      </Checkbox.Group>
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            )}
+              {/* Step 4: Bidding Schedule & Rules */}
+              {currentStep === 3 && (
+                <div>
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-1 h-6 bg-orange-500 rounded"></div>
+                      <Title level={4} className="!mb-0 text-orange-600">Bidding Schedule & Rules</Title>
+                    </div>
+                    <Text className="text-gray-500">Set up timing and automated bidding rules</Text>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Row gutter={[24, 24]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Bidding Start Time</span>}
+                          name="biddingStartTime"
+                          rules={[{ required: true, message: 'Please select start time' }]}
+                        >
+                          <DatePicker showTime className="w-full" size="large" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Bidding End Time</span>}
+                          name="biddingEndTime"
+                          rules={[{ required: true, message: 'Please select end time' }]}
+                        >
+                          <DatePicker showTime className="w-full" size="large" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={24}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Auto Accept Rules</span>}
+                          name="autoAcceptRules"
+                        >
+                          <div className="space-y-3">
+                            <Checkbox.Group className="w-full">
+                              <div className="space-y-3">
+                                <div className="p-4 border rounded-lg hover:bg-gray-50">
+                                  <Checkbox value="highestBid" className="w-full">
+                                    <div>
+                                      <span className="font-medium">Auto-accept highest valid bid</span>
+                                      <p className="text-sm text-gray-500 mt-1">Automatically accept the highest bid that meets minimum requirements</p>
+                                    </div>
+                                  </Checkbox>
+                                </div>
+                                <div className="p-4 border rounded-lg hover:bg-gray-50">
+                                  <Checkbox value="minimumThreshold" className="w-full">
+                                    <div>
+                                      <span className="font-medium">Auto-accept bids above minimum threshold</span>
+                                      <p className="text-sm text-gray-500 mt-1">Accept any bid that exceeds the minimum threshold amount</p>
+                                    </div>
+                                  </Checkbox>
+                                </div>
+                                <div className="p-4 border rounded-lg hover:bg-gray-50">
+                                  <Checkbox value="firstComeFirstServe" className="w-full">
+                                    <div>
+                                      <span className="font-medium">First come, first serve basis</span>
+                                      <p className="text-sm text-gray-500 mt-1">Accept bids in the order they are received</p>
+                                    </div>
+                                  </Checkbox>
+                                </div>
+                              </div>
+                            </Checkbox.Group>
+                          </div>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              )}
 
-            {/* Step 5: Fleet, Terms & Conditions */}
-            {currentStep === 4 && (
-              <div>
-                <Title level={4} className="!mb-6 text-blue-600">Fleet, Terms & Conditions</Title>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Fleet Type"
-                      name="fleetType"
-                      rules={[{ required: true, message: 'Please select fleet type' }]}
-                    >
-                      <Select placeholder="Select fleet type">
-                        <Select.Option value="Boeing 737">Boeing 737</Select.Option>
-                        <Select.Option value="Airbus A320">Airbus A320</Select.Option>
-                        <Select.Option value="Boeing 777">Boeing 777</Select.Option>
-                        <Select.Option value="Airbus A350">Airbus A350</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Cancellation Policy"
-                      name="cancellationPolicy"
-                      rules={[{ required: true, message: 'Please select cancellation policy' }]}
-                    >
-                      <Select placeholder="Select policy">
-                        <Select.Option value="flexible">Flexible - Full refund</Select.Option>
-                        <Select.Option value="standard">Standard - 50% refund</Select.Option>
-                        <Select.Option value="strict">Strict - No refund</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item
-                      label="Special Notes"
-                      name="specialNotes"
-                    >
-                      <Input.TextArea 
-                        rows={4} 
-                        placeholder="Enter any special terms, conditions, or notes for this bid..."
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            )}
-          </div>
-
-          <Divider />
-
-          {/* Modal Footer */}
-          <div className="flex justify-between">
-            <div>
-              {currentStep > 0 && (
-                <Button onClick={handlePrev}>
-                  Previous
-                </Button>
+              {/* Step 5: Fleet, Terms & Conditions */}
+              {currentStep === 4 && (
+                <div>
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-1 h-6 bg-red-500 rounded"></div>
+                      <Title level={4} className="!mb-0 text-red-600">Fleet, Terms & Conditions</Title>
+                    </div>
+                    <Text className="text-gray-500">Final configuration and terms setup</Text>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Row gutter={[24, 24]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Fleet Type</span>}
+                          name="fleetType"
+                          rules={[{ required: true, message: 'Please select fleet type' }]}
+                        >
+                          <Select placeholder="Select fleet type" size="large">
+                            <Select.Option value="Boeing 737">Boeing 737</Select.Option>
+                            <Select.Option value="Airbus A320">Airbus A320</Select.Option>
+                            <Select.Option value="Boeing 777">Boeing 777</Select.Option>
+                            <Select.Option value="Airbus A350">Airbus A350</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Cancellation Policy</span>}
+                          name="cancellationPolicy"
+                          rules={[{ required: true, message: 'Please select cancellation policy' }]}
+                        >
+                          <Select placeholder="Select policy" size="large">
+                            <Select.Option value="flexible">Flexible - Full refund</Select.Option>
+                            <Select.Option value="standard">Standard - 50% refund</Select.Option>
+                            <Select.Option value="strict">Strict - No refund</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={24}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Special Notes</span>}
+                          name="specialNotes"
+                        >
+                          <Input.TextArea 
+                            rows={6} 
+                            placeholder="Enter any special terms, conditions, or notes for this bid..."
+                            className="rounded-lg"
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
               )}
             </div>
-            <div className="space-x-2">
-              <Button onClick={handleModalCancel}>
-                Cancel
-              </Button>
-              {currentStep < steps.length - 1 && (
-                <Button type="primary" onClick={handleNext}>
-                  Next
+
+            {/* Navigation Footer */}
+            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+              <div>
+                {currentStep > 0 && (
+                  <Button size="large" onClick={handlePrev} className="px-6">
+                    <span className="mr-2">←</span>
+                    Previous
+                  </Button>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <Button size="large" onClick={handleModalCancel} className="px-6">
+                  Cancel
                 </Button>
-              )}
-              {currentStep === steps.length - 1 && (
-                <Button type="primary" onClick={() => form.submit()}>
-                  Create Bid
-                </Button>
-              )}
+                {currentStep < steps.length - 1 ? (
+                  <Button type="primary" size="large" onClick={handleNext} className="px-6 bg-blue-600 hover:bg-blue-700">
+                    Next
+                    <span className="ml-2">→</span>
+                  </Button>
+                ) : (
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    onClick={() => form.submit()}
+                    className="px-8 bg-green-600 hover:bg-green-700"
+                  >
+                    <PlusOutlined className="mr-2" />
+                    Create Bid
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </Form>
+          </Form>
+        </div>
       </Modal>
 
       <style jsx global>{`
@@ -1919,17 +2048,113 @@ export default function BidManagement() {
           border-color: #3b82f6;
         }
 
-        .ant-modal-header {
+        .modern-modal .ant-modal-header {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
+          border-bottom: none;
+          padding: 0;
         }
 
-        .ant-modal-title {
+        .modern-modal .ant-modal-title {
           color: white !important;
         }
 
-        .ant-modal-close-x {
+        .modern-modal .ant-modal-close-x {
           color: white !important;
+          font-size: 18px;
+          top: 20px;
+          right: 24px;
+        }
+
+        .modern-modal .ant-modal-content {
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .modern-modal .ant-modal-body {
+          padding: 0;
+        }
+
+        .custom-steps .ant-steps-item {
+          overflow: visible;
+        }
+
+        .custom-steps .ant-steps-item-title {
+          margin-top: 8px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .custom-steps .ant-steps-item-icon {
+          margin-right: 0;
+        }
+
+        .ant-radio-wrapper {
+          border: 1px solid transparent;
+          border-radius: 8px;
+          padding: 12px;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          width: 100%;
+        }
+
+        .ant-radio-wrapper:hover {
+          background-color: #f8fafc;
+          border-color: #e2e8f0;
+        }
+
+        .ant-radio-wrapper-checked {
+          background-color: #eff6ff;
+          border-color: #3b82f6;
+        }
+
+        .ant-checkbox-wrapper {
+          border: 1px solid transparent;
+          border-radius: 8px;
+          padding: 12px;
+          margin: 0;
+          display: flex;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        .ant-checkbox-wrapper:hover {
+          background-color: #f8fafc;
+          border-color: #e2e8f0;
+        }
+
+        .ant-checkbox-wrapper-checked {
+          background-color: #eff6ff;
+          border-color: #3b82f6;
+        }
+
+        .ant-form-item-label > label {
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .ant-select-selector,
+        .ant-picker,
+        .ant-input-number,
+        .ant-input {
+          border-radius: 8px !important;
+          border: 2px solid #e5e7eb !important;
+        }
+
+        .ant-select-selector:hover,
+        .ant-picker:hover,
+        .ant-input-number:hover,
+        .ant-input:hover {
+          border-color: #3b82f6 !important;
+        }
+
+        .ant-select-focused .ant-select-selector,
+        .ant-picker-focused,
+        .ant-input-number-focused,
+        .ant-input-focused {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
       `}</style>
     </div>
