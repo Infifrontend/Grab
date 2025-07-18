@@ -946,7 +946,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -979,7 +979,7 @@ export default function AdminDashboard() {
 
       <div className="flex">
         {/* Sidebar - Made sticky */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-0 shadow-xl z-30">
           <div className="p-6">
             <nav className="space-y-2">
               <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
