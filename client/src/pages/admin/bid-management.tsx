@@ -193,8 +193,8 @@ export default function BidManagement() {
       content: 'pricing',
     },
     {
-      title: 'Bidding Schedule & Rules',
-      content: 'schedule',
+      title: 'Fare Terms & Ancillaries',
+      content: 'fare-terms',
     },
     {
       title: 'Fleet, Terms & Conditions',
@@ -1960,72 +1960,84 @@ export default function BidManagement() {
                 </div>
               )}
 
-              {/* Step 4: Bidding Schedule & Rules */}
+              {/* Step 4: Fare Terms & Ancillaries */}
               {currentStep === 3 && (
                 <div>
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="w-1 h-5 bg-orange-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-orange-600">Bidding Schedule & Rules</Title>
+                      <Title level={5} className="!mb-0 text-orange-600">Fare Terms & Ancillaries</Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Set up timing and automated bidding rules</Text>
+                    <Text className="text-gray-500 text-sm">Configure fare type, baggage allowance, and additional services</Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Bidding Start Time</span>}
-                          name="biddingStartTime"
-                          rules={[{ required: true, message: 'Please select start time' }]}
+                          label={<span className="font-semibold text-gray-700">Fare Type</span>}
+                          name="fareType"
+                          rules={[{ required: true, message: 'Please select fare type' }]}
                         >
-                          <DatePicker showTime className="w-full" size="large" />
+                          <Select placeholder="Select fare type" size="large">
+                            <Select.Option value="Economy">Economy</Select.Option>
+                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                            <Select.Option value="Business Class">Business Class</Select.Option>
+                            <Select.Option value="First Class">First Class</Select.Option>
+                            <Select.Option value="Flexible Fare">Flexible Fare</Select.Option>
+                            <Select.Option value="Restricted Fare">Restricted Fare</Select.Option>
+                          </Select>
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Bidding End Time</span>}
-                          name="biddingEndTime"
-                          rules={[{ required: true, message: 'Please select end time' }]}
+                          label={<span className="font-semibold text-gray-700">Baggage Allowance (kg)</span>}
+                          name="baggageAllowance"
+                          rules={[{ required: true, message: 'Please enter baggage allowance' }]}
                         >
-                          <DatePicker showTime className="w-full" size="large" />
+                          <InputNumber min={0} max={100} className="w-full" placeholder="20" size="large" />
                         </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-semibold text-gray-700">Cancellation Terms</span>}
+                          name="cancellationTerms"
+                          rules={[{ required: true, message: 'Please select cancellation terms' }]}
+                        >
+                          <Select placeholder="Select cancellation terms" size="large">
+                            <Select.Option value="Flexible - Free cancellation">Flexible - Free cancellation</Select.Option>
+                            <Select.Option value="Standard - 24h free cancellation">Standard - 24h free cancellation</Select.Option>
+                            <Select.Option value="Restricted - Cancellation fee applies">Restricted - Cancellation fee applies</Select.Option>
+                            <Select.Option value="Non-refundable">Non-refundable</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <div className="pt-8">
+                          <Form.Item
+                            name="mealIncluded"
+                            valuePropName="checked"
+                            className="!mb-2"
+                          >
+                            <Checkbox className="text-base font-semibold text-gray-700">
+                              Meal Included
+                            </Checkbox>
+                          </Form.Item>
+                          <Text className="text-gray-500 text-sm">
+                            Check if meal service is included with this fare
+                          </Text>
+                        </div>
                       </Col>
                       <Col span={24}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Auto Accept Rules</span>}
-                          name="autoAcceptRules"
+                          label={<span className="font-semibold text-gray-700">Other Notes</span>}
+                          name="otherNotes"
                         >
-                          <div className="space-y-3">
-                            <Checkbox.Group className="w-full">
-                              <div className="space-y-3">
-                                <div className="p-4 border rounded-lg hover:bg-gray-50">
-                                  <Checkbox value="highestBid" className="w-full">
-                                    <div>
-                                      <span className="font-medium">Auto-accept highest valid bid</span>
-                                      <p className="text-sm text-gray-500 mt-1">Automatically accept the highest bid that meets minimum requirements</p>
-                                    </div>
-                                  </Checkbox>
-                                </div>
-                                <div className="p-4 border rounded-lg hover:bg-gray-50">
-                                  <Checkbox value="minimumThreshold" className="w-full">
-                                    <div>
-                                      <span className="font-medium">Auto-accept bids above minimum threshold</span>
-                                      <p className="text-sm text-gray-500 mt-1">Accept any bid that exceeds the minimum threshold amount</p>
-                                    </div>
-                                  </Checkbox>
-                                </div>
-                                <div className="p-4 border rounded-lg hover:bg-gray-50">
-                                  <Checkbox value="firstComeFirstServe" className="w-full">
-                                    <div>
-                                      <span className="font-medium">First come, first serve basis</span>
-                                      <p className="text-sm text-gray-500 mt-1">Accept bids in the order they are received</p>
-                                    </div>
-                                  </Checkbox>
-                                </div>
-                              </div>
-                            </Checkbox.Group>
-                          </div>
+                          <Input.TextArea 
+                            rows={4} 
+                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, events), special conditions, or other relevant information..."
+                            className="rounded-lg"
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
