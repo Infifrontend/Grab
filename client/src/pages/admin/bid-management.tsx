@@ -513,16 +513,6 @@ export default function BidManagement() {
 
           {/* Main Content Area */}
           <div className="bg-white rounded-lg shadow-sm">
-            {/* Section Headers */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <div>
-                  <Title level={3} className="!mb-1">Bid Management</Title>
-                  <Text className="text-gray-500">Manage passenger upgrade bids and bidding configurations</Text>
-                </div>
-              </div>
-            </div>
-
             {/* Navigation Tabs */}
             <Tabs 
               activeKey={activeTab} 
