@@ -59,7 +59,8 @@ export default function QuickBookingForm() {
   const searchMutation = useMutation({
     mutationFn: async (searchData: SearchFormData) => {
       // Convert Date objects to ISO strings for API
-      const totalPassengers = searchData.adults + searchData.kids + searchData.infants;
+      const totalPassengers =
+        searchData.adults + searchData.kids + searchData.infants;
       const apiData = {
         origin: searchData.origin,
         destination: searchData.destination,
@@ -75,7 +76,7 @@ export default function QuickBookingForm() {
     onSuccess: (data) => {
       console.log("Search results:", data);
       // Store search results in localStorage for the results page
-      localStorage.setItem('searchResults', JSON.stringify(data.flights || []));
+      localStorage.setItem("searchResults", JSON.stringify(data.flights || []));
       message.success(`Found ${data.flights?.length || 0} flights!`);
       setLocation("/flight-search-results");
     },
@@ -87,11 +88,17 @@ export default function QuickBookingForm() {
 
   const quickBookMutation = useMutation({
     mutationFn: async (bookingData: any) => {
-      const response = await apiRequest("POST", "/api/flight-bookings", bookingData);
+      const response = await apiRequest(
+        "POST",
+        "/api/flight-bookings",
+        bookingData,
+      );
       return response.json();
     },
     onSuccess: (data) => {
-      message.success(`Booking created! Reference: ${data.booking.bookingReference}`);
+      message.success(
+        `Booking created! Reference: ${data.booking.bookingReference}`,
+      );
       setLocation(`/booking-details?ref=${data.booking.bookingReference}`);
     },
     onError: (error) => {
@@ -107,7 +114,8 @@ export default function QuickBookingForm() {
     }
 
     // Validate at least one adult passenger is required
-    const totalPassengers = (values.adults || 0) + (values.kids || 0) + (values.infants || 0);
+    const totalPassengers =
+      (values.adults || 0) + (values.kids || 0) + (values.infants || 0);
     if (totalPassengers === 0 || (values.adults || 0) === 0) {
       message.error("At least one adult passenger is required");
       return;
@@ -115,18 +123,23 @@ export default function QuickBookingForm() {
 
     try {
       // First search for available flights from database
-      const totalPassengers = (values.adults || 1) + (values.kids || 0) + (values.infants || 0);
+      const totalPassengers =
+        (values.adults || 1) + (values.kids || 0) + (values.infants || 0);
       const searchData = {
         origin: values.origin,
         destination: values.destination,
-        departureDate: values.departureDate.format('YYYY-MM-DD'),
-        returnDate: values.returnDate?.format('YYYY-MM-DD') || null,
+        departureDate: values.departureDate.format("YYYY-MM-DD"),
+        returnDate: values.returnDate?.format("YYYY-MM-DD") || null,
         passengers: totalPassengers,
-        cabin: values.cabin || 'economy',
+        cabin: values.cabin || "economy",
         tripType: tripType,
       };
 
-      const searchResponse = await apiRequest("POST", "/api/search", searchData);
+      const searchResponse = await apiRequest(
+        "POST",
+        "/api/search",
+        searchData,
+      );
       const searchResult = await searchResponse.json();
 
       if (!searchResult.flights || searchResult.flights.length === 0) {
@@ -135,25 +148,37 @@ export default function QuickBookingForm() {
       }
 
       // Store search results and criteria for the flight search bundle page
-      localStorage.setItem('searchResults', JSON.stringify(searchResult.flights));
-      localStorage.setItem('searchCriteria', JSON.stringify(searchData));
-      localStorage.setItem('passengerCount', totalPassengers.toString());
+      localStorage.setItem(
+        "searchResults",
+        JSON.stringify(searchResult?.flights),
+      );
+      localStorage.setItem(
+        "returnFlights",
+        JSON.stringify(searchResult?.returnFlights),
+      );
+      localStorage.setItem("searchCriteria", JSON.stringify(searchData));
+      localStorage.setItem("passengerCount", totalPassengers.toString());
 
       // Store all form data for consistent booking flow
-      localStorage.setItem('bookingFormData', JSON.stringify({
-        origin: values.origin,
-        destination: values.destination,
-        departureDate: values.departureDate,
-        returnDate: values.returnDate,
-        tripType: tripType,  // Use the tripType state instead of values.tripType
-        adults: values.adults,
-        kids: values.kids,
-        infants: values.infants,
-        cabin: values.cabin,
-        totalPassengers
-      }));
+      localStorage.setItem(
+        "bookingFormData",
+        JSON.stringify({
+          origin: values.origin,
+          destination: values.destination,
+          departureDate: values.departureDate,
+          returnDate: values.returnDate,
+          tripType: tripType, // Use the tripType state instead of values.tripType
+          adults: values.adults,
+          kids: values.kids,
+          infants: values.infants,
+          cabin: values.cabin,
+          totalPassengers,
+        }),
+      );
 
-      message.success(`Found ${searchResult.flights.length} flights! Redirecting to flight selection...`);
+      message.success(
+        `Found ${searchResult.flights.length} flights! Redirecting to flight selection...`,
+      );
 
       // Navigate to flight search bundle page
       setLocation("/flight-search-bundle");
@@ -162,8 +187,6 @@ export default function QuickBookingForm() {
       message.error("Flight search failed. Please try again.");
     }
   };
-
-
 
   return (
     <Card className="h-fit">
@@ -214,7 +237,9 @@ export default function QuickBookingForm() {
                 placeholder="Search city / airport"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                  (option?.value ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
                 suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
                 notFoundContent="No locations found"
@@ -238,7 +263,9 @@ export default function QuickBookingForm() {
                 placeholder="Search city / airport"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                  (option?.value ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
                 suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
                 notFoundContent="No locations found"
@@ -257,25 +284,27 @@ export default function QuickBookingForm() {
         <Row gutter={16} className="mb-4">
           <Col span={12}>
             <Form.Item
-                label="Departure date *"
-                name="departureDate"
-                rules={[
-                  { required: true, message: "Please select departure date" },
-                ]}
-              >
-                <DatePicker 
-                  className="w-full" 
-                  placeholder="DD MMM YYYY"
-                  format="DD MMM YYYY"
-                  suffixIcon={<CalendarOutlined className="text-gray-400" />}
-                  disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
-                />
-              </Form.Item>
+              label="Departure date *"
+              name="departureDate"
+              rules={[
+                { required: true, message: "Please select departure date" },
+              ]}
+            >
+              <DatePicker
+                className="w-full"
+                placeholder="DD MMM YYYY"
+                format="DD MMM YYYY"
+                suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                disabledDate={(current) =>
+                  current && current.isBefore(new Date(), "day")
+                }
+              />
+            </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="Return date" name="returnDate">
-              <DatePicker 
-                className="w-full" 
+              <DatePicker
+                className="w-full"
                 placeholder="DD MMM YYYY"
                 format="DD MMM YYYY"
                 disabled={tripType === "oneWay"}
@@ -297,11 +326,7 @@ export default function QuickBookingForm() {
                   Adults (12+ years)
                 </label>
                 <Form.Item name="adults" initialValue={0} className="mb-0">
-                  <InputNumber
-                    min={0}
-                    className="w-full"
-                    placeholder="0"
-                  />
+                  <InputNumber min={0} className="w-full" placeholder="0" />
                 </Form.Item>
               </div>
             </Col>
@@ -311,11 +336,7 @@ export default function QuickBookingForm() {
                   Kids (2-11 years)
                 </label>
                 <Form.Item name="kids" initialValue={0} className="mb-0">
-                  <InputNumber
-                    min={0}
-                    className="w-full"
-                    placeholder="0"
-                  />
+                  <InputNumber min={0} className="w-full" placeholder="0" />
                 </Form.Item>
               </div>
             </Col>
@@ -325,11 +346,7 @@ export default function QuickBookingForm() {
                   Infants (0-2 years)
                 </label>
                 <Form.Item name="infants" initialValue={0} className="mb-0">
-                  <InputNumber
-                    min={0}
-                    className="w-full"
-                    placeholder="0"
-                  />
+                  <InputNumber min={0} className="w-full" placeholder="0" />
                 </Form.Item>
               </div>
             </Col>
@@ -337,7 +354,12 @@ export default function QuickBookingForm() {
         </div>
 
         {/* Cabin */}
-        <Form.Item label="Cabin *" name="cabin" initialValue="economy" className="mb-6">
+        <Form.Item
+          label="Cabin *"
+          name="cabin"
+          initialValue="economy"
+          className="mb-6"
+        >
           <Select placeholder="Select cabin class">
             <Option value="economy">Economy</Option>
             <Option value="business">Business</Option>
@@ -352,7 +374,11 @@ export default function QuickBookingForm() {
           loading={searchMutation.isPending || quickBookMutation.isPending}
           className="w-full infiniti-btn-primary"
         >
-          {searchMutation.isPending ? "Searching Flights..." : quickBookMutation.isPending ? "Creating Booking..." : "Search & Book Flight"}
+          {searchMutation.isPending
+            ? "Searching Flights..."
+            : quickBookMutation.isPending
+              ? "Creating Booking..."
+              : "Search Flight"}
         </Button>
       </Form>
     </Card>

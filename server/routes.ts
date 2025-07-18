@@ -1,19 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
-  insertSearchRequestSchema, 
-  insertBookingSchema, 
-  insertFlightBookingSchema, 
+import {
+  insertSearchRequestSchema,
+  insertBookingSchema,
+  insertFlightBookingSchema,
   insertPassengerSchema,
   insertBidSchema,
-  insertPaymentSchema 
+  insertPaymentSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-
   // Get all deals
   app.get("/api/deals", async (_req, res) => {
     try {
@@ -39,7 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bookings", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bookings = await storage.getBookings(userId ? parseInt(userId as string) : undefined);
+      const bookings = await storage.getBookings(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch bookings" });
@@ -50,10 +51,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/flight-locations", async (req, res) => {
     try {
       const flights = await storage.getFlights("", "", undefined); // Fetch all flights
-      
+
       // Extract unique locations from origin and destination
       const locations = new Set<string>();
-      flights.forEach(flight => {
+      flights.forEach((flight) => {
         locations.add(flight.origin);
         locations.add(flight.destination);
       });
@@ -77,34 +78,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outboundFlights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
-        searchData.departureDate
+        searchData.departureDate,
       );
 
       let returnFlights = [];
-      
+
       // If it's a round trip, also search for return flights
-      if (searchData.tripType === 'roundTrip' && searchData.returnDate) {
+      if (searchData.tripType === "roundTrip" && searchData.returnDate) {
         returnFlights = await storage.getReturnFlights(
-          searchData.origin,
           searchData.destination,
-          searchData.returnDate
+          searchData.origin,
+          searchData.returnDate,
         );
-        console.log(`Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`);
+        console.log(
+          `Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`,
+        );
       }
 
-      console.log(`Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`);
+      console.log(
+        `Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
+      );
       console.log("Outbound flight data sample:", outboundFlights.slice(0, 2));
 
-      res.json({ 
+      res.json({
         flights: outboundFlights,
         returnFlights: returnFlights,
         tripType: searchData.tripType,
-        message: "Search completed successfully" 
+        message: "Search completed successfully",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error("Search validation error:", error.errors);
-        res.status(400).json({ message: "Invalid search data", errors: error.errors });
+        res
+          .status(400)
+          .json({ message: "Invalid search data", errors: error.errors });
       } else {
         console.error("Search error:", error);
         res.status(500).json({ message: "Search failed" });
@@ -119,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const flights = await storage.getFlights(
         origin as string,
         destination as string,
-        departureDate ? new Date(departureDate as string) : undefined
+        departureDate ? new Date(departureDate as string) : undefined,
       );
       res.json(flights);
     } catch (error) {
@@ -153,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
         totalAmount: totalAmount.toString(),
         bookingStatus: "pending",
-        paymentStatus: "pending"
+        paymentStatus: "pending",
       };
 
       const booking = await storage.createFlightBooking(bookingData);
@@ -163,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const passenger of passengers) {
           await storage.createPassenger({
             ...passenger,
-            bookingId: booking.id
+            bookingId: booking.id,
           });
         }
       }
@@ -171,14 +178,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update flight availability
       await storage.updateFlightSeats(flightId, passengerCount);
 
-      res.json({ 
-        booking, 
+      res.json({
+        booking,
         flight,
-        message: "Booking created successfully" 
+        message: "Booking created successfully",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid booking data", errors: error.errors });
+        res
+          .status(400)
+          .json({ message: "Invalid booking data", errors: error.errors });
       } else {
         console.error("Booking error:", error);
         res.status(500).json({ message: "Booking creation failed" });
@@ -190,7 +199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/flight-bookings", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bookings = await storage.getFlightBookings(userId ? parseInt(userId as string) : undefined);
+      const bookings = await storage.getFlightBookings(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch flight bookings" });
@@ -203,7 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recentBookings = await storage.getRecentFlightBookings(5);
       res.json(recentBookings);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch recent flight bookings" });
+      res
+        .status(500)
+        .json({ message: "Failed to fetch recent flight bookings" });
     }
   });
 
@@ -229,20 +242,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/booking-details/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Try to find in flight bookings first by booking reference
       let booking = await storage.getFlightBookingByReference(id);
       let passengers = [];
       let flightData = null;
       let comprehensiveData = null;
-      
+
       if (booking) {
         // Get passengers for this booking
         passengers = await storage.getPassengersByBooking(booking.id);
-        
+
         // Get flight details
         flightData = await storage.getFlight(booking.flightId);
-        
+
         // Parse comprehensive booking data from specialRequests if available
         if (booking.specialRequests) {
           try {
@@ -251,23 +264,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // If parsing fails, ignore and use basic data
           }
         }
-        
-        return res.json({ 
-          booking, 
-          passengers, 
+
+        return res.json({
+          booking,
+          passengers,
           flightData,
-          comprehensiveData
+          comprehensiveData,
         });
       }
-      
+
       // If not found by reference, try by ID
       const allFlightBookings = await storage.getFlightBookings();
-      const flightBookingById = allFlightBookings.find(b => b.id.toString() === id);
-      
+      const flightBookingById = allFlightBookings.find(
+        (b) => b.id.toString() === id,
+      );
+
       if (flightBookingById) {
         passengers = await storage.getPassengersByBooking(flightBookingById.id);
         flightData = await storage.getFlight(flightBookingById.flightId);
-        
+
         if (flightBookingById.specialRequests) {
           try {
             comprehensiveData = JSON.parse(flightBookingById.specialRequests);
@@ -275,30 +290,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // If parsing fails, ignore and use basic data
           }
         }
-        
-        return res.json({ 
-          booking: flightBookingById, 
-          passengers, 
+
+        return res.json({
+          booking: flightBookingById,
+          passengers,
           flightData,
-          comprehensiveData
+          comprehensiveData,
         });
       }
-      
+
       // If not found in flight bookings, try legacy bookings
       const legacyBookings = await storage.getBookings();
-      const legacyBooking = legacyBookings.find(b => 
-        b.id.toString() === id || b.bookingId === id
+      const legacyBooking = legacyBookings.find(
+        (b) => b.id.toString() === id || b.bookingId === id,
       );
-      
+
       if (legacyBooking) {
-        return res.json({ 
-          booking: legacyBooking, 
-          passengers: [], 
+        return res.json({
+          booking: legacyBooking,
+          passengers: [],
           flightData: null,
-          comprehensiveData: null
+          comprehensiveData: null,
         });
       }
-      
+
       res.status(404).json({ message: "Booking not found" });
     } catch (error) {
       console.error("Error fetching booking details:", error);
@@ -310,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/group-bookings", async (req, res) => {
     try {
       console.log("Received group booking request");
-      
+
       const {
         bookingData,
         flightData,
@@ -319,29 +334,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupLeaderData,
         paymentData,
         passengerData,
-        bookingSummary
+        bookingSummary,
       } = req.body;
 
       // Validate required data
       if (!bookingData && !paymentData) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Missing required booking data" 
+          message: "Missing required booking data",
         });
       }
 
-      const passengerCount = bookingData?.totalPassengers || 
-                           paymentData?.passengerCount || 
-                           (passengerData ? passengerData.length : 1);
-      
-      const totalAmount = bookingSummary?.totalAmount || 
-                         paymentData?.totalAmount || 
-                         "0";
+      const passengerCount =
+        bookingData?.totalPassengers ||
+        paymentData?.passengerCount ||
+        (passengerData ? passengerData.length : 1);
+
+      const totalAmount =
+        bookingSummary?.totalAmount || paymentData?.totalAmount || "0";
 
       console.log("Creating comprehensive group booking:", {
         passengerCount,
         totalAmount,
-        paymentMethod: paymentData?.paymentMethod
+        paymentMethod: paymentData?.paymentMethod,
       });
 
       // Generate unique booking reference
@@ -362,8 +377,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
         totalAmount: totalAmount.toString(),
         bookingStatus: "confirmed",
-        paymentStatus: paymentData?.paymentMethod === "bankTransfer" ? "pending" : "pending",
-        specialRequests: `Group Type: ${groupLeaderData?.groupType || 'N/A'}, Services: ${selectedServices?.map(s => s.name).join(', ') || 'None'}`
+        paymentStatus:
+          paymentData?.paymentMethod === "bankTransfer" ? "pending" : "pending",
+        specialRequests: `Group Type: ${groupLeaderData?.groupType || "N/A"}, Services: ${selectedServices?.map((s) => s.name).join(", ") || "None"}`,
       };
 
       console.log("Creating booking with data:", mainBooking);
@@ -372,22 +388,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Booking created successfully:", booking);
 
       // Add passengers if provided
-      if (passengerData && Array.isArray(passengerData) && passengerData.length > 0) {
+      if (
+        passengerData &&
+        Array.isArray(passengerData) &&
+        passengerData.length > 0
+      ) {
         console.log(`Adding ${passengerData.length} passengers`);
         for (const passenger of passengerData) {
           try {
             await storage.createPassenger({
               bookingId: booking.id,
-              title: passenger.title || 'Mr',
-              firstName: passenger.firstName || 'Unknown',
-              lastName: passenger.lastName || 'Unknown',
-              dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth) : new Date('1990-01-01'),
-              nationality: passenger.nationality || 'Indian',
+              title: passenger.title || "Mr",
+              firstName: passenger.firstName || "Unknown",
+              lastName: passenger.lastName || "Unknown",
+              dateOfBirth: passenger.dateOfBirth
+                ? new Date(passenger.dateOfBirth)
+                : new Date("1990-01-01"),
+              nationality: passenger.nationality || "Indian",
               passportNumber: passenger.passportNumber || null,
-              passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry) : null,
+              passportExpiry: passenger.passportExpiry
+                ? new Date(passenger.passportExpiry)
+                : null,
               seatPreference: passenger.seatPreference || null,
               mealPreference: passenger.mealPreference || null,
-              specialAssistance: passenger.specialAssistance || null
+              specialAssistance: passenger.specialAssistance || null,
             });
           } catch (passengerError) {
             console.error("Error creating passenger:", passengerError);
@@ -408,11 +432,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentInfo: paymentData || {},
           pricingSummary: bookingSummary || {},
           createdAt: new Date().toISOString(),
-          status: 'confirmed'
+          status: "confirmed",
         };
 
         await storage.updateBookingDetails(booking.id, {
-          specialRequests: JSON.stringify(comprehensiveBookingData)
+          specialRequests: JSON.stringify(comprehensiveBookingData),
         });
         console.log("Comprehensive data stored successfully");
       } catch (storageError) {
@@ -420,24 +444,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail the entire booking for this
       }
 
-      res.json({ 
+      res.json({
         success: true,
         booking,
         bookingReference,
-        message: "Group booking created successfully" 
+        message: "Group booking created successfully",
       });
     } catch (error) {
       console.error("Group booking creation error:", error);
-      
+
       let errorMessage = "Failed to create group booking";
       if (error.message) {
         errorMessage = `Failed to create group booking: ${error.message}`;
       }
-      
-      res.status(500).json({ 
+
+      res.status(500).json({
         success: false,
         message: errorMessage,
-        error: error.message || "Unknown error"
+        error: error.message || "Unknown error",
       });
     }
   });
@@ -450,7 +474,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(booking);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid booking data", errors: error.errors });
+        res
+          .status(400)
+          .json({ message: "Invalid booking data", errors: error.errors });
       } else {
         res.status(500).json({ message: "Booking creation failed" });
       }
@@ -461,7 +487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bids/statistics", async (req, res) => {
     try {
       const { userId } = req.query;
-      const stats = await storage.getBidStatistics(userId ? parseInt(userId as string) : undefined);
+      const stats = await storage.getBidStatistics(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(stats);
     } catch (error) {
       console.error("Error fetching bid statistics:", error);
@@ -473,7 +501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bids = await storage.getBids(userId ? parseInt(userId as string) : undefined);
+      const bids = await storage.getBids(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(bids);
     } catch (error) {
       console.error("Error fetching bids:", error);
@@ -489,7 +519,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(bid);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid bid data", errors: error.errors });
+        res
+          .status(400)
+          .json({ message: "Invalid bid data", errors: error.errors });
       } else {
         console.error("Bid creation error:", error);
         res.status(500).json({ message: "Bid creation failed" });
@@ -517,15 +549,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.migrateToDomesticFlights();
 
-      res.json({ 
-        success: true, 
-        message: "Successfully migrated to domestic flights only" 
+      res.json({
+        success: true,
+        message: "Successfully migrated to domestic flights only",
       });
     } catch (error) {
-      console.error('Migration error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: "Failed to migrate flights" 
+      console.error("Migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to migrate flights",
       });
     }
   });
@@ -533,18 +565,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add return flights for round trip support
   app.post("/api/add-return-flights", async (_req, res) => {
     try {
-      const { addReturnFlights } = await import('./add-return-flights');
+      const { addReturnFlights } = await import("./add-return-flights");
       await addReturnFlights();
 
-      res.json({ 
-        success: true, 
-        message: "Return flights added successfully" 
+      res.json({
+        success: true,
+        message: "Return flights added successfully",
       });
     } catch (error) {
-      console.error('Return flights migration error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: "Failed to add return flights" 
+      console.error("Return flights migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to add return flights",
       });
     }
   });
@@ -553,15 +585,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/seed-payment-data", async (_req, res) => {
     try {
       await storage.seedPaymentData();
-      res.json({ 
-        success: true, 
-        message: "Payment data seeded successfully" 
+      res.json({
+        success: true,
+        message: "Payment data seeded successfully",
       });
     } catch (error) {
-      console.error('Payment data seeding error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: "Failed to seed payment data" 
+      console.error("Payment data seeding error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to seed payment data",
       });
     }
   });
@@ -576,7 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let booking = await storage.getFlightBookingByReference(id);
       if (!booking) {
         const allFlightBookings = await storage.getFlightBookings();
-        booking = allFlightBookings.find(b => b.id.toString() === id);
+        booking = allFlightBookings.find((b) => b.id.toString() === id);
       }
 
       if (!booking) {
@@ -599,17 +631,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: groupLeaderName,
         email: groupLeaderEmail,
         phone: groupLeaderPhone,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       // Save back to database
       await storage.updateBookingDetails(booking.id, {
-        specialRequests: JSON.stringify(comprehensiveData)
+        specialRequests: JSON.stringify(comprehensiveData),
       });
 
-      res.json({ 
-        success: true, 
-        message: "Group leader information updated successfully" 
+      res.json({
+        success: true,
+        message: "Group leader information updated successfully",
       });
     } catch (error) {
       console.error("Error updating booking details:", error);
@@ -627,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let booking = await storage.getFlightBookingByReference(id);
       if (!booking) {
         const allFlightBookings = await storage.getFlightBookings();
-        booking = allFlightBookings.find(b => b.id.toString() === id);
+        booking = allFlightBookings.find((b) => b.id.toString() === id);
       }
 
       if (!booking) {
@@ -635,27 +667,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get existing passengers
-      const existingPassengers = await storage.getPassengersByBooking(booking.id);
+      const existingPassengers = await storage.getPassengersByBooking(
+        booking.id,
+      );
 
       // Update existing passengers or create new ones
       for (let i = 0; i < passengers.length; i++) {
         const passengerData = passengers[i];
-        
+
         if (existingPassengers[i]) {
           // Update existing passenger
           await storage.updatePassenger(existingPassengers[i].id, {
             firstName: passengerData.firstName,
-            lastName: passengerData.lastName
+            lastName: passengerData.lastName,
           });
         } else {
           // Create new passenger
           await storage.createPassenger({
             bookingId: booking.id,
-            title: 'Mr',
+            title: "Mr",
             firstName: passengerData.firstName,
             lastName: passengerData.lastName,
-            dateOfBirth: new Date('1990-01-01'), // Default date
-            nationality: 'Indian' // Default nationality
+            dateOfBirth: new Date("1990-01-01"), // Default date
+            nationality: "Indian", // Default nationality
           });
         }
       }
@@ -670,9 +704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the booking's passenger count to match the actual number of passengers
       await storage.updateBookingPassengerCount(booking.id, passengers.length);
 
-      res.json({ 
-        success: true, 
-        message: "Passengers updated successfully" 
+      res.json({
+        success: true,
+        message: "Passengers updated successfully",
       });
     } catch (error) {
       console.error("Error updating passengers:", error);
@@ -684,7 +718,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/payments/statistics", async (req, res) => {
     try {
       const { userId } = req.query;
-      const stats = await storage.getPaymentStatistics(userId ? parseInt(userId as string) : undefined);
+      const stats = await storage.getPaymentStatistics(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(stats);
     } catch (error) {
       console.error("Error fetching payment statistics:", error);
@@ -698,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId, status } = req.query;
       const payments = await storage.getPayments(
         userId ? parseInt(userId as string) : undefined,
-        status as string
+        status as string,
       );
       res.json(payments);
     } catch (error) {
@@ -711,7 +747,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/payments/schedule", async (req, res) => {
     try {
       const { userId } = req.query;
-      const schedule = await storage.getPaymentSchedule(userId ? parseInt(userId as string) : undefined);
+      const schedule = await storage.getPaymentSchedule(
+        userId ? parseInt(userId as string) : undefined,
+      );
       res.json(schedule);
     } catch (error) {
       console.error("Error fetching payment schedule:", error);
@@ -727,7 +765,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(payment);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid payment data", errors: error.errors });
+        res
+          .status(400)
+          .json({ message: "Invalid payment data", errors: error.errors });
       } else {
         console.error("Payment creation error:", error);
         res.status(500).json({ message: "Payment creation failed" });
