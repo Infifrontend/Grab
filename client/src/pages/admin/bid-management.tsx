@@ -5,17 +5,19 @@ import {
   Tabs,
   Row,
   Col,
-  Statistic,
   Button,
   Typography,
   Space,
   Badge,
   Timeline,
-  Progress,
   Breadcrumb,
   Avatar,
   Dropdown,
-  MenuProps
+  MenuProps,
+  Input,
+  Layout,
+  Drawer,
+  Grid
 } from 'antd';
 import {
   DashboardOutlined,
@@ -32,16 +34,25 @@ import {
   ExclamationCircleOutlined,
   UserOutlined,
   BellOutlined,
-  HomeOutlined
+  HomeOutlined,
+  SearchOutlined,
+  MenuOutlined,
+  LogoutOutlined,
+  NotificationOutlined
 } from '@ant-design/icons';
 import { useLocation } from "wouter";
 
 const { Title, Text } = Typography;
+const { Header, Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 export default function BidManagement() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false);
+  const screens = useBreakpoint();
 
   useEffect(() => {
     // Check if admin is logged in
@@ -61,12 +72,12 @@ export default function BidManagement() {
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
-      label: 'Profile',
+      label: 'Profile Settings',
       icon: <UserOutlined />,
     },
     {
-      key: 'settings',
-      label: 'Settings',
+      key: 'preferences',
+      label: 'Preferences',
       icon: <SettingOutlined />,
     },
     {
@@ -74,7 +85,8 @@ export default function BidManagement() {
     },
     {
       key: 'logout',
-      label: 'Logout',
+      label: 'Sign Out',
+      icon: <LogoutOutlined />,
       onClick: handleLogout,
     },
   ];
@@ -83,7 +95,7 @@ export default function BidManagement() {
     {
       key: 'dashboard',
       label: (
-        <span>
+        <span className="flex items-center gap-2">
           <DashboardOutlined />
           Dashboard
         </span>
@@ -92,7 +104,7 @@ export default function BidManagement() {
     {
       key: 'active-bids',
       label: (
-        <span>
+        <span className="flex items-center gap-2">
           <ClockCircleOutlined />
           Active Bids
         </span>
@@ -101,7 +113,7 @@ export default function BidManagement() {
     {
       key: 'bid-setup',
       label: (
-        <span>
+        <span className="flex items-center gap-2">
           <SettingOutlined />
           Bid Setup
         </span>
@@ -110,7 +122,7 @@ export default function BidManagement() {
     {
       key: 'payments',
       label: (
-        <span>
+        <span className="flex items-center gap-2">
           <CreditCardOutlined />
           Payments
         </span>
@@ -119,7 +131,7 @@ export default function BidManagement() {
     {
       key: 'history',
       label: (
-        <span>
+        <span className="flex items-center gap-2">
           <HistoryOutlined />
           History
         </span>
@@ -154,309 +166,384 @@ export default function BidManagement() {
     }
   ];
 
+  const sidebarItems = [
+    {
+      key: 'dashboard',
+      icon: '📊',
+      label: 'Dashboard',
+      path: '/admin/dashboard'
+    },
+    {
+      key: 'offers',
+      icon: '🎯',
+      label: 'Offers Management',
+      path: '/admin/offer-management'
+    },
+    {
+      key: 'bids',
+      icon: '📋',
+      label: 'Bid Management',
+      path: '/admin/bid-management',
+      active: true
+    },
+    {
+      key: 'bookings',
+      icon: '📅',
+      label: 'Bookings Management',
+      path: '/admin/bookings'
+    },
+    {
+      key: 'cms',
+      icon: '⚙️',
+      label: 'CMS Management',
+      path: '/admin/cms'
+    },
+    {
+      key: 'reports',
+      icon: '📈',
+      label: 'Reports & Analytics',
+      path: '/admin/reports'
+    },
+    {
+      key: 'settings',
+      icon: '🔧',
+      label: 'System Settings',
+      path: '/admin/admin-settings'
+    }
+  ];
+
+  const renderSidebarContent = () => (
+    <div className="h-full flex flex-col">
+      {/* Logo Section */}
+      <div className="p-6 border-b border-slate-700/50">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-sm">GR</span>
+          </div>
+          {!sidebarCollapsed && (
+            <div>
+              <Text className="text-white font-semibold text-base block leading-tight">GROUP RETAIL</Text>
+              <Text className="text-slate-300 text-xs">ADMIN PORTAL</Text>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        <nav className="space-y-1">
+          {sidebarItems.map((item) => (
+            <div
+              key={item.key}
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 group ${
+                item.active
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+              onClick={() => item.path && setLocation(item.path)}
+            >
+              <div className={`w-5 h-5 flex items-center justify-center ${
+                item.active ? 'text-white' : 'text-current'
+              }`}>
+                <span className="text-sm">{item.icon}</span>
+              </div>
+              {!sidebarCollapsed && (
+                <Text className={`font-medium ${
+                  item.active ? 'text-white' : 'text-current'
+                }`}>
+                  {item.label}
+                </Text>
+              )}
+            </div>
+          ))}
+        </nav>
+      </div>
+
+      {/* User Info */}
+      {!sidebarCollapsed && (
+        <div className="p-4 border-t border-slate-700/50">
+          <div className="flex items-center space-x-3 mb-3">
+            <Avatar size={32} className="bg-gradient-to-r from-blue-500 to-purple-600">
+              JD
+            </Avatar>
+            <div className="flex-1">
+              <Text className="text-white font-medium text-sm block">John Doe</Text>
+              <Text className="text-slate-300 text-xs">System Admin</Text>
+            </div>
+          </div>
+          <Button 
+            type="text" 
+            onClick={handleLogout}
+            className="w-full text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200 rounded-lg"
+            size="small"
+            icon={<LogoutOutlined />}
+          >
+            Sign Out
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   const renderDashboardContent = () => (
-    <div className="space-y-6">
-      {/* Overview and Insights Row */}
-      <Row gutter={[24, 24]}>
-        <Col span={12}>
-          <Title level={4} className="!mb-4">Overview</Title>
-        </Col>
-        <Col span={12}>
-          <Title level={4} className="!mb-4">Insights</Title>
-        </Col>
-      </Row>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Title level={3} className="!mb-2 text-gray-900 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-lg">📋</span>
+              </div>
+              Dashboard Overview
+            </Title>
+            <Text className="text-gray-600">Monitor bid performance and manage configurations</Text>
+          </div>
+          <Space>
+            <Button type="primary" icon={<PlusOutlined />} className="shadow-lg">
+              Create New Bid
+            </Button>
+            <Button icon={<BarChartOutlined />}>
+              Generate Report
+            </Button>
+          </Space>
+        </div>
+      </div>
 
       {/* Statistics Cards */}
       <Row gutter={[24, 24]}>
-        {/* Active Bids */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Active Bids</Text>
-              <ClockCircleOutlined className="text-blue-500" />
+        {[
+          {
+            title: 'Active Bids',
+            value: '3',
+            subtitle: 'Awaiting response',
+            icon: <ClockCircleOutlined className="text-blue-500" />,
+            color: 'blue',
+            gradient: 'from-blue-500 to-blue-600'
+          },
+          {
+            title: 'Bid Types',
+            value: '1',
+            subtitle: 'Active configurations',
+            icon: <SettingOutlined className="text-purple-500" />,
+            color: 'purple',
+            gradient: 'from-purple-500 to-purple-600'
+          },
+          {
+            title: 'Monthly Revenue',
+            value: '$47,250',
+            subtitle: '+15.3% this month',
+            icon: <RiseOutlined className="text-green-500" />,
+            color: 'green',
+            gradient: 'from-green-500 to-green-600',
+            trend: '+15.3%'
+          },
+          {
+            title: 'Acceptance Rate',
+            value: '72%',
+            subtitle: '+2.1% this month',
+            icon: <BarChartOutlined className="text-orange-500" />,
+            color: 'orange',
+            gradient: 'from-orange-500 to-orange-600',
+            trend: '+2.1%'
+          },
+          {
+            title: 'Avg Bid Value',
+            value: '$185',
+            subtitle: '+5.7% this month',
+            icon: <BarChartOutlined className="text-cyan-500" />,
+            color: 'cyan',
+            gradient: 'from-cyan-500 to-cyan-600',
+            trend: '+5.7%'
+          },
+          {
+            title: 'Pending Review',
+            value: '1',
+            subtitle: 'Require attention',
+            icon: <ExclamationCircleOutlined className="text-red-500" />,
+            color: 'red',
+            gradient: 'from-red-500 to-red-600',
+            urgent: true
+          }
+        ].map((stat, index) => (
+          <Col xs={24} sm={12} lg={8} xl={4} key={index}>
+            <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`w-12 h-12 bg-gradient-to-r ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+                  {stat.icon}
+                </div>
+                {stat.trend && (
+                  <div className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                    <ArrowUpOutlined className="text-xs mr-1" />
+                    <Text className="text-xs font-medium">{stat.trend}</Text>
+                  </div>
+                )}
+              </div>
+              <div>
+                <Text className="text-gray-500 text-sm block mb-1">{stat.title}</Text>
+                <Title level={3} className={`!mb-1 ${stat.urgent ? 'text-red-500' : 'text-gray-900'}`}>
+                  {stat.value}
+                </Title>
+                <Text className="text-gray-500 text-xs">{stat.subtitle}</Text>
+              </div>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {/* Quick Actions & Recent Activity */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={12}>
+          <Card className="h-full shadow-lg border-0">
+            <Title level={4} className="!mb-4 flex items-center gap-2">
+              <span className="text-lg">⚡</span>
+              Quick Actions
+            </Title>
+            <Text className="text-gray-600 mb-6 block">
+              Frequently used bid management tasks
+            </Text>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { icon: <PlusOutlined />, title: 'Create New Bid', color: 'bg-blue-500', desc: 'Start a new bidding process' },
+                { icon: <EyeOutlined />, title: 'Review Pending Bids', color: 'bg-orange-500', desc: 'Check bids awaiting approval' },
+                { icon: <BarChartOutlined />, title: 'Generate Report', color: 'bg-green-500', desc: 'Export performance analytics' }
+              ].map((action, index) => (
+                <Button
+                  key={index}
+                  size="large"
+                  className="h-auto p-4 text-left border-2 border-gray-100 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center text-white`}>
+                      {action.icon}
+                    </div>
+                    <div>
+                      <Text className="font-medium text-gray-900 block">{action.title}</Text>
+                      <Text className="text-gray-500 text-sm">{action.desc}</Text>
+                    </div>
+                  </div>
+                </Button>
+              ))}
             </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold">3</span>
-            </div>
-            <Text className="text-gray-500 text-sm">Awaiting response</Text>
           </Card>
         </Col>
 
-        {/* Bid Types */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Bid Types</Text>
-              <SettingOutlined className="text-blue-500" />
-            </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold">1</span>
-            </div>
-            <Text className="text-gray-500 text-sm">Active configurations</Text>
-          </Card>
-        </Col>
-
-        {/* Monthly Revenue */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Monthly Revenue</Text>
-              <RiseOutlined className="text-green-500" />
-            </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold">$47,250</span>
-            </div>
-            <div className="flex items-center">
-              <ArrowUpOutlined className="text-green-500 text-xs mr-1" />
-              <Text className="text-green-500 text-sm">15.3% this month</Text>
-            </div>
-          </Card>
-        </Col>
-
-        {/* Acceptance Rate */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Acceptance Rate</Text>
-              <BarChartOutlined className="text-blue-500" />
-            </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold">72%</span>
-            </div>
-            <div className="flex items-center">
-              <ArrowUpOutlined className="text-green-500 text-xs mr-1" />
-              <Text className="text-green-500 text-sm">2.1% this month</Text>
-            </div>
-          </Card>
-        </Col>
-
-        {/* Average Bid Value */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Avg Bid Value</Text>
-              <BarChartOutlined className="text-blue-500" />
-            </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold">$185</span>
-            </div>
-            <div className="flex items-center">
-              <ArrowUpOutlined className="text-green-500 text-xs mr-1" />
-              <Text className="text-green-500 text-sm">5.7% this month</Text>
-            </div>
-          </Card>
-        </Col>
-
-        {/* Pending Review */}
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-2">
-              <Text className="text-gray-600">Pending Review</Text>
-              <ExclamationCircleOutlined className="text-orange-500" />
-            </div>
-            <div className="mb-1">
-              <span className="text-2xl font-bold text-red-500">1</span>
-            </div>
-            <Text className="text-gray-500 text-sm">Require attention</Text>
+        <Col xs={24} lg={12}>
+          <Card className="h-full shadow-lg border-0">
+            <Title level={4} className="!mb-4 flex items-center gap-2">
+              <span className="text-lg">🕐</span>
+              Recent Bid Activity
+            </Title>
+            <Text className="text-gray-600 mb-6 block">
+              Latest bid submissions and responses
+            </Text>
+            
+            <Timeline className="mt-4">
+              {recentActivities.map((activity, index) => (
+                <Timeline.Item
+                  key={index}
+                  dot={
+                    <div 
+                      className="w-3 h-3 rounded-full shadow-sm" 
+                      style={{ backgroundColor: activity.color }}
+                    />
+                  }
+                >
+                  <div className="pb-4">
+                    <Text className="text-gray-900 font-medium block mb-1">{activity.title}</Text>
+                    <Text className="text-gray-500 text-sm">{activity.time}</Text>
+                  </div>
+                </Timeline.Item>
+              ))}
+            </Timeline>
           </Card>
         </Col>
       </Row>
-
-      {/* Quick Actions */}
-      <Card>
-        <Title level={4} className="!mb-2">Quick Actions</Title>
-        <Text className="text-gray-600 mb-4 block">
-          Frequently used bid management tasks
-        </Text>
-        
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}>
-            <Button 
-              type="primary" 
-              size="large" 
-              icon={<PlusOutlined />}
-              className="w-full h-12"
-            >
-              Create New Bid
-            </Button>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Button 
-              size="large" 
-              icon={<EyeOutlined />}
-              className="w-full h-12"
-            >
-              Review Pending Bids
-            </Button>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Button 
-              size="large" 
-              icon={<BarChartOutlined />}
-              className="w-full h-12"
-            >
-              Generate Report
-            </Button>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Recent Bid Activity */}
-      <Card>
-        <Title level={4} className="!mb-2">Recent Bid Activity</Title>
-        <Text className="text-gray-600 mb-4 block">
-          Latest bid submissions and responses
-        </Text>
-        
-        <Timeline>
-          {recentActivities.map((activity, index) => (
-            <Timeline.Item
-              key={index}
-              dot={<div className="w-2 h-2 rounded-full" style={{ backgroundColor: activity.color }} />}
-            >
-              <div className="flex justify-between items-start">
-                <Text className="text-gray-900">{activity.title}</Text>
-                <Text className="text-gray-500 text-sm">{activity.time}</Text>
-              </div>
-            </Timeline.Item>
-          ))}
-        </Timeline>
-      </Card>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">GR</span>
-                </div>
-                <div>
-                  <Text className="text-gray-600 text-sm font-medium">GROUP RETAIL</Text>
-                  <br />
-                  <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge count={1} size="small">
-                <BellOutlined className="text-gray-500 text-lg" />
-              </Badge>
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <div className="flex items-center space-x-2 cursor-pointer">
-                  <Avatar size="small" className="bg-blue-600">
-                    JD
-                  </Avatar>
-                  <div className="text-right">
-                    <Text className="text-sm font-medium block">John Doe</Text>
-                    <Text className="text-xs text-gray-500">System Administrator</Text>
-                  </div>
-                </div>
-              </Dropdown>
-            </div>
-          </div>
+    <Layout className="min-h-screen bg-gray-50">
+      {/* Mobile Drawer */}
+      <Drawer
+        title={null}
+        placement="left"
+        onClose={() => setMobileDrawerVisible(false)}
+        open={mobileDrawerVisible}
+        bodyStyle={{ padding: 0 }}
+        width={280}
+        className="lg:hidden"
+      >
+        <div className="bg-gradient-to-b from-slate-900 to-slate-800 h-full">
+          {renderSidebarContent()}
         </div>
-      </div>
+      </Drawer>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
-          <div className="p-6">
-            <nav className="space-y-2">
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/dashboard')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📊</span>
-                </div>
-                <Text className="text-current">Dashboard</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/offer-management')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🎯</span>
-                </div>
-                <Text className="text-current">Offers Management</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                  <span className="text-blue-600 text-xs">📋</span>
-                </div>
-                <Text className="text-white font-medium">Bid Management</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/bookings')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📅</span>
-                </div>
-                <Text className="text-current">Bookings Management</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/cms')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">⚙️</span>
-                </div>
-                <Text className="text-current">CMS Management</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/reports')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📊</span>
-                </div>
-                <Text className="text-current">Reports & Analytics</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/admin-settings')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🔧</span>
-                </div>
-                <Text className="text-current">System Settings</Text>
-              </div>
-            </nav>
+      {/* Desktop Sidebar */}
+      <Sider
+        width={280}
+        collapsedWidth={80}
+        collapsed={sidebarCollapsed}
+        className="hidden lg:block bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl"
+        style={{ position: 'fixed', height: '100vh', left: 0, top: 0, zIndex: 100 }}
+      >
+        {renderSidebarContent()}
+      </Sider>
+
+      <Layout style={{ marginLeft: screens.lg ? (sidebarCollapsed ? 80 : 280) : 0 }}>
+        {/* Header */}
+        <Header className="bg-white shadow-lg border-b border-gray-100 px-6 h-16 flex items-center justify-between sticky top-0 z-50">
+          <div className="flex items-center gap-4">
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              onClick={() => {
+                if (screens.lg) {
+                  setSidebarCollapsed(!sidebarCollapsed);
+                } else {
+                  setMobileDrawerVisible(true);
+                }
+              }}
+              className="hover:bg-gray-100 rounded-lg"
+            />
+            
+            <Input
+              placeholder="Search bids, configurations..."
+              prefix={<SearchOutlined className="text-gray-400" />}
+              className="w-64 hidden sm:block rounded-lg border-gray-200"
+              size="middle"
+            />
           </div>
 
-          {/* User Info at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
-            <div className="flex items-center space-x-3">
-              <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
-                <span className="text-white font-medium">JD</span>
-              </Avatar>
-              <div className="flex-1">
-                <Text className="text-white font-medium block">John Doe</Text>
-                <Text className="text-slate-300 text-sm">System Admin</Text>
-              </div>
-            </div>
-            <Button 
-              type="text" 
-              onClick={handleLogout}
-              className="w-full mt-4 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
-              size="small"
-            >
-              Sign Out
-            </Button>
-          </div>
-        </div>
+          <div className="flex items-center gap-4">
+            <Badge count={3} size="small">
+              <Button
+                type="text"
+                icon={<NotificationOutlined />}
+                className="hover:bg-gray-100 rounded-lg"
+                size="middle"
+              />
+            </Badge>
 
-        {/* Main Content */}
-        <div className="flex-1 p-6">
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+              <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors">
+                <Avatar size={32} className="bg-gradient-to-r from-blue-500 to-purple-600">
+                  JD
+                </Avatar>
+                <div className="text-right hidden sm:block">
+                  <Text className="text-sm font-medium text-gray-900 block">John Doe</Text>
+                  <Text className="text-xs text-gray-500">System Administrator</Text>
+                </div>
+              </div>
+            </Dropdown>
+          </div>
+        </Header>
+
+        {/* Content */}
+        <Content className="p-6">
           {/* Breadcrumb */}
-          <Breadcrumb className="mb-4">
+          <Breadcrumb className="mb-6">
             <Breadcrumb.Item>
               <HomeOutlined />
               <span className="ml-1">Home</span>
@@ -464,30 +551,25 @@ export default function BidManagement() {
             <Breadcrumb.Item>Bid Management</Breadcrumb.Item>
           </Breadcrumb>
 
-          {/* Page Header */}
-          <div className="mb-6">
-            <Title level={2} className="!mb-1 text-gray-900">
-              Bid Management
-            </Title>
-            <Text className="text-gray-600">
-              Manage passenger upgrade bids and bidding configurations
-            </Text>
-          </div>
-
           {/* Navigation Tabs */}
-          <Tabs 
-            activeKey={activeTab} 
-            onChange={setActiveTab}
-            className="mb-6"
-            items={tabItems}
-          />
+          <Card className="mb-6 shadow-sm border-0">
+            <Tabs 
+              activeKey={activeTab} 
+              onChange={setActiveTab}
+              items={tabItems}
+              className="bid-management-tabs"
+            />
+          </Card>
 
           {/* Tab Content */}
           {activeTab === 'dashboard' && renderDashboardContent()}
           {activeTab !== 'dashboard' && (
-            <Card>
-              <div className="text-center py-12">
-                <Title level={4} className="text-gray-500">
+            <Card className="shadow-lg border-0">
+              <div className="text-center py-16">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">🚧</span>
+                </div>
+                <Title level={4} className="text-gray-500 !mb-2">
                   {tabItems.find(item => item.key === activeTab)?.label} Content
                 </Title>
                 <Text className="text-gray-400">
@@ -496,53 +578,73 @@ export default function BidManagement() {
               </div>
             </Card>
           )}
-        </div>
-      </div>
+        </Content>
+      </Layout>
 
       <style jsx global>{`
-        .ant-tabs-nav-list {
-          display: flex;
-          width: 100%;
+        .bid-management-tabs .ant-tabs-nav {
+          margin-bottom: 0;
         }
 
-        .ant-tabs-tab {
+        .bid-management-tabs .ant-tabs-tab {
           padding: 12px 20px;
           font-weight: 500;
-          flex: 1;
-          display: flex;
-          justify-content: center;
-          text-align: center;
+          border-radius: 8px 8px 0 0;
+          margin-right: 4px;
         }
 
-        .ant-tabs-tab .ant-tabs-tab-btn {
-          width: 100%;
-          text-align: center;
+        .bid-management-tabs .ant-tabs-tab-active {
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          color: white;
         }
 
-        .ant-tabs-tab-active {
-          background-color: #f8fafc;
-          border-bottom: 2px solid #3b82f6;
+        .bid-management-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: white;
         }
 
         .ant-card {
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          border: 1px solid #f1f5f9;
+          border-radius: 16px;
+          border: none;
         }
 
-        .ant-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .ant-card-body {
+          padding: 24px;
         }
 
-        .ant-progress-bg {
-          border-radius: 4px;
+        .ant-timeline-item-tail {
+          border-left: 2px solid #f0f0f0;
         }
 
-        .ant-progress-inner {
-          border-radius: 4px;
-          background-color: #f1f5f9;
+        .ant-timeline-item-content {
+          margin-left: 20px;
+        }
+
+        .ant-btn {
+          border-radius: 8px;
+          font-weight: 500;
+        }
+
+        .ant-btn-primary {
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          border: none;
+        }
+
+        .ant-input {
+          border-radius: 8px;
+        }
+
+        .ant-breadcrumb {
+          padding: 0;
+        }
+
+        .ant-breadcrumb-link {
+          color: #6b7280;
+        }
+
+        .ant-layout-sider-trigger {
+          display: none;
         }
       `}</style>
-    </div>
+    </Layout>
   );
 }
