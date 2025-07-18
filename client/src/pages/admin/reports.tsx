@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -456,7 +455,7 @@ export default function Reports() {
                   <Card title="Booking Processing Time">
                     <div className="space-y-4">
                       <div className="flex justify-between">
-                        <Text>Instant (< 1 min)</Text>
+                        <Text>Instant (&lt; 1 min)</Text>
                         <Text strong>67%</Text>
                       </div>
                       <Progress percent={67} strokeColor="#52c41a" />
@@ -474,7 +473,7 @@ export default function Reports() {
                       <Progress percent={8} strokeColor="#faad14" />
 
                       <div className="flex justify-between">
-                        <Text>Slow (> 15 min)</Text>
+                        <Text>Slow (&gt; 15 min)</Text>
                         <Text strong>2%</Text>
                       </div>
                       <Progress percent={2} strokeColor="#ff4d4f" />
@@ -514,8 +513,8 @@ export default function Reports() {
                         <Text className="text-gray-600">Customer Satisfaction</Text>
                       </div>
 
-                      <div className="text-center p-4 bg-green-50 rounded">
-                        <Text className="text-2xl font-bold text-green-600 block">< 2h</Text>
+                      <div className="text-center p-4 bg-blue-50 rounded">
+                        <Text className="text-2xl font-bold text-blue-600 block">&lt; 2h</Text>
                         <Text className="text-gray-600">Avg Response Time</Text>
                       </div>
 
