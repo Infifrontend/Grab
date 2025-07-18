@@ -26,7 +26,7 @@ import {
   PlusOutlined,
   EyeOutlined,
   BarChartOutlined,
-  TrendingUpOutlined,
+  RiseOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
   ExclamationCircleOutlined,
@@ -259,7 +259,7 @@ export default function BidManagement() {
                 <Card className="h-full">
                   <div className="flex items-center justify-between mb-2">
                     <Text className="text-gray-600">Monthly Revenue</Text>
-                    <TrendingUpOutlined className="text-green-500" />
+                    <RiseOutlined className="text-green-500" />
                   </div>
                   <div className="mb-1">
                     <span className="text-2xl font-bold">$47,250</span>
