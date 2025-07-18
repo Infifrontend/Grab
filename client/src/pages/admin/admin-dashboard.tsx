@@ -651,41 +651,292 @@ export default function AdminDashboard() {
 
   const renderInsightsForecastsContent = () => (
     <>
+      {/* AI-Powered Insights & Real-time Alerts */}
       <Row gutter={[24, 24]} className="mb-8">
-        <Col xs={24} lg={16}>
-          <Card className="chart-card">
-            <div className="mb-6">
-              <Title level={4} className="!mb-1 text-gray-900">Booking Forecast</Title>
-              <Text className="text-gray-500">Predicted vs actual booking trends</Text>
+        <Col xs={24} lg={12}>
+          <Card className="insights-card">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 text-lg">🤖</span>
+              </div>
+              <Title level={4} className="!mb-0 text-gray-900">AI-Powered Insights</Title>
             </div>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={forecastData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Line type="monotone" dataKey="actual" stroke="#4F46E5" strokeWidth={3} dot={{ fill: '#4F46E5', r: 6 }} />
-                  <Line type="monotone" dataKey="predicted" stroke="#10B981" strokeWidth={3} strokeDasharray="5 5" dot={{ fill: '#10B981', r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
+            <Text className="text-gray-600 mb-6">Machine learning predictions and recommendations</Text>
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">💡</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Peak Season Optimization</Text>
+                    <Text className="text-gray-600 text-sm">Increase pricing on LAX-JFK route by 15% during Q4 for optimal revenue</Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">💼</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Offer Recommendation</Text>
+                    <Text className="text-gray-600 text-sm">Launch premium meal bundles on weekend flights for 23% higher conversion</Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">📈</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Growth Opportunity</Text>
+                    <Text className="text-gray-600 text-sm">Expand group bookings marketing to corporate segment for 31% revenue boost</Text>
+                  </div>
+                </div>
+              </div>
             </div>
           </Card>
         </Col>
-        <Col xs={24} lg={8}>
-          <Card className="stats-card">
-            <div className="space-y-6">
-              <div className="text-center">
-                <TrophyOutlined className="text-4xl text-yellow-500 mb-2" />
-                <Title level={4} className="!mb-1">Performance Score</Title>
-                <Text className="text-3xl font-bold text-green-600">94.2</Text>
-                <Text className="text-gray-500 block">Out of 100</Text>
+
+        <Col xs={24} lg={12}>
+          <Card className="insights-card">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <span className="text-orange-600 text-lg">⚡</span>
               </div>
-              <Divider />
-              <div>
-                <Text className="text-gray-600 block mb-2">Next Month Prediction</Text>
-                <Text className="text-2xl font-bold text-blue-600">+15.3%</Text>
-                <Text className="text-gray-500 block">Growth expected</Text>
+              <Title level={4} className="!mb-0 text-gray-900">Real-time Alerts</Title>
+            </div>
+            <Text className="text-gray-600 mb-6">Important trends and anomalies</Text>
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">⚠️</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Booking Decline Alert</Text>
+                    <Text className="text-gray-600 text-sm">15% drop in MIA-SFO bookings detected this week</Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">📊</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Revenue Surge</Text>
+                    <Text className="text-gray-600 text-sm">Premium meal offers showing 34% above-expected performance</Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-white text-xs">📈</span>
+                  </div>
+                  <div>
+                    <Text className="font-semibold text-gray-900 block mb-1">Market Trend</Text>
+                    <Text className="text-gray-600 text-sm">Business travel segment recovery accelerating faster than predicted</Text>
+                  </div>
+                </div>
               </div>
             </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Forecast Charts */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Bookings Forecast</Title>
+              <Text className="text-gray-500">Predicted booking volumes for next 4 quarters</Text>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { quarter: 'Q1 2025', bookings: 240 },
+                  { quarter: 'Q2 2025', bookings: 280 },
+                  { quarter: 'Q3 2025', bookings: 320 },
+                  { quarter: 'Q4 2025', bookings: 300 }
+                ]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="quarter" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <Bar dataKey="bookings" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="text-center mt-4">
+              <Text className="text-blue-600 font-medium">Average Confidence: 87%</Text>
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card className="chart-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Revenue Forecast</Title>
+              <Text className="text-gray-500">Projected revenue for upcoming quarters</Text>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={[
+                  { quarter: 'Q1 2025', revenue: 750000 },
+                  { quarter: 'Q2 2025', revenue: 850000 },
+                  { quarter: 'Q3 2025', revenue: 950000 },
+                  { quarter: 'Q4 2025', revenue: 900000 }
+                ]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="quarter" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs text-gray-500"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10B981" 
+                    fill="#A7F3D0" 
+                    fillOpacity={0.6}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="text-center mt-4">
+              <Text className="text-green-600 font-medium">Average Confidence: 83%</Text>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Route Demand Predictions */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24}>
+          <Card className="insights-card">
+            <div className="mb-6">
+              <Title level={4} className="!mb-1 text-gray-900">Route Demand Predictions</Title>
+              <Text className="text-gray-500">AI-powered demand forecasting and risk assessment</Text>
+            </div>
+            
+            <div className="space-y-4">
+              {[
+                { route: 'LAX → JFK', seasonality: 'High Seasonality', demand: 89, growth: 23.5, risk: 'Low' },
+                { route: 'ORD → LAX', seasonality: 'Medium Seasonality', demand: 76, growth: 18.2, risk: 'Low' },
+                { route: 'MIA → SFO', seasonality: 'Medium Seasonality', demand: 72, growth: 15.8, risk: 'Medium' },
+                { route: 'DEN → BOS', seasonality: 'Low Seasonality', demand: 68, growth: 12.4, risk: 'Medium' }
+              ].map((route, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <span className="text-blue-600 text-lg">✈️</span>
+                    </div>
+                    <div>
+                      <Text className="font-semibold text-gray-900 text-base block">{route.route}</Text>
+                      <Text className="text-gray-500 text-sm">📊 {route.seasonality}</Text>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-8">
+                    <div className="text-center">
+                      <Text className="text-gray-500 text-sm block">Current Demand</Text>
+                      <Text className="font-bold text-gray-900 text-lg">{route.demand}%</Text>
+                    </div>
+                    
+                    <div className="text-center">
+                      <Text className="text-gray-500 text-sm block">Predicted Growth</Text>
+                      <Text className="font-bold text-green-600 text-lg">+{route.growth}%</Text>
+                    </div>
+                    
+                    <div className="text-center">
+                      <Text className="text-gray-500 text-sm block">Risk Level</Text>
+                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                        route.risk === 'Low' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {route.risk}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Predictive Analytics Summary */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24}>
+          <Card className="insights-card">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 text-lg">🔮</span>
+              </div>
+              <Title level={4} className="!mb-0 text-gray-900">Predictive Analytics Summary</Title>
+            </div>
+            <Text className="text-gray-600 mb-6">Key insights and recommendations for the next quarter</Text>
+            
+            <Row gutter={[32, 24]}>
+              <Col xs={24} md={8}>
+                <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                      <RiseOutlined className="text-white text-xl" />
+                    </div>
+                  </div>
+                  <Text className="text-3xl font-bold text-green-600 block">+23%</Text>
+                  <Text className="text-gray-600 font-medium">Expected Revenue Growth</Text>
+                </div>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                      <UserOutlined className="text-white text-xl" />
+                    </div>
+                  </div>
+                  <Text className="text-3xl font-bold text-blue-600 block">89%</Text>
+                  <Text className="text-gray-600 font-medium">Forecast Accuracy Rate</Text>
+                </div>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <div className="text-center p-6 bg-purple-50 rounded-xl border border-purple-200">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                      <GiftOutlined className="text-white text-xl" />
+                    </div>
+                  </div>
+                  <Text className="text-3xl font-bold text-purple-600 block">12</Text>
+                  <Text className="text-gray-600 font-medium">Optimization Opportunities</Text>
+                </div>
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
@@ -728,46 +979,46 @@ export default function AdminDashboard() {
 
       <div className="flex">
         {/* Sidebar - Made sticky */}
-        <div className="w-64 bg-blue-600 min-h-screen sticky top-[73px]">
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
           <div className="p-6">
             <nav className="space-y-2">
-              <div className="flex items-center space-x-3 text-white bg-blue-700 rounded-lg px-4 py-3">
+              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                   <span className="text-blue-600 text-xs">📊</span>
                 </div>
                 <Text className="text-white font-medium">Dashboard</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
                 </div>
                 <Text className="text-current">Offer Management</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📋</span>
                 </div>
                 <Text className="text-current">Bid Management</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📅</span>
                 </div>
                 <Text className="text-current">Bookings</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">⚙️</span>
                 </div>
                 <Text className="text-current">CMS</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🔧</span>
                 </div>
                 <Text className="text-current">Admin Settings</Text>
               </div>
-              <div className="flex items-center space-x-3 text-blue-200 hover:text-white px-4 py-3 rounded-lg hover:bg-blue-700 cursor-pointer">
+              <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
@@ -777,20 +1028,20 @@ export default function AdminDashboard() {
           </div>
           
           {/* User Info at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-blue-500">
+          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
             <div className="flex items-center space-x-3">
-              <Avatar size="small" className="bg-blue-800">
+              <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
                 <span className="text-white font-medium">JD</span>
               </Avatar>
               <div className="flex-1">
                 <Text className="text-white font-medium block">John Doe</Text>
-                <Text className="text-blue-200 text-sm">System Admin</Text>
+                <Text className="text-slate-300 text-sm">System Admin</Text>
               </div>
             </div>
             <Button 
               type="text" 
               onClick={handleLogout}
-              className="w-full mt-4 text-blue-200 hover:text-white hover:bg-blue-700"
+              className="w-full mt-4 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
               size="small"
             >
               Sign Out
@@ -887,6 +1138,18 @@ export default function AdminDashboard() {
           border-radius: 16px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
           border: 1px solid #f1f5f9;
+        }
+
+        .insights-card {
+          border-radius: 16px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border: 1px solid #f1f5f9;
+          transition: all 0.3s ease;
+        }
+
+        .insights-card:hover {
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
         }
 
         .routes-card {
