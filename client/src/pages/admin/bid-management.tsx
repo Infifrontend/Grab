@@ -1702,9 +1702,9 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">From</span>}
+                          label={<span className="font-semibold text-gray-700">Origin Airport (IATA Code)</span>}
                           name="origin"
-                          rules={[{ required: true, message: 'Please select origin' }]}
+                          rules={[{ required: true, message: 'Please select origin airport' }]}
                         >
                           <Select 
                             placeholder="Select origin airport" 
@@ -1721,9 +1721,9 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">To</span>}
+                          label={<span className="font-semibold text-gray-700">Destination Airport (IATA Code)</span>}
                           name="destination"
-                          rules={[{ required: true, message: 'Please select destination' }]}
+                          rules={[{ required: true, message: 'Please select destination airport' }]}
                         >
                           <Select 
                             placeholder="Select destination airport" 
@@ -1740,20 +1740,20 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Flight Date</span>}
-                          name="flightDate"
-                          rules={[{ required: true, message: 'Please select flight date' }]}
+                          label={<span className="font-semibold text-gray-700">Travel Date</span>}
+                          name="travelDate"
+                          rules={[{ required: true, message: 'Please select travel date' }]}
                         >
                           <DatePicker className="w-full" size="large" />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Flight Time</span>}
-                          name="flightTime"
-                          rules={[{ required: true, message: 'Please select flight time' }]}
+                          label={<span className="font-semibold text-gray-700">Preferred Departure Time Range</span>}
+                          name="departureTimeRange"
+                          rules={[{ required: true, message: 'Please select departure time range' }]}
                         >
-                          <TimePicker className="w-full" format="HH:mm" size="large" />
+                          <TimePicker.RangePicker className="w-full" format="HH:mm" size="large" />
                         </Form.Item>
                       </Col>
                     </Row>
