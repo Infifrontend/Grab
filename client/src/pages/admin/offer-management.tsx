@@ -74,24 +74,534 @@ export default function OfferManagement() {
 
   const renderDashboardContent = () => (
     <>
-      {/* Overview Cards */}
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="text-center">
-            <Text className="text-gray-500 text-sm">Overview</Text>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="text-center">
-            <Text className="text-gray-500 text-sm">Insights</Text>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Card className="text-center">
-            <Text className="text-gray-500 text-sm">Offer Recommendations</Text>
-          </Card>
-        </Col>
-      </Row>
+      {/* Overview/Insights/Recommendations Tabs */}
+      <Card className="mb-6">
+        <Tabs
+          defaultActiveKey="overview"
+          items={[
+            {
+              key: 'overview',
+              label: (
+                <span className="px-4 py-2">
+                  📊 Overview
+                </span>
+              ),
+              children: (
+                <div>
+                  <Text className="text-gray-500">Overview content will be displayed here</Text>
+                </div>
+              ),
+            },
+            {
+              key: 'insights',
+              label: (
+                <span className="px-4 py-2">
+                  🔍 Insights
+                </span>
+              ),
+              children: (
+                <div>
+                  {/* Forecasting & Predictions Section */}
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 text-xs">🔮</span>
+                      </div>
+                      <Title level={4} className="!mb-0">Forecasting & Predictions</Title>
+                    </div>
+                    <Text className="text-gray-500 mb-6">AI-powered forecasts and market trend analysis for ancillaries and offers</Text>
+                    
+                    <Row gutter={[24, 24]} className="mb-8">
+                      {/* Ancillary Revenue Forecasts */}
+                      <Col xs={24} lg={12}>
+                        <div>
+                          <Title level={5} className="!mb-4">Ancillary Revenue Forecasts</Title>
+                          
+                          {/* Premium Seat Upgrades */}
+                          <Card className="mb-4" size="small">
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="font-semibold">Premium Seat Upgrades</Text>
+                              <Text className="text-sm text-gray-500">87% Confidence</Text>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Current Revenue</Text>
+                                  <Text className="block font-semibold">$45,000</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Projected Revenue</Text>
+                                  <Text className="block font-semibold">$298,000</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div className="flex items-center space-x-1 mt-2">
+                              <RiseOutlined className="text-green-600 text-xs" />
+                              <Text className="text-green-600 text-sm">+216% Next Quarter</Text>
+                            </div>
+                            <div className="mt-3">
+                              <Text className="font-medium text-sm">Key Factors:</Text>
+                              <ul className="text-xs text-gray-600 mt-1">
+                                <li>• Seasonal increase in business travel</li>
+                                <li>• New route launches</li>
+                                <li>• Competitor pricing analysis</li>
+                              </ul>
+                            </div>
+                          </Card>
+
+                          {/* Extra Baggage */}
+                          <Card className="mb-4" size="small">
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="font-semibold">Extra Baggage</Text>
+                              <Text className="text-sm text-gray-500">84% Confidence</Text>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Current Revenue</Text>
+                                  <Text className="block font-semibold">$185,000</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Projected Revenue</Text>
+                                  <Text className="block font-semibold">$215,000</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div className="flex items-center space-x-1 mt-2">
+                              <RiseOutlined className="text-green-600 text-xs" />
+                              <Text className="text-green-600 text-sm">+16.2% Next Quarter</Text>
+                            </div>
+                            <div className="mt-3">
+                              <Text className="font-medium text-sm">Key Factors:</Text>
+                              <ul className="text-xs text-gray-600 mt-1">
+                                <li>• Holiday travel season</li>
+                                <li>• Family travel increase</li>
+                                <li>• Pricing optimization</li>
+                              </ul>
+                            </div>
+                          </Card>
+
+                          {/* In-Flight Meals */}
+                          <Card size="small">
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="font-semibold">In-Flight Meals</Text>
+                              <Text className="text-sm text-gray-500">81% Confidence</Text>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Current Revenue</Text>
+                                  <Text className="block font-semibold">$156,000</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Projected Revenue</Text>
+                                  <Text className="block font-semibold">$187,000</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div className="flex items-center space-x-1 mt-2">
+                              <RiseOutlined className="text-green-600 text-xs" />
+                              <Text className="text-green-600 text-sm">+19.9% Next Quarter</Text>
+                            </div>
+                            <div className="mt-3">
+                              <Text className="font-medium text-sm">Key Factors:</Text>
+                              <ul className="text-xs text-gray-600 mt-1">
+                                <li>• Menu refresh campaign</li>
+                                <li>• Extended flight routes</li>
+                                <li>• Premium meal options</li>
+                              </ul>
+                            </div>
+                          </Card>
+                        </div>
+                      </Col>
+
+                      {/* Offer Performance Predictions */}
+                      <Col xs={24} lg={12}>
+                        <div>
+                          <Title level={5} className="!mb-4">Offer Performance Predictions</Title>
+                          
+                          {/* Business Traveler Package */}
+                          <Card className="mb-4" size="small">
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="font-semibold">Business Traveler Package</Text>
+                              <Text className="text-sm text-gray-500">89% Confidence</Text>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Current Adoption</Text>
+                                  <Text className="block font-semibold">34%</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Current Revenue</Text>
+                                  <Text className="block font-semibold">$145,000</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Projected Adoption</Text>
+                                  <Text className="block font-semibold">42%</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Projected Revenue</Text>
+                                  <Text className="block font-semibold">$178,000</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div className="flex items-center space-x-1 mt-2">
+                              <RiseOutlined className="text-green-600 text-xs" />
+                              <Text className="text-green-600 text-sm">+22.8% Growth Expected</Text>
+                            </div>
+                            <div className="mt-3 p-2 bg-green-50 rounded">
+                              <Text className="text-green-700 text-xs">💡 Increase marketing spend during Q1 business travel peak</Text>
+                            </div>
+                          </Card>
+
+                          {/* Family Fun Bundle */}
+                          <Card size="small">
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="font-semibold">Family Fun Bundle</Text>
+                              <Text className="text-sm text-gray-500">82% Confidence</Text>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Current Adoption</Text>
+                                  <Text className="block font-semibold">28%</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Current Revenue</Text>
+                                  <Text className="block font-semibold">$98,000</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="mb-2">
+                                  <Text className="text-gray-500 text-sm">Projected Adoption</Text>
+                                  <Text className="block font-semibold">36%</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-500 text-sm">Projected Revenue</Text>
+                                  <Text className="block font-semibold">$127,000</Text>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div className="flex items-center space-x-1 mt-2">
+                              <RiseOutlined className="text-green-600 text-xs" />
+                              <Text className="text-green-600 text-sm">+29.6% Growth Expected</Text>
+                            </div>
+                            <div className="mt-3 p-2 bg-yellow-50 rounded">
+                              <Text className="text-yellow-700 text-xs">🎯 Target summer vacation bookings with enhanced family amenities</Text>
+                            </div>
+                          </Card>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+
+                  {/* Market Trends Analysis */}
+                  <div>
+                    <Title level={5} className="!mb-4">Market Trends Analysis</Title>
+                    <Row gutter={[24, 24]}>
+                      <Col xs={24} lg={12}>
+                        <Card size="small">
+                          <div className="flex justify-between items-center mb-3">
+                            <Text className="font-semibold">Sustainable Travel Preference</Text>
+                            <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">High Impact</Badge>
+                          </div>
+                          <Text className="text-gray-600 text-sm mb-3">
+                            Increasing customer demand for eco-friendly travel options and carbon offset programs
+                          </Text>
+                          <div className="mb-3">
+                            <Text className="font-medium text-sm">Affected Services:</Text>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Badge className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Carbon Offsets</Badge>
+                              <Badge className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Eco-Friendly Meals</Badge>
+                              <Badge className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Sustainable Amenities</Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <RiseOutlined className="text-green-600 text-xs" />
+                            <Text className="text-green-600 text-sm">+45% Expected Growth</Text>
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col xs={24} lg={12}>
+                        <Card size="small">
+                          <div className="flex justify-between items-center mb-3">
+                            <Text className="font-semibold">Premium Experience Demand</Text>
+                            <Badge className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">Medium Impact</Badge>
+                          </div>
+                          <Text className="text-gray-600 text-sm mb-3">
+                            Post-pandemic shift towards premium services and contactless experiences
+                          </Text>
+                          <div className="mb-3">
+                            <Text className="font-medium text-sm">Affected Services:</Text>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Badge className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">Premium Seats</Badge>
+                              <Badge className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">Priority Boarding</Badge>
+                              <Badge className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">Lounge Access</Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <RiseOutlined className="text-green-600 text-xs" />
+                            <Text className="text-green-600 text-sm">+28% Expected Growth</Text>
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              key: 'recommendations',
+              label: (
+                <span className="px-4 py-2">
+                  💡 Offer Recommendations
+                </span>
+              ),
+              children: (
+                <div>
+                  {/* AI-Generated Offer Recommendations */}
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <span className="text-yellow-600 text-xs">💡</span>
+                      </div>
+                      <Title level={4} className="!mb-0">AI-Generated Offer Recommendations</Title>
+                    </div>
+                    <Text className="text-gray-500 mb-6">Intelligent offer suggestions based on market analysis, customer behavior, and revenue optimization</Text>
+                    
+                    <Row gutter={[24, 24]}>
+                      {/* Executive Business Bundle */}
+                      <Col xs={24} lg={12}>
+                        <Card className="h-full">
+                          <div className="flex justify-between items-center mb-4">
+                            <Title level={5} className="!mb-0">Executive Business Bundle</Title>
+                            <Text className="text-sm text-gray-500">87% Confidence</Text>
+                          </div>
+                          <div className="mb-4">
+                            <Text className="text-blue-600 font-medium text-sm">Target: Business Travelers</Text>
+                            <Text className="text-gray-600 text-sm mt-1">
+                              Comprehensive package for frequent business travelers seeking efficiency and comfort
+                            </Text>
+                          </div>
+
+                          <div className="mb-4">
+                            <Title level={6} className="!mb-3">Package Components</Title>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Priority Check-in</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$25</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Business Class Seat</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$150</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Extra Legroom</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$45</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Premium Meal</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$30</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Fast Track Security</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$20</Text>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="border-t pt-4 mb-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <Text className="text-gray-500">Individual Total</Text>
+                              <Text className="font-medium">$270</Text>
+                            </div>
+                            <div className="flex justify-between items-center mb-2">
+                              <Text className="text-gray-500">Recommended Price</Text>
+                              <Text className="font-medium">$220</Text>
+                            </div>
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="text-green-600 font-medium">Customer Saves: $50</Text>
+                              <Text className="text-blue-600 font-medium">Margin: 35%</Text>
+                            </div>
+                            
+                            <Row gutter={16} className="mb-3">
+                              <Col span={12}>
+                                <div className="text-center">
+                                  <Text className="text-blue-600 font-bold text-xl">32%</Text>
+                                  <Text className="text-gray-500 text-sm block">Expected Adoption</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="text-center">
+                                  <Text className="text-green-600 font-bold text-xl">$145K</Text>
+                                  <Text className="text-gray-500 text-sm block">Revenue Projection</Text>
+                                </div>
+                              </Col>
+                            </Row>
+
+                            <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
+                              <span>Break-even: 850 bookings</span>
+                              <span>Confidence: 87%</span>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <Title level={6} className="!mb-2">Why this offer?</Title>
+                            <Text className="text-gray-600 text-sm">
+                              Analysis shows business travelers value time-saving services and are willing to pay premium for bundled convenience. Current market gap in comprehensive business travel packages.
+                            </Text>
+                          </div>
+
+                          <Button 
+                            type="primary" 
+                            block 
+                            className="bg-green-600 hover:bg-green-700 border-green-600"
+                            icon={<PlusOutlined />}
+                          >
+                            Create This Offer
+                          </Button>
+                        </Card>
+                      </Col>
+
+                      {/* Family Adventure Pack */}
+                      <Col xs={24} lg={12}>
+                        <Card className="h-full">
+                          <div className="flex justify-between items-center mb-4">
+                            <Title level={5} className="!mb-0">Family Adventure Pack</Title>
+                            <Text className="text-sm text-gray-500">82% Confidence</Text>
+                          </div>
+                          <div className="mb-4">
+                            <Text className="text-purple-600 font-medium text-sm">Target: Family Travelers</Text>
+                            <Text className="text-gray-600 text-sm mt-1">
+                              Value-focused package designed for families traveling with children
+                            </Text>
+                          </div>
+
+                          <div className="mb-4">
+                            <Title level={6} className="!mb-3">Package Components</Title>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Family Seating</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$40</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Kids Entertainment</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$15</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Family Meal Deal</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$60</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Extra Baggage Allowance</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$35</Text>
+                              </div>
+                              <div className="flex justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-green-600">✓</span>
+                                  <Text className="text-sm">Priority Boarding</Text>
+                                </div>
+                                <Text className="text-sm font-medium">$20</Text>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="border-t pt-4 mb-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <Text className="text-gray-500">Individual Total</Text>
+                              <Text className="font-medium">$170</Text>
+                            </div>
+                            <div className="flex justify-between items-center mb-2">
+                              <Text className="text-gray-500">Recommended Price</Text>
+                              <Text className="font-medium">$135</Text>
+                            </div>
+                            <div className="flex justify-between items-center mb-3">
+                              <Text className="text-green-600 font-medium">Customer Saves: $35</Text>
+                              <Text className="text-blue-600 font-medium">Margin: 28%</Text>
+                            </div>
+                            
+                            <Row gutter={16} className="mb-3">
+                              <Col span={12}>
+                                <div className="text-center">
+                                  <Text className="text-blue-600 font-bold text-xl">28%</Text>
+                                  <Text className="text-gray-500 text-sm block">Expected Adoption</Text>
+                                </div>
+                              </Col>
+                              <Col span={12}>
+                                <div className="text-center">
+                                  <Text className="text-green-600 font-bold text-xl">$98K</Text>
+                                  <Text className="text-gray-500 text-sm block">Revenue Projection</Text>
+                                </div>
+                              </Col>
+                            </Row>
+
+                            <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
+                              <span>Break-even: 1200 bookings</span>
+                              <span>Confidence: 82%</span>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <Title level={6} className="!mb-2">Why this offer?</Title>
+                            <Text className="text-gray-600 text-sm">
+                              Family travelers prioritize value and convenience. Bundling family-specific services at a discount increases adoption while maintaining healthy margins.
+                            </Text>
+                          </div>
+
+                          <Button 
+                            type="primary" 
+                            block 
+                            className="bg-green-600 hover:bg-green-700 border-green-600"
+                            icon={<PlusOutlined />}
+                          >
+                            Create This Offer
+                          </Button>
+                        </Card>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </Card>
 
       {/* Stats Cards */}
       <Row gutter={[24, 24]} className="mb-8">
