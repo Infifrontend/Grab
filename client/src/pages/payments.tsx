@@ -1,7 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message, Spin } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
 import { useLocation } from 'wouter';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
@@ -14,84 +17,73 @@ export default function Payments() {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [paymentForm] = Form.useForm();
-  
-  // State for API data
-  const [loading, setLoading] = useState(true);
-  const [paymentStats, setPaymentStats] = useState({
-    totalPayments: 0,
-    pendingPayments: 0,
-    upcomingPayments: 0,
-    refundsProcessed: 0
+
+  // Fetch payment statistics
+  const { data: paymentStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['payment-statistics'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/payments/statistics');
+      return response.json();
+    },
   });
-  const [paymentData, setPaymentData] = useState([]);
-  const [paymentSchedule, setPaymentSchedule] = useState([]);
+
+  // Fetch payment data
+  const { data: paymentData = [], isLoading: paymentsLoading, refetch: refetchPayments } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/payments');
+      return response.json();
+    },
+  });
+
+  // Fetch payment schedule
+  const { data: paymentSchedule = [], isLoading: scheduleLoading } = useQuery({
+    queryKey: ['payment-schedule'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/payments/schedule');
+      return response.json();
+    },
+  });
+
+  // Fetch flight bookings for payment modal
+  const { data: flightBookings = [] } = useQuery({
+    queryKey: ['flight-bookings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/flight-bookings');
+      return response.json();
+    },
+  });
+
+  // Create payment mutation
+  const createPaymentMutation = useMutation({
+    mutationFn: async (paymentData: any) => {
+      const response = await apiRequest('POST', '/api/payments', paymentData);
+      return response.json();
+    },
+    onSuccess: () => {
+      message.success('Payment processed successfully!');
+      setIsPaymentModalVisible(false);
+      paymentForm.resetFields();
+      refetchPayments();
+    },
+    onError: (error) => {
+      console.error('Payment error:', error);
+      message.error('Payment processing failed. Please try again.');
+    },
+  });
 
   const handleViewPayment = (paymentId: string) => {
     setLocation(`/payment-details/${paymentId}`);
   };
 
-  // Fetch payment statistics
-  const fetchPaymentStats = async () => {
-    try {
-      const response = await fetch('/api/payments/statistics');
-      if (response.ok) {
-        const stats = await response.json();
-        setPaymentStats(stats);
-      }
-    } catch (error) {
-      console.error('Error fetching payment statistics:', error);
-    }
-  };
-
-  // Fetch payment data
-  const fetchPayments = async () => {
-    try {
-      const response = await fetch('/api/payments');
-      if (response.ok) {
-        const payments = await response.json();
-        setPaymentData(payments);
-      }
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-    }
-  };
-
-  // Fetch payment schedule
-  const fetchPaymentSchedule = async () => {
-    try {
-      const response = await fetch('/api/payments/schedule');
-      if (response.ok) {
-        const schedule = await response.json();
-        setPaymentSchedule(schedule);
-      }
-    } catch (error) {
-      console.error('Error fetching payment schedule:', error);
-    }
-  };
-
-  // Load all data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchPaymentStats(),
-        fetchPayments(),
-        fetchPaymentSchedule()
-      ]);
-      setLoading(false);
-    };
-    
-    loadData();
-  }, []);
-
   // Filter payments based on search and status
-  const filteredPayments = paymentData.filter(payment => {
+  const filteredPayments = paymentData.filter((payment: any) => {
     const matchesSearch = !searchText || 
-      payment.paymentId.toLowerCase().includes(searchText.toLowerCase()) ||
-      payment.bookingId.toLowerCase().includes(searchText.toLowerCase());
+      payment.paymentReference?.toLowerCase().includes(searchText.toLowerCase()) ||
+      payment.bookingId?.toString().includes(searchText.toLowerCase());
     
     const matchesStatus = statusFilter === "All Status" || 
-      payment.status === statusFilter;
+      payment.paymentStatus === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
   });
@@ -99,52 +91,70 @@ export default function Payments() {
   const columns = [
     {
       title: 'PAYMENT ID',
-      dataIndex: 'paymentId',
-      key: 'paymentId',
+      dataIndex: 'paymentReference',
+      key: 'paymentReference',
       render: (text: string) => <Text className="font-medium text-gray-900">{text}</Text>,
     },
     {
       title: 'BOOKING ID',
       dataIndex: 'bookingId',
       key: 'bookingId',
-      render: (text: string) => <Text className="text-gray-600">{text}</Text>,
+      render: (text: number) => <Text className="text-gray-600">#{text}</Text>,
     },
     {
       title: 'DATE',
-      dataIndex: 'date',
-      key: 'date',
-      render: (text: string) => <Text className="text-gray-600">{text}</Text>,
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => (
+        <Text className="text-gray-600">
+          {new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
+        </Text>
+      ),
     },
     {
       title: 'AMOUNT',
       dataIndex: 'amount',
       key: 'amount',
-      render: (text: string) => <Text className="font-semibold text-gray-900">{text}</Text>,
-    },
-    {
-      title: 'TYPE',
-      dataIndex: 'type',
-      key: 'type',
-      render: (text: string) => <Text className="text-gray-600">{text}</Text>,
-    },
-    {
-      title: 'STATUS',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        let color = 'blue';
-        if (status === 'Completed') color = 'blue';
-        if (status === 'Pending') color = 'orange';
-        if (status === 'Failed') color = 'red';
-
-        return <Badge color={color} text={status} />;
-      },
+      render: (amount: string) => (
+        <Text className="font-semibold text-gray-900">
+          ${parseFloat(amount).toFixed(2)}
+        </Text>
+      ),
     },
     {
       title: 'METHOD',
-      dataIndex: 'method',
-      key: 'method',
-      render: (text: string) => <Text className="text-gray-600">{text}</Text>,
+      dataIndex: 'paymentMethod',
+      key: 'paymentMethod',
+      render: (method: string) => (
+        <Text className="text-gray-600">
+          {method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}
+        </Text>
+      ),
+    },
+    {
+      title: 'STATUS',
+      dataIndex: 'paymentStatus',
+      key: 'paymentStatus',
+      render: (status: string) => {
+        let color = 'blue';
+        let text = status;
+        if (status === 'completed') {
+          color = 'green';
+          text = 'Completed';
+        } else if (status === 'pending') {
+          color = 'orange';
+          text = 'Pending';
+        } else if (status === 'failed') {
+          color = 'red';
+          text = 'Failed';
+        }
+
+        return <Badge color={color} text={text} />;
+      },
     },
     {
       title: 'ACTIONS',
@@ -155,13 +165,90 @@ export default function Payments() {
             type="link" 
             icon={<EyeOutlined />} 
             className="text-gray-500 p-0"
-            onClick={() => handleViewPayment(record.paymentId)}
+            onClick={() => handleViewPayment(record.paymentReference)}
           >
             View
           </Button>
           <Button type="link" icon={<FileTextOutlined />} className="text-gray-500 p-0">
             Receipt
           </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const scheduleColumns = [
+    {
+      title: 'PAYMENT ID',
+      dataIndex: 'paymentReference',
+      key: 'paymentReference',
+      render: (text: string) => <Text className="font-medium text-gray-900">{text || 'TBD'}</Text>,
+    },
+    {
+      title: 'BOOKING ID',
+      dataIndex: 'bookingId',
+      key: 'bookingId',
+      render: (text: number) => <Text className="text-gray-600">#{text}</Text>,
+    },
+    {
+      title: 'DUE DATE',
+      dataIndex: 'dueDate',
+      key: 'dueDate',
+      render: (date: string) => (
+        <Text className="text-gray-600">
+          {new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
+        </Text>
+      ),
+    },
+    {
+      title: 'AMOUNT',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount: string) => (
+        <Text className="font-semibold text-gray-900">
+          ${parseFloat(amount).toFixed(2)}
+        </Text>
+      ),
+    },
+    {
+      title: 'STATUS',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        let color = 'blue';
+        let text = status;
+        if (status === 'due') {
+          color = 'red';
+          text = 'Due';
+        } else if (status === 'upcoming') {
+          color = 'blue';
+          text = 'Upcoming';
+        } else if (status === 'overdue') {
+          color = 'red';
+          text = 'Overdue';
+        }
+
+        return <Badge color={color} text={text} />;
+      },
+    },
+    {
+      title: 'ACTIONS',
+      key: 'actions',
+      render: (record: any) => (
+        <Space>
+          {(record.status === 'due' || record.status === 'overdue') ? (
+            <Button type="primary" size="small" className="infiniti-btn-primary">
+              Pay Now
+            </Button>
+          ) : (
+            <Button type="link" size="small" className="text-gray-500">
+              Pay Early
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -177,10 +264,15 @@ export default function Payments() {
   };
 
   const handlePaymentSubmit = (values: any) => {
-    console.log('Payment details:', values);
-    message.success('Payment processed successfully!');
-    setIsPaymentModalVisible(false);
-    paymentForm.resetFields();
+    const paymentData = {
+      bookingId: parseInt(values.bookingId.replace('#', '')),
+      amount: values.amount || '0',
+      paymentMethod: values.paymentMethod,
+      currency: 'USD',
+      paymentReference: `PAY-${Date.now()}`,
+    };
+
+    createPaymentMutation.mutate(paymentData);
   };
 
   const tabItems = [
@@ -198,6 +290,8 @@ export default function Payments() {
     },
   ];
 
+  const isLoading = statsLoading || paymentsLoading || scheduleLoading;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -212,7 +306,7 @@ export default function Payments() {
         </div>
 
         {/* Summary Cards */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Spin size="large" />
           </div>
@@ -227,7 +321,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Total Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ${paymentStats.totalPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${paymentStats?.totalPayments?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
                 </Title>
                 <Text className="text-green-600 text-sm">+12% from last month</Text>
               </Card>
@@ -242,10 +336,10 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Pending Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ${paymentStats.pendingPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${paymentStats?.pendingPayments?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
                 </Title>
                 <Text className="text-gray-500 text-sm">
-                  {paymentData.filter(p => p.status === 'Pending').length} bookings with pending payments
+                  {paymentData.filter((p: any) => p.paymentStatus === 'pending').length} bookings with pending payments
                 </Text>
               </Card>
             </Col>
@@ -259,7 +353,7 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Upcoming Payments</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ${paymentStats.upcomingPayments.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${paymentStats?.upcomingPayments?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
                 </Title>
                 <Text className="text-gray-500 text-sm">Due in the next 30 days</Text>
               </Card>
@@ -274,10 +368,10 @@ export default function Payments() {
                 </div>
                 <Text className="text-gray-600 block mb-2">Refunds Processed</Text>
                 <Title level={3} className="!mb-1 text-gray-900">
-                  ${paymentStats.refundsProcessed.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${paymentStats?.refundsProcessed?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
                 </Title>
                 <Text className="text-gray-500 text-sm">
-                  {paymentData.filter(p => p.type === 'Refund').length} refunds this month
+                  {paymentData.filter((p: any) => p.paymentStatus === 'refunded').length} refunds this month
                 </Text>
               </Card>
             </Col>
@@ -334,7 +428,8 @@ export default function Payments() {
             <Table
               columns={columns}
               dataSource={filteredPayments}
-              loading={loading}
+              loading={paymentsLoading}
+              rowKey="id"
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
@@ -356,72 +451,10 @@ export default function Payments() {
 
             {/* Payment Schedule Table */}
             <Table
-              columns={[
-                {
-                  title: 'PAYMENT ID',
-                  dataIndex: 'paymentId',
-                  key: 'paymentId',
-                  render: (text: string) => <Text className="font-medium text-gray-900">{text}</Text>,
-                },
-                {
-                  title: 'BOOKING ID',
-                  dataIndex: 'bookingId',
-                  key: 'bookingId',
-                  render: (text: string) => <Text className="text-gray-600">{text}</Text>,
-                },
-                {
-                  title: 'DUE DATE',
-                  dataIndex: 'dueDate',
-                  key: 'dueDate',
-                  render: (text: string) => <Text className="text-gray-600">{text}</Text>,
-                },
-                {
-                  title: 'AMOUNT',
-                  dataIndex: 'amount',
-                  key: 'amount',
-                  render: (text: string) => <Text className="font-semibold text-gray-900">{text}</Text>,
-                },
-                {
-                  title: 'STATUS',
-                  dataIndex: 'status',
-                  key: 'status',
-                  render: (status: string) => {
-                    let color = 'blue';
-                    let text = status;
-                    if (status === 'Due') {
-                      color = 'red';
-                      text = 'Due';
-                    } else if (status === 'Upcoming') {
-                      color = 'blue';
-                      text = 'Upcoming';
-                    } else if (status === 'Overdue') {
-                      color = 'red';
-                      text = 'Overdue';
-                    }
-
-                    return <Badge color={color} text={text} />;
-                  },
-                },
-                {
-                  title: 'ACTIONS',
-                  key: 'actions',
-                  render: (record: any) => (
-                    <Space>
-                      {(record.status === 'Due' || record.status === 'Overdue') ? (
-                        <Button type="primary" size="small" className="infiniti-btn-primary">
-                          Pay Now
-                        </Button>
-                      ) : (
-                        <Button type="link" size="small" className="text-gray-500">
-                          Pay Early
-                        </Button>
-                      )}
-                    </Space>
-                  ),
-                },
-              ]}
+              columns={scheduleColumns}
               dataSource={paymentSchedule}
-              loading={loading}
+              loading={scheduleLoading}
+              rowKey="id"
               pagination={false}
               scroll={{ x: 800 }}
             />
@@ -523,9 +556,7 @@ export default function Payments() {
             layout="vertical"
             onFinish={handlePaymentSubmit}
             initialValues={{
-              bookingId: "Select booking",
-              paymentType: "Full Payment",
-              paymentMethod: "creditCard"
+              paymentMethod: "credit_card"
             }}
           >
             <Row gutter={16}>
@@ -536,30 +567,24 @@ export default function Payments() {
                   rules={[{ required: true, message: 'Please select a booking' }]}
                 >
                   <Select placeholder="Select booking">
-                    <Select.Option value="GR-2024-1001">GR-2024-1001</Select.Option>
-                    <Select.Option value="GR-2024-1002">GR-2024-1002</Select.Option>
-                    <Select.Option value="GR-2024-1003">GR-2024-1003</Select.Option>
+                    {flightBookings.map((booking: any) => (
+                      <Select.Option key={booking.id} value={`#${booking.id}`}>
+                        #{booking.id} - {booking.bookingReference}
+                      </Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Payment Type"
-                  name="paymentType"
-                  rules={[{ required: true, message: 'Please select payment type' }]}
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: 'Please enter amount' }]}
                 >
-                  <Select>
-                    <Select.Option value="Full Payment">Full Payment</Select.Option>
-                    <Select.Option value="Partial Payment">Partial Payment</Select.Option>
-                    <Select.Option value="Deposit">Deposit</Select.Option>
-                  </Select>
+                  <Input placeholder="0.00" prefix="$" />
                 </Form.Item>
               </Col>
             </Row>
-
-            <Form.Item label="Full Payment: ₹4,500.00 (remaining balance)">
-              <div className="text-blue-600 font-medium">Full Payment: $4,500.00 (remaining balance)</div>
-            </Form.Item>
 
             <Form.Item
               label="Payment Method"
@@ -568,13 +593,13 @@ export default function Payments() {
             >
               <Radio.Group className="w-full">
                 <div className="space-y-3">
-                  <Radio value="creditCard" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
+                  <Radio value="credit_card" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
                     <div className="flex items-center gap-3">
                       <span className="text-blue-600">💳</span>
                       <span>Credit Card</span>
                     </div>
                   </Radio>
-                  <Radio value="bankTransfer" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
+                  <Radio value="bank_transfer" className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-500">
                     <div className="flex items-center gap-3">
                       <span className="text-green-600">🏦</span>
                       <span>Bank Transfer</span>
@@ -590,58 +615,17 @@ export default function Payments() {
               </Radio.Group>
             </Form.Item>
 
-            <Form.Item
-              label="Card Number"
-              name="cardNumber"
-              rules={[
-                { required: true, message: 'Please enter card number' },
-                { pattern: /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, message: 'Please enter valid card number format (1234 5678 9012 3456)' }
-              ]}
-            >
-              <Input placeholder="1234 5678 9012 3456" maxLength={19} />
-            </Form.Item>
-
-            <Form.Item
-              label="Name on Card"
-              name="nameOnCard"
-              rules={[{ required: true, message: 'Please enter name on card' }]}
-            >
-              <Input placeholder="John Doe" />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Expiry Date"
-                  name="expiryDate"
-                  rules={[
-                    { required: true, message: 'Please enter expiry date' },
-                    { pattern: /^(0[1-9]|1[0-2])\/\d{2}$/, message: 'Please enter valid expiry date (MM/YY)' }
-                  ]}
-                >
-                  <Input placeholder="MM/YY" maxLength={5} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="CVV"
-                  name="cvv"
-                  rules={[
-                    { required: true, message: 'Please enter CVV' },
-                    { pattern: /^\d{3,4}$/, message: 'Please enter valid CVV' }
-                  ]}
-                >
-                  <Input placeholder="123" maxLength={4} />
-                </Form.Item>
-              </Col>
-            </Row>
-
             <div className="flex justify-end gap-3 mt-6">
               <Button onClick={handlePaymentModalCancel}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit" className="infiniti-btn-primary">
-                Make Payment
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                className="infiniti-btn-primary"
+                loading={createPaymentMutation.isPending}
+              >
+                {createPaymentMutation.isPending ? 'Processing...' : 'Make Payment'}
               </Button>
             </div>
           </Form>
