@@ -55,6 +55,15 @@ function Router() {
       <Route path="/admin/cms" component={CMS} />
       <Route path="/admin/admin-settings" component={AdminSettings} />
       <Route path="/admin/reports" component={Reports} />
+      <Route path="/new-booking" component={NewBooking} />
+      <Route path="/flight-search-results" component={FlightSearchResults} />
+      <Route path="/flight-search-bundle" component={FlightSearchBundle} />
+      <Route path="/add-services-bundles" component={AddServicesBundles} />
+      <Route path="/group-leader" component={GroupLeader} />
+      <Route path="/passenger-info" component={PassengerInfo} />
+      <Route path="/payment-options" component={PaymentOptions} />
+      <Route path="/review-confirmation" component={ReviewConfirmation} />
+      <Route path="/download-itinerary" component={DownloadItinerary} />
       <Route component={NotFound} />
     </Switch>
   );
