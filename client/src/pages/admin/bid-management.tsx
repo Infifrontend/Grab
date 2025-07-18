@@ -276,11 +276,197 @@ export default function BidManagement() {
   );
 
   const renderBidSetupContent = () => (
-    <Card>
-      <Title level={4}>Bid Configuration</Title>
-      <Text>Configure bidding rules, minimum amounts, and acceptance criteria.</Text>
-      {/* Add bid setup form here */}
-    </Card>
+    <div>
+      {/* Bid Setup Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Title level={4} className="!mb-1">Bid Configurations</Title>
+          <Text className="text-gray-500">Set up and manage different types of upgrade bids</Text>
+        </div>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Create New Bid
+        </Button>
+      </div>
+
+      {/* Bid Configuration Cards */}
+      <div className="space-y-4">
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">LAX→JFK Business Upgrade</Title>
+                <Tag color="green" className="text-xs">Active</Tag>
+              </div>
+              
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">LAX → JFK</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">40</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$190 - $200</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+              
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-15</Text>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked 
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Additional bid configurations can be added here */}
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">ORD→SFO Premium Economy Upgrade</Title>
+                <Tag color="orange" className="text-xs">Draft</Tag>
+              </div>
+              
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">ORD → SFO</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">24</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$85 - $120</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+              
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-14</Text>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked={false}
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">JFK→LHR First Class Upgrade</Title>
+                <Tag color="red" className="text-xs">Inactive</Tag>
+              </div>
+              
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">JFK → LHR</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">8</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$800 - $1200</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+              
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-10</Text>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked={false}
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
   );
 
   const renderPaymentsContent = () => (
