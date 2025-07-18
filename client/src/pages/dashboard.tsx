@@ -40,6 +40,14 @@ export default function Dashboard() {
     },
   });
 
+  const { data: bookingReviews = [] } = useQuery({
+    queryKey: ['booking-reviews'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/booking-reviews');
+      return response.json();
+    },
+  });
+
   // Calculate statistics from real data
   const totalBookings = flightBookings.length;
   const activeBookings = flightBookings.filter(b => b.bookingStatus === 'confirmed').length;
@@ -71,6 +79,25 @@ export default function Dashboard() {
   };
 
   const chartData = generateChartData();
+
+  // Generate booking reviews chart data
+  const generateBookingReviewsData = () => {
+    const reviewCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    
+    bookingReviews.forEach(review => {
+      if (review.rating >= 1 && review.rating <= 5) {
+        reviewCounts[review.rating]++;
+      }
+    });
+
+    return Object.entries(reviewCounts).map(([rating, count]) => ({
+      rating: `${rating} Star${rating !== '1' ? 's' : ''}`,
+      count: count,
+      percentage: bookingReviews.length > 0 ? Math.round((count / bookingReviews.length) * 100) : 0
+    }));
+  };
+
+  const bookingReviewsChartData = generateBookingReviewsData();
 
   // Generate recent activities from real data
   const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
@@ -271,7 +298,7 @@ export default function Dashboard() {
               </Col>
             </Row>
 
-            <Row gutter={[24, 24]}>
+            <Row gutter={[24, 24]} className="mb-8">
               {/* Overview Chart */}
               <Col xs={24} lg={16}>
                 <Card className="border-0 shadow-sm">
@@ -328,6 +355,73 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Booking Reviews Chart */}
+            <Row gutter={[24, 24]}>
+              <Col xs={24}>
+                <Card className="border-0 shadow-sm">
+                  <div className="mb-6">
+                    <Title level={4} className="!mb-1 text-gray-900">Booking Reviews</Title>
+                    <Text className="text-gray-500">Customer satisfaction ratings distribution</Text>
+                    {bookingReviews.length > 0 && (
+                      <Text className="text-gray-400 text-sm block mt-1">
+                        Based on {bookingReviews.length} review{bookingReviews.length !== 1 ? 's' : ''}
+                      </Text>
+                    )}
+                  </div>
+                  <div className="h-80">
+                    {bookingReviewsChartData.some(item => item.count > 0) ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={bookingReviewsChartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                          <XAxis 
+                            dataKey="rating" 
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs text-gray-500"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis 
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs text-gray-500"
+                          />
+                          <Bar 
+                            dataKey="count" 
+                            fill="var(--infiniti-primary)"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-gray-400 text-2xl">📊</span>
+                          </div>
+                          <Title level={5} className="text-gray-500 !mb-2">No reviews yet</Title>
+                          <Text className="text-gray-400">Customer reviews will appear here once available</Text>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {bookingReviewsChartData.some(item => item.count > 0) && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <div className="grid grid-cols-5 gap-4">
+                        {bookingReviewsChartData.map((item, index) => (
+                          <div key={index} className="text-center">
+                            <div className="text-lg font-semibold text-gray-900">{item.count}</div>
+                            <div className="text-xs text-gray-500">{item.rating}</div>
+                            <div className="text-xs text-gray-400">{item.percentage}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </Card>
               </Col>
             </Row>
