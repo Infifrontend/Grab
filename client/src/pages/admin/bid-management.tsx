@@ -1578,23 +1578,23 @@ export default function BidManagement() {
         visible={createBidModalVisible}
         onCancel={handleModalCancel}
         footer={null}
-        width={1000}
+        width={900}
         centered
         destroyOnClose
         className="modern-modal"
       >
         {/* Custom Modal Header */}
-        <div className="bg-white -m-6 mb-0 px-8 py-6 rounded-t-lg border-b border-gray-200">
+        <div className="bg-white -m-6 mb-0 px-6 py-4 rounded-t-lg border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
-                <PlusOutlined className="text-blue-600 text-xl" />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                <PlusOutlined className="text-blue-600 text-lg" />
               </div>
               <div>
-                <Title level={3} className="!mb-1 text-gray-800 font-bold">
+                <Title level={4} className="!mb-1 text-gray-800 font-bold">
                   Create New Bid Configuration
                 </Title>
-                <Text className="text-gray-600 text-base">
+                <Text className="text-gray-600 text-sm">
                   Set up a new bidding configuration for your airline route
                 </Text>
               </div>
@@ -1602,20 +1602,20 @@ export default function BidManagement() {
           </div>
         </div>
 
-        <div className="px-8 py-6">
+        <div className="px-6 py-4">
           <Form
             form={form}
             layout="vertical"
             onFinish={handleFinish}
           >
             {/* Simple Steps Display */}
-            <div className="mb-10">
+            <div className="mb-6">
               <div className="relative">
                 {/* Progress Bar Background */}
-                <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+                <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
                 {/* Active Progress Bar */}
                 <div 
-                  className="absolute top-6 left-0 h-0.5 bg-blue-500 z-10"
+                  className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
                   style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
                 ></div>
                 
@@ -1625,7 +1625,7 @@ export default function BidManagement() {
                     <div key={step.title} className="flex flex-col items-center">
                       {/* Step Circle */}
                       <div className={`
-                        w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-4
+                        w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
                         ${index < currentStep 
                           ? 'bg-green-500 border-green-500 text-white' 
                           : index === currentStep 
@@ -1634,16 +1634,16 @@ export default function BidManagement() {
                         }
                       `}>
                         {index < currentStep ? (
-                          <span className="text-lg">✓</span>
+                          <span className="text-sm">✓</span>
                         ) : (
                           <span>{index + 1}</span>
                         )}
                       </div>
                       
                       {/* Step Title */}
-                      <div className="mt-3 text-center max-w-[140px]">
+                      <div className="mt-2 text-center max-w-[120px]">
                         <Text className={`
-                          text-sm font-semibold
+                          text-xs font-medium
                           ${index <= currentStep ? 'text-gray-800' : 'text-gray-500'}
                         `}>
                           {step.title}
@@ -1656,20 +1656,20 @@ export default function BidManagement() {
             </div>
 
             {/* Step Content */}
-            <div className="min-h-[500px] bg-gray-50 rounded-lg p-6">
+            <div className="min-h-[380px] bg-gray-50 rounded-lg p-4">
               {/* Step 1: Flight & Route Details */}
               {currentStep === 0 && (
                 <div>
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-1 h-6 bg-blue-500 rounded"></div>
-                      <Title level={4} className="!mb-0 text-blue-600">Flight & Route Details</Title>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-blue-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-blue-600">Flight & Route Details</Title>
                     </div>
-                    <Text className="text-gray-500">Configure the basic flight information for bidding</Text>
+                    <Text className="text-gray-500 text-sm">Configure the basic flight information for bidding</Text>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Row gutter={[24, 24]}>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">From</span>}
@@ -1734,16 +1734,16 @@ export default function BidManagement() {
               {/* Step 2: Seat Configurations & Limits */}
               {currentStep === 1 && (
                 <div>
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-1 h-6 bg-green-500 rounded"></div>
-                      <Title level={4} className="!mb-0 text-green-600">Seat Configurations & Limits</Title>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-green-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-green-600">Seat Configurations & Limits</Title>
                     </div>
-                    <Text className="text-gray-500">Set up seating classes and availability limits</Text>
+                    <Text className="text-gray-500 text-sm">Set up seating classes and availability limits</Text>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Row gutter={[24, 24]}>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">From Class</span>}
@@ -1796,16 +1796,16 @@ export default function BidManagement() {
               {/* Step 3: Bid Pricing & Currency */}
               {currentStep === 2 && (
                 <div>
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-1 h-6 bg-purple-500 rounded"></div>
-                      <Title level={4} className="!mb-0 text-purple-600">Bid Pricing & Currency</Title>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-purple-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-purple-600">Bid Pricing & Currency</Title>
                     </div>
-                    <Text className="text-gray-500">Configure pricing parameters and currency settings</Text>
+                    <Text className="text-gray-500 text-sm">Configure pricing parameters and currency settings</Text>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Row gutter={[24, 24]}>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Minimum Bid Amount</span>}
@@ -1876,16 +1876,16 @@ export default function BidManagement() {
               {/* Step 4: Bidding Schedule & Rules */}
               {currentStep === 3 && (
                 <div>
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-1 h-6 bg-orange-500 rounded"></div>
-                      <Title level={4} className="!mb-0 text-orange-600">Bidding Schedule & Rules</Title>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-orange-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-orange-600">Bidding Schedule & Rules</Title>
                     </div>
-                    <Text className="text-gray-500">Set up timing and automated bidding rules</Text>
+                    <Text className="text-gray-500 text-sm">Set up timing and automated bidding rules</Text>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Row gutter={[24, 24]}>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bidding Start Time</span>}
@@ -1949,16 +1949,16 @@ export default function BidManagement() {
               {/* Step 5: Fleet, Terms & Conditions */}
               {currentStep === 4 && (
                 <div>
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-1 h-6 bg-red-500 rounded"></div>
-                      <Title level={4} className="!mb-0 text-red-600">Fleet, Terms & Conditions</Title>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-red-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-red-600">Fleet, Terms & Conditions</Title>
                     </div>
-                    <Text className="text-gray-500">Final configuration and terms setup</Text>
+                    <Text className="text-gray-500 text-sm">Final configuration and terms setup</Text>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Row gutter={[24, 24]}>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Fleet Type</span>}
@@ -2005,32 +2005,31 @@ export default function BidManagement() {
             </div>
 
             {/* Navigation Footer */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+            <div className="flex justify-between items-center mt-4 pt-4 border-t">
               <div>
                 {currentStep > 0 && (
-                  <Button size="large" onClick={handlePrev} className="px-6">
-                    <span className="mr-2">←</span>
+                  <Button onClick={handlePrev} className="px-4">
+                    <span className="mr-1">←</span>
                     Previous
                   </Button>
                 )}
               </div>
-              <div className="flex space-x-3">
-                <Button size="large" onClick={handleModalCancel} className="px-6">
+              <div className="flex space-x-2">
+                <Button onClick={handleModalCancel} className="px-4">
                   Cancel
                 </Button>
                 {currentStep < steps.length - 1 ? (
-                  <Button type="primary" size="large" onClick={handleNext} className="px-6 bg-blue-600 hover:bg-blue-700">
+                  <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
                     Next
-                    <span className="ml-2">→</span>
+                    <span className="ml-1">→</span>
                   </Button>
                 ) : (
                   <Button 
                     type="primary" 
-                    size="large" 
                     onClick={() => form.submit()}
-                    className="px-8 bg-green-600 hover:bg-green-700"
+                    className="px-6 bg-green-600 hover:bg-green-700"
                   >
-                    <PlusOutlined className="mr-2" />
+                    <PlusOutlined className="mr-1" />
                     Create Bid
                   </Button>
                 )}
