@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -133,7 +132,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -153,7 +152,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -170,7 +169,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -258,7 +257,7 @@ export default function AdminDashboard() {
           <Title level={4} className="!mb-1 text-gray-900">Top Performing Routes</Title>
           <Text className="text-gray-500">Revenue and booking performance by route</Text>
         </div>
-        
+
         <div className="space-y-4">
           {topRoutesData.map((route, index) => (
             <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -313,7 +312,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={8}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -327,7 +326,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={8}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -464,7 +463,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -478,7 +477,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -492,7 +491,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </Col>
-        
+
         <Col xs={24} sm={12} lg={6}>
           <Card className="stats-card">
             <div className="flex items-center justify-between">
@@ -662,11 +661,12 @@ export default function AdminDashboard() {
               <Title level={4} className="!mb-0 text-gray-900">AI-Powered Insights</Title>
             </div>
             <Text className="text-gray-600 mb-6">Machine learning predictions and recommendations</Text>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mt-1">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-centerAdding navigation to all menu items in the admin dashboard.
+``` justify-center mt-1">
                     <span className="text-white text-xs">💡</span>
                   </div>
                   <div>
@@ -712,7 +712,7 @@ export default function AdminDashboard() {
               <Title level={4} className="!mb-0 text-gray-900">Real-time Alerts</Title>
             </div>
             <Text className="text-gray-600 mb-6">Important trends and anomalies</Text>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-xl border border-red-200">
                 <div className="flex items-start space-x-3">
@@ -842,7 +842,7 @@ export default function AdminDashboard() {
               <Title level={4} className="!mb-1 text-gray-900">Route Demand Predictions</Title>
               <Text className="text-gray-500">AI-powered demand forecasting and risk assessment</Text>
             </div>
-            
+
             <div className="space-y-4">
               {[
                 { route: 'LAX → JFK', seasonality: 'High Seasonality', demand: 89, growth: 23.5, risk: 'Low' },
@@ -860,18 +860,18 @@ export default function AdminDashboard() {
                       <Text className="text-gray-500 text-sm">📊 {route.seasonality}</Text>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-8">
                     <div className="text-center">
                       <Text className="text-gray-500 text-sm block">Current Demand</Text>
                       <Text className="font-bold text-gray-900 text-lg">{route.demand}%</Text>
                     </div>
-                    
+
                     <div className="text-center">
                       <Text className="text-gray-500 text-sm block">Predicted Growth</Text>
                       <Text className="font-bold text-green-600 text-lg">+{route.growth}%</Text>
                     </div>
-                    
+
                     <div className="text-center">
                       <Text className="text-gray-500 text-sm block">Risk Level</Text>
                       <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
@@ -899,7 +899,7 @@ export default function AdminDashboard() {
               <Title level={4} className="!mb-0 text-gray-900">Predictive Analytics Summary</Title>
             </div>
             <Text className="text-gray-600 mb-6">Key insights and recommendations for the next quarter</Text>
-            
+
             <Row gutter={[32, 24]}>
               <Col xs={24} md={8}>
                 <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
@@ -912,7 +912,7 @@ export default function AdminDashboard() {
                   <Text className="text-gray-600 font-medium">Expected Revenue Growth</Text>
                 </div>
               </Col>
-              
+
               <Col xs={24} md={8}>
                 <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200">
                   <div className="flex items-center justify-center mb-4">
@@ -924,7 +924,7 @@ export default function AdminDashboard() {
                   <Text className="text-gray-600 font-medium">Forecast Accuracy Rate</Text>
                 </div>
               </Col>
-              
+
               <Col xs={24} md={8}>
                 <div className="text-center p-6 bg-purple-50 rounded-xl border border-purple-200">
                   <div className="flex items-center justify-center mb-4">
@@ -946,7 +946,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -978,59 +978,75 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex">
-        {/* Sidebar - Fixed with independent scroll */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 h-screen fixed top-0 left-0 shadow-xl z-30 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-            <div className="p-6">
-              <nav className="space-y-2">
-                <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-blue-600 text-xs">📊</span>
-                  </div>
-                  <Text className="text-white font-medium">Dashboard</Text>
+        {/* Sidebar - Made sticky */}
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
+          <div className="p-6">
+            <nav className="space-y-2">
+              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
+                <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                  <span className="text-blue-600 text-xs">📊</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🎯</span>
-                  </div>
-                  <Text className="text-current">Offer Management</Text>
+                <Text className="text-white font-medium">Dashboard</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/offer-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🎯</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📋</span>
-                  </div>
-                  <Text className="text-current">Bid Management</Text>
+                <Text className="text-current">Offer Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bid-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📋</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📅</span>
-                  </div>
-                  <Text className="text-current">Bookings</Text>
+                <Text className="text-current">Bid Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bookings')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📅</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">⚙️</span>
-                  </div>
-                  <Text className="text-current">CMS</Text>
+                <Text className="text-current">Bookings</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/cms')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">⚙️</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🔧</span>
-                  </div>
-                  <Text className="text-current">Admin Settings</Text>
+                <Text className="text-current">CMS</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/admin-settings')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🔧</span>
                 </div>
-                <div className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📊</span>
-                  </div>
-                  <Text className="text-current">Reports</Text>
+                <Text className="text-current">Admin Settings</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/reports')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📊</span>
                 </div>
-              </nav>
-            </div>
+                <Text className="text-current">Reports</Text>
+              </div>
+            </nav>
           </div>
-          
+
           {/* User Info at bottom */}
-          <div className="flex-shrink-0 p-6 border-t border-slate-700 bg-slate-900">
+          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
             <div className="flex items-center space-x-3">
               <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
                 <span className="text-white font-medium">JD</span>
@@ -1051,9 +1067,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Main Content - With independent scroll */}
-        <div className="flex-1 ml-64 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <div className="p-6">
+        {/* Main Content */}
+        <div className="flex-1 p-6">
           {/* Dashboard Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -1121,46 +1136,10 @@ export default function AdminDashboard() {
           {activeTab === 'bookings' && renderBookingAnalyticsContent()}
           {activeTab === 'offers' && renderOfferAnalyticsContent()}
           {activeTab === 'insights' && renderInsightsForecastsContent()}
-          </div>
         </div>
       </div>
 
       <style jsx global>{`
-        /* Custom scrollbar styles */
-        .scrollbar-thin {
-          scrollbar-width: thin;
-        }
-        
-        .scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
-          background-color: #475569;
-          border-radius: 4px;
-        }
-        
-        .scrollbar-track-slate-800::-webkit-scrollbar-track {
-          background-color: #1e293b;
-        }
-        
-        .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
-          background-color: #d1d5db;
-          border-radius: 4px;
-        }
-        
-        .scrollbar-track-gray-100::-webkit-scrollbar-track {
-          background-color: #f3f4f6;
-        }
-        
-        ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background-color: #6b7280;
-        }
         .stats-card {
           border-radius: 16px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
