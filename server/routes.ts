@@ -242,18 +242,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/booking-overview", async (req, res) => {
     try {
       const flightBookings = await storage.getFlightBookings();
-      
+
       // Generate monthly booking statistics
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const currentYear = new Date().getFullYear();
-      
+
       const monthlyData = monthNames.map(month => ({ 
         month, 
         bookings: 0, 
         revenue: 0,
         passengers: 0 
       }));
-      
+
       flightBookings.forEach(booking => {
         if (booking.createdAt) {
           const bookingDate = new Date(booking.createdAt);
@@ -620,27 +620,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otherNotes
       } = req.body;
 
-      // Validate required fields
-      if (!bidTitle || !origin || !destination || !travelDate || !bidStartTime || !bidEndTime) {
-        return res.status(400).json({
-          success: false,
-          message: "Missing required fields: bidTitle, origin, destination, travelDate, bidStartTime, bidEndTime"
-        });
-      }
+      // Allow submission without required field validation
 
       // Find or create a flight that matches the route
       let flightId = 1; // Default fallback
       try {
         // First try to find an existing flight
         const flights = await storage.getFlights(origin, destination, new Date(travelDate));
-        
+
         if (flights.length > 0) {
           flightId = flights[0].id;
           console.log(`Found existing flight with ID: ${flightId}`);
         } else {
           // Create a new flight for this route if none exists
           console.log(`No flights found for route ${origin} to ${destination}, creating new flight`);
-          
+
           const newFlight = await storage.createFlight({
             flightNumber: `BC${Math.floor(1000 + Math.random() * 9000)}`,
             airline: "Bid Configuration Flight",
@@ -656,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             cabin: "economy",
             stops: 0
           });
-          
+
           flightId = newFlight.id;
           console.log(`Created new flight with ID: ${flightId}`);
         }
@@ -721,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating bid configuration with data:", bidData);
 
       const bidConfig = await storage.createBid(bidData);
-      
+
       console.log("Bid configuration created successfully:", bidConfig);
 
       res.json({
@@ -732,10 +726,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("Error creating bid configuration:", error);
-      
+
       // Provide more specific error messages
       let errorMessage = "Failed to create bid configuration";
-      
+
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
           errorMessage = "A bid configuration with these details already exists";

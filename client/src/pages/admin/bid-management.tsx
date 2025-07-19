@@ -164,12 +164,7 @@ export default function BidManagement() {
   };
 
   const handleNext = () => {
-    form.validateFields().then(() => {
-      setCurrentStep(currentStep + 1);
-    }).catch((error) => {
-      console.log('Validation failed:', error);
-      message.error('Please fill in all required fields');
-    });
+    setCurrentStep(currentStep + 1);
   };
 
   const handlePrev = () => {
@@ -181,12 +176,7 @@ export default function BidManagement() {
     try {
       console.log('Form values before submission:', values);
 
-      // Validate required fields
-      if (!values.bidTitle || !values.origin || !values.destination || !values.travelDate || !values.bidStartTime || !values.bidEndTime) {
-        message.error('Please fill in all required fields');
-        setLoading(false);
-        return;
-      }
+      // Allow submission without required field validation
 
       // Format the data properly
       const formattedData = {
@@ -1755,7 +1745,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid Title *</span>}
                           name="bidTitle"
-                          rules={[{ required: true, message: 'Please enter bid title' }]}
                         >
                           <Input 
                             placeholder="Enter bid configuration title" 
@@ -1784,7 +1773,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Origin Airport (IATA Code) *</span>}
                           name="origin"
-                          rules={[{ required: true, message: 'Please select origin airport' }]}
                         >
                           <Select 
                             mode="combobox"
@@ -1811,7 +1799,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Destination Airport (IATA Code) *</span>}
                           name="destination"
-                          rules={[{ required: true, message: 'Please select destination airport' }]}
                         >
                           <Select 
                             mode="combobox"
@@ -1838,7 +1825,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Travel Date *</span>}
                           name="travelDate"
-                          rules={[{ required: true, message: 'Please select travel date' }]}
                         >
                           <DatePicker className="w-full" size="large" />
                         </Form.Item>
@@ -1926,7 +1912,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid Start Time *</span>}
                           name="bidStartTime"
-                          rules={[{ required: true, message: 'Please select bid start time' }]}
                         >
                           <DatePicker 
                             showTime={{ format: 'HH:mm' }}
@@ -1941,7 +1926,6 @@ export default function BidManagement() {
                         <Form.Item
                           label={<span className="font-semibold text-gray-700">Bid End Time *</span>}
                           name="bidEndTime"
-                          rules={[{ required: true, message: 'Please select bid end time' }]}
                         >
                           <DatePicker 
                             showTime={{ format: 'HH:mm' }}
