@@ -1564,10 +1564,189 @@ export default function OfferManagement() {
             </div>
           )}
           {activeTab === 'discounts' && (
-            <Card>
-              <Title level={4}>Discounts Management</Title>
-              <Text>Create and manage discount codes and promotional offers.</Text>
-            </Card>
+            <div>
+              {/* Header with Search and Create Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <Input
+                  placeholder="Search discounts..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  className="max-w-md"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Create Discount
+                </Button>
+              </div>
+
+              {/* Discount Management Section */}
+              <Card className="mb-6">
+                <div className="mb-6">
+                  <Title level={4} className="!mb-1">Discount Management</Title>
+                  <Text className="text-gray-500">Manage discount rules with advanced targeting and combinability options</Text>
+                </div>
+
+                <Table
+                  dataSource={[
+                    {
+                      key: '1',
+                      discountName: 'Early Bird Special',
+                      code: 'EARLY20',
+                      description: 'Book 30 days in advance and save 20%',
+                      type: 'Percentage',
+                      value: '20%',
+                      target: 'Ancillaries',
+                      targetDetails: 'Extra Leg Room Seat, Premium Meal Service',
+                      usage: '1247/5000',
+                      usagePercentage: 25,
+                      validFrom: 'Jan 01, 2024',
+                      validTo: 'Dec 31, 2024',
+                      status: 'Active'
+                    },
+                    {
+                      key: '2',
+                      discountName: 'Loyalty Member Discount',
+                      code: 'LOYALTY15',
+                      description: 'Exclusive discount for premium members',
+                      type: 'Percentage',
+                      value: '15%',
+                      target: 'Both',
+                      targetDetails: 'All Services',
+                      usage: '892/3000',
+                      usagePercentage: 30,
+                      validFrom: 'Jan 01, 2024',
+                      validTo: 'Dec 31, 2024',
+                      status: 'Active'
+                    }
+                  ]}
+                  columns={[
+                    {
+                      title: 'Discount Details',
+                      dataIndex: 'discountName',
+                      key: 'discountName',
+                      width: '25%',
+                      render: (text, record) => (
+                        <div>
+                          <Text className="font-semibold text-gray-900 block">{text}</Text>
+                          <Text className="text-blue-600 text-sm font-medium block">Code: {record.code}</Text>
+                          <Text className="text-gray-600 text-sm">{record.description}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Type & Value',
+                      key: 'typeValue',
+                      width: '15%',
+                      render: (_, record) => (
+                        <div className="text-center">
+                          <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg mb-2">
+                            <Text className="font-bold text-lg">{record.value}</Text>
+                          </div>
+                          <Text className="text-gray-600 text-sm">{record.type}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Target',
+                      key: 'target',
+                      width: '15%',
+                      render: (_, record) => (
+                        <div>
+                          <Tag 
+                            color={record.target === 'Ancillaries' ? 'blue' : record.target === 'Both' ? 'purple' : 'green'} 
+                            className="rounded-md mb-2"
+                          >
+                            {record.target}
+                          </Tag>
+                          <Text className="text-gray-600 text-xs block">{record.targetDetails}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Usage',
+                      key: 'usage',
+                      width: '12%',
+                      render: (_, record) => (
+                        <div>
+                          <Text className="font-semibold block">{record.usage}</Text>
+                          <Progress 
+                            percent={record.usagePercentage} 
+                            strokeColor="#1890ff" 
+                            showInfo={false} 
+                            size="small" 
+                            className="mb-1"
+                          />
+                          <Text className="text-gray-500 text-xs">{record.usagePercentage}% used</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Validity',
+                      key: 'validity',
+                      width: '15%',
+                      render: (_, record) => (
+                        <div className="text-sm">
+                          <div className="mb-1">
+                            <Text className="text-gray-500 text-xs">From:</Text>
+                            <Text className="block">{record.validFrom}</Text>
+                          </div>
+                          <div>
+                            <Text className="text-gray-500 text-xs">To:</Text>
+                            <Text className="block">{record.validTo}</Text>
+                          </div>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: '8%',
+                      render: (status) => (
+                        <Tag color="blue" className="rounded-md">
+                          {status}
+                        </Tag>
+                      )
+                    },
+                    {
+                      title: 'Actions',
+                      key: 'actions',
+                      width: '10%',
+                      render: (_, record) => (
+                        <Space>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setEditingOffer(record);
+                              setIsModalVisible(true);
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            className="text-gray-600 hover:text-gray-700"
+                          />
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            className="text-red-600 hover:text-red-700"
+                          />
+                        </Space>
+                      )
+                    }
+                  ]}
+                  pagination={false}
+                  className="custom-table"
+                />
+              </Card>
+            </div>
           )}
           {activeTab === 'promocodes' && (
             <Card>
@@ -1586,7 +1765,7 @@ export default function OfferManagement() {
 
       {/* Create Modal (Dynamic based on active tab) */}
       <Modal
-        title={activeTab === 'policies' ? "Create New Policy" : activeTab === 'ancillaries' ? "Add New Ancillary" : "Create New Item"}
+        title={activeTab === 'policies' ? "Create New Policy" : activeTab === 'ancillaries' ? "Add New Ancillary" : activeTab === 'discounts' ? "Create New Discount" : "Create New Item"}
         visible={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -1691,6 +1870,130 @@ export default function OfferManagement() {
                 <Input.TextArea
                   rows={4}
                   placeholder="Enter policy description..."
+                />
+              </Form.Item>
+            </>
+          ) : activeTab === 'discounts' ? (
+            // Discount Form Fields
+            <>
+              <Row gutter={16}>
+                <Col span={16}>
+                  <Form.Item
+                    label="Discount Name"
+                    name="discountName"
+                    rules={[{ required: true, message: 'Please enter discount name' }]}
+                  >
+                    <Input placeholder="Enter discount name" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="Discount Code"
+                    name="discountCode"
+                    rules={[{ required: true, message: 'Please enter discount code' }]}
+                  >
+                    <Input placeholder="e.g. SAVE20" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Discount Type"
+                    name="discountType"
+                    rules={[{ required: true, message: 'Please select discount type' }]}
+                  >
+                    <Select placeholder="Select type" size="large">
+                      <Select.Option value="percentage">Percentage</Select.Option>
+                      <Select.Option value="fixed">Fixed Amount</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Discount Value"
+                    name="discountValue"
+                    rules={[{ required: true, message: 'Please enter discount value' }]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      max={100}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Target"
+                    name="target"
+                    rules={[{ required: true, message: 'Please select target' }]}
+                  >
+                    <Select placeholder="Select target" size="large">
+                      <Select.Option value="ancillaries">Ancillaries</Select.Option>
+                      <Select.Option value="offers">Offers</Select.Option>
+                      <Select.Option value="both">Both</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Usage Limit"
+                    name="usageLimit"
+                    rules={[{ required: true, message: 'Please enter usage limit' }]}
+                  >
+                    <InputNumber
+                      placeholder="e.g. 5000"
+                      size="large"
+                      className="w-full"
+                      min={1}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid From"
+                    name="validFrom"
+                    rules={[{ required: true, message: 'Please select start date' }]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid To"
+                    name="validTo"
+                    rules={[{ required: true, message: 'Please select end date' }]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[{ required: true, message: 'Please enter description' }]}
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter discount description..."
                 />
               </Form.Item>
             </>
@@ -1802,7 +2105,7 @@ export default function OfferManagement() {
               Cancel
             </Button>
             <Button type="primary" htmlType="submit" className="bg-blue-600">
-              {activeTab === 'policies' ? 'Create Policy' : activeTab === 'ancillaries' ? 'Add Ancillary' : 'Create'}
+              {activeTab === 'policies' ? 'Create Policy' : activeTab === 'ancillaries' ? 'Add Ancillary' : activeTab === 'discounts' ? 'Create Discount' : 'Create'}
             </Button>
           </div>
         </Form>
