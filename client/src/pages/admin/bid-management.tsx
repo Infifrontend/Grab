@@ -57,7 +57,7 @@ import {
   EnvironmentOutlined
 } from '@ant-design/icons';
 import { useLocation } from "wouter";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
@@ -65,38 +65,18 @@ const { Title, Text } = Typography;
 export default function BidManagement() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('1');
   const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
-  const [bidConfigurations, setBidConfigurations] = useState([]);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
     queryKey: ["flight-locations"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/flight-locations");
-      return response.json();
-    },
-  });
-
-  // Fetch bid configurations
-  const { data: bidsData, refetch: refetchBids } = useQuery({
-    queryKey: ["bid-configurations"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/bid-configurations-list");
-      return response.json();
-    },
-  });
-
-  // Fetch recent bids for activity display
-  const { data: recentBidsData } = useQuery({
-    queryKey: ["recent-bids"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/bids");
       return response.json();
     },
   });
@@ -115,12 +95,6 @@ export default function BidManagement() {
       setDestinationOptions(locationsData.locations);
     }
   }, [locationsData]);
-
-  useEffect(() => {
-    if (bidsData) {
-      setBidConfigurations(bidsData);
-    }
-  }, [bidsData]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
@@ -150,68 +124,32 @@ export default function BidManagement() {
     },
   ];
 
-  // Generate recent activities from actual bids data
-  const recentActivities = (recentBidsData || []).slice(0, 5).map((bid, index) => {
-    let configData = {};
-    let isConfiguration = false;
-    
-    try {
-      if (bid.notes) {
-        configData = JSON.parse(bid.notes);
-        isConfiguration = configData.configType === 'bid_configuration';
-      }
-    } catch (e) {
-      configData = {};
+  const recentActivities = [
+    {
+      type: 'new',
+      color: '#ff7875',
+      title: 'New bid received: Economy to Business ($280)',
+      time: '30 minutes ago'
+    },
+    {
+      type: 'counter',
+      color: '#40a9ff',
+      title: 'Bid BID001 - Counter offer sent ($280)',
+      time: '2 hours ago'
+    },
+    {
+      type: 'accepted',
+      color: '#73d13d',
+      title: 'Bid BID002 - Auto-accepted ($120)',
+      time: '4 hours ago'
+    },
+    {
+      type: 'rejected',
+      color: '#ff7875',
+      title: 'Bid BID005 - Rejected (below minimum)',
+      time: '8 hours ago'
     }
-
-    const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
-    
-    let title, route, activityType, color;
-    
-    if (isConfiguration) {
-      title = configData.title || `Bid Configuration #${bid.id}`;
-      route = configData.origin && configData.destination ? 
-        `${configData.origin} → ${configData.destination}` : 'Route not specified';
-      activityType = 'Bid configuration created';
-      color = '#1890ff';
-    } else {
-      // Regular bid activity
-      title = `Bid #${bid.id}`;
-      route = bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not specified';
-      activityType = bid.bidStatus === 'active' ? 'Active bid submitted' : 
-                    bid.bidStatus === 'accepted' ? 'Bid accepted' :
-                    bid.bidStatus === 'rejected' ? 'Bid declined' :
-                    'Bid created';
-      color = bid.bidStatus === 'active' ? '#52c41a' : 
-              bid.bidStatus === 'accepted' ? '#00b96b' :
-              bid.bidStatus === 'rejected' ? '#ff4d4f' : '#1890ff';
-    }
-
-    return {
-      type: bid.bidStatus,
-      color: color,
-      title: `${activityType}: ${title} (${route})`,
-      time: timeAgo,
-      amount: bid.bidAmount ? `₹${bid.bidAmount}` : null
-    };
-  });
-
-  // Helper function to calculate time ago
-  function getTimeAgo(date) {
-    const now = new Date();
-    const diffInMs = now - date;
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours} hours ago`;
-    } else {
-      return `${diffInDays} days ago`;
-    }
-  }
+  ];
 
   const handleCreateBid = () => {
     setCreateBidModalVisible(true);
@@ -265,12 +203,6 @@ export default function BidManagement() {
       if (result.success) {
         // Show success message
         message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
-        
-        // Refetch bid configurations and recent bids to update the Recent Bid Activity
-        refetchBids();
-        
-        // Also refetch recent bids data
-        queryClient.invalidateQueries(['recent-bids']);
         
         // Close modal and reset form
         setCreateBidModalVisible(false);
@@ -494,91 +426,177 @@ export default function BidManagement() {
 
       {/* Bid Configuration Cards */}
       <div className="space-y-4">
-        {bidConfigurations.length === 0 ? (
-          <div className="text-center py-8">
-            <Text className="text-gray-500">No bid configurations found. Create your first bid configuration to get started.</Text>
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">LAX→JFK Business Upgrade</Title>
+                <Tag color="green" className="text-xs">Active</Tag>
+              </div>
+
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">LAX → JFK</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">40</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$190 - $200</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-15</Text>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked 
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
           </div>
-        ) : (
-          bidConfigurations.map((bid) => {
-            let configData = {};
-            try {
-              configData = bid.notes ? JSON.parse(bid.notes) : {};
-            } catch (e) {
-              configData = {};
-            }
+        </Card>
 
-            const title = configData.title || `Bid Configuration #${bid.id}`;
-            const route = configData.origin && configData.destination ? 
-              `${configData.origin} → ${configData.destination}` : 'Route not specified';
-            const totalSeats = configData.totalSeatsAvailable || 'N/A';
-            const fareType = configData.fareType || 'Economy';
-            const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
-            
-            const statusColor = bid.bidStatus === 'active' ? 'green' : 
-                               bid.bidStatus === 'pending' ? 'orange' : 'red';
-            const statusText = bid.bidStatus === 'active' ? 'Active' : 
-                              bid.bidStatus === 'pending' ? 'Pending' : 'Inactive';
+        {/* Additional bid configurations can be added here */}
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">ORD→SFO Premium Economy Upgrade</Title>
+                <Tag color="orange" className="text-xs">Draft</Tag>
+              </div>
 
-            return (
-              <Card key={bid.id} className="hover:shadow-lg transition-shadow duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-4">
-                      <Title level={5} className="!mb-0 !mr-3">{title}</Title>
-                      <Tag color={statusColor} className="text-xs">{statusText}</Tag>
-                    </div>
-
-                    <Row gutter={[32, 16]}>
-                      <Col span={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
-                          <Text className="font-medium">{route}</Text>
-                        </div>
-                      </Col>
-                      <Col span={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
-                          <Text className="font-medium">{totalSeats}</Text>
-                        </div>
-                      </Col>
-                      <Col span={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Fare Type:</Text>
-                          <Text className="font-medium">{fareType}</Text>
-                        </div>
-                      </Col>
-                      <Col span={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Bid Amount:</Text>
-                          <Text className="font-medium">₹{bid.bidAmount}</Text>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="mt-4">
-                      <Text className="text-gray-400 text-xs">Created: {createdDate}</Text>
-                    </div>
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">ORD → SFO</Text>
                   </div>
-
-                  <div className="flex items-center space-x-2 ml-6">
-                    <Button type="text" icon={<EyeOutlined />} size="small">
-                      View
-                    </Button>
-                    <Button type="text" icon={<EditOutlined />} size="small">
-                      Edit
-                    </Button>
-                    <Switch 
-                      defaultChecked={bid.bidStatus === 'active'}
-                      size="small"
-                      checkedChildren="ON"
-                      unCheckedChildren="OFF"
-                    />
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">24</Text>
                   </div>
-                </div>
-              </Card>
-            );
-          })
-        )}
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$85 - $120</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-14</Text>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked={false}
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center mb-4">
+                <Title level={5} className="!mb-0 !mr-3">JFK→LHR First Class Upgrade</Title>
+                <Tag color="red" className="text-xs">Inactive</Tag>
+              </div>
+
+              <Row gutter={[32, 16]}>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                    <Text className="font-medium">JFK → LHR</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                    <Text className="font-medium">8</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
+                    <Text className="font-medium">$800 - $1200</Text>
+                  </div>
+                </Col>
+                <Col span={6}>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
+                    <Text className="font-medium">USD</Text>
+                  </div>
+                </Col>
+              </Row>
+
+              <div className="mt-4">
+                <Text className="text-gray-400 text-xs">Created: 2024-09-10</Text>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 ml-6">
+              <Button type="text" icon={<EyeOutlined />} size="small">
+                View
+              </Button>
+              <Button type="text" icon={<EditOutlined />} size="small">
+                Edit
+              </Button>
+              <Switch 
+                defaultChecked={false}
+                size="small"
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+              />
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
@@ -1053,29 +1071,18 @@ export default function BidManagement() {
                           <Text className="text-gray-500">Latest bid submissions and responses</Text>
                         </div>
                         <div className="space-y-4">
-                          {recentActivities.length === 0 ? (
-                            <div className="text-center py-8">
-                              <Text className="text-gray-500">No recent bid activity found.</Text>
-                            </div>
-                          ) : (
-                            recentActivities.map((activity, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center space-x-3 flex-1">
-                                  <div 
-                                    className="w-3 h-3 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: activity.color }}
-                                  />
-                                  <div className="flex-1">
-                                    <Text className="font-medium text-gray-800">{activity.title}</Text>
-                                    {activity.amount && (
-                                      <Text className="text-sm text-gray-600 mt-1">Amount: {activity.amount}</Text>
-                                    )}
-                                  </div>
-                                </div>
-                                <Text className="text-gray-500 text-sm whitespace-nowrap ml-3">{activity.time}</Text>
+                          {recentActivities.map((activity, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: activity.color }}
+                                />
+                                <Text className="font-medium">{activity.title}</Text>
                               </div>
-                            ))
-                          )}
+                              <Text className="text-gray-500 text-sm">{activity.time}</Text>
+                            </div>
+                          ))}
                         </div>
                       </Card>
                     </Col>
