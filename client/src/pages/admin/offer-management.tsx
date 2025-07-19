@@ -1262,10 +1262,306 @@ export default function OfferManagement() {
             </div>
           )}
           {activeTab === 'ancillaries' && (
-            <Card>
-              <Title level={4}>Ancillaries Management</Title>
-              <Text>Configure additional services like baggage, meals, and seat selection.</Text>
-            </Card>
+            <div>
+              {/* Header with Search and Add Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <Input
+                  placeholder="Search ancillaries..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  className="max-w-md"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Add Ancillary
+                </Button>
+              </div>
+
+              {/* Ancillary Services Section */}
+              <Card className="mb-6">
+                <div className="mb-6">
+                  <Title level={4} className="!mb-1">Ancillary Services</Title>
+                  <Text className="text-gray-500">Manage your ancillary services and pricing</Text>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Extra Leg Room Seat */}
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <Title level={4} className="!mb-0">Extra Leg Room Seat</Title>
+                          <Tag color="blue" className="rounded-md">Seat</Tag>
+                          <Tag color="default" className="rounded-md">optional</Tag>
+                          <Tag color="blue" className="rounded-md">Active</Tag>
+                        </div>
+                        <Text className="text-gray-600 block mb-4">
+                          Additional 6 inches of legroom for enhanced comfort during your flight.
+                        </Text>
+                      </div>
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined />}
+                          className="text-gray-600 hover:text-gray-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                        />
+                      </Space>
+                    </div>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Base Price</Text>
+                          <Text className="text-green-600 font-bold text-lg">$45</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Availability</Text>
+                          <Text className="font-medium">Flight dependent</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Bundle Compatible</Text>
+                          <Text className="font-medium">Yes</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Conversion Rate</Text>
+                          <Text className="text-blue-600 font-bold">45.2%</Text>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Total Bookings</Text>
+                          <Text className="font-bold text-lg">15,420</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Revenue</Text>
+                          <Text className="text-green-600 font-bold text-lg">$693,900</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Growth</Text>
+                          <div className="flex items-center space-x-1">
+                            <RiseOutlined className="text-green-600 text-sm" />
+                            <Text className="text-green-600 font-bold">+22.7%</Text>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <div className="text-sm text-gray-500">
+                      <Text>Created: Jan 15, 2024</Text>
+                      <Text className="ml-6">Last Modified: Feb 28, 2024</Text>
+                    </div>
+                  </div>
+
+                  {/* Premium Meal Service */}
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <Title level={4} className="!mb-0">Premium Meal Service</Title>
+                          <Tag color="orange" className="rounded-md">Food & Beverage</Tag>
+                          <Tag color="default" className="rounded-md">optional</Tag>
+                          <Tag color="blue" className="rounded-md">Active</Tag>
+                        </div>
+                        <Text className="text-gray-600 block mb-4">
+                          Gourmet meal prepared by renowned chefs with dietary options available.
+                        </Text>
+                      </div>
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined />}
+                          className="text-gray-600 hover:text-gray-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                        />
+                      </Space>
+                    </div>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Base Price</Text>
+                          <Text className="text-green-600 font-bold text-lg">$28</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Availability</Text>
+                          <Text className="font-medium">All flights</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Bundle Compatible</Text>
+                          <Text className="font-medium">Yes</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Conversion Rate</Text>
+                          <Text className="text-blue-600 font-bold">38.7%</Text>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Total Bookings</Text>
+                          <Text className="font-bold text-lg">23,450</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Revenue</Text>
+                          <Text className="text-green-600 font-bold text-lg">$657,260</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Growth</Text>
+                          <div className="flex items-center space-x-1">
+                            <RiseOutlined className="text-green-600 text-sm" />
+                            <Text className="text-green-600 font-bold">+18.3%</Text>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <div className="text-sm text-gray-500">
+                      <Text>Created: Jan 10, 2024</Text>
+                      <Text className="ml-6">Last Modified: Mar 01, 2024</Text>
+                    </div>
+                  </div>
+
+                  {/* Priority Boarding */}
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <Title level={4} className="!mb-0">Priority Boarding</Title>
+                          <Tag color="purple" className="rounded-md">Service</Tag>
+                          <Tag color="default" className="rounded-md">optional</Tag>
+                          <Tag color="blue" className="rounded-md">Active</Tag>
+                        </div>
+                        <Text className="text-gray-600 block mb-4">
+                          Board the aircraft in the first group to secure overhead bin space.
+                        </Text>
+                      </div>
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined />}
+                          className="text-gray-600 hover:text-gray-700"
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                        />
+                      </Space>
+                    </div>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Base Price</Text>
+                          <Text className="text-green-600 font-bold text-lg">$15</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Availability</Text>
+                          <Text className="font-medium">All flights</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Bundle Compatible</Text>
+                          <Text className="font-medium">Yes</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Conversion Rate</Text>
+                          <Text className="text-blue-600 font-bold">42.8%</Text>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[32, 16]} className="mb-4">
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Total Bookings</Text>
+                          <Text className="font-bold text-lg">34,560</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Revenue</Text>
+                          <Text className="text-green-600 font-bold text-lg">$518,400</Text>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block">Growth</Text>
+                          <div className="flex items-center space-x-1">
+                            <RiseOutlined className="text-green-600 text-sm" />
+                            <Text className="text-green-600 font-bold">+15.9%</Text>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <div className="text-sm text-gray-500">
+                      <Text>Created: Jan 08, 2024</Text>
+                      <Text className="ml-6">Last Modified: Feb 15, 2024</Text>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           )}
           {activeTab === 'discounts' && (
             <Card>
@@ -1288,9 +1584,9 @@ export default function OfferManagement() {
         </div>
       </div>
 
-      {/* Create Policy Modal */}
+      {/* Create Modal (Dynamic based on active tab) */}
       <Modal
-        title="Create New Policy"
+        title={activeTab === 'policies' ? "Create New Policy" : activeTab === 'ancillaries' ? "Add New Ancillary" : "Create New Item"}
         visible={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -1305,95 +1601,196 @@ export default function OfferManagement() {
           form={form}
           layout="vertical"
           onFinish={(values) => {
-            console.log('Policy values:', values);
+            console.log(`${activeTab} values:`, values);
             setIsModalVisible(false);
             form.resetFields();
           }}
         >
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                label="Policy Name"
-                name="policyName"
-                rules={[{ required: true, message: 'Please enter policy name' }]}
-              >
-                <Input placeholder="Enter policy name" size="large" />
-              </Form.Item>
-            </Col>
-          </Row>
+          {activeTab === 'policies' ? (
+            // Policy Form Fields
+            <>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item
+                    label="Policy Name"
+                    name="policyName"
+                    rules={[{ required: true, message: 'Please enter policy name' }]}
+                  >
+                    <Input placeholder="Enter policy name" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Policy Type"
-                name="type"
-                rules={[{ required: true, message: 'Please select policy type' }]}
-              >
-                <Select placeholder="Select type" size="large">
-                  <Select.Option value="refund">Refund</Select.Option>
-                  <Select.Option value="pricing">Pricing</Select.Option>
-                  <Select.Option value="cancellation">Cancellation</Select.Option>
-                  <Select.Option value="modification">Modification</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Target"
-                name="target"
-                rules={[{ required: true, message: 'Please select target' }]}
-              >
-                <Select placeholder="Select target" size="large">
-                  <Select.Option value="all-offers">All Offers</Select.Option>
-                  <Select.Option value="premium-seats">Ancillary: Premium Seats</Select.Option>
-                  <Select.Option value="meals">Ancillary: Meals</Select.Option>
-                  <Select.Option value="baggage">Ancillary: Baggage</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Policy Type"
+                    name="type"
+                    rules={[{ required: true, message: 'Please select policy type' }]}
+                  >
+                    <Select placeholder="Select type" size="large">
+                      <Select.Option value="refund">Refund</Select.Option>
+                      <Select.Option value="pricing">Pricing</Select.Option>
+                      <Select.Option value="cancellation">Cancellation</Select.Option>
+                      <Select.Option value="modification">Modification</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Target"
+                    name="target"
+                    rules={[{ required: true, message: 'Please select target' }]}
+                  >
+                    <Select placeholder="Select target" size="large">
+                      <Select.Option value="all-offers">All Offers</Select.Option>
+                      <Select.Option value="premium-seats">Ancillary: Premium Seats</Select.Option>
+                      <Select.Option value="meals">Ancillary: Meals</Select.Option>
+                      <Select.Option value="baggage">Ancillary: Baggage</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Price Effect (%)"
+                    name="priceEffect"
+                    rules={[{ required: true, message: 'Please enter price effect' }]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={-100}
+                      max={100}
+                      formatter={(value) => `${value}%`}
+                      parser={(value) => value.replace('%', '')}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Status"
+                    name="status"
+                    initialValue="active"
+                  >
+                    <Select size="large">
+                      <Select.Option value="active">Active</Select.Option>
+                      <Select.Option value="inactive">Inactive</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
               <Form.Item
-                label="Price Effect (%)"
-                name="priceEffect"
-                rules={[{ required: true, message: 'Please enter price effect' }]}
+                label="Description"
+                name="description"
               >
-                <InputNumber
-                  placeholder="0"
-                  size="large"
-                  className="w-full"
-                  min={-100}
-                  max={100}
-                  formatter={(value) => `${value}%`}
-                  parser={(value) => value.replace('%', '')}
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter policy description..."
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Status"
-                name="status"
-                initialValue="active"
-              >
-                <Select size="large">
-                  <Select.Option value="active">Active</Select.Option>
-                  <Select.Option value="inactive">Inactive</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+            </>
+          ) : activeTab === 'ancillaries' ? (
+            // Ancillary Form Fields
+            <>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item
+                    label="Service Name"
+                    name="serviceName"
+                    rules={[{ required: true, message: 'Please enter service name' }]}
+                  >
+                    <Input placeholder="Enter service name" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <Form.Item
-            label="Description"
-            name="description"
-          >
-            <Input.TextArea
-              rows={4}
-              placeholder="Enter policy description..."
-            />
-          </Form.Item>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Category"
+                    name="category"
+                    rules={[{ required: true, message: 'Please select category' }]}
+                  >
+                    <Select placeholder="Select category" size="large">
+                      <Select.Option value="seat">Seat</Select.Option>
+                      <Select.Option value="food-beverage">Food & Beverage</Select.Option>
+                      <Select.Option value="service">Service</Select.Option>
+                      <Select.Option value="baggage">Baggage</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Base Price ($)"
+                    name="basePrice"
+                    rules={[{ required: true, message: 'Please enter base price' }]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Availability"
+                    name="availability"
+                    rules={[{ required: true, message: 'Please select availability' }]}
+                  >
+                    <Select placeholder="Select availability" size="large">
+                      <Select.Option value="all-flights">All flights</Select.Option>
+                      <Select.Option value="flight-dependent">Flight dependent</Select.Option>
+                      <Select.Option value="route-specific">Route specific</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Bundle Compatible"
+                    name="bundleCompatible"
+                    valuePropName="checked"
+                    initialValue={true}
+                  >
+                    <Switch />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[{ required: true, message: 'Please enter description' }]}
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter service description..."
+                />
+              </Form.Item>
+            </>
+          ) : (
+            // Default form for other tabs
+            <div>
+              <Form.Item
+                label="Name"
+                name="name"
+                rules={[{ required: true, message: 'Please enter name' }]}
+              >
+                <Input placeholder="Enter name" size="large" />
+              </Form.Item>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3 mt-6">
             <Button
@@ -1405,7 +1802,7 @@ export default function OfferManagement() {
               Cancel
             </Button>
             <Button type="primary" htmlType="submit" className="bg-blue-600">
-              Create Policy
+              {activeTab === 'policies' ? 'Create Policy' : activeTab === 'ancillaries' ? 'Add Ancillary' : 'Create'}
             </Button>
           </div>
         </Form>
