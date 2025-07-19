@@ -946,7 +946,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -978,11 +978,10 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex">
-        {/* Sidebar - Made sticky with scrollable content */}
+        {/* Sidebar - Made sticky */}
         <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
-          <div className="h-[calc(100vh-73px)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500">
-            <div className="p-6">
-              <nav className="space-y-2"></nav>
+          <div className="p-6">
+            <nav className="space-y-2">
               <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                   <span className="text-blue-600 text-xs">📊</span>
@@ -1044,10 +1043,10 @@ export default function AdminDashboard() {
                 <Text className="text-current">Reports</Text>
               </div>
             </nav>
-            </div>
+          </div>
 
-            {/* User Info at bottom */}
-            <div className="sticky bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700 bg-gradient-to-b from-slate-900 to-slate-800">
+          {/* User Info at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
             <div className="flex items-center space-x-3">
               <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
                 <span className="text-white font-medium">JD</span>
@@ -1065,7 +1064,6 @@ export default function AdminDashboard() {
             >
               Sign Out
             </Button>
-            </div>
           </div>
         </div>
 

@@ -154,7 +154,7 @@ export default function BidManagement() {
   const recentActivities = (recentBidsData || []).slice(0, 5).map((bid, index) => {
     let configData = {};
     let isConfiguration = false;
-
+    
     try {
       if (bid.notes) {
         configData = JSON.parse(bid.notes);
@@ -165,9 +165,9 @@ export default function BidManagement() {
     }
 
     const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
-
+    
     let title, route, activityType, color;
-
+    
     if (isConfiguration) {
       title = configData.title || `Bid Configuration #${bid.id}`;
       route = configData.origin && configData.destination ? 
@@ -250,28 +250,28 @@ export default function BidManagement() {
       };
 
       console.log('Formatted data for submission:', formattedData);
-
+      
       const response = await apiRequest('POST', '/api/bid-configurations', formattedData);
-
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-
+      
       const result = await response.json();
       console.log('API response result:', result);
-
+      
       if (result.success) {
         // Show success message
         message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
-
+        
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
         refetchBids();
-
+        
         // Also refetch recent bids data
         queryClient.invalidateQueries(['recent-bids']);
-
+        
         // Close modal and reset form
         setCreateBidModalVisible(false);
         setCurrentStep(0);
@@ -282,7 +282,7 @@ export default function BidManagement() {
       }
     } catch (error) {
       console.error('Error creating bid configuration:', error);
-
+      
       // Show more specific error message
       let errorMessage = 'Failed to create bid configuration. Please try again.';
       if (error.message) {
@@ -294,7 +294,7 @@ export default function BidManagement() {
           errorMessage = error.message;
         }
       }
-
+      
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -513,7 +513,7 @@ export default function BidManagement() {
             const totalSeats = configData.totalSeatsAvailable || 'N/A';
             const fareType = configData.fareType || 'Economy';
             const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
-
+            
             const statusColor = bid.bidStatus === 'active' ? 'green' : 
                                bid.bidStatus === 'pending' ? 'orange' : 'red';
             const statusText = bid.bidStatus === 'active' ? 'Active' : 
@@ -956,7 +956,7 @@ export default function BidManagement() {
                   {/* Second Row Stats */}
                   <Row gutter={[24, 24]} className="mb-6">
                     <Col xs={24} sm={12} lg={8}>
-                                            <Card className="h-full">
+                      <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <Text className="text-gray-500 text-sm">Acceptance Rate</Text>
@@ -1477,7 +1477,7 @@ export default function BidManagement() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -1502,8 +1502,8 @@ export default function BidManagement() {
                     JD
                   </Avatar>
                   <div className="text-right">
-                    <Text className="text-sm font-medium text-gray-900 block">John Doe</Text>
-                    <Text className="text-gray-500 text-xs">System Admin</Text>
+                    <Text className="text-sm font-medium block">John Doe</Text>
+                    <Text className="text-xs text-gray-500">System Administrator</Text>
                   </div>
                 </div>
               </Dropdown>
@@ -1515,9 +1515,8 @@ export default function BidManagement() {
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
-          <div className="h-[calc(100vh-73px)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500">
-            <div className="p-6">
-              <nav className="space-y-2">
+          <div className="p-6">
+            <nav className="space-y-2">
               <div 
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
                 onClick={() => setLocation('/admin/dashboard')}
@@ -1737,7 +1736,7 @@ export default function BidManagement() {
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label{<span className="font-semibold text-gray-700">Bid Title *</span>}
+                          label={<span className="font-semibold text-gray-700">Bid Title *</span>}
                           name="bidTitle"
                         >
                           <Input 
@@ -1949,7 +1948,7 @@ export default function BidManagement() {
                               Automatically accept the highest valid bid when bidding ends
                             </Text>
                           </div>
-
+                          
                           <div className="p-4 border rounded-lg">
                             <Form.Item
                               label={<span className="font-semibold text-gray-700">Manual Review Option</span>}
@@ -1967,7 +1966,7 @@ export default function BidManagement() {
                               Allow manual review and approval before awarding bids
                             </Text>
                           </div>
-
+                          
                           <div className="p-4 border rounded-lg">
                             <Form.Item
                               label={<span className="font-semibold text-gray-700">Auto Refund Non-Winners</span>}
@@ -2074,7 +2073,7 @@ export default function BidManagement() {
                 </div>
               )}
 
-
+              
             </div>
 
             {/* Navigation Footer */}
