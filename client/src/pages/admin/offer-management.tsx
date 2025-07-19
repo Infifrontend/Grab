@@ -1137,10 +1137,129 @@ export default function OfferManagement() {
           {/* Tab Content */}
           {activeTab === 'dashboard' && renderDashboardContent()}
           {activeTab === 'policies' && (
-            <Card>
-              <Title level={4}>Policies Management</Title>
-              <Text>Manage booking policies and terms of service.</Text>
-            </Card>
+            <div>
+              {/* Header with Search and Create Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <Input
+                  placeholder="Search policies..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  className="max-w-md"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Create Policy
+                </Button>
+              </div>
+
+              {/* Pricing Policies Section */}
+              <Card className="mb-6">
+                <div className="mb-6">
+                  <Title level={4} className="!mb-1">Pricing Policies</Title>
+                  <Text className="text-gray-500">Manage pricing policies for ancillaries and offers</Text>
+                </div>
+
+                <Table
+                  dataSource={[
+                    {
+                      key: '1',
+                      policyName: 'Premium Member Refund Policy',
+                      type: 'Refund',
+                      target: 'Ancillary: Premium Seats',
+                      priceEffect: '0%',
+                      status: 'Active'
+                    },
+                    {
+                      key: '2',
+                      policyName: 'Holiday Surge Pricing',
+                      type: 'Pricing',
+                      target: 'Offer: All Offers\nRoutes: LAX-JFK, ORD-LHR',
+                      priceEffect: '+25%',
+                      status: 'Active'
+                    }
+                  ]}
+                  columns={[
+                    {
+                      title: 'Policy Name',
+                      dataIndex: 'policyName',
+                      key: 'policyName',
+                      render: (text) => <Text className="font-medium">{text}</Text>
+                    },
+                    {
+                      title: 'Type',
+                      dataIndex: 'type',
+                      key: 'type',
+                      render: (type) => (
+                        <Tag color={type === 'Refund' ? 'blue' : 'green'} className="rounded-md">
+                          {type}
+                        </Tag>
+                      )
+                    },
+                    {
+                      title: 'Target',
+                      dataIndex: 'target',
+                      key: 'target',
+                      render: (text) => (
+                        <div className="text-sm">
+                          {text.split('\n').map((line, index) => (
+                            <div key={index} className="text-gray-600">{line}</div>
+                          ))}
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Price Effect',
+                      dataIndex: 'priceEffect',
+                      key: 'priceEffect',
+                      render: (effect) => (
+                        <Text className={effect === '0%' ? 'text-green-600' : 'text-red-600'} strong>
+                          {effect}
+                        </Text>
+                      )
+                    },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      key: 'status',
+                      render: (status) => (
+                        <Tag color="blue" className="rounded-md">
+                          {status}
+                        </Tag>
+                      )
+                    },
+                    {
+                      title: 'Actions',
+                      key: 'actions',
+                      render: (_, record) => (
+                        <Space>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setEditingOffer(record);
+                              setIsModalVisible(true);
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            className="text-red-600 hover:text-red-700"
+                          />
+                        </Space>
+                      )
+                    }
+                  ]}
+                  pagination={false}
+                  className="custom-table"
+                />
+              </Card>
+            </div>
           )}
           {activeTab === 'ancillaries' && (
             <Card>
@@ -1168,6 +1287,129 @@ export default function OfferManagement() {
           )}
         </div>
       </div>
+
+      {/* Create Policy Modal */}
+      <Modal
+        title="Create New Policy"
+        visible={isModalVisible}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setEditingOffer(null);
+          form.resetFields();
+        }}
+        footer={null}
+        width={600}
+        className="custom-modal"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={(values) => {
+            console.log('Policy values:', values);
+            setIsModalVisible(false);
+            form.resetFields();
+          }}
+        >
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                label="Policy Name"
+                name="policyName"
+                rules={[{ required: true, message: 'Please enter policy name' }]}
+              >
+                <Input placeholder="Enter policy name" size="large" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Policy Type"
+                name="type"
+                rules={[{ required: true, message: 'Please select policy type' }]}
+              >
+                <Select placeholder="Select type" size="large">
+                  <Select.Option value="refund">Refund</Select.Option>
+                  <Select.Option value="pricing">Pricing</Select.Option>
+                  <Select.Option value="cancellation">Cancellation</Select.Option>
+                  <Select.Option value="modification">Modification</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Target"
+                name="target"
+                rules={[{ required: true, message: 'Please select target' }]}
+              >
+                <Select placeholder="Select target" size="large">
+                  <Select.Option value="all-offers">All Offers</Select.Option>
+                  <Select.Option value="premium-seats">Ancillary: Premium Seats</Select.Option>
+                  <Select.Option value="meals">Ancillary: Meals</Select.Option>
+                  <Select.Option value="baggage">Ancillary: Baggage</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Price Effect (%)"
+                name="priceEffect"
+                rules={[{ required: true, message: 'Please enter price effect' }]}
+              >
+                <InputNumber
+                  placeholder="0"
+                  size="large"
+                  className="w-full"
+                  min={-100}
+                  max={100}
+                  formatter={(value) => `${value}%`}
+                  parser={(value) => value.replace('%', '')}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Status"
+                name="status"
+                initialValue="active"
+              >
+                <Select size="large">
+                  <Select.Option value="active">Active</Select.Option>
+                  <Select.Option value="inactive">Inactive</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            label="Description"
+            name="description"
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Enter policy description..."
+            />
+          </Form.Item>
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <Button
+              onClick={() => {
+                setIsModalVisible(false);
+                form.resetFields();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" className="bg-blue-600">
+              Create Policy
+            </Button>
+          </div>
+        </Form>
+      </Modal>
 
       <style jsx global>{`
         .ant-tabs-nav-list {
@@ -1211,6 +1453,20 @@ export default function OfferManagement() {
         .ant-progress-inner {
           border-radius: 4px;
           background-color: #f1f5f9;
+        }
+
+        .custom-table .ant-table-thead > tr > th {
+          background-color: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          font-weight: 600;
+        }
+
+        .custom-table .ant-table-tbody > tr > td {
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .custom-table .ant-table-tbody > tr:hover > td {
+          background-color: #f8fafc;
         }
       `}</style>
     </div>
