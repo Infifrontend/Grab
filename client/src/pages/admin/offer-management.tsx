@@ -1749,10 +1749,188 @@ export default function OfferManagement() {
             </div>
           )}
           {activeTab === 'promocodes' && (
-            <Card>
-              <Title level={4}>Promo Codes Management</Title>
-              <Text>Generate and track promotional codes for marketing campaigns.</Text>
-            </Card>
+            <div>
+              {/* Header with Search and Create Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <Input
+                  placeholder="Search promo codes..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  className="max-w-md"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Create Promo Code
+                </Button>
+              </div>
+
+              {/* Promo Code Management Section */}
+              <Card className="mb-6">
+                <div className="mb-6">
+                  <Title level={4} className="!mb-1">Promo Code Management</Title>
+                  <Text className="text-gray-500">Manage promotional codes for marketing campaigns</Text>
+                </div>
+
+                <Table
+                  dataSource={[
+                    {
+                      key: '1',
+                      code: 'SUMMER2024',
+                      name: 'Summer Vacation Deal',
+                      description: 'Special summer promotion for vacation packages',
+                      type: 'Percentage',
+                      value: '25%',
+                      maxValue: '$100',
+                      usage: '456/2000',
+                      usagePercentage: 23,
+                      performance: '$89,400',
+                      redemptionRate: '23% redemption',
+                      status: 'Active'
+                    },
+                    {
+                      key: '2',
+                      code: 'BIZ15',
+                      name: 'Business Traveler Promo',
+                      description: 'Corporate discount for business travelers',
+                      type: 'Percentage',
+                      value: '15%',
+                      maxValue: '$75',
+                      usage: '234/1500',
+                      usagePercentage: 16,
+                      performance: '$45,600',
+                      redemptionRate: '16% redemption',
+                      status: 'Active'
+                    }
+                  ]}
+                  columns={[
+                    {
+                      title: 'Code',
+                      dataIndex: 'code',
+                      key: 'code',
+                      width: '12%',
+                      render: (text) => (
+                        <div className="flex items-center space-x-2">
+                          <Text className="font-mono bg-gray-100 px-2 py-1 rounded font-semibold">{text}</Text>
+                          <Button 
+                            type="text" 
+                            size="small" 
+                            icon={<span className="text-gray-400">📋</span>}
+                            className="hover:bg-gray-50"
+                          />
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Name',
+                      key: 'name',
+                      width: '20%',
+                      render: (_, record) => (
+                        <div>
+                          <Text className="font-semibold text-gray-900 block">{record.name}</Text>
+                          <Text className="text-gray-600 text-sm">{record.description}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Type',
+                      dataIndex: 'type',
+                      key: 'type',
+                      width: '10%',
+                      render: (type) => (
+                        <Tag color="blue" className="rounded-md">
+                          {type}
+                        </Tag>
+                      )
+                    },
+                    {
+                      title: 'Value',
+                      key: 'value',
+                      width: '12%',
+                      render: (_, record) => (
+                        <div className="text-center">
+                          <Text className="font-bold text-lg block">{record.value}</Text>
+                          <Text className="text-gray-500 text-xs">Max: {record.maxValue}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Usage',
+                      key: 'usage',
+                      width: '15%',
+                      render: (_, record) => (
+                        <div>
+                          <Text className="font-semibold block">{record.usage} used</Text>
+                          <Progress 
+                            percent={record.usagePercentage} 
+                            strokeColor="#1890ff" 
+                            showInfo={false} 
+                            size="small" 
+                            className="mb-1"
+                          />
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Performance',
+                      key: 'performance',
+                      width: '15%',
+                      render: (_, record) => (
+                        <div>
+                          <Text className="font-bold text-lg text-green-600 block">{record.performance}</Text>
+                          <Text className="text-gray-500 text-sm">{record.redemptionRate}</Text>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: '8%',
+                      render: (status) => (
+                        <Tag color="blue" className="rounded-md">
+                          {status}
+                        </Tag>
+                      )
+                    },
+                    {
+                      title: 'Actions',
+                      key: 'actions',
+                      width: '8%',
+                      render: (_, record) => (
+                        <Space>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setEditingOffer(record);
+                              setIsModalVisible(true);
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            className="text-gray-600 hover:text-gray-700"
+                          />
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            className="text-red-600 hover:text-red-700"
+                          />
+                        </Space>
+                      )
+                    }
+                  ]}
+                  pagination={false}
+                  className="custom-table"
+                />
+              </Card>
+            </div>
           )}
           {activeTab === 'offers' && (
             <Card>
@@ -1765,7 +1943,7 @@ export default function OfferManagement() {
 
       {/* Create Modal (Dynamic based on active tab) */}
       <Modal
-        title={activeTab === 'policies' ? "Create New Policy" : activeTab === 'ancillaries' ? "Add New Ancillary" : activeTab === 'discounts' ? "Create New Discount" : "Create New Item"}
+        title={activeTab === 'policies' ? "Create New Policy" : activeTab === 'ancillaries' ? "Add New Ancillary" : activeTab === 'discounts' ? "Create New Discount" : activeTab === 'promocodes' ? "Create New Promo Code" : "Create New Item"}
         visible={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -2082,6 +2260,133 @@ export default function OfferManagement() {
                 />
               </Form.Item>
             </>
+          ) : activeTab === 'promocodes' ? (
+            // Promo Code Form Fields
+            <>
+              <Row gutter={16}>
+                <Col span={16}>
+                  <Form.Item
+                    label="Promo Code Name"
+                    name="promoCodeName"
+                    rules={[{ required: true, message: 'Please enter promo code name' }]}
+                  >
+                    <Input placeholder="Enter promo code name" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="Code"
+                    name="promoCode"
+                    rules={[{ required: true, message: 'Please enter promo code' }]}
+                  >
+                    <Input placeholder="e.g. SUMMER2024" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Type"
+                    name="promoType"
+                    rules={[{ required: true, message: 'Please select promo type' }]}
+                  >
+                    <Select placeholder="Select type" size="large">
+                      <Select.Option value="percentage">Percentage</Select.Option>
+                      <Select.Option value="fixed">Fixed Amount</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Value"
+                    name="promoValue"
+                    rules={[{ required: true, message: 'Please enter promo value' }]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      max={100}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Max Value ($)"
+                    name="maxValue"
+                    rules={[{ required: true, message: 'Please enter max value' }]}
+                  >
+                    <InputNumber
+                      placeholder="e.g. 100"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Usage Limit"
+                    name="usageLimit"
+                    rules={[{ required: true, message: 'Please enter usage limit' }]}
+                  >
+                    <InputNumber
+                      placeholder="e.g. 2000"
+                      size="large"
+                      className="w-full"
+                      min={1}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid From"
+                    name="validFrom"
+                    rules={[{ required: true, message: 'Please select start date' }]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid To"
+                    name="validTo"
+                    rules={[{ required: true, message: 'Please select end date' }]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[{ required: true, message: 'Please enter description' }]}
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter promo code description..."
+                />
+              </Form.Item>
+            </>
           ) : (
             // Default form for other tabs
             <div>
@@ -2105,7 +2410,7 @@ export default function OfferManagement() {
               Cancel
             </Button>
             <Button type="primary" htmlType="submit" className="bg-blue-600">
-              {activeTab === 'policies' ? 'Create Policy' : activeTab === 'ancillaries' ? 'Add Ancillary' : activeTab === 'discounts' ? 'Create Discount' : 'Create'}
+              {activeTab === 'policies' ? 'Create Policy' : activeTab === 'ancillaries' ? 'Add Ancillary' : activeTab === 'discounts' ? 'Create Discount' : activeTab === 'promocodes' ? 'Create Promo Code' : 'Create'}
             </Button>
           </div>
         </Form>
