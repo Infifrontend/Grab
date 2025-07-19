@@ -1,4 +1,4 @@
-import { Badge, Dropdown, Avatar, Modal, Typography, Empty, Card, Space, Button, Divider } from "antd";
+import { Badge, Dropdown, Avatar, Modal, Typography, Empty, Card, Space, Button, Divider, Switch, Tooltip } from "antd";
 import {
   BellOutlined,
   DownOutlined,
@@ -11,6 +11,7 @@ import {
   CreditCardOutlined,
   SettingOutlined,
   LogoutOutlined,
+  PoweroffOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
@@ -34,6 +35,7 @@ const navigationItems = [
 export default function Header() {
   const [location] = useLocation();
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(true);
 
   const handleNotificationClick = () => {
     setIsNotificationModalOpen(true);
@@ -41,6 +43,15 @@ export default function Header() {
 
   const handleNotificationModalClose = () => {
     setIsNotificationModalOpen(false);
+  };
+
+  const handleSignOut = (checked: boolean) => {
+    setIsSignedIn(checked);
+    if (!checked) {
+      // Handle sign out logic here
+      localStorage.clear();
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -73,6 +84,23 @@ export default function Header() {
                 onClick={handleNotificationClick}
               />
             </Badge>
+
+            {/* Sign Out Switch */}
+            <Tooltip title={isSignedIn ? "Sign Out" : "Sign In"}>
+              <div className="flex items-center space-x-2">
+                <PoweroffOutlined 
+                  className={`text-lg ${isSignedIn ? 'text-green-600' : 'text-gray-400'} transition-colors`} 
+                />
+                <Switch
+                  checked={isSignedIn}
+                  onChange={handleSignOut}
+                  size="small"
+                  style={{
+                    backgroundColor: isSignedIn ? '#52c41a' : '#d9d9d9',
+                  }}
+                />
+              </div>
+            </Tooltip>
 
             <Dropdown
               placement="bottomRight"
