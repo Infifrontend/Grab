@@ -552,7 +552,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bids = await storage.getBids(
         userId ? parseInt(userId as string) : undefined,
       );
-      res.json(bids);
+      
+      // Sort bids by creation date (newest first) for recent activity display
+      const sortedBids = bids.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      res.json(sortedBids);
     } catch (error) {
       console.error("Error fetching bids:", error);
       res.status(500).json({ message: "Failed to fetch bids" });

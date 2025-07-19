@@ -57,7 +57,7 @@ import {
   EnvironmentOutlined
 } from '@ant-design/icons';
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
@@ -65,6 +65,7 @@ const { Title, Text } = Typography;
 export default function BidManagement() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('1');
   const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -87,6 +88,15 @@ export default function BidManagement() {
     queryKey: ["bid-configurations"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/bid-configurations-list");
+      return response.json();
+    },
+  });
+
+  // Fetch recent bids for activity display
+  const { data: recentBidsData } = useQuery({
+    queryKey: ["recent-bids"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/bids");
       return response.json();
     },
   });
@@ -140,25 +150,49 @@ export default function BidManagement() {
     },
   ];
 
-  // Generate recent activities from actual bid configurations
-  const recentActivities = bidConfigurations.slice(0, 5).map((bid, index) => {
+  // Generate recent activities from actual bids data
+  const recentActivities = (recentBidsData || []).slice(0, 5).map((bid, index) => {
     let configData = {};
+    let isConfiguration = false;
+    
     try {
-      configData = bid.notes ? JSON.parse(bid.notes) : {};
+      if (bid.notes) {
+        configData = JSON.parse(bid.notes);
+        isConfiguration = configData.configType === 'bid_configuration';
+      }
     } catch (e) {
       configData = {};
     }
 
     const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
-    const title = configData.title || `Bid Configuration #${bid.id}`;
-    const route = configData.origin && configData.destination ? 
-      `${configData.origin} → ${configData.destination}` : 'Route not specified';
+    
+    let title, route, activityType, color;
+    
+    if (isConfiguration) {
+      title = configData.title || `Bid Configuration #${bid.id}`;
+      route = configData.origin && configData.destination ? 
+        `${configData.origin} → ${configData.destination}` : 'Route not specified';
+      activityType = 'Bid configuration created';
+      color = '#1890ff';
+    } else {
+      // Regular bid activity
+      title = `Bid #${bid.id}`;
+      route = bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not specified';
+      activityType = bid.bidStatus === 'active' ? 'Active bid submitted' : 
+                    bid.bidStatus === 'accepted' ? 'Bid accepted' :
+                    bid.bidStatus === 'rejected' ? 'Bid declined' :
+                    'Bid created';
+      color = bid.bidStatus === 'active' ? '#52c41a' : 
+              bid.bidStatus === 'accepted' ? '#00b96b' :
+              bid.bidStatus === 'rejected' ? '#ff4d4f' : '#1890ff';
+    }
 
     return {
-      type: bid.bidStatus === 'active' ? 'active' : 'created',
-      color: bid.bidStatus === 'active' ? '#52c41a' : '#1890ff',
-      title: `New bid configuration created: ${title} (${route})`,
-      time: timeAgo
+      type: bid.bidStatus,
+      color: color,
+      title: `${activityType}: ${title} (${route})`,
+      time: timeAgo,
+      amount: bid.bidAmount ? `₹${bid.bidAmount}` : null
     };
   });
 
@@ -232,8 +266,11 @@ export default function BidManagement() {
         // Show success message
         message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
         
-        // Refetch bid configurations to update the Recent Bid Activity
+        // Refetch bid configurations and recent bids to update the Recent Bid Activity
         refetchBids();
+        
+        // Also refetch recent bids data
+        queryClient.invalidateQueries(['recent-bids']);
         
         // Close modal and reset form
         setCreateBidModalVisible(false);
@@ -1016,18 +1053,29 @@ export default function BidManagement() {
                           <Text className="text-gray-500">Latest bid submissions and responses</Text>
                         </div>
                         <div className="space-y-4">
-                          {recentActivities.map((activity, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                              <div className="flex items-center space-x-3">
-                                <div 
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: activity.color }}
-                                />
-                                <Text className="font-medium">{activity.title}</Text>
-                              </div>
-                              <Text className="text-gray-500 text-sm">{activity.time}</Text>
+                          {recentActivities.length === 0 ? (
+                            <div className="text-center py-8">
+                              <Text className="text-gray-500">No recent bid activity found.</Text>
                             </div>
-                          ))}
+                          ) : (
+                            recentActivities.map((activity, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <div 
+                                    className="w-3 h-3 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: activity.color }}
+                                  />
+                                  <div className="flex-1">
+                                    <Text className="font-medium text-gray-800">{activity.title}</Text>
+                                    {activity.amount && (
+                                      <Text className="text-sm text-gray-600 mt-1">Amount: {activity.amount}</Text>
+                                    )}
+                                  </div>
+                                </div>
+                                <Text className="text-gray-500 text-sm whitespace-nowrap ml-3">{activity.time}</Text>
+                              </div>
+                            ))
+                          )}
                         </div>
                       </Card>
                     </Col>
