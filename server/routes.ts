@@ -559,6 +559,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get bid configurations (formatted for admin display)
+  app.get("/api/bid-configurations-list", async (req, res) => {
+    try {
+      const bids = await storage.getBids();
+      
+      // Filter and format bid configurations (those with configType)
+      const bidConfigurations = bids
+        .filter(bid => {
+          try {
+            const notes = bid.notes ? JSON.parse(bid.notes) : {};
+            return notes.configType === 'bid_configuration';
+          } catch (e) {
+            return false;
+          }
+        })
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by newest first
+
+      res.json(bidConfigurations);
+    } catch (error) {
+      console.error("Error fetching bid configurations:", error);
+      res.status(500).json({ message: "Failed to fetch bid configurations" });
+    }
+  });
+
   // Create a new bid
   app.post("/api/bids", async (req, res) => {
     try {

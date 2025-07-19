@@ -71,12 +71,22 @@ export default function BidManagement() {
   const [form] = Form.useForm();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+  const [bidConfigurations, setBidConfigurations] = useState([]);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
     queryKey: ["flight-locations"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
+
+  // Fetch bid configurations
+  const { data: bidsData, refetch: refetchBids } = useQuery({
+    queryKey: ["bid-configurations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/bid-configurations-list");
       return response.json();
     },
   });
@@ -95,6 +105,12 @@ export default function BidManagement() {
       setDestinationOptions(locationsData.locations);
     }
   }, [locationsData]);
+
+  useEffect(() => {
+    if (bidsData) {
+      setBidConfigurations(bidsData);
+    }
+  }, [bidsData]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
@@ -124,32 +140,44 @@ export default function BidManagement() {
     },
   ];
 
-  const recentActivities = [
-    {
-      type: 'new',
-      color: '#ff7875',
-      title: 'New bid received: Economy to Business ($280)',
-      time: '30 minutes ago'
-    },
-    {
-      type: 'counter',
-      color: '#40a9ff',
-      title: 'Bid BID001 - Counter offer sent ($280)',
-      time: '2 hours ago'
-    },
-    {
-      type: 'accepted',
-      color: '#73d13d',
-      title: 'Bid BID002 - Auto-accepted ($120)',
-      time: '4 hours ago'
-    },
-    {
-      type: 'rejected',
-      color: '#ff7875',
-      title: 'Bid BID005 - Rejected (below minimum)',
-      time: '8 hours ago'
+  // Generate recent activities from actual bid configurations
+  const recentActivities = bidConfigurations.slice(0, 5).map((bid, index) => {
+    let configData = {};
+    try {
+      configData = bid.notes ? JSON.parse(bid.notes) : {};
+    } catch (e) {
+      configData = {};
     }
-  ];
+
+    const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
+    const title = configData.title || `Bid Configuration #${bid.id}`;
+    const route = configData.origin && configData.destination ? 
+      `${configData.origin} → ${configData.destination}` : 'Route not specified';
+
+    return {
+      type: bid.bidStatus === 'active' ? 'active' : 'created',
+      color: bid.bidStatus === 'active' ? '#52c41a' : '#1890ff',
+      title: `New bid configuration created: ${title} (${route})`,
+      time: timeAgo
+    };
+  });
+
+  // Helper function to calculate time ago
+  function getTimeAgo(date) {
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hours ago`;
+    } else {
+      return `${diffInDays} days ago`;
+    }
+  }
 
   const handleCreateBid = () => {
     setCreateBidModalVisible(true);
@@ -203,6 +231,9 @@ export default function BidManagement() {
       if (result.success) {
         // Show success message
         message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
+        
+        // Refetch bid configurations to update the Recent Bid Activity
+        refetchBids();
         
         // Close modal and reset form
         setCreateBidModalVisible(false);
@@ -426,177 +457,91 @@ export default function BidManagement() {
 
       {/* Bid Configuration Cards */}
       <div className="space-y-4">
-        <Card className="hover:shadow-lg transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center mb-4">
-                <Title level={5} className="!mb-0 !mr-3">LAX→JFK Business Upgrade</Title>
-                <Tag color="green" className="text-xs">Active</Tag>
-              </div>
-
-              <Row gutter={[32, 16]}>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
-                    <Text className="font-medium">LAX → JFK</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
-                    <Text className="font-medium">40</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
-                    <Text className="font-medium">$190 - $200</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
-                    <Text className="font-medium">USD</Text>
-                  </div>
-                </Col>
-              </Row>
-
-              <div className="mt-4">
-                <Text className="text-gray-400 text-xs">Created: 2024-09-15</Text>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 ml-6">
-              <Button type="text" icon={<EyeOutlined />} size="small">
-                View
-              </Button>
-              <Button type="text" icon={<EditOutlined />} size="small">
-                Edit
-              </Button>
-              <Switch 
-                defaultChecked 
-                size="small"
-                checkedChildren="ON"
-                unCheckedChildren="OFF"
-              />
-            </div>
+        {bidConfigurations.length === 0 ? (
+          <div className="text-center py-8">
+            <Text className="text-gray-500">No bid configurations found. Create your first bid configuration to get started.</Text>
           </div>
-        </Card>
+        ) : (
+          bidConfigurations.map((bid) => {
+            let configData = {};
+            try {
+              configData = bid.notes ? JSON.parse(bid.notes) : {};
+            } catch (e) {
+              configData = {};
+            }
 
-        {/* Additional bid configurations can be added here */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center mb-4">
-                <Title level={5} className="!mb-0 !mr-3">ORD→SFO Premium Economy Upgrade</Title>
-                <Tag color="orange" className="text-xs">Draft</Tag>
-              </div>
+            const title = configData.title || `Bid Configuration #${bid.id}`;
+            const route = configData.origin && configData.destination ? 
+              `${configData.origin} → ${configData.destination}` : 'Route not specified';
+            const totalSeats = configData.totalSeatsAvailable || 'N/A';
+            const fareType = configData.fareType || 'Economy';
+            const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
+            
+            const statusColor = bid.bidStatus === 'active' ? 'green' : 
+                               bid.bidStatus === 'pending' ? 'orange' : 'red';
+            const statusText = bid.bidStatus === 'active' ? 'Active' : 
+                              bid.bidStatus === 'pending' ? 'Pending' : 'Inactive';
 
-              <Row gutter={[32, 16]}>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
-                    <Text className="font-medium">ORD → SFO</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
-                    <Text className="font-medium">24</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
-                    <Text className="font-medium">$85 - $120</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
-                    <Text className="font-medium">USD</Text>
-                  </div>
-                </Col>
-              </Row>
+            return (
+              <Card key={bid.id} className="hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-4">
+                      <Title level={5} className="!mb-0 !mr-3">{title}</Title>
+                      <Tag color={statusColor} className="text-xs">{statusText}</Tag>
+                    </div>
 
-              <div className="mt-4">
-                <Text className="text-gray-400 text-xs">Created: 2024-09-14</Text>
-              </div>
-            </div>
+                    <Row gutter={[32, 16]}>
+                      <Col span={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                          <Text className="font-medium">{route}</Text>
+                        </div>
+                      </Col>
+                      <Col span={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                          <Text className="font-medium">{totalSeats}</Text>
+                        </div>
+                      </Col>
+                      <Col span={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block mb-1">Fare Type:</Text>
+                          <Text className="font-medium">{fareType}</Text>
+                        </div>
+                      </Col>
+                      <Col span={6}>
+                        <div>
+                          <Text className="text-gray-500 text-sm block mb-1">Bid Amount:</Text>
+                          <Text className="font-medium">₹{bid.bidAmount}</Text>
+                        </div>
+                      </Col>
+                    </Row>
 
-            <div className="flex items-center space-x-2 ml-6">
-              <Button type="text" icon={<EyeOutlined />} size="small">
-                View
-              </Button>
-              <Button type="text" icon={<EditOutlined />} size="small">
-                Edit
-              </Button>
-              <Switch 
-                defaultChecked={false}
-                size="small"
-                checkedChildren="ON"
-                unCheckedChildren="OFF"
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center mb-4">
-                <Title level={5} className="!mb-0 !mr-3">JFK→LHR First Class Upgrade</Title>
-                <Tag color="red" className="text-xs">Inactive</Tag>
-              </div>
-
-              <Row gutter={[32, 16]}>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
-                    <Text className="font-medium">JFK → LHR</Text>
+                    <div className="mt-4">
+                      <Text className="text-gray-400 text-xs">Created: {createdDate}</Text>
+                    </div>
                   </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
-                    <Text className="font-medium">8</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Bid Range:</Text>
-                    <Text className="font-medium">$800 - $1200</Text>
-                  </div>
-                </Col>
-                <Col span={6}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">Currency:</Text>
-                    <Text className="font-medium">USD</Text>
-                  </div>
-                </Col>
-              </Row>
 
-              <div className="mt-4">
-                <Text className="text-gray-400 text-xs">Created: 2024-09-10</Text>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 ml-6">
-              <Button type="text" icon={<EyeOutlined />} size="small">
-                View
-              </Button>
-              <Button type="text" icon={<EditOutlined />} size="small">
-                Edit
-              </Button>
-              <Switch 
-                defaultChecked={false}
-                size="small"
-                checkedChildren="ON"
-                unCheckedChildren="OFF"
-              />
-            </div>
-          </div>
-        </Card>
+                  <div className="flex items-center space-x-2 ml-6">
+                    <Button type="text" icon={<EyeOutlined />} size="small">
+                      View
+                    </Button>
+                    <Button type="text" icon={<EditOutlined />} size="small">
+                      Edit
+                    </Button>
+                    <Switch 
+                      defaultChecked={bid.bidStatus === 'active'}
+                      size="small"
+                      checkedChildren="ON"
+                      unCheckedChildren="OFF"
+                    />
+                  </div>
+                </div>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );
