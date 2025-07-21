@@ -119,13 +119,13 @@ export default function BidDetails() {
     groupName: configData.title || configData.bidTitle || bidData.bid.notes || 'Group Travel',
     groupCategory: configData.flightType || 'Domestic',
     
-    // Travel Details from database
-    origin: bidData.flight?.origin || configData.origin || 'Unknown',
-    destination: bidData.flight?.destination || configData.destination || 'Unknown',
-    departureDate: bidData.flight?.departureTime ? formatDate(bidData.flight.departureTime) : (configData.travelDate ? formatDate(configData.travelDate) : 'Unknown'),
+    // Travel Details from database - prioritize actual flight data over config data
+    origin: bidData.flight?.origin || configData.origin || 'Origin not specified',
+    destination: bidData.flight?.destination || configData.destination || 'Destination not specified',
+    departureDate: bidData.flight?.departureTime ? formatDate(bidData.flight.departureTime) : (configData.travelDate ? formatDate(configData.travelDate) : 'Date not specified'),
     returnDate: bidData.flight?.arrivalTime ? formatDate(bidData.flight.arrivalTime) : 'N/A',
     passengers: passengers,
-    cabinClass: configData.fareType || bidData.flight?.cabin || 'Economy',
+    cabinClass: bidData.flight?.cabin || configData.fareType || 'Economy',
     
     // Pricing Information
     bidAmount: bidAmount,
@@ -298,12 +298,18 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Origin</Text>
                     <Input 
                       value={transformedBidData.origin}
-                      placeholder="Departure city"
+                      placeholder="Departure city not specified"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">📍</span>}
                     />
+                    {bidData.flight?.origin && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
@@ -311,25 +317,37 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Destination</Text>
                     <Input 
                       value={transformedBidData.destination}
-                      placeholder="Arrival city"
+                      placeholder="Arrival city not specified"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">🎯</span>}
                     />
+                    {bidData.flight?.destination && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div>
                     <Text className="text-gray-700 font-medium block mb-2">Cabin Class</Text>
                     <Input 
-                      value={transformedBidData.cabinClass}
-                      placeholder="Cabin class"
+                      value={transformedBidData.cabinClass.charAt(0).toUpperCase() + transformedBidData.cabinClass.slice(1)}
+                      placeholder="Cabin class not specified"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">💺</span>}
                     />
+                    {bidData.flight?.cabin && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
                   </div>
                 </Col>
               </Row>
@@ -340,24 +358,72 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Travel Date</Text>
                     <Input 
                       value={transformedBidData.departureDate}
-                      placeholder="Travel date"
+                      placeholder="Travel date not specified"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<CalendarOutlined className="text-gray-400" />}
                     />
+                    {bidData.flight?.departureTime && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
                   <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Baggage Allowance</Text>
+                    <Text className="text-gray-700 font-medium block mb-2">Flight Number</Text>
                     <Input 
-                      value={transformedBidData.baggageAllowance}
-                      placeholder="Baggage allowance"
+                      value={bidData.flight?.flightNumber || 'Not assigned'}
+                      placeholder="Flight number not assigned"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">✈️</span>}
+                    />
+                    {bidData.flight?.flightNumber && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="text-gray-700 font-medium block mb-2">Airline</Text>
+                    <Input 
+                      value={bidData.flight?.airline || 'Not specified'}
+                      placeholder="Airline not specified"
+                      size="large"
+                      className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">🏢</span>}
+                    />
+                    {bidData.flight?.airline && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
+                  </div>
+                </Col>
+              </Row>
+
+              <Row gutter={[24, 20]} className="mt-5">
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="text-gray-700 font-medium block mb-2">Baggage Allowance</Text>
+                    <Input 
+                      value={`${transformedBidData.baggageAllowance} kg`}
+                      placeholder="Baggage allowance not specified"
+                      size="large"
+                      className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">🎒</span>}
                     />
                   </div>
                 </Col>
@@ -366,12 +432,32 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">Meal Included</Text>
                     <Input 
                       value={transformedBidData.mealIncluded}
-                      placeholder="Meal information"
+                      placeholder="Meal information not specified"
                       size="large"
                       className="rounded-md"
                       readOnly
                       style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">🍽️</span>}
                     />
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="text-gray-700 font-medium block mb-2">Flight Duration</Text>
+                    <Input 
+                      value={bidData.flight?.duration || 'Not specified'}
+                      placeholder="Flight duration not specified"
+                      size="large"
+                      className="rounded-md"
+                      readOnly
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      prefix={<span className="text-gray-400">⏱️</span>}
+                    />
+                    {bidData.flight?.duration && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        ✓ Fetched from flight database
+                      </Text>
+                    )}
                   </div>
                 </Col>
               </Row>
