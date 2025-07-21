@@ -1379,9 +1379,7 @@ export default function OfferManagement() {
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                   <span className="text-blue-600 text-xs">🎯</span>
                 </div>
-                <Text className="text-white font-medium">
-                  Offers Management
-                </Text>
+                <Text className="text-white font-medium">Offer Management</Text>
               </div>
               <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"

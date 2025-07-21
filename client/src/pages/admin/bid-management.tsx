@@ -2470,7 +2470,7 @@ export default function BidManagement() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
                 </div>
-                <Text className="text-current">Offers Management</Text>
+                <Text className="text-current">Offer Management</Text>
               </div>
               <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -2485,7 +2485,7 @@ export default function BidManagement() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📅</span>
                 </div>
-                <Text className="text-current">Bookings Management</Text>
+                <Text className="text-current">Booking Management</Text>
               </div>
               <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
