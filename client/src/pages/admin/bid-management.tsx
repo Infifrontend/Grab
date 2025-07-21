@@ -269,11 +269,16 @@ export default function BidManagement() {
     try {
       if (currentStep === 0) {
         // Validate step 1 fields
-        await form.validateFields(['bidTitle', 'origin', 'destination', 'bidAmount']);
+        await form.validateFields([
+          "bidTitle",
+          "origin",
+          "destination",
+          "bidAmount",
+        ]);
       }
       setCurrentStep(currentStep + 1);
     } catch (error) {
-      console.log('Validation failed:', error);
+      console.log("Validation failed:", error);
       // Form validation will show the error messages automatically
     }
   };
@@ -290,23 +295,35 @@ export default function BidManagement() {
       // Get ALL current form values to ensure we have complete data
       const allFormValues = form.getFieldsValue(true); // Get all fields including empty ones
       console.log("All form values:", allFormValues);
-      
+
       // Merge with current values, giving priority to handleFinish values
       const finalValues = { ...allFormValues, ...values };
       console.log("Final merged values:", finalValues);
 
       // Validate required fields with final values
       const errors = [];
-      
-      if (!finalValues.bidTitle || (typeof finalValues.bidTitle === 'string' && finalValues.bidTitle.trim() === "")) {
+
+      if (
+        !finalValues.bidTitle ||
+        (typeof finalValues.bidTitle === "string" &&
+          finalValues.bidTitle.trim() === "")
+      ) {
         errors.push("Bid title is required");
       }
-      
-      if (!finalValues.origin || (typeof finalValues.origin === 'string' && finalValues.origin.trim() === "")) {
+
+      if (
+        !finalValues.origin ||
+        (typeof finalValues.origin === "string" &&
+          finalValues.origin.trim() === "")
+      ) {
         errors.push("Origin airport is required");
       }
-      
-      if (!finalValues.destination || (typeof finalValues.destination === 'string' && finalValues.destination.trim() === "")) {
+
+      if (
+        !finalValues.destination ||
+        (typeof finalValues.destination === "string" &&
+          finalValues.destination.trim() === "")
+      ) {
         errors.push("Destination airport is required");
       }
 
@@ -316,7 +333,7 @@ export default function BidManagement() {
 
       // Show all validation errors at once
       if (errors.length > 0) {
-        errors.forEach(error => message.error(error));
+        errors.forEach((error) => message.error(error));
         setLoading(false);
         return;
       }
@@ -326,7 +343,9 @@ export default function BidManagement() {
         ...finalValues,
         bidTitle: finalValues.bidTitle ? finalValues.bidTitle.trim() : "",
         origin: finalValues.origin ? finalValues.origin.trim() : "",
-        destination: finalValues.destination ? finalValues.destination.trim() : "",
+        destination: finalValues.destination
+          ? finalValues.destination.trim()
+          : "",
         bidAmount: finalValues.bidAmount || 0,
         travelDate: finalValues.travelDate
           ? finalValues.travelDate.format("YYYY-MM-DD")
@@ -334,7 +353,9 @@ export default function BidManagement() {
         bidStartTime: finalValues.bidStartTime
           ? finalValues.bidStartTime.toISOString()
           : null,
-        bidEndTime: finalValues.bidEndTime ? finalValues.bidEndTime.toISOString() : null,
+        bidEndTime: finalValues.bidEndTime
+          ? finalValues.bidEndTime.toISOString()
+          : null,
         departureTimeRange: finalValues.departureTimeRange
           ? finalValues.departureTimeRange
               .map((time) => time.format("HH:mm"))
@@ -2739,8 +2760,15 @@ export default function BidManagement() {
                           }
                           name="bidTitle"
                           rules={[
-                            { required: true, message: "Please enter bid title" },
-                            { min: 3, message: "Bid title must be at least 3 characters" }
+                            {
+                              required: true,
+                              message: "Please enter bid title",
+                            },
+                            {
+                              min: 3,
+                              message:
+                                "Bid title must be at least 3 characters",
+                            },
                           ]}
                         >
                           <Input
@@ -2785,8 +2813,14 @@ export default function BidManagement() {
                           }
                           name="origin"
                           rules={[
-                            { required: true, message: "Please select origin airport" },
-                            { min: 2, message: "Please enter a valid airport code" }
+                            {
+                              required: true,
+                              message: "Please select origin airport",
+                            },
+                            {
+                              min: 2,
+                              message: "Please enter a valid airport code",
+                            },
                           ]}
                         >
                           <Select
@@ -2822,8 +2856,14 @@ export default function BidManagement() {
                           }
                           name="destination"
                           rules={[
-                            { required: true, message: "Please select destination airport" },
-                            { min: 2, message: "Please enter a valid airport code" }
+                            {
+                              required: true,
+                              message: "Please select destination airport",
+                            },
+                            {
+                              min: 2,
+                              message: "Please enter a valid airport code",
+                            },
                           ]}
                         >
                           <Select
@@ -2887,8 +2927,15 @@ export default function BidManagement() {
                           }
                           name="bidAmount"
                           rules={[
-                            { required: true, message: "Please enter bid amount" },
-                            { type: "number", min: 100, message: "Minimum bid amount is ₹100" }
+                            {
+                              required: true,
+                              message: "Please enter bid amount",
+                            },
+                            {
+                              type: "number",
+                              min: 100,
+                              message: "Minimum bid amount is ₹100",
+                            },
                           ]}
                         >
                           <InputNumber
