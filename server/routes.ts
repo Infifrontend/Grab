@@ -552,12 +552,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bids = await storage.getBids(
         userId ? parseInt(userId as string) : undefined,
       );
-      
+
       // Sort bids by creation date (newest first) for recent activity display
       const sortedBids = bids.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       res.json(sortedBids);
     } catch (error) {
       console.error("Error fetching bids:", error);
@@ -569,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bid-configurations-list", async (req, res) => {
     try {
       const bids = await storage.getBids();
-      
+
       // Filter and format bid configurations (those with configType)
       const bidConfigurations = bids
         .filter(bid => {
@@ -586,6 +586,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching bid configurations:", error);
       res.status(500).json({ message: "Failed to fetch bid configurations" });
+    }
+  });
+
+  // Update bid configuration status (toggle on/off)
+  app.put("/api/bid-configurations/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      console.log(`Updating bid configuration ${id} status to ${status}`);
+
+      // Assuming storage.updateBidStatus is a function to update the bid status in the storage
+      const updatedBid = await storage.updateBidStatus(parseInt(id), status);
+
+      if (!updatedBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid configuration not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Bid configuration ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
+        bid: updatedBid
+      });
+    } catch (error) {
+      console.error("Error updating bid configuration status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update bid configuration status",
+        error: error.message
+      });
+    }
+  });
+
+  // Update bid configuration
+  app.put("/api/bid-configurations/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        bidTitle,
+        flightType,
+        origin,
+        destination,
+        totalSeatsAvailable,
+        minSeatsPerBid,
+        maxSeatsPerBid,
+        maxSeatsPerUser,
+        fareType,
+        baggageAllowance,
+        cancellationTerms,
+        mealIncluded,
+        otherNotes
+      } = req.body;
+
+      console.log(`Updating bid configuration ${id}:`, req.body);
+
+      // Get existing bid configuration
+      const existingBid = await storage.getBidById(parseInt(id));
+
+      if (!existingBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid configuration not found"
+        });
+      }
+
+      // Parse existing notes to preserve other data
+      let existingConfigData = {};
+      try {
+        existingConfigData = existingBid.notes ? JSON.parse(existingBid.notes) : {};
+      } catch (e) {
+        console.warn("Could not parse existing notes, using empty object");
+      }
+
+      // Create updated configuration data
+      const updatedConfigurationData = {
+        ...existingConfigData,
+        title: bidTitle,
+        flightType: flightType || "Domestic",
+        origin,
+        destination,
+        totalSeatsAvailable: totalSeatsAvailable || 50,
+        minSeatsPerBid: minSeatsPerBid || 1,
+        maxSeatsPerBid: maxSeatsPerBid || 10,
+        maxSeatsPerUser: maxSeatsPerUser || 5,
+        fareType: fareType || "Economy",
+        baggageAllowance: baggageAllowance || 20,
+        cancellationTerms: cancellationTerms || "Standard",
+        mealIncluded: mealIncluded || false,
+        otherNotes: otherNotes || "",
+        updatedAt: new Date().toISOString()
+      };
+
+      // Update the bid configuration
+      const updatedBid = await storage.updateBidDetails(parseInt(id), {
+        notes: JSON.stringify(updatedConfigurationData),
+        passengerCount: minSeatsPerBid || 1
+      });
+
+      res.json({
+        success: true,
+        message: "Bid configuration updated successfully",
+        bid: updatedBid
+      });
+    } catch (error) {
+      console.error("Error updating bid configuration:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update bid configuration",
+        error: error.message
+      });
+    }
+  });
+
+  // Get single bid configuration
+  app.get("/api/bid-configurations/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      console.log(`Fetching bid configuration ${id}`);
+
+      const bid = await storage.getBidById(parseInt(id));
+
+      if (!bid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid configuration not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        bid
+      });
+    } catch (error) {
+      console.error("Error fetching bid configuration:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch bid configuration",
+        error: error.message
+      });
     }
   });
 

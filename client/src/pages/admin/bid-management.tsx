@@ -512,6 +512,102 @@ export default function BidManagement() {
     );
   };
 
+  const [viewBidModalVisible, setViewBidModalVisible] = useState(false);
+  const [editBidModalVisible, setEditBidModalVisible] = useState(false);
+  const [selectedBid, setSelectedBid] = useState(null);
+  const [editForm] = Form.useForm();
+
+  const handleViewBid = (bid) => {
+    setSelectedBid(bid);
+    setViewBidModalVisible(true);
+  };
+
+  const handleEditBid = (bid) => {
+    setSelectedBid(bid);
+    let configData = {};
+    try {
+      configData = bid.notes ? JSON.parse(bid.notes) : {};
+    } catch (e) {
+      configData = {};
+    }
+    
+    // Populate the edit form with existing data
+    editForm.setFieldsValue({
+      bidTitle: configData.title || '',
+      flightType: configData.flightType || 'Domestic',
+      origin: configData.origin || '',
+      destination: configData.destination || '',
+      totalSeatsAvailable: configData.totalSeatsAvailable || 50,
+      minSeatsPerBid: configData.minSeatsPerBid || 1,
+      maxSeatsPerBid: configData.maxSeatsPerBid || 10,
+      maxSeatsPerUser: configData.maxSeatsPerUser || 5,
+      fareType: configData.fareType || 'Economy',
+      baggageAllowance: configData.baggageAllowance || 20,
+      cancellationTerms: configData.cancellationTerms || 'Standard',
+      mealIncluded: configData.mealIncluded || false,
+      otherNotes: configData.otherNotes || '',
+    });
+    
+    setEditBidModalVisible(true);
+  };
+
+  const handleToggleBidStatus = async (bid, checked) => {
+    try {
+      const newStatus = checked ? 'active' : 'inactive';
+      const response = await apiRequest('PUT', `/api/bid-configurations/${bid.id}/status`, {
+        status: newStatus
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update bid status');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        message.success(`Bid configuration ${checked ? 'activated' : 'deactivated'} successfully`);
+        // Refetch bid configurations to update the display
+        refetchBids();
+      } else {
+        message.error(result.message || 'Failed to update bid status');
+      }
+    } catch (error) {
+      console.error('Error updating bid status:', error);
+      message.error('Failed to update bid status. Please try again.');
+    }
+  };
+
+  const handleEditSubmit = async (values) => {
+    if (!selectedBid) return;
+    
+    setLoading(true);
+    try {
+      const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, values);
+      
+      if (!response.ok) {
+        throw new Error('Failed to update bid configuration');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        message.success('Bid configuration updated successfully');
+        setEditBidModalVisible(false);
+        setSelectedBid(null);
+        editForm.resetFields();
+        // Refetch bid configurations to update the display
+        refetchBids();
+      } else {
+        message.error(result.message || 'Failed to update bid configuration');
+      }
+    } catch (error) {
+      console.error('Error updating bid configuration:', error);
+      message.error('Failed to update bid configuration. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderBidSetupContent = () => (
     <div>
       {/* Bid Setup Header */}
@@ -599,17 +695,28 @@ export default function BidManagement() {
                   </div>
 
                   <div className="flex items-center space-x-2 ml-6">
-                    <Button type="text" icon={<EyeOutlined />} size="small">
+                    <Button 
+                      type="text" 
+                      icon={<EyeOutlined />} 
+                      size="small"
+                      onClick={() => handleViewBid(bid)}
+                    >
                       View
                     </Button>
-                    <Button type="text" icon={<EditOutlined />} size="small">
+                    <Button 
+                      type="text" 
+                      icon={<EditOutlined />} 
+                      size="small"
+                      onClick={() => handleEditBid(bid)}
+                    >
                       Edit
                     </Button>
                     <Switch 
-                      defaultChecked={bid.bidStatus === 'active'}
+                      checked={bid.bidStatus === 'active'}
                       size="small"
                       checkedChildren="ON"
                       unCheckedChildren="OFF"
+                      onChange={(checked) => handleToggleBidStatus(bid, checked)}
                     />
                   </div>
                 </div>
@@ -618,6 +725,325 @@ export default function BidManagement() {
           })
         )}
       </div>
+
+      {/* View Bid Modal */}
+      <Modal
+        title="View Bid Configuration"
+        visible={viewBidModalVisible}
+        onCancel={() => {
+          setViewBidModalVisible(false);
+          setSelectedBid(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => setViewBidModalVisible(false)}>
+            Close
+          </Button>
+        ]}
+        width={800}
+      >
+        {selectedBid && (
+          <div className="space-y-6">
+            {(() => {
+              let configData = {};
+              try {
+                configData = selectedBid.notes ? JSON.parse(selectedBid.notes) : {};
+              } catch (e) {
+                configData = {};
+              }
+              
+              return (
+                <>
+                  <Row gutter={[24, 16]}>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Bid Title:</Text>
+                        <Text className="font-medium">{configData.title || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Flight Type:</Text>
+                        <Text className="font-medium">{configData.flightType || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Origin:</Text>
+                        <Text className="font-medium">{configData.origin || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Destination:</Text>
+                        <Text className="font-medium">{configData.destination || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Travel Date:</Text>
+                        <Text className="font-medium">{configData.travelDate || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Total Seats Available:</Text>
+                        <Text className="font-medium">{configData.totalSeatsAvailable || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Min Seats per Bid:</Text>
+                        <Text className="font-medium">{configData.minSeatsPerBid || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Max Seats per Bid:</Text>
+                        <Text className="font-medium">{configData.maxSeatsPerBid || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Max Seats per User:</Text>
+                        <Text className="font-medium">{configData.maxSeatsPerUser || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Fare Type:</Text>
+                        <Text className="font-medium">{configData.fareType || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Baggage Allowance:</Text>
+                        <Text className="font-medium">{configData.baggageAllowance || 'N/A'} kg</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Cancellation Terms:</Text>
+                        <Text className="font-medium">{configData.cancellationTerms || 'N/A'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Meal Included:</Text>
+                        <Text className="font-medium">{configData.mealIncluded ? 'Yes' : 'No'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Status:</Text>
+                        <Tag color={selectedBid.bidStatus === 'active' ? 'green' : 'red'}>
+                          {selectedBid.bidStatus === 'active' ? 'Active' : 'Inactive'}
+                        </Tag>
+                      </div>
+                    </Col>
+                  </Row>
+                  
+                  {configData.otherNotes && (
+                    <div>
+                      <Text className="text-gray-500 block mb-2">Other Notes:</Text>
+                      <div className="bg-gray-50 p-3 rounded-md">
+                        <Text>{configData.otherNotes}</Text>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Bid Modal */}
+      <Modal
+        title="Edit Bid Configuration"
+        visible={editBidModalVisible}
+        onCancel={() => {
+          setEditBidModalVisible(false);
+          setSelectedBid(null);
+          editForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={handleEditSubmit}
+        >
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Form.Item
+                label="Bid Title"
+                name="bidTitle"
+                rules={[{ required: true, message: 'Please enter bid title' }]}
+              >
+                <Input placeholder="Enter bid title" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Flight Type"
+                name="flightType"
+              >
+                <Select placeholder="Select flight type">
+                  <Select.Option value="Domestic">Domestic</Select.Option>
+                  <Select.Option value="International">International</Select.Option>
+                  <Select.Option value="Regional">Regional</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Origin"
+                name="origin"
+                rules={[{ required: true, message: 'Please select origin' }]}
+              >
+                <Select 
+                  mode="combobox"
+                  placeholder="Search city / airport"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.value ?? "").toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {originOptions.map((location) => (
+                    <Select.Option key={location} value={location}>
+                      {location}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Destination"
+                name="destination"
+                rules={[{ required: true, message: 'Please select destination' }]}
+              >
+                <Select 
+                  mode="combobox"
+                  placeholder="Search city / airport"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.value ?? "").toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {destinationOptions.map((location) => (
+                    <Select.Option key={location} value={location}>
+                      {location}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Total Seats Available"
+                name="totalSeatsAvailable"
+              >
+                <InputNumber min={1} className="w-full" placeholder="50" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Min Seats per Bid"
+                name="minSeatsPerBid"
+              >
+                <InputNumber min={1} className="w-full" placeholder="1" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Max Seats per Bid"
+                name="maxSeatsPerBid"
+              >
+                <InputNumber min={1} className="w-full" placeholder="10" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Max Seats per User"
+                name="maxSeatsPerUser"
+              >
+                <InputNumber min={1} className="w-full" placeholder="5" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Fare Type"
+                name="fareType"
+              >
+                <Select placeholder="Select fare type">
+                  <Select.Option value="Economy">Economy</Select.Option>
+                  <Select.Option value="Premium Economy">Premium Economy</Select.Option>
+                  <Select.Option value="Business Class">Business Class</Select.Option>
+                  <Select.Option value="First Class">First Class</Select.Option>
+                  <Select.Option value="Flexible Fare">Flexible Fare</Select.Option>
+                  <Select.Option value="Restricted Fare">Restricted Fare</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Baggage Allowance (kg)"
+                name="baggageAllowance"
+              >
+                <InputNumber min={0} max={100} className="w-full" placeholder="20" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Cancellation Terms"
+                name="cancellationTerms"
+              >
+                <Select placeholder="Select cancellation terms">
+                  <Select.Option value="Flexible - Free cancellation">Flexible - Free cancellation</Select.Option>
+                  <Select.Option value="Standard - 24h free cancellation">Standard - 24h free cancellation</Select.Option>
+                  <Select.Option value="Restricted - Cancellation fee applies">Restricted - Cancellation fee applies</Select.Option>
+                  <Select.Option value="Non-refundable">Non-refundable</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="mealIncluded"
+                valuePropName="checked"
+                className="pt-8"
+              >
+                <Checkbox>Meal Included</Checkbox>
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                label="Other Notes"
+                name="otherNotes"
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  placeholder="Add any additional notes..."
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button onClick={() => {
+              setEditBidModalVisible(false);
+              setSelectedBid(null);
+              editForm.resetFields();
+            }}>
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Update Bid Configuration
+            </Button>
+          </div>
+        </Form>
+      </Modal>
     </div>
   );
 
