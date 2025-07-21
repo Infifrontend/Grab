@@ -213,6 +213,28 @@ export default function BidManagement() {
     }
   }
 
+  // Helper function to calculate time left until bid expires
+  function calculateTimeLeft(expiryDate) {
+    const now = new Date();
+    const diffInMs = expiryDate - now;
+    
+    if (diffInMs <= 0) {
+      return 'Expired';
+    }
+
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays > 0) {
+      return `${diffInDays}d ${diffInHours % 24}h`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours}h ${diffInMinutes % 60}m`;
+    } else {
+      return `${diffInMinutes}m`;
+    }
+  }
+
   const handleCreateBid = () => {
     setCreateBidModalVisible(true);
     setCurrentStep(0);
@@ -320,159 +342,175 @@ export default function BidManagement() {
     },
   ];
 
-  const renderActiveBidsContent = () => (
-    <div>
-      {/* Active Bids Header */}
-      <div className="mb-6">
-        <Title level={4} className="!mb-1">Active Bids Requiring Attention</Title>
-        <Text className="text-gray-500">Monitor and respond to passenger upgrade bids</Text>
-      </div>
+  const renderActiveBidsContent = () => {
+    // Filter active bids from the fetched data
+    const activeBids = (recentBidsData || [])
+      .filter(bid => bid.bidStatus === 'active')
+      .map((bid, index) => {
+        // Calculate time left until bid expires
+        const timeLeft = bid.validUntil ? 
+          calculateTimeLeft(new Date(bid.validUntil)) : 'No expiry';
+        
+        // Parse configuration data if available
+        let configData = {};
+        try {
+          configData = bid.notes ? JSON.parse(bid.notes) : {};
+        } catch (e) {
+          configData = {};
+        }
 
-      {/* Search and Filter */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Input 
-            placeholder="Search by passenger name or flight number..."
-            prefix={<SearchOutlined />}
-            style={{ width: 300 }}
-          />
+        return {
+          key: bid.id.toString(),
+          bidId: `BID${bid.id.toString().padStart(3, '0')}`,
+          passenger: { 
+            name: configData.groupLeaderName || `User ${bid.userId}`, 
+            email: configData.groupLeaderEmail || 'user@example.com' 
+          },
+          flight: { 
+            number: bid.flight?.flightNumber || 'N/A',
+            route: bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not available',
+            date: bid.flight?.departureTime ? new Date(bid.flight.departureTime).toLocaleDateString() : 'N/A'
+          },
+          upgrade: configData.fareType ? `Economy → ${configData.fareType}` : 'Economy → Business',
+          bidAmount: `₹${bid.bidAmount}`,
+          maxBid: `₹${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+          successRate: '75%', // This could be calculated based on historical data
+          timeLeft: timeLeft,
+          status: bid.bidStatus,
+          passengerCount: bid.passengerCount,
+          createdAt: bid.createdAt
+        };
+      });
+
+    return (
+      <div>
+        {/* Active Bids Header */}
+        <div className="mb-6">
+          <Title level={4} className="!mb-1">Active Bids Requiring Attention ({activeBids.length})</Title>
+          <Text className="text-gray-500">Monitor and respond to passenger upgrade bids</Text>
         </div>
-        <Select placeholder="Filter by status" style={{ width: 150 }}>
-          <Select.Option value="pending">Pending</Select.Option>
-          <Select.Option value="reviewed">Reviewed</Select.Option>
-          <Select.Option value="counter">Counter Offer</Select.Option>
-        </Select>
-      </div>
 
-      {/* Active Bids Table */}
-      <Table
-        dataSource={[
-          {
-            key: '1',
-            bidId: 'BID001',
-            passenger: { name: 'John Smith', email: 'john.smith@email.com' },
-            flight: { number: 'GR-4521', route: 'LAX → JFK', date: '2024-06-23' },
-            upgrade: 'Economy → Business',
-            bidAmount: '$250',
-            maxBid: '$280',
-            successRate: '75%',
-            timeLeft: '18h 49m',
-            status: 'pending'
-          },
-          {
-            key: '2',
-            bidId: 'BID002',
-            passenger: { name: 'Sarah Johnson', email: 'sarah.johnson@email.com' },
-            flight: { number: 'GR-7834', route: 'ORD → SFO', date: '2024-06-26' },
-            upgrade: 'Economy → Premium Economy',
-            bidAmount: '$120',
-            maxBid: '$150',
-            successRate: '65%',
-            timeLeft: '42h 20m',
-            status: 'pending'
-          },
-          {
-            key: '3',
-            bidId: 'BID003',
-            passenger: { name: 'Mike Davis', email: 'mike.davis@email.com' },
-            flight: { number: 'GR-2156', route: 'JFK → LHR', date: '2024-06-27' },
-            upgrade: 'Premium Economy → Business',
-            bidAmount: '$450',
-            maxBid: '$500',
-            successRate: '60%',
-            timeLeft: '68h 10m',
-            status: 'pending'
-          }
-        ]}
-        columns={[
-          {
-            title: 'Bid Details',
-            dataIndex: 'bidId',
-            key: 'bidDetails',
-            render: (bidId, record) => (
-              <div>
-                <Text strong>{bidId}</Text>
-                <br />
-                <Text className="text-gray-500 text-sm">{record.upgrade}</Text>
-              </div>
-            ),
-          },
-          {
-            title: 'Passenger',
-            dataIndex: 'passenger',
-            key: 'passenger',
-            render: (passenger) => (
-              <div>
-                <Text strong>{passenger.name}</Text>
-                <br />
-                <Text className="text-gray-500 text-sm">{passenger.email}</Text>
-              </div>
-            ),
-          },
-          {
-            title: 'Flight Info',
-            dataIndex: 'flight',
-            key: 'flightInfo',
-            render: (flight) => (
-              <div>
-                <Text strong>{flight.number}</Text>
-                <br />
-                <Text className="text-gray-500 text-sm">{flight.route}</Text>
-                <br />
-                <Text className="text-gray-500 text-sm">{flight.date}</Text>
-              </div>
-            ),
-          },
-          {
-            title: 'Upgrade',
-            dataIndex: 'upgrade',
-            key: 'upgrade',
-          },
-          {
-            title: 'Bid Amount',
-            dataIndex: 'bidAmount',
-            key: 'bidAmount',
-            render: (amount, record) => (
-              <div>
-                <Text strong>{amount}</Text>
-                <br />
-                <Text className="text-gray-500 text-sm">Max {record.maxBid}</Text>
-              </div>
-            ),
-          },
-          {
-            title: 'Success Rate',
-            dataIndex: 'successRate',
-            key: 'successRate',
-            render: (rate) => (
-              <div>
-                <Text>{rate}</Text>
-                <Progress percent={parseInt(rate)} size="small" showInfo={false} />
-              </div>
-            ),
-          },
-          {
-            title: 'Time Left',
-            dataIndex: 'timeLeft',
-            key: 'timeLeft',
-            render: (time, record) => (
-              <Tag color={record.timeLeft.includes('18h') ? 'red' : 'blue'}>{time}</Tag>
-            ),
-          },
-          {
-            title: 'Actions',
-            key: 'actions',
-            render: (_, record) => (
-              <Button type="link" icon={<EyeOutlined />}>
-                Details
-              </Button>
-            ),
-          },
-        ]}
-        pagination={false}
-      />
-    </div>
-  );
+        {/* Search and Filter */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Input 
+              placeholder="Search by passenger name or flight number..."
+              prefix={<SearchOutlined />}
+              style={{ width: 300 }}
+            />
+          </div>
+          <Select placeholder="Filter by status" style={{ width: 150 }}>
+            <Select.Option value="active">Active</Select.Option>
+            <Select.Option value="pending">Pending Review</Select.Option>
+          </Select>
+        </div>
+
+        {/* Active Bids Table */}
+        {activeBids.length === 0 ? (
+          <Card>
+            <div className="text-center py-8">
+              <Text className="text-gray-500">No active bids found. Active bids will appear here when passengers submit upgrade requests.</Text>
+            </div>
+          </Card>
+        ) : (
+          <Table
+            dataSource={activeBids}
+            columns={[
+              {
+                title: 'Bid Details',
+                dataIndex: 'bidId',
+                key: 'bidDetails',
+                render: (bidId, record) => (
+                  <div>
+                    <Text strong>{bidId}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">{record.upgrade}</Text>
+                  </div>
+                ),
+              },
+              {
+                title: 'Passenger',
+                dataIndex: 'passenger',
+                key: 'passenger',
+                render: (passenger) => (
+                  <div>
+                    <Text strong>{passenger.name}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">{passenger.email}</Text>
+                  </div>
+                ),
+              },
+              {
+                title: 'Flight Info',
+                dataIndex: 'flight',
+                key: 'flightInfo',
+                render: (flight) => (
+                  <div>
+                    <Text strong>{flight.number}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">{flight.route}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">{flight.date}</Text>
+                  </div>
+                ),
+              },
+              {
+                title: 'Passengers',
+                dataIndex: 'passengerCount',
+                key: 'passengerCount',
+                render: (count) => (
+                  <Text>{count} passenger{count > 1 ? 's' : ''}</Text>
+                ),
+              },
+              {
+                title: 'Bid Amount',
+                dataIndex: 'bidAmount',
+                key: 'bidAmount',
+                render: (amount, record) => (
+                  <div>
+                    <Text strong>{amount}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">Est. Max {record.maxBid}</Text>
+                  </div>
+                ),
+              },
+              {
+                title: 'Time Left',
+                dataIndex: 'timeLeft',
+                key: 'timeLeft',
+                render: (time) => (
+                  <Tag color={time.includes('hour') && parseInt(time) < 24 ? 'red' : 'blue'}>
+                    {time}
+                  </Tag>
+                ),
+              },
+              {
+                title: 'Status',
+                dataIndex: 'status',
+                key: 'status',
+                render: (status) => (
+                  <Tag color={status === 'active' ? 'green' : 'blue'}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Tag>
+                ),
+              },
+              {
+                title: 'Actions',
+                key: 'actions',
+                render: (_, record) => (
+                  <Button type="link" icon={<EyeOutlined />} size="small">
+                    Review Bid
+                  </Button>
+                ),
+              },
+            ]}
+            pagination={{ pageSize: 10 }}
+            loading={!recentBidsData}
+          />
+        )}
+      </div>
+    );
+  };
 
   const renderBidSetupContent = () => (
     <div>
