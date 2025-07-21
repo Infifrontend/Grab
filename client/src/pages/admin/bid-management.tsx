@@ -154,7 +154,7 @@ export default function BidManagement() {
   const recentActivities = (recentBidsData || []).slice(0, 5).map((bid, index) => {
     let configData = {};
     let isConfiguration = false;
-
+    
     try {
       if (bid.notes) {
         configData = JSON.parse(bid.notes);
@@ -165,9 +165,9 @@ export default function BidManagement() {
     }
 
     const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
-
+    
     let title, route, activityType, color;
-
+    
     if (isConfiguration) {
       title = configData.title || `Bid Configuration #${bid.id}`;
       route = configData.origin && configData.destination ? 
@@ -217,7 +217,7 @@ export default function BidManagement() {
   function calculateTimeLeft(expiryDate) {
     const now = new Date();
     const diffInMs = expiryDate - now;
-
+    
     if (diffInMs <= 0) {
       return 'Expired';
     }
@@ -272,28 +272,28 @@ export default function BidManagement() {
       };
 
       console.log('Formatted data for submission:', formattedData);
-
+      
       const response = await apiRequest('POST', '/api/bid-configurations', formattedData);
-
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-
+      
       const result = await response.json();
       console.log('API response result:', result);
-
+      
       if (result.success) {
         // Show success message
         message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
-
+        
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
         refetchBids();
-
+        
         // Also refetch recent bids data
         queryClient.invalidateQueries(['recent-bids']);
-
+        
         // Close modal and reset form
         setCreateBidModalVisible(false);
         setCurrentStep(0);
@@ -304,7 +304,7 @@ export default function BidManagement() {
       }
     } catch (error) {
       console.error('Error creating bid configuration:', error);
-
+      
       // Show more specific error message
       let errorMessage = 'Failed to create bid configuration. Please try again.';
       if (error.message) {
@@ -316,7 +316,7 @@ export default function BidManagement() {
           errorMessage = error.message;
         }
       }
-
+      
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -350,7 +350,7 @@ export default function BidManagement() {
         // Calculate time left until bid expires
         const timeLeft = bid.validUntil ? 
           calculateTimeLeft(new Date(bid.validUntil)) : 'No expiry';
-
+        
         // Parse configuration data if available
         let configData = {};
         try {
@@ -530,7 +530,7 @@ export default function BidManagement() {
     } catch (e) {
       configData = {};
     }
-
+    
     // Populate the edit form with existing data
     editForm.setFieldsValue({
       bidTitle: configData.title || '',
@@ -548,7 +548,7 @@ export default function BidManagement() {
       otherNotes: configData.otherNotes || '',
       bidAmount: parseFloat(bid.bidAmount) || 0,
     });
-
+    
     setEditBidModalVisible(true);
   };
 
@@ -558,13 +558,13 @@ export default function BidManagement() {
       const response = await apiRequest('PUT', `/api/bid-configurations/${bid.id}/status`, {
         status: newStatus
       });
-
+      
       if (!response.ok) {
         throw new Error('Failed to update bid status');
       }
-
+      
       const result = await response.json();
-
+      
       if (result.success) {
         message.success(`Bid configuration ${checked ? 'activated' : 'deactivated'} successfully`);
         // Refetch bid configurations to update the display
@@ -580,12 +580,12 @@ export default function BidManagement() {
 
   const handleEditSubmit = async (values) => {
     if (!selectedBid) return;
-
+    
     setLoading(true);
     try {
       console.log('Submitting edit form with values:', values);
       console.log('Selected bid ID:', selectedBid.id);
-
+      
       // Prepare the update data with all fields
       const updateData = {
         bidTitle: values.bidTitle,
@@ -603,31 +603,31 @@ export default function BidManagement() {
         otherNotes: values.otherNotes,
         bidAmount: values.bidAmount
       };
-
+      
       const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, updateData);
-
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-
+      
       const result = await response.json();
       console.log('Update response:', result);
-
+      
       if (result.success) {
         message.success('Bid configuration updated successfully');
         setEditBidModalVisible(false);
         setSelectedBid(null);
         editForm.resetFields();
-
+        
         // Refetch bid configurations to update the display
         await refetchBids();
-
+        
         // Also invalidate and refetch recent bids to update activity
         queryClient.invalidateQueries(['recent-bids']);
         queryClient.invalidateQueries(['bid-configurations']);
-
+        
         // Update local state to reflect changes immediately
         setBidConfigurations(prev => 
           prev.map(bid => 
@@ -641,7 +641,7 @@ export default function BidManagement() {
       }
     } catch (error) {
       console.error('Error updating bid configuration:', error);
-
+      
       let errorMessage = 'Failed to update bid configuration. Please try again.';
       if (error.message) {
         if (error.message.includes('fetch')) {
@@ -652,7 +652,7 @@ export default function BidManagement() {
           errorMessage = error.message;
         }
       }
-
+      
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -698,7 +698,7 @@ export default function BidManagement() {
             const totalSeats = configData.totalSeatsAvailable || 'N/A';
             const fareType = configData.fareType || 'Economy';
             const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
-
+            
             const statusColor = bid.bidStatus === 'active' ? 'green' : 
                                bid.bidStatus === 'pending' ? 'orange' : 'red';
             const statusText = bid.bidStatus === 'active' ? 'Active' : 
@@ -801,7 +801,7 @@ export default function BidManagement() {
               } catch (e) {
                 configData = {};
               }
-
+              
               return (
                 <>
                   <Row gutter={[24, 16]}>
@@ -898,7 +898,7 @@ export default function BidManagement() {
                       </div>
                     </Col>
                   </Row>
-
+                  
                   {configData.otherNotes && (
                     <div>
                       <Text className="text-gray-500 block mb-2">Other Notes:</Text>
@@ -1102,7 +1102,7 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
           </Row>
-
+          
           <div className="flex justify-end space-x-2 mt-6">
             <Button onClick={() => {
               setEditBidModalVisible(false);
@@ -2485,7 +2485,7 @@ export default function BidManagement() {
                               Automatically accept the highest valid bid when bidding ends
                             </Text>
                           </div>
-
+                          
                           <div className="p-4 border rounded-lg">
                             <Form.Item
                               label={<span className="font-semibold text-gray-700">Manual Review Option</span>}
@@ -2503,7 +2503,7 @@ export default function BidManagement() {
                               Allow manual review and approval before awarding bids
                             </Text>
                           </div>
-
+                          
                           <div className="p-4 border rounded-lg">
                             <Form.Item
                               label={<span className="font-semibold text-gray-700">Auto Refund Non-Winners</span>}
@@ -2610,42 +2610,41 @@ export default function BidManagement() {
                 </div>
               )}
 
-
+              
             </div>
 
             {/* Navigation Footer */}
-            <>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div>
-                  {currentStep > 0 && (
-                    <Button onClick={handlePrev} className="px-4">
-                      <span className="mr-1">←</span>
-                      Previous
-                    </Button>
-                  )}
-                </div>
-                <div className="flex space-x-2">
-                  <Button onClick={handleModalCancel} className="px-4">
-                    Cancel
+            <div className="flex justify-between items-center mt-4 pt-4 border-t">
+              <div>
+                {currentStep > 0 && (
+                  <Button onClick={handlePrev} className="px-4">
+                    <span className="mr-1">←</span>
+                    Previous
                   </Button>
-                  {currentStep < steps.length - 1 ? (
-                    <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
-                      Next
-                      <span className="ml-1">→</span>
-                    </Button>
-                  ) : (
-                    <Button 
-                      type="primary" 
-                      onClick={() => form.submit()}
-                      className="px-6 bg-green-600 hover:bg-green-700"
-                      loading={loading}
-                    >
-                      <PlusOutlined className="mr-1" />
-                      Create Bid
-                                      </Button>
                 )}
               </div>
-            </>
+              <div className="flex space-x-2">
+                <Button onClick={handleModalCancel} className="px-4">
+                  Cancel
+                </Button>
+                {currentStep < steps.length - 1 ? (
+                  <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
+                    Next
+                    <span className="ml-1">→</span>
+                  </Button>
+                ) : (
+                  <Button 
+                    type="primary" 
+                    onClick={() => form.submit()}
+                    className="px-6 bg-green-600 hover:bg-green-700"
+                    loading={loading}
+                  >
+                    <PlusOutlined className="mr-1" />
+                    Create Bid
+                  </Button>
+                )}
+              </div>
+            </div>
           </Form>
         </div>
       </Modal>
