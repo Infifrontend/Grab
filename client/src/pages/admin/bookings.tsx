@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -17,7 +16,7 @@ import {
   Statistic,
   Modal,
   Descriptions,
-  Badge
+  Badge,
 } from "antd";
 import {
   SearchOutlined,
@@ -30,7 +29,7 @@ import {
   DollarOutlined,
   CheckCircleOutlined,
   LogoutOutlined,
-  BellOutlined
+  BellOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -45,15 +44,15 @@ export default function Bookings() {
 
   useEffect(() => {
     // Check if admin is logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
+    const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
     if (!isAdminLoggedIn) {
-      setLocation('/admin/login');
+      setLocation("/admin/login");
     }
   }, [setLocation]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    setLocation('/admin/login');
+    localStorage.removeItem("adminLoggedIn");
+    setLocation("/admin/login");
   };
 
   const mockBookings = [
@@ -68,7 +67,7 @@ export default function Bookings() {
       totalAmount: 18750,
       status: "Confirmed",
       bookingDate: "2024-01-10",
-      airline: "American Airlines"
+      airline: "American Airlines",
     },
     {
       id: 2,
@@ -81,7 +80,7 @@ export default function Bookings() {
       totalAmount: 14400,
       status: "Pending",
       bookingDate: "2024-01-12",
-      airline: "United Airlines"
+      airline: "United Airlines",
     },
     {
       id: 3,
@@ -94,66 +93,80 @@ export default function Bookings() {
       totalAmount: 9600,
       status: "Cancelled",
       bookingDate: "2024-01-15",
-      airline: "Delta Airlines"
-    }
+      airline: "Delta Airlines",
+    },
   ];
 
   const columns = [
     {
-      title: 'Booking ID',
-      dataIndex: 'bookingId',
-      key: 'bookingId',
+      title: "Booking ID",
+      dataIndex: "bookingId",
+      key: "bookingId",
       render: (bookingId, record) => (
         <div>
-          <Text strong className="text-blue-600">{bookingId}</Text>
+          <Text strong className="text-blue-600">
+            {bookingId}
+          </Text>
           <br />
-          <Text type="secondary" className="text-sm">{record.bookingDate}</Text>
+          <Text type="secondary" className="text-sm">
+            {record.bookingDate}
+          </Text>
         </div>
       ),
     },
     {
-      title: 'Group Leader',
-      key: 'groupLeader',
+      title: "Group Leader",
+      key: "groupLeader",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <Avatar size="small" icon={<UserOutlined />} />
           <div>
             <Text strong>{record.groupLeader}</Text>
             <br />
-            <Text type="secondary" className="text-sm">{record.email}</Text>
+            <Text type="secondary" className="text-sm">
+              {record.email}
+            </Text>
           </div>
         </div>
       ),
     },
     {
-      title: 'Route & Date',
-      key: 'route',
+      title: "Route & Date",
+      key: "route",
       render: (_, record) => (
         <div>
           <Text strong>{record.route}</Text>
           <br />
-          <Text type="secondary" className="text-sm">{record.departureDate}</Text>
+          <Text type="secondary" className="text-sm">
+            {record.departureDate}
+          </Text>
           <br />
-          <Text type="secondary" className="text-xs">{record.airline}</Text>
+          <Text type="secondary" className="text-xs">
+            {record.airline}
+          </Text>
         </div>
       ),
     },
     {
-      title: 'Passengers',
-      dataIndex: 'passengers',
-      key: 'passengers',
+      title: "Passengers",
+      dataIndex: "passengers",
+      key: "passengers",
       render: (passengers) => (
         <div className="text-center">
-          <Text strong className="text-lg">{passengers}</Text>
+          <Text strong className="text-lg">
+            {passengers}
+          </Text>
           <br />
-          <Text type="secondary" className="text-sm">passengers</Text>
+          <Text type="secondary" className="text-sm">
+            passengers
+          </Text>
         </div>
       ),
     },
     {
-      title: 'Total Amount',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
+      title: "Total Amount",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
       render: (amount) => (
         <Text strong className="text-green-600 text-lg">
           ${amount.toLocaleString()}
@@ -161,35 +174,48 @@ export default function Bookings() {
       ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status) => {
         const colors = {
-          'Confirmed': 'green',
-          'Pending': 'orange',
-          'Cancelled': 'red',
-          'Processing': 'blue'
+          Confirmed: "green",
+          Pending: "orange",
+          Cancelled: "red",
+          Processing: "blue",
         };
         return <Tag color={colors[status]}>{status}</Tag>;
       },
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="text" icon={<EyeOutlined />} size="small" onClick={() => handleViewBooking(record)} />
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleViewBooking(record)}
+          />
           <Button type="text" icon={<EditOutlined />} size="small" />
           <Dropdown
             menu={{
               items: [
-                { key: '1', label: 'Send Confirmation', icon: <CheckCircleOutlined /> },
-                { key: '2', label: 'Cancel Booking', icon: <MoreOutlined /> },
-                { key: '3', label: 'Download Invoice', icon: <ExportOutlined /> },
+                {
+                  key: "1",
+                  label: "Send Confirmation",
+                  icon: <CheckCircleOutlined />,
+                },
+                { key: "2", label: "Cancel Booking", icon: <MoreOutlined /> },
+                {
+                  key: "3",
+                  label: "Download Invoice",
+                  icon: <ExportOutlined />,
+                },
               ],
             }}
-            trigger={['click']}
+            trigger={["click"]}
           >
             <Button type="text" icon={<MoreOutlined />} size="small" />
           </Dropdown>
@@ -215,7 +241,9 @@ export default function Bookings() {
                   <span className="text-white font-bold text-sm">GR</span>
                 </div>
                 <div>
-                  <Text className="text-gray-600 text-sm font-medium">GROUP RETAIL</Text>
+                  <Text className="text-gray-600 text-sm font-medium">
+                    GROUP RETAIL
+                  </Text>
                   <br />
                   <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
                 </div>
@@ -229,17 +257,11 @@ export default function Bookings() {
                 <span className="text-white font-medium">JD</span>
               </Avatar>
               <div className="text-right">
-                <Text className="font-medium text-gray-900 block">John Doe</Text>
-                <Text className="text-gray-500 text-sm">System Administrator</Text>
+                <Text className="font-medium text-gray-900 block">
+                  John Doe
+                </Text>
+                <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
-              <Button 
-                type="text" 
-                icon={<LogoutOutlined />}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
             </div>
           </div>
         </div>
@@ -250,27 +272,27 @@ export default function Bookings() {
         <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
           <div className="p-6">
             <nav className="space-y-2">
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/dashboard')}
+                onClick={() => setLocation("/admin/dashboard")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
                 <Text className="text-current">Dashboard</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/offer-management')}
+                onClick={() => setLocation("/admin/offer-management")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
                 </div>
                 <Text className="text-current">Offer Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/bid-management')}
+                onClick={() => setLocation("/admin/bid-management")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🏆</span>
@@ -281,20 +303,22 @@ export default function Bookings() {
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                   <span className="text-blue-600 text-xs">📅</span>
                 </div>
-                <Text className="text-white font-medium">Booking Management</Text>
+                <Text className="text-white font-medium">
+                  Booking Management
+                </Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/cms')}
+                onClick={() => setLocation("/admin/cms")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📝</span>
                 </div>
                 <Text className="text-current">CMS Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/reports')}
+                onClick={() => setLocation("/admin/reports")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
@@ -330,7 +354,7 @@ export default function Bookings() {
                   title="Total Bookings"
                   value={1247}
                   prefix={<CalendarOutlined />}
-                  valueStyle={{ color: '#1890ff' }}
+                  valueStyle={{ color: "#1890ff" }}
                 />
               </Card>
             </Col>
@@ -340,7 +364,7 @@ export default function Bookings() {
                   title="Total Passengers"
                   value={15634}
                   prefix={<UserOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
+                  valueStyle={{ color: "#52c41a" }}
                 />
               </Card>
             </Col>
@@ -351,7 +375,7 @@ export default function Bookings() {
                   value={2850000}
                   prefix={<DollarOutlined />}
                   precision={0}
-                  valueStyle={{ color: '#faad14' }}
+                  valueStyle={{ color: "#faad14" }}
                 />
               </Card>
             </Col>
@@ -361,7 +385,7 @@ export default function Bookings() {
                   title="Confirmed Bookings"
                   value={967}
                   prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: '#722ed1' }}
+                  valueStyle={{ color: "#722ed1" }}
                 />
               </Card>
             </Col>
@@ -379,23 +403,23 @@ export default function Bookings() {
                 placeholder="Status"
                 style={{ width: 120 }}
                 options={[
-                  { value: 'all', label: 'All Status' },
-                  { value: 'confirmed', label: 'Confirmed' },
-                  { value: 'pending', label: 'Pending' },
-                  { value: 'cancelled', label: 'Cancelled' },
+                  { value: "all", label: "All Status" },
+                  { value: "confirmed", label: "Confirmed" },
+                  { value: "pending", label: "Pending" },
+                  { value: "cancelled", label: "Cancelled" },
                 ]}
               />
               <Select
                 placeholder="Airline"
                 style={{ width: 150 }}
                 options={[
-                  { value: 'all', label: 'All Airlines' },
-                  { value: 'american', label: 'American Airlines' },
-                  { value: 'united', label: 'United Airlines' },
-                  { value: 'delta', label: 'Delta Airlines' },
+                  { value: "all", label: "All Airlines" },
+                  { value: "american", label: "American Airlines" },
+                  { value: "united", label: "United Airlines" },
+                  { value: "delta", label: "Delta Airlines" },
                 ]}
               />
-              <RangePicker placeholder={['Start Date', 'End Date']} />
+              <RangePicker placeholder={["Start Date", "End Date"]} />
             </Space>
           </Card>
 
@@ -411,7 +435,8 @@ export default function Bookings() {
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} bookings`,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} bookings`,
               }}
             />
           </Card>
@@ -433,20 +458,44 @@ export default function Bookings() {
           >
             {selectedBooking && (
               <Descriptions bordered column={2}>
-                <Descriptions.Item label="Booking ID">{selectedBooking.bookingId}</Descriptions.Item>
+                <Descriptions.Item label="Booking ID">
+                  {selectedBooking.bookingId}
+                </Descriptions.Item>
                 <Descriptions.Item label="Status">
-                  <Tag color={selectedBooking.status === 'Confirmed' ? 'green' : 'orange'}>
+                  <Tag
+                    color={
+                      selectedBooking.status === "Confirmed"
+                        ? "green"
+                        : "orange"
+                    }
+                  >
                     {selectedBooking.status}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Group Leader">{selectedBooking.groupLeader}</Descriptions.Item>
-                <Descriptions.Item label="Email">{selectedBooking.email}</Descriptions.Item>
-                <Descriptions.Item label="Route">{selectedBooking.route}</Descriptions.Item>
-                <Descriptions.Item label="Departure Date">{selectedBooking.departureDate}</Descriptions.Item>
-                <Descriptions.Item label="Passengers">{selectedBooking.passengers}</Descriptions.Item>
-                <Descriptions.Item label="Total Amount">${selectedBooking.totalAmount.toLocaleString()}</Descriptions.Item>
-                <Descriptions.Item label="Airline">{selectedBooking.airline}</Descriptions.Item>
-                <Descriptions.Item label="Booking Date">{selectedBooking.bookingDate}</Descriptions.Item>
+                <Descriptions.Item label="Group Leader">
+                  {selectedBooking.groupLeader}
+                </Descriptions.Item>
+                <Descriptions.Item label="Email">
+                  {selectedBooking.email}
+                </Descriptions.Item>
+                <Descriptions.Item label="Route">
+                  {selectedBooking.route}
+                </Descriptions.Item>
+                <Descriptions.Item label="Departure Date">
+                  {selectedBooking.departureDate}
+                </Descriptions.Item>
+                <Descriptions.Item label="Passengers">
+                  {selectedBooking.passengers}
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Amount">
+                  ${selectedBooking.totalAmount.toLocaleString()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Airline">
+                  {selectedBooking.airline}
+                </Descriptions.Item>
+                <Descriptions.Item label="Booking Date">
+                  {selectedBooking.bookingDate}
+                </Descriptions.Item>
               </Descriptions>
             )}
           </Modal>

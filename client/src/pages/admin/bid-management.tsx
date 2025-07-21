@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Tabs,
@@ -29,8 +29,8 @@ import {
   Radio,
   Checkbox,
   Divider,
-  message
-} from 'antd';
+  message,
+} from "antd";
 import {
   DashboardOutlined,
   ClockCircleOutlined,
@@ -54,8 +54,8 @@ import {
   InfoCircleOutlined,
   DollarOutlined,
   AlertOutlined,
-  EnvironmentOutlined
-} from '@ant-design/icons';
+  EnvironmentOutlined,
+} from "@ant-design/icons";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -66,7 +66,7 @@ export default function BidManagement() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('1');
+  const [activeTab, setActiveTab] = useState("1");
   const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
@@ -103,9 +103,9 @@ export default function BidManagement() {
 
   useEffect(() => {
     // Check if admin is logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
+    const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
     if (!isAdminLoggedIn) {
-      setLocation('/admin/login');
+      setLocation("/admin/login");
     }
   }, [setLocation]);
 
@@ -123,78 +123,95 @@ export default function BidManagement() {
   }, [bidsData]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    localStorage.removeItem('adminUsername');
-    setLocation('/admin/login');
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminUsername");
+    setLocation("/admin/login");
   };
 
   // User dropdown menu
-  const userMenuItems: MenuProps['items'] = [
+  const userMenuItems: MenuProps["items"] = [
     {
-      key: 'profile',
-      label: 'Profile',
+      key: "profile",
+      label: "Profile",
       icon: <UserOutlined />,
     },
     {
-      key: 'settings',
-      label: 'Settings',
+      key: "settings",
+      label: "Settings",
       icon: <SettingOutlined />,
     },
     {
-      type: 'divider',
+      type: "divider",
     },
     {
-      key: 'logout',
-      label: 'Logout',
+      key: "logout",
+      label: "Logout",
       onClick: handleLogout,
     },
   ];
 
   // Generate recent activities from actual bids data
-  const recentActivities = (recentBidsData || []).slice(0, 5).map((bid, index) => {
-    let configData = {};
-    let isConfiguration = false;
-    
-    try {
-      if (bid.notes) {
-        configData = JSON.parse(bid.notes);
-        isConfiguration = configData.configType === 'bid_configuration';
+  const recentActivities = (recentBidsData || [])
+    .slice(0, 5)
+    .map((bid, index) => {
+      let configData = {};
+      let isConfiguration = false;
+
+      try {
+        if (bid.notes) {
+          configData = JSON.parse(bid.notes);
+          isConfiguration = configData.configType === "bid_configuration";
+        }
+      } catch (e) {
+        configData = {};
       }
-    } catch (e) {
-      configData = {};
-    }
 
-    const timeAgo = bid.createdAt ? getTimeAgo(new Date(bid.createdAt)) : 'Recently';
-    
-    let title, route, activityType, color;
-    
-    if (isConfiguration) {
-      title = configData.title || `Bid Configuration #${bid.id}`;
-      route = configData.origin && configData.destination ? 
-        `${configData.origin} → ${configData.destination}` : 'Route not specified';
-      activityType = 'Bid configuration created';
-      color = '#1890ff';
-    } else {
-      // Regular bid activity
-      title = `Bid #${bid.id}`;
-      route = bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not specified';
-      activityType = bid.bidStatus === 'active' ? 'Active bid submitted' : 
-                    bid.bidStatus === 'accepted' ? 'Bid accepted' :
-                    bid.bidStatus === 'rejected' ? 'Bid declined' :
-                    'Bid created';
-      color = bid.bidStatus === 'active' ? '#52c41a' : 
-              bid.bidStatus === 'accepted' ? '#00b96b' :
-              bid.bidStatus === 'rejected' ? '#ff4d4f' : '#1890ff';
-    }
+      const timeAgo = bid.createdAt
+        ? getTimeAgo(new Date(bid.createdAt))
+        : "Recently";
 
-    return {
-      type: bid.bidStatus,
-      color: color,
-      title: `${activityType}: ${title} (${route})`,
-      time: timeAgo,
-      amount: bid.bidAmount ? `₹${bid.bidAmount}` : null
-    };
-  });
+      let title, route, activityType, color;
+
+      if (isConfiguration) {
+        title = configData.title || `Bid Configuration #${bid.id}`;
+        route =
+          configData.origin && configData.destination
+            ? `${configData.origin} → ${configData.destination}`
+            : "Route not specified";
+        activityType = "Bid configuration created";
+        color = "#1890ff";
+      } else {
+        // Regular bid activity
+        title = `Bid #${bid.id}`;
+        route = bid.flight
+          ? `${bid.flight.origin} → ${bid.flight.destination}`
+          : "Route not specified";
+        activityType =
+          bid.bidStatus === "active"
+            ? "Active bid submitted"
+            : bid.bidStatus === "accepted"
+              ? "Bid accepted"
+              : bid.bidStatus === "rejected"
+                ? "Bid declined"
+                : "Bid created";
+        color =
+          bid.bidStatus === "active"
+            ? "#52c41a"
+            : bid.bidStatus === "accepted"
+              ? "#00b96b"
+              : bid.bidStatus === "rejected"
+                ? "#ff4d4f"
+                : "#1890ff";
+      }
+
+      return {
+        type: bid.bidStatus,
+        color: color,
+        title: `${activityType}: ${title} (${route})`,
+        time: timeAgo,
+        amount: bid.bidAmount ? `₹${bid.bidAmount}` : null,
+      };
+    });
 
   // Helper function to calculate time ago
   function getTimeAgo(date) {
@@ -217,9 +234,9 @@ export default function BidManagement() {
   function calculateTimeLeft(expiryDate) {
     const now = new Date();
     const diffInMs = expiryDate - now;
-    
+
     if (diffInMs <= 0) {
-      return 'Expired';
+      return "Expired";
     }
 
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
@@ -258,65 +275,82 @@ export default function BidManagement() {
   const handleFinish = async (values: any) => {
     setLoading(true);
     try {
-      console.log('Form values before submission:', values);
+      console.log("Form values before submission:", values);
 
       // Allow submission without required field validation
 
       // Format the data properly
       const formattedData = {
         ...values,
-        travelDate: values.travelDate ? values.travelDate.format('YYYY-MM-DD') : null,
-        bidStartTime: values.bidStartTime ? values.bidStartTime.toISOString() : null,
+        travelDate: values.travelDate
+          ? values.travelDate.format("YYYY-MM-DD")
+          : null,
+        bidStartTime: values.bidStartTime
+          ? values.bidStartTime.toISOString()
+          : null,
         bidEndTime: values.bidEndTime ? values.bidEndTime.toISOString() : null,
-        departureTimeRange: values.departureTimeRange ? values.departureTimeRange.map(time => time.format('HH:mm')).join(' - ') : null
+        departureTimeRange: values.departureTimeRange
+          ? values.departureTimeRange
+              .map((time) => time.format("HH:mm"))
+              .join(" - ")
+          : null,
       };
 
-      console.log('Formatted data for submission:', formattedData);
-      
-      const response = await apiRequest('POST', '/api/bid-configurations', formattedData);
-      
+      console.log("Formatted data for submission:", formattedData);
+
+      const response = await apiRequest(
+        "POST",
+        "/api/bid-configurations",
+        formattedData,
+      );
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API response error:', errorText);
+        console.error("API response error:", errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-      
+
       const result = await response.json();
-      console.log('API response result:', result);
-      
+      console.log("API response result:", result);
+
       if (result.success) {
         // Show success message
-        message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
-        
+        message.success(
+          result.message ||
+            `Bid configuration "${values.bidTitle || "New Bid"}" created successfully!`,
+        );
+
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
         refetchBids();
-        
+
         // Also refetch recent bids data
-        queryClient.invalidateQueries(['recent-bids']);
-        
+        queryClient.invalidateQueries(["recent-bids"]);
+
         // Close modal and reset form
         setCreateBidModalVisible(false);
         setCurrentStep(0);
         form.resetFields();
       } else {
-        console.error('API returned error:', result);
-        message.error(result.message || 'Failed to create bid configuration');
+        console.error("API returned error:", result);
+        message.error(result.message || "Failed to create bid configuration");
       }
     } catch (error) {
-      console.error('Error creating bid configuration:', error);
-      
+      console.error("Error creating bid configuration:", error);
+
       // Show more specific error message
-      let errorMessage = 'Failed to create bid configuration. Please try again.';
+      let errorMessage =
+        "Failed to create bid configuration. Please try again.";
       if (error.message) {
-        if (error.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (error.message.includes('API Error')) {
-          errorMessage = 'Server error. Please try again or contact support.';
+        if (error.message.includes("fetch")) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
+        } else if (error.message.includes("API Error")) {
+          errorMessage = "Server error. Please try again or contact support.";
         } else {
           errorMessage = error.message;
         }
       }
-      
+
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -325,32 +359,33 @@ export default function BidManagement() {
 
   const steps = [
     {
-      title: 'Flight & Route Details',
-      content: 'flight-details',
+      title: "Flight & Route Details",
+      content: "flight-details",
     },
     {
-      title: 'Seat Configurations & Limits',
-      content: 'seat-config',
+      title: "Seat Configurations & Limits",
+      content: "seat-config",
     },
     {
-      title: 'Bid Pricing & Currency',
-      content: 'pricing',
+      title: "Bid Pricing & Currency",
+      content: "pricing",
     },
     {
-      title: 'Fare Terms & Ancillaries',
-      content: 'fare-terms',
+      title: "Fare Terms & Ancillaries",
+      content: "fare-terms",
     },
   ];
 
   const renderActiveBidsContent = () => {
     // Filter active bids from the fetched data
     const activeBids = (recentBidsData || [])
-      .filter(bid => bid.bidStatus === 'active')
+      .filter((bid) => bid.bidStatus === "active")
       .map((bid, index) => {
         // Calculate time left until bid expires
-        const timeLeft = bid.validUntil ? 
-          calculateTimeLeft(new Date(bid.validUntil)) : 'No expiry';
-        
+        const timeLeft = bid.validUntil
+          ? calculateTimeLeft(new Date(bid.validUntil))
+          : "No expiry";
+
         // Parse configuration data if available
         let configData = {};
         try {
@@ -361,24 +396,30 @@ export default function BidManagement() {
 
         return {
           key: bid.id.toString(),
-          bidId: `BID${bid.id.toString().padStart(3, '0')}`,
-          passenger: { 
-            name: configData.groupLeaderName || `User ${bid.userId}`, 
-            email: configData.groupLeaderEmail || 'user@example.com' 
+          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+          passenger: {
+            name: configData.groupLeaderName || `User ${bid.userId}`,
+            email: configData.groupLeaderEmail || "user@example.com",
           },
-          flight: { 
-            number: bid.flight?.flightNumber || 'N/A',
-            route: bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not available',
-            date: bid.flight?.departureTime ? new Date(bid.flight.departureTime).toLocaleDateString() : 'N/A'
+          flight: {
+            number: bid.flight?.flightNumber || "N/A",
+            route: bid.flight
+              ? `${bid.flight.origin} → ${bid.flight.destination}`
+              : "Route not available",
+            date: bid.flight?.departureTime
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
           },
-          upgrade: configData.fareType ? `Economy → ${configData.fareType}` : 'Economy → Business',
+          upgrade: configData.fareType
+            ? `Economy → ${configData.fareType}`
+            : "Economy → Business",
           bidAmount: `₹${bid.bidAmount}`,
           maxBid: `₹${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
-          successRate: '75%', // This could be calculated based on historical data
+          successRate: "75%", // This could be calculated based on historical data
           timeLeft: timeLeft,
           status: bid.bidStatus,
           passengerCount: bid.passengerCount,
-          createdAt: bid.createdAt
+          createdAt: bid.createdAt,
         };
       });
 
@@ -386,14 +427,18 @@ export default function BidManagement() {
       <div>
         {/* Active Bids Header */}
         <div className="mb-6">
-          <Title level={4} className="!mb-1">Active Bids Requiring Attention ({activeBids.length})</Title>
-          <Text className="text-gray-500">Monitor and respond to passenger upgrade bids</Text>
+          <Title level={4} className="!mb-1">
+            Active Bids Requiring Attention ({activeBids.length})
+          </Title>
+          <Text className="text-gray-500">
+            Monitor and respond to passenger upgrade bids
+          </Text>
         </div>
 
         {/* Search and Filter */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Input 
+            <Input
               placeholder="Search by passenger name or flight number..."
               prefix={<SearchOutlined />}
               style={{ width: 300 }}
@@ -409,7 +454,10 @@ export default function BidManagement() {
         {activeBids.length === 0 ? (
           <Card>
             <div className="text-center py-8">
-              <Text className="text-gray-500">No active bids found. Active bids will appear here when passengers submit upgrade requests.</Text>
+              <Text className="text-gray-500">
+                No active bids found. Active bids will appear here when
+                passengers submit upgrade requests.
+              </Text>
             </div>
           </Card>
         ) : (
@@ -417,86 +465,102 @@ export default function BidManagement() {
             dataSource={activeBids}
             columns={[
               {
-                title: 'Bid Details',
-                dataIndex: 'bidId',
-                key: 'bidDetails',
+                title: "Bid Details",
+                dataIndex: "bidId",
+                key: "bidDetails",
                 render: (bidId, record) => (
                   <div>
                     <Text strong>{bidId}</Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">{record.upgrade}</Text>
+                    <Text className="text-gray-500 text-sm">
+                      {record.upgrade}
+                    </Text>
                   </div>
                 ),
               },
               {
-                title: 'Passenger',
-                dataIndex: 'passenger',
-                key: 'passenger',
+                title: "Passenger",
+                dataIndex: "passenger",
+                key: "passenger",
                 render: (passenger) => (
                   <div>
                     <Text strong>{passenger.name}</Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">{passenger.email}</Text>
+                    <Text className="text-gray-500 text-sm">
+                      {passenger.email}
+                    </Text>
                   </div>
                 ),
               },
               {
-                title: 'Flight Info',
-                dataIndex: 'flight',
-                key: 'flightInfo',
+                title: "Flight Info",
+                dataIndex: "flight",
+                key: "flightInfo",
                 render: (flight) => (
                   <div>
                     <Text strong>{flight.number}</Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">{flight.route}</Text>
+                    <Text className="text-gray-500 text-sm">
+                      {flight.route}
+                    </Text>
                     <br />
                     <Text className="text-gray-500 text-sm">{flight.date}</Text>
                   </div>
                 ),
               },
               {
-                title: 'Passengers',
-                dataIndex: 'passengerCount',
-                key: 'passengerCount',
+                title: "Passengers",
+                dataIndex: "passengerCount",
+                key: "passengerCount",
                 render: (count) => (
-                  <Text>{count} passenger{count > 1 ? 's' : ''}</Text>
+                  <Text>
+                    {count} passenger{count > 1 ? "s" : ""}
+                  </Text>
                 ),
               },
               {
-                title: 'Bid Amount',
-                dataIndex: 'bidAmount',
-                key: 'bidAmount',
+                title: "Bid Amount",
+                dataIndex: "bidAmount",
+                key: "bidAmount",
                 render: (amount, record) => (
                   <div>
                     <Text strong>{amount}</Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">Est. Max {record.maxBid}</Text>
+                    <Text className="text-gray-500 text-sm">
+                      Est. Max {record.maxBid}
+                    </Text>
                   </div>
                 ),
               },
               {
-                title: 'Time Left',
-                dataIndex: 'timeLeft',
-                key: 'timeLeft',
+                title: "Time Left",
+                dataIndex: "timeLeft",
+                key: "timeLeft",
                 render: (time) => (
-                  <Tag color={time.includes('hour') && parseInt(time) < 24 ? 'red' : 'blue'}>
+                  <Tag
+                    color={
+                      time.includes("hour") && parseInt(time) < 24
+                        ? "red"
+                        : "blue"
+                    }
+                  >
                     {time}
                   </Tag>
                 ),
               },
               {
-                title: 'Status',
-                dataIndex: 'status',
-                key: 'status',
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
                 render: (status) => (
-                  <Tag color={status === 'active' ? 'green' : 'blue'}>
+                  <Tag color={status === "active" ? "green" : "blue"}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </Tag>
                 ),
               },
               {
-                title: 'Actions',
-                key: 'actions',
+                title: "Actions",
+                key: "actions",
                 render: (_, record) => (
                   <Button type="link" icon={<EyeOutlined />} size="small">
                     Review Bid
@@ -530,62 +594,68 @@ export default function BidManagement() {
     } catch (e) {
       configData = {};
     }
-    
+
     // Populate the edit form with existing data
     editForm.setFieldsValue({
-      bidTitle: configData.title || '',
-      flightType: configData.flightType || 'Domestic',
-      origin: configData.origin || '',
-      destination: configData.destination || '',
+      bidTitle: configData.title || "",
+      flightType: configData.flightType || "Domestic",
+      origin: configData.origin || "",
+      destination: configData.destination || "",
       totalSeatsAvailable: configData.totalSeatsAvailable || 50,
       minSeatsPerBid: configData.minSeatsPerBid || 1,
       maxSeatsPerBid: configData.maxSeatsPerBid || 10,
       maxSeatsPerUser: configData.maxSeatsPerUser || 5,
-      fareType: configData.fareType || 'Economy',
+      fareType: configData.fareType || "Economy",
       baggageAllowance: configData.baggageAllowance || 20,
-      cancellationTerms: configData.cancellationTerms || 'Standard',
+      cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
-      otherNotes: configData.otherNotes || '',
+      otherNotes: configData.otherNotes || "",
       bidAmount: parseFloat(bid.bidAmount) || 0,
     });
-    
+
     setEditBidModalVisible(true);
   };
 
   const handleToggleBidStatus = async (bid, checked) => {
     try {
-      const newStatus = checked ? 'active' : 'inactive';
-      const response = await apiRequest('PUT', `/api/bid-configurations/${bid.id}/status`, {
-        status: newStatus
-      });
-      
+      const newStatus = checked ? "active" : "inactive";
+      const response = await apiRequest(
+        "PUT",
+        `/api/bid-configurations/${bid.id}/status`,
+        {
+          status: newStatus,
+        },
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to update bid status');
+        throw new Error("Failed to update bid status");
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
-        message.success(`Bid configuration ${checked ? 'activated' : 'deactivated'} successfully`);
+        message.success(
+          `Bid configuration ${checked ? "activated" : "deactivated"} successfully`,
+        );
         // Refetch bid configurations to update the display
         refetchBids();
       } else {
-        message.error(result.message || 'Failed to update bid status');
+        message.error(result.message || "Failed to update bid status");
       }
     } catch (error) {
-      console.error('Error updating bid status:', error);
-      message.error('Failed to update bid status. Please try again.');
+      console.error("Error updating bid status:", error);
+      message.error("Failed to update bid status. Please try again.");
     }
   };
 
   const handleEditSubmit = async (values) => {
     if (!selectedBid) return;
-    
+
     setLoading(true);
     try {
-      console.log('Submitting edit form with values:', values);
-      console.log('Selected bid ID:', selectedBid.id);
-      
+      console.log("Submitting edit form with values:", values);
+      console.log("Selected bid ID:", selectedBid.id);
+
       // Prepare the update data with all fields
       const updateData = {
         bidTitle: values.bidTitle,
@@ -601,58 +671,71 @@ export default function BidManagement() {
         cancellationTerms: values.cancellationTerms,
         mealIncluded: values.mealIncluded,
         otherNotes: values.otherNotes,
-        bidAmount: values.bidAmount
+        bidAmount: values.bidAmount,
       };
-      
-      const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, updateData);
-      
+
+      const response = await apiRequest(
+        "PUT",
+        `/api/bid-configurations/${selectedBid.id}`,
+        updateData,
+      );
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API response error:', errorText);
+        console.error("API response error:", errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-      
+
       const result = await response.json();
-      console.log('Update response:', result);
-      
+      console.log("Update response:", result);
+
       if (result.success) {
-        message.success('Bid configuration updated successfully');
+        message.success("Bid configuration updated successfully");
         setEditBidModalVisible(false);
         setSelectedBid(null);
         editForm.resetFields();
-        
+
         // Refetch bid configurations to update the display
         await refetchBids();
-        
+
         // Also invalidate and refetch recent bids to update activity
-        queryClient.invalidateQueries(['recent-bids']);
-        queryClient.invalidateQueries(['bid-configurations']);
-        
+        queryClient.invalidateQueries(["recent-bids"]);
+        queryClient.invalidateQueries(["bid-configurations"]);
+
         // Update local state to reflect changes immediately
-        setBidConfigurations(prev => 
-          prev.map(bid => 
-            bid.id === selectedBid.id 
-              ? { ...bid, notes: JSON.stringify({ ...JSON.parse(bid.notes || '{}'), ...updateData, updatedAt: new Date().toISOString() }) }
-              : bid
-          )
+        setBidConfigurations((prev) =>
+          prev.map((bid) =>
+            bid.id === selectedBid.id
+              ? {
+                  ...bid,
+                  notes: JSON.stringify({
+                    ...JSON.parse(bid.notes || "{}"),
+                    ...updateData,
+                    updatedAt: new Date().toISOString(),
+                  }),
+                }
+              : bid,
+          ),
         );
       } else {
-        message.error(result.message || 'Failed to update bid configuration');
+        message.error(result.message || "Failed to update bid configuration");
       }
     } catch (error) {
-      console.error('Error updating bid configuration:', error);
-      
-      let errorMessage = 'Failed to update bid configuration. Please try again.';
+      console.error("Error updating bid configuration:", error);
+
+      let errorMessage =
+        "Failed to update bid configuration. Please try again.";
       if (error.message) {
-        if (error.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (error.message.includes('API Error')) {
-          errorMessage = 'Server error. Please try again or contact support.';
+        if (error.message.includes("fetch")) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
+        } else if (error.message.includes("API Error")) {
+          errorMessage = "Server error. Please try again or contact support.";
         } else {
           errorMessage = error.message;
         }
       }
-      
+
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -664,11 +747,15 @@ export default function BidManagement() {
       {/* Bid Setup Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <Title level={4} className="!mb-1">Bid Configurations</Title>
-          <Text className="text-gray-500">Set up and manage different types of upgrade bids</Text>
+          <Title level={4} className="!mb-1">
+            Bid Configurations
+          </Title>
+          <Text className="text-gray-500">
+            Set up and manage different types of upgrade bids
+          </Text>
         </div>
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           icon={<PlusOutlined />}
           className="bg-blue-600 hover:bg-blue-700"
           onClick={handleCreateBid}
@@ -681,7 +768,10 @@ export default function BidManagement() {
       <div className="space-y-4">
         {bidConfigurations.length === 0 ? (
           <div className="text-center py-8">
-            <Text className="text-gray-500">No bid configurations found. Create your first bid configuration to get started.</Text>
+            <Text className="text-gray-500">
+              No bid configurations found. Create your first bid configuration
+              to get started.
+            </Text>
           </div>
         ) : (
           bidConfigurations.map((bid) => {
@@ -693,81 +783,114 @@ export default function BidManagement() {
             }
 
             const title = configData.title || `Bid Configuration #${bid.id}`;
-            const route = configData.origin && configData.destination ? 
-              `${configData.origin} → ${configData.destination}` : 'Route not specified';
-            const totalSeats = configData.totalSeatsAvailable || 'N/A';
-            const fareType = configData.fareType || 'Economy';
-            const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
-            
-            const statusColor = bid.bidStatus === 'active' ? 'green' : 
-                               bid.bidStatus === 'pending' ? 'orange' : 'red';
-            const statusText = bid.bidStatus === 'active' ? 'Active' : 
-                              bid.bidStatus === 'pending' ? 'Pending' : 'Inactive';
+            const route =
+              configData.origin && configData.destination
+                ? `${configData.origin} → ${configData.destination}`
+                : "Route not specified";
+            const totalSeats = configData.totalSeatsAvailable || "N/A";
+            const fareType = configData.fareType || "Economy";
+            const createdDate = bid.createdAt
+              ? new Date(bid.createdAt).toLocaleDateString()
+              : "Unknown";
+
+            const statusColor =
+              bid.bidStatus === "active"
+                ? "green"
+                : bid.bidStatus === "pending"
+                  ? "orange"
+                  : "red";
+            const statusText =
+              bid.bidStatus === "active"
+                ? "Active"
+                : bid.bidStatus === "pending"
+                  ? "Pending"
+                  : "Inactive";
 
             return (
-              <Card key={bid.id} className="hover:shadow-lg transition-shadow duration-200">
+              <Card
+                key={bid.id}
+                className="hover:shadow-lg transition-shadow duration-200"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-4">
-                      <Title level={5} className="!mb-0 !mr-3">{title}</Title>
-                      <Tag color={statusColor} className="text-xs">{statusText}</Tag>
+                      <Title level={5} className="!mb-0 !mr-3">
+                        {title}
+                      </Title>
+                      <Tag color={statusColor} className="text-xs">
+                        {statusText}
+                      </Tag>
                     </div>
 
                     <Row gutter={[32, 16]}>
                       <Col span={6}>
                         <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Route:</Text>
+                          <Text className="text-gray-500 text-sm block mb-1">
+                            Route:
+                          </Text>
                           <Text className="font-medium">{route}</Text>
                         </div>
                       </Col>
                       <Col span={6}>
                         <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Total Seats:</Text>
+                          <Text className="text-gray-500 text-sm block mb-1">
+                            Total Seats:
+                          </Text>
                           <Text className="font-medium">{totalSeats}</Text>
                         </div>
                       </Col>
                       <Col span={6}>
                         <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Fare Type:</Text>
+                          <Text className="text-gray-500 text-sm block mb-1">
+                            Fare Type:
+                          </Text>
                           <Text className="font-medium">{fareType}</Text>
                         </div>
                       </Col>
                       <Col span={6}>
                         <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Base Bid Amount:</Text>
-                          <Text className="font-medium">₹{bid.bidAmount || 0}</Text>
+                          <Text className="text-gray-500 text-sm block mb-1">
+                            Base Bid Amount:
+                          </Text>
+                          <Text className="font-medium">
+                            ₹{bid.bidAmount || 0}
+                          </Text>
                         </div>
                       </Col>
                     </Row>
 
                     <div className="mt-4">
-                      <Text className="text-gray-400 text-xs">Created: {createdDate}</Text>
+                      <Text className="text-gray-400 text-xs">
+                        Created: {createdDate}
+                      </Text>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2 ml-6">
-                    <Button 
-                      type="text" 
-                      icon={<EyeOutlined />} 
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined />}
                       size="small"
                       onClick={() => handleViewBid(bid)}
                     >
                       View
                     </Button>
-                    <Button 
-                      type="text" 
-                      icon={<EditOutlined />} 
+                    <Button
+                      type="text"
+                      icon={<EditOutlined />}
                       size="small"
                       onClick={() => handleEditBid(bid)}
                     >
                       Edit
                     </Button>
-                    <Switch 
-                      checked={bid.bidStatus === 'active'}
+                    <Switch
+                      checked={bid.bidStatus === "active"}
                       size="small"
                       checkedChildren="ON"
                       unCheckedChildren="OFF"
-                      onChange={(checked) => handleToggleBidStatus(bid, checked)}
+                      onChange={(checked) =>
+                        handleToggleBidStatus(bid, checked)
+                      }
                     />
                   </div>
                 </div>
@@ -788,7 +911,7 @@ export default function BidManagement() {
         footer={[
           <Button key="close" onClick={() => setViewBidModalVisible(false)}>
             Close
-          </Button>
+          </Button>,
         ]}
         width={800}
       >
@@ -797,111 +920,179 @@ export default function BidManagement() {
             {(() => {
               let configData = {};
               try {
-                configData = selectedBid.notes ? JSON.parse(selectedBid.notes) : {};
+                configData = selectedBid.notes
+                  ? JSON.parse(selectedBid.notes)
+                  : {};
               } catch (e) {
                 configData = {};
               }
-              
+
               return (
                 <>
                   <Row gutter={[24, 16]}>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Bid Title:</Text>
-                        <Text className="font-medium">{configData.title || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Bid Title:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.title || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Flight Type:</Text>
-                        <Text className="font-medium">{configData.flightType || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Flight Type:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.flightType || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Origin:</Text>
-                        <Text className="font-medium">{configData.origin || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Origin:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.origin || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Destination:</Text>
-                        <Text className="font-medium">{configData.destination || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Destination:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.destination || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Travel Date:</Text>
-                        <Text className="font-medium">{configData.travelDate || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Travel Date:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.travelDate || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Total Seats Available:</Text>
-                        <Text className="font-medium">{configData.totalSeatsAvailable || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Total Seats Available:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.totalSeatsAvailable || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Min Seats per Bid:</Text>
-                        <Text className="font-medium">{configData.minSeatsPerBid || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Min Seats per Bid:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.minSeatsPerBid || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Max Seats per Bid:</Text>
-                        <Text className="font-medium">{configData.maxSeatsPerBid || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Max Seats per Bid:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.maxSeatsPerBid || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Max Seats per User:</Text>
-                        <Text className="font-medium">{configData.maxSeatsPerUser || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Max Seats per User:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.maxSeatsPerUser || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Fare Type:</Text>
-                        <Text className="font-medium">{configData.fareType || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Fare Type:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.fareType || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Baggage Allowance:</Text>
-                        <Text className="font-medium">{configData.baggageAllowance || 'N/A'} kg</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Baggage Allowance:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.baggageAllowance || "N/A"} kg
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Cancellation Terms:</Text>
-                        <Text className="font-medium">{configData.cancellationTerms || 'N/A'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Cancellation Terms:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.cancellationTerms || "N/A"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Meal Included:</Text>
-                        <Text className="font-medium">{configData.mealIncluded ? 'Yes' : 'No'}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Meal Included:
+                        </Text>
+                        <Text className="font-medium">
+                          {configData.mealIncluded ? "Yes" : "No"}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Base Bid Amount:</Text>
-                        <Text className="font-medium">₹{selectedBid.bidAmount || 0}</Text>
+                        <Text className="text-gray-500 block mb-1">
+                          Base Bid Amount:
+                        </Text>
+                        <Text className="font-medium">
+                          ₹{selectedBid.bidAmount || 0}
+                        </Text>
                       </div>
                     </Col>
                     <Col span={12}>
                       <div>
-                        <Text className="text-gray-500 block mb-1">Status:</Text>
-                        <Tag color={selectedBid.bidStatus === 'active' ? 'green' : 'red'}>
-                          {selectedBid.bidStatus === 'active' ? 'Active' : 'Inactive'}
+                        <Text className="text-gray-500 block mb-1">
+                          Status:
+                        </Text>
+                        <Tag
+                          color={
+                            selectedBid.bidStatus === "active" ? "green" : "red"
+                          }
+                        >
+                          {selectedBid.bidStatus === "active"
+                            ? "Active"
+                            : "Inactive"}
                         </Tag>
                       </div>
                     </Col>
                   </Row>
-                  
+
                   {configData.otherNotes && (
                     <div>
-                      <Text className="text-gray-500 block mb-2">Other Notes:</Text>
+                      <Text className="text-gray-500 block mb-2">
+                        Other Notes:
+                      </Text>
                       <div className="bg-gray-50 p-3 rounded-md">
                         <Text>{configData.otherNotes}</Text>
                       </div>
@@ -926,29 +1117,24 @@ export default function BidManagement() {
         footer={null}
         width={800}
       >
-        <Form
-          form={editForm}
-          layout="vertical"
-          onFinish={handleEditSubmit}
-        >
+        <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
           <Row gutter={[16, 16]}>
             <Col span={12}>
               <Form.Item
                 label="Bid Title"
                 name="bidTitle"
-                rules={[{ required: true, message: 'Please enter bid title' }]}
+                rules={[{ required: true, message: "Please enter bid title" }]}
               >
                 <Input placeholder="Enter bid title" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Flight Type"
-                name="flightType"
-              >
+              <Form.Item label="Flight Type" name="flightType">
                 <Select placeholder="Select flight type">
                   <Select.Option value="Domestic">Domestic</Select.Option>
-                  <Select.Option value="International">International</Select.Option>
+                  <Select.Option value="International">
+                    International
+                  </Select.Option>
                   <Select.Option value="Regional">Regional</Select.Option>
                 </Select>
               </Form.Item>
@@ -957,14 +1143,16 @@ export default function BidManagement() {
               <Form.Item
                 label="Origin"
                 name="origin"
-                rules={[{ required: true, message: 'Please select origin' }]}
+                rules={[{ required: true, message: "Please select origin" }]}
               >
-                <Select 
+                <Select
                   mode="combobox"
                   placeholder="Search city / airport"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.value ?? "").toLowerCase().includes(input.toLowerCase())
+                    (option?.value ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                 >
                   {originOptions.map((location) => (
@@ -979,14 +1167,18 @@ export default function BidManagement() {
               <Form.Item
                 label="Destination"
                 name="destination"
-                rules={[{ required: true, message: 'Please select destination' }]}
+                rules={[
+                  { required: true, message: "Please select destination" },
+                ]}
               >
-                <Select 
+                <Select
                   mode="combobox"
                   placeholder="Search city / airport"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.value ?? "").toLowerCase().includes(input.toLowerCase())
+                    (option?.value ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                 >
                   {destinationOptions.map((location) => (
@@ -1006,62 +1198,65 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Min Seats per Bid"
-                name="minSeatsPerBid"
-              >
+              <Form.Item label="Min Seats per Bid" name="minSeatsPerBid">
                 <InputNumber min={1} className="w-full" placeholder="1" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Max Seats per Bid"
-                name="maxSeatsPerBid"
-              >
+              <Form.Item label="Max Seats per Bid" name="maxSeatsPerBid">
                 <InputNumber min={1} className="w-full" placeholder="10" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Max Seats per User"
-                name="maxSeatsPerUser"
-              >
+              <Form.Item label="Max Seats per User" name="maxSeatsPerUser">
                 <InputNumber min={1} className="w-full" placeholder="5" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Fare Type"
-                name="fareType"
-              >
+              <Form.Item label="Fare Type" name="fareType">
                 <Select placeholder="Select fare type">
                   <Select.Option value="Economy">Economy</Select.Option>
-                  <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                  <Select.Option value="Business Class">Business Class</Select.Option>
+                  <Select.Option value="Premium Economy">
+                    Premium Economy
+                  </Select.Option>
+                  <Select.Option value="Business Class">
+                    Business Class
+                  </Select.Option>
                   <Select.Option value="First Class">First Class</Select.Option>
-                  <Select.Option value="Flexible Fare">Flexible Fare</Select.Option>
-                  <Select.Option value="Restricted Fare">Restricted Fare</Select.Option>
+                  <Select.Option value="Flexible Fare">
+                    Flexible Fare
+                  </Select.Option>
+                  <Select.Option value="Restricted Fare">
+                    Restricted Fare
+                  </Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Baggage Allowance (kg)"
-                name="baggageAllowance"
-              >
-                <InputNumber min={0} max={100} className="w-full" placeholder="20" />
+              <Form.Item label="Baggage Allowance (kg)" name="baggageAllowance">
+                <InputNumber
+                  min={0}
+                  max={100}
+                  className="w-full"
+                  placeholder="20"
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Cancellation Terms"
-                name="cancellationTerms"
-              >
+              <Form.Item label="Cancellation Terms" name="cancellationTerms">
                 <Select placeholder="Select cancellation terms">
-                  <Select.Option value="Flexible - Free cancellation">Flexible - Free cancellation</Select.Option>
-                  <Select.Option value="Standard - 24h free cancellation">Standard - 24h free cancellation</Select.Option>
-                  <Select.Option value="Restricted - Cancellation fee applies">Restricted - Cancellation fee applies</Select.Option>
-                  <Select.Option value="Non-refundable">Non-refundable</Select.Option>
+                  <Select.Option value="Flexible - Free cancellation">
+                    Flexible - Free cancellation
+                  </Select.Option>
+                  <Select.Option value="Standard - 24h free cancellation">
+                    Standard - 24h free cancellation
+                  </Select.Option>
+                  <Select.Option value="Restricted - Cancellation fee applies">
+                    Restricted - Cancellation fee applies
+                  </Select.Option>
+                  <Select.Option value="Non-refundable">
+                    Non-refundable
+                  </Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -1069,15 +1264,17 @@ export default function BidManagement() {
               <Form.Item
                 label="Base Bid Amount (₹)"
                 name="bidAmount"
-                rules={[{ required: true, message: 'Please enter bid amount' }]}
+                rules={[{ required: true, message: "Please enter bid amount" }]}
               >
-                <InputNumber 
-                  min={0} 
-                  max={100000} 
-                  className="w-full" 
+                <InputNumber
+                  min={0}
+                  max={100000}
+                  className="w-full"
                   placeholder="Enter base bid amount"
-                  formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/₹\s?|(,*)/g, '')}
+                  formatter={(value) =>
+                    `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
                 />
               </Form.Item>
             </Col>
@@ -1091,24 +1288,23 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item
-                label="Other Notes"
-                name="otherNotes"
-              >
-                <Input.TextArea 
-                  rows={3} 
+              <Form.Item label="Other Notes" name="otherNotes">
+                <Input.TextArea
+                  rows={3}
                   placeholder="Add any additional notes..."
                 />
               </Form.Item>
             </Col>
           </Row>
-          
+
           <div className="flex justify-end space-x-2 mt-6">
-            <Button onClick={() => {
-              setEditBidModalVisible(false);
-              setSelectedBid(null);
-              editForm.resetFields();
-            }}>
+            <Button
+              onClick={() => {
+                setEditBidModalVisible(false);
+                setSelectedBid(null);
+                editForm.resetFields();
+              }}
+            >
               Cancel
             </Button>
             <Button type="primary" htmlType="submit" loading={loading}>
@@ -1130,7 +1326,7 @@ export default function BidManagement() {
               title="Total Transactions"
               value={6}
               suffix="This month"
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: "#1890ff" }}
             />
           </Card>
         </Col>
@@ -1138,10 +1334,10 @@ export default function BidManagement() {
           <Card>
             <Statistic
               title="Total Revenue"
-              value={678.30}
+              value={678.3}
               prefix="$"
               suffix="Net amount"
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: "#52c41a" }}
             />
           </Card>
         </Col>
@@ -1151,7 +1347,7 @@ export default function BidManagement() {
               title="Pending Refunds"
               value={1}
               suffix="Require processing"
-              valueStyle={{ color: '#faad14' }}
+              valueStyle={{ color: "#faad14" }}
             />
           </Card>
         </Col>
@@ -1161,7 +1357,7 @@ export default function BidManagement() {
               title="Failed Payments"
               value={1}
               suffix="Need attention"
-              valueStyle={{ color: '#ff4d4f' }}
+              valueStyle={{ color: "#ff4d4f" }}
             />
           </Card>
         </Col>
@@ -1171,8 +1367,12 @@ export default function BidManagement() {
       <Card className="mb-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <Title level={4} className="!mb-1">Payment & Refund Transactions</Title>
-            <Text className="text-gray-500">View and manage all payment transactions and refund requests</Text>
+            <Title level={4} className="!mb-1">
+              Payment & Refund Transactions
+            </Title>
+            <Text className="text-gray-500">
+              View and manage all payment transactions and refund requests
+            </Text>
           </div>
           <div className="flex space-x-2">
             <Select placeholder="Filter by type" style={{ width: 120 }}>
@@ -1190,57 +1390,64 @@ export default function BidManagement() {
         <Table
           dataSource={[
             {
-              key: '1',
-              transactionId: 'TXN-001234567',
-              passenger: { name: 'John Smith', email: 'john.smith@email.com' },
-              flight: { number: 'GR-4521', route: 'LAX → JFK' },
-              type: 'Payment',
-              amount: '$250 USD',
-              method: 'Credit Card ****4532',
-              status: 'Completed',
-              date: '2024-06-23 16:30'
+              key: "1",
+              transactionId: "TXN-001234567",
+              passenger: { name: "John Smith", email: "john.smith@email.com" },
+              flight: { number: "GR-4521", route: "LAX → JFK" },
+              type: "Payment",
+              amount: "$250 USD",
+              method: "Credit Card ****4532",
+              status: "Completed",
+              date: "2024-06-23 16:30",
             },
             {
-              key: '2',
-              transactionId: 'REF-001234566',
-              passenger: { name: 'Sarah Johnson', email: 'sarah.johnson@email.com' },
-              flight: { number: 'GR-7834', route: 'ORD → SFO' },
-              type: 'Refund',
-              amount: '$120 USD',
-              method: 'Credit Card ****6876',
-              status: 'Pending',
-              date: '2024-06-24 09:15'
-            }
+              key: "2",
+              transactionId: "REF-001234566",
+              passenger: {
+                name: "Sarah Johnson",
+                email: "sarah.johnson@email.com",
+              },
+              flight: { number: "GR-7834", route: "ORD → SFO" },
+              type: "Refund",
+              amount: "$120 USD",
+              method: "Credit Card ****6876",
+              status: "Pending",
+              date: "2024-06-24 09:15",
+            },
           ]}
           columns={[
             {
-              title: 'Transaction ID',
-              dataIndex: 'transactionId',
-              key: 'transactionId',
+              title: "Transaction ID",
+              dataIndex: "transactionId",
+              key: "transactionId",
               render: (id, record) => (
                 <div>
                   <Text strong>{id}</Text>
                   <br />
-                  <Text className="text-gray-500 text-sm">Bid {record.flight.number}</Text>
+                  <Text className="text-gray-500 text-sm">
+                    Bid {record.flight.number}
+                  </Text>
                 </div>
               ),
             },
             {
-              title: 'Passenger',
-              dataIndex: 'passenger',
-              key: 'passenger',
+              title: "Passenger",
+              dataIndex: "passenger",
+              key: "passenger",
               render: (passenger) => (
                 <div>
                   <Text>{passenger.name}</Text>
                   <br />
-                  <Text className="text-gray-500 text-sm">{passenger.email}</Text>
+                  <Text className="text-gray-500 text-sm">
+                    {passenger.email}
+                  </Text>
                 </div>
               ),
             },
             {
-              title: 'Flight Details',
-              dataIndex: 'flight',
-              key: 'flight',
+              title: "Flight Details",
+              dataIndex: "flight",
+              key: "flight",
               render: (flight) => (
                 <div>
                   <Text>{flight.number}</Text>
@@ -1250,41 +1457,49 @@ export default function BidManagement() {
               ),
             },
             {
-              title: 'Type',
-              dataIndex: 'type',
-              key: 'type',
+              title: "Type",
+              dataIndex: "type",
+              key: "type",
               render: (type) => (
-                <Tag color={type === 'Payment' ? 'blue' : 'orange'}>{type}</Tag>
+                <Tag color={type === "Payment" ? "blue" : "orange"}>{type}</Tag>
               ),
             },
             {
-              title: 'Amount',
-              dataIndex: 'amount',
-              key: 'amount',
+              title: "Amount",
+              dataIndex: "amount",
+              key: "amount",
             },
             {
-              title: 'Payment Method',
-              dataIndex: 'method',
-              key: 'method',
+              title: "Payment Method",
+              dataIndex: "method",
+              key: "method",
             },
             {
-              title: 'Status',
-              dataIndex: 'status',
-              key: 'status',
+              title: "Status",
+              dataIndex: "status",
+              key: "status",
               render: (status) => (
-                <Tag color={status === 'Completed' ? 'green' : status === 'Pending' ? 'orange' : 'red'}>
+                <Tag
+                  color={
+                    status === "Completed"
+                      ? "green"
+                      : status === "Pending"
+                        ? "orange"
+                        : "red"
+                  }
+                >
                   {status}
                 </Tag>
               ),
             },
             {
-              title: 'Date',
-              dataIndex: 'date',
-              key: 'date',
+              title: "Date",
+              dataIndex: "date",
+              key: "date",
             },
             {
-              title: 'Actions',
-              key: 'actions',
+              title: "Actions",
+              key: "actions",
               render: () => (
                 <Button type="link" icon={<EyeOutlined />} size="small">
                   View
@@ -1299,8 +1514,12 @@ export default function BidManagement() {
       {/* Pending Refund Requests */}
       <Card>
         <div className="mb-4">
-          <Title level={4} className="!mb-1">Pending Refund Requests</Title>
-          <Text className="text-gray-500">Refund requests that require manual processing</Text>
+          <Title level={4} className="!mb-1">
+            Pending Refund Requests
+          </Title>
+          <Text className="text-gray-500">
+            Refund requests that require manual processing
+          </Text>
         </div>
 
         <div className="space-y-4">
@@ -1332,7 +1551,9 @@ export default function BidManagement() {
               <Text>Refund for cancelled bid</Text>
             </div>
             <div className="mt-4 flex space-x-2">
-              <Button type="primary" size="small">Approve Refund</Button>
+              <Button type="primary" size="small">
+                Approve Refund
+              </Button>
               <Button size="small">Review Details</Button>
             </div>
           </div>
@@ -1344,50 +1565,52 @@ export default function BidManagement() {
   const renderHistoryContent = () => (
     <div>
       <div className="mb-6">
-        <Title level={4} className="!mb-1">Bid History</Title>
+        <Title level={4} className="!mb-1">
+          Bid History
+        </Title>
         <Text className="text-gray-500">View completed and closed bids</Text>
       </div>
 
       <Table
         dataSource={[
           {
-            key: '1',
-            bidId: 'BID004',
-            passenger: 'Emily Chen',
-            flight: { number: 'GR-9876', route: 'SEA → BOS' },
-            originalBid: '$200',
-            finalAmount: '$200',
-            status: 'Accepted',
-            completedDate: '2024-06-22',
-            revenue: '$200'
+            key: "1",
+            bidId: "BID004",
+            passenger: "Emily Chen",
+            flight: { number: "GR-9876", route: "SEA → BOS" },
+            originalBid: "$200",
+            finalAmount: "$200",
+            status: "Accepted",
+            completedDate: "2024-06-22",
+            revenue: "$200",
           },
           {
-            key: '2',
-            bidId: 'BID005',
-            passenger: 'Robert Wilson',
-            flight: { number: 'GR-5432', route: 'ATL → PHX' },
-            originalBid: '$75',
-            finalAmount: '$0',
-            status: 'Rejected',
-            completedDate: '2024-06-21',
-            revenue: '$0'
-          }
+            key: "2",
+            bidId: "BID005",
+            passenger: "Robert Wilson",
+            flight: { number: "GR-5432", route: "ATL → PHX" },
+            originalBid: "$75",
+            finalAmount: "$0",
+            status: "Rejected",
+            completedDate: "2024-06-21",
+            revenue: "$0",
+          },
         ]}
         columns={[
           {
-            title: 'Bid ID',
-            dataIndex: 'bidId',
-            key: 'bidId',
+            title: "Bid ID",
+            dataIndex: "bidId",
+            key: "bidId",
           },
           {
-            title: 'Passenger',
-            dataIndex: 'passenger',
-            key: 'passenger',
+            title: "Passenger",
+            dataIndex: "passenger",
+            key: "passenger",
           },
           {
-            title: 'Flight',
-            dataIndex: 'flight',
-            key: 'flight',
+            title: "Flight",
+            dataIndex: "flight",
+            key: "flight",
             render: (flight) => (
               <div>
                 <Text>{flight.number}</Text>
@@ -1397,32 +1620,34 @@ export default function BidManagement() {
             ),
           },
           {
-            title: 'Original Bid',
-            dataIndex: 'originalBid',
-            key: 'originalBid',
+            title: "Original Bid",
+            dataIndex: "originalBid",
+            key: "originalBid",
           },
           {
-            title: 'Final Amount',
-            dataIndex: 'finalAmount',
-            key: 'finalAmount',
+            title: "Final Amount",
+            dataIndex: "finalAmount",
+            key: "finalAmount",
           },
           {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
             render: (status) => (
-              <Tag color={status === 'Accepted' ? 'green' : 'red'}>{status}</Tag>
+              <Tag color={status === "Accepted" ? "green" : "red"}>
+                {status}
+              </Tag>
             ),
           },
           {
-            title: 'Completed Date',
-            dataIndex: 'completedDate',
-            key: 'completedDate',
+            title: "Completed Date",
+            dataIndex: "completedDate",
+            key: "completedDate",
           },
           {
-            title: 'Revenue',
-            dataIndex: 'revenue',
-            key: 'revenue',
+            title: "Revenue",
+            dataIndex: "revenue",
+            key: "revenue",
           },
         ]}
         pagination={false}
@@ -1438,8 +1663,8 @@ export default function BidManagement() {
           defaultActiveKey="overview"
           items={[
             {
-              key: 'overview',
-              label: 'Overview',
+              key: "overview",
+              label: "Overview",
               children: (
                 <div>
                   {/* Stats Cards Row */}
@@ -1448,12 +1673,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Active Bids</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Active Bids
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">3</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold"
+                              >
+                                3
+                              </Title>
                               <InfoCircleOutlined className="text-blue-500 ml-2" />
                             </div>
-                            <Text className="text-gray-500 text-xs">Awaiting response</Text>
+                            <Text className="text-gray-500 text-xs">
+                              Awaiting response
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1463,12 +1697,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Bid Types</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Bid Types
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">1</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold"
+                              >
+                                1
+                              </Title>
                               <SettingOutlined className="text-blue-500 ml-2" />
                             </div>
-                            <Text className="text-gray-500 text-xs">Active configurations</Text>
+                            <Text className="text-gray-500 text-xs">
+                              Active configurations
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1478,12 +1721,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Monthly Revenue</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Monthly Revenue
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$47,250</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold"
+                              >
+                                $47,250
+                              </Title>
                               <DollarOutlined className="text-blue-500 ml-2" />
                             </div>
-                            <Text className="text-green-500 text-xs">+19.3% this month</Text>
+                            <Text className="text-green-500 text-xs">
+                              +19.3% this month
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1496,12 +1748,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Acceptance Rate</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Acceptance Rate
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">72%</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold"
+                              >
+                                72%
+                              </Title>
                               <RiseOutlined className="text-blue-500 ml-2" />
                             </div>
-                            <Text className="text-green-500 text-xs">+2.1% this month</Text>
+                            <Text className="text-green-500 text-xs">
+                              +2.1% this month
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1511,12 +1772,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Avg Bid Value</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Avg Bid Value
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold">$185</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold"
+                              >
+                                $185
+                              </Title>
                               <BarChartOutlined className="text-blue-500 ml-2" />
                             </div>
-                            <Text className="text-green-500 text-xs">+5.7% this month</Text>
+                            <Text className="text-green-500 text-xs">
+                              +5.7% this month
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1526,12 +1796,21 @@ export default function BidManagement() {
                       <Card className="h-full">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Text className="text-gray-500 text-sm">Pending Review</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Pending Review
+                            </Text>
                             <div className="flex items-center mt-1">
-                              <Title level={2} className="!mb-0 !mt-0 text-2xl font-semibold text-red-500">1</Title>
+                              <Title
+                                level={2}
+                                className="!mb-0 !mt-0 text-2xl font-semibold text-red-500"
+                              >
+                                1
+                              </Title>
                               <AlertOutlined className="text-red-500 ml-2" />
                             </div>
-                            <Text className="text-gray-500 text-xs">Require attention</Text>
+                            <Text className="text-gray-500 text-xs">
+                              Require attention
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1543,15 +1822,19 @@ export default function BidManagement() {
                     <Col xs={24}>
                       <Card>
                         <div className="mb-4">
-                          <Title level={4} className="!mb-1">Quick Actions</Title>
-                          <Text className="text-gray-500">Frequently used bid management tasks</Text>
+                          <Title level={4} className="!mb-1">
+                            Quick Actions
+                          </Title>
+                          <Text className="text-gray-500">
+                            Frequently used bid management tasks
+                          </Text>
                         </div>
                         <Row gutter={[16, 16]}>
                           <Col xs={24} sm={8}>
-                            <Button 
-                              type="primary" 
-                              size="large" 
-                              icon={<PlusOutlined />} 
+                            <Button
+                              type="primary"
+                              size="large"
+                              icon={<PlusOutlined />}
                               className="w-full h-12 bg-blue-600 hover:bg-blue-700"
                               onClick={handleCreateBid}
                             >
@@ -1559,18 +1842,18 @@ export default function BidManagement() {
                             </Button>
                           </Col>
                           <Col xs={24} sm={8}>
-                            <Button 
-                              size="large" 
-                              icon={<EyeOutlined />} 
+                            <Button
+                              size="large"
+                              icon={<EyeOutlined />}
                               className="w-full h-12"
                             >
                               Review Pending Bids
                             </Button>
                           </Col>
                           <Col xs={24} sm={8}>
-                            <Button 
-                              size="large" 
-                              icon={<BarChartOutlined />} 
+                            <Button
+                              size="large"
+                              icon={<BarChartOutlined />}
                               className="w-full h-12"
                             >
                               Generate Report
@@ -1586,30 +1869,45 @@ export default function BidManagement() {
                     <Col xs={24}>
                       <Card>
                         <div className="mb-4">
-                          <Title level={4} className="!mb-1">Recent Bid Activity</Title>
-                          <Text className="text-gray-500">Latest bid submissions and responses</Text>
+                          <Title level={4} className="!mb-1">
+                            Recent Bid Activity
+                          </Title>
+                          <Text className="text-gray-500">
+                            Latest bid submissions and responses
+                          </Text>
                         </div>
                         <div className="space-y-4">
                           {recentActivities.length === 0 ? (
                             <div className="text-center py-8">
-                              <Text className="text-gray-500">No recent bid activity found.</Text>
+                              <Text className="text-gray-500">
+                                No recent bid activity found.
+                              </Text>
                             </div>
                           ) : (
                             recentActivities.map((activity, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
                                 <div className="flex items-center space-x-3 flex-1">
-                                  <div 
+                                  <div
                                     className="w-3 h-3 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: activity.color }}
                                   />
                                   <div className="flex-1">
-                                    <Text className="font-medium text-gray-800">{activity.title}</Text>
+                                    <Text className="font-medium text-gray-800">
+                                      {activity.title}
+                                    </Text>
                                     {activity.amount && (
-                                      <Text className="text-sm text-gray-600 mt-1">Amount: {activity.amount}</Text>
+                                      <Text className="text-sm text-gray-600 mt-1">
+                                        Amount: {activity.amount}
+                                      </Text>
                                     )}
                                   </div>
                                 </div>
-                                <Text className="text-gray-500 text-sm whitespace-nowrap ml-3">{activity.time}</Text>
+                                <Text className="text-gray-500 text-sm whitespace-nowrap ml-3">
+                                  {activity.time}
+                                </Text>
                               </div>
                             ))
                           )}
@@ -1621,8 +1919,8 @@ export default function BidManagement() {
               ),
             },
             {
-              key: 'insights',
-              label: 'Insights',
+              key: "insights",
+              label: "Insights",
               children: (
                 <div>
                   {/* Insights Alert Cards */}
@@ -1633,21 +1931,35 @@ export default function BidManagement() {
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                              <Text strong className="text-green-700">International Route Premium</Text>
-                              <Tag color="red" size="small" className="ml-2">High</Tag>
+                              <Text strong className="text-green-700">
+                                International Route Premium
+                              </Text>
+                              <Tag color="red" size="small" className="ml-2">
+                                High
+                              </Tag>
                             </div>
                             <Text className="text-gray-600 text-sm mb-3">
-                              JFK-LHR route shows 85% bid acceptance rate with avg bid of $420. Consider raising minimum thresholds.
+                              JFK-LHR route shows 85% bid acceptance rate with
+                              avg bid of $420. Consider raising minimum
+                              thresholds.
                             </Text>
                             <div className="mb-2">
-                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Action:
+                              </Text>
                               <br />
-                              <Text className="text-sm">Increase minimum bid by 15%</Text>
+                              <Text className="text-sm">
+                                Increase minimum bid by 15%
+                              </Text>
                             </div>
                             <div>
-                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Potential:
+                              </Text>
                               <br />
-                              <Text className="text-green-600 font-medium">$16,000/month</Text>
+                              <Text className="text-green-600 font-medium">
+                                $16,000/month
+                              </Text>
                             </div>
                           </div>
                         </div>
@@ -1660,21 +1972,34 @@ export default function BidManagement() {
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                              <Text strong className="text-orange-700">Short-haul Bid Decline</Text>
-                              <Tag color="orange" size="small" className="ml-2">Medium</Tag>
+                              <Text strong className="text-orange-700">
+                                Short-haul Bid Decline
+                              </Text>
+                              <Tag color="orange" size="small" className="ml-2">
+                                Medium
+                              </Tag>
                             </div>
                             <Text className="text-gray-600 text-sm mb-3">
-                              Domestic routes under 3 hours show declining bid participation (-12% this month).
+                              Domestic routes under 3 hours show declining bid
+                              participation (-12% this month).
                             </Text>
                             <div className="mb-2">
-                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Action:
+                              </Text>
                               <br />
-                              <Text className="text-sm">Reduce minimum bid amounts for short routes</Text>
+                              <Text className="text-sm">
+                                Reduce minimum bid amounts for short routes
+                              </Text>
                             </div>
                             <div>
-                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Potential:
+                              </Text>
                               <br />
-                              <Text className="text-orange-600 font-medium">$8,500/month</Text>
+                              <Text className="text-orange-600 font-medium">
+                                $8,500/month
+                              </Text>
                             </div>
                           </div>
                         </div>
@@ -1687,21 +2012,34 @@ export default function BidManagement() {
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                              <Text strong className="text-blue-700">Dynamic Bid Windows</Text>
-                              <Tag color="blue" size="small" className="ml-2">Medium</Tag>
+                              <Text strong className="text-blue-700">
+                                Dynamic Bid Windows
+                              </Text>
+                              <Tag color="blue" size="small" className="ml-2">
+                                Medium
+                              </Tag>
                             </div>
                             <Text className="text-gray-600 text-sm mb-3">
-                              High-demand flights could benefit from shorter bid windows to create urgency.
+                              High-demand flights could benefit from shorter bid
+                              windows to create urgency.
                             </Text>
                             <div className="mb-2">
-                              <Text className="text-gray-500 text-xs">Action:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Action:
+                              </Text>
                               <br />
-                              <Text className="text-sm">Implement 12-hour windows for 90%+ load factor</Text>
+                              <Text className="text-sm">
+                                Implement 12-hour windows for 90%+ load factor
+                              </Text>
                             </div>
                             <div>
-                              <Text className="text-gray-500 text-xs">Potential:</Text>
+                              <Text className="text-gray-500 text-xs">
+                                Potential:
+                              </Text>
                               <br />
-                              <Text className="text-blue-600 font-medium">$12,200/month</Text>
+                              <Text className="text-blue-600 font-medium">
+                                $12,200/month
+                              </Text>
                             </div>
                           </div>
                         </div>
@@ -1718,103 +2056,107 @@ export default function BidManagement() {
                             <BarChartOutlined className="mr-2" />
                             Route-Level Bid Performance
                           </Title>
-                          <Text className="text-gray-500">Bidding success rates and revenue by route</Text>
+                          <Text className="text-gray-500">
+                            Bidding success rates and revenue by route
+                          </Text>
                         </div>
 
                         <Table
                           dataSource={[
                             {
-                              key: '1',
-                              route: 'LAX-JFK',
+                              key: "1",
+                              route: "LAX-JFK",
                               totalBids: 145,
                               accepted: 89,
-                              successRate: '61.4%',
-                              avgBid: '$285',
-                              revenue: '$25,365',
-                              demand: 'High'
+                              successRate: "61.4%",
+                              avgBid: "$285",
+                              revenue: "$25,365",
+                              demand: "High",
                             },
                             {
-                              key: '2',
-                              route: 'JFK-LHR',
+                              key: "2",
+                              route: "JFK-LHR",
                               totalBids: 89,
                               accepted: 76,
-                              successRate: '85.4%',
-                              avgBid: '$420',
-                              revenue: '$31,920',
-                              demand: 'Very High'
+                              successRate: "85.4%",
+                              avgBid: "$420",
+                              revenue: "$31,920",
+                              demand: "Very High",
                             },
                             {
-                              key: '3',
-                              route: 'ORD-SFO',
+                              key: "3",
+                              route: "ORD-SFO",
                               totalBids: 124,
                               accepted: 78,
-                              successRate: '62.9%',
-                              avgBid: '$195',
-                              revenue: '$15,210',
-                              demand: 'High'
+                              successRate: "62.9%",
+                              avgBid: "$195",
+                              revenue: "$15,210",
+                              demand: "High",
                             },
                             {
-                              key: '4',
-                              route: 'MIA-DEN',
+                              key: "4",
+                              route: "MIA-DEN",
                               totalBids: 76,
                               accepted: 42,
-                              successRate: '55.3%',
-                              avgBid: '$165',
-                              revenue: '$6,930',
-                              demand: 'Medium'
+                              successRate: "55.3%",
+                              avgBid: "$165",
+                              revenue: "$6,930",
+                              demand: "Medium",
                             },
                             {
-                              key: '5',
-                              route: 'ATL-SEA',
+                              key: "5",
+                              route: "ATL-SEA",
                               totalBids: 98,
                               accepted: 67,
-                              successRate: '68.4%',
-                              avgBid: '$225',
-                              revenue: '$15,075',
-                              demand: 'High'
-                            }
+                              successRate: "68.4%",
+                              avgBid: "$225",
+                              revenue: "$15,075",
+                              demand: "High",
+                            },
                           ]}
                           columns={[
                             {
-                              title: 'Route',
-                              dataIndex: 'route',
-                              key: 'route',
+                              title: "Route",
+                              dataIndex: "route",
+                              key: "route",
                             },
                             {
-                              title: 'Total Bids',
-                              dataIndex: 'totalBids',
-                              key: 'totalBids',
+                              title: "Total Bids",
+                              dataIndex: "totalBids",
+                              key: "totalBids",
                             },
                             {
-                              title: 'Accepted',
-                              dataIndex: 'accepted',
-                              key: 'accepted',
+                              title: "Accepted",
+                              dataIndex: "accepted",
+                              key: "accepted",
                             },
                             {
-                              title: 'Success Rate',
-                              dataIndex: 'successRate',
-                              key: 'successRate',
+                              title: "Success Rate",
+                              dataIndex: "successRate",
+                              key: "successRate",
                             },
                             {
-                              title: 'Avg Bid',
-                              dataIndex: 'avgBid',
-                              key: 'avgBid',
+                              title: "Avg Bid",
+                              dataIndex: "avgBid",
+                              key: "avgBid",
                             },
                             {
-                              title: 'Revenue',
-                              dataIndex: 'revenue',
-                              key: 'revenue',
+                              title: "Revenue",
+                              dataIndex: "revenue",
+                              key: "revenue",
                             },
                             {
-                              title: 'Demand',
-                              dataIndex: 'demand',
-                              key: 'demand',
+                              title: "Demand",
+                              dataIndex: "demand",
+                              key: "demand",
                               render: (demand) => (
-                                <Tag 
+                                <Tag
                                   color={
-                                    demand === 'Very High' ? 'red' : 
-                                    demand === 'High' ? 'blue' : 
-                                    'orange'
+                                    demand === "Very High"
+                                      ? "red"
+                                      : demand === "High"
+                                        ? "blue"
+                                        : "orange"
                                   }
                                 >
                                   {demand}
@@ -1837,7 +2179,9 @@ export default function BidManagement() {
                             <RiseOutlined className="mr-2" />
                             Demand & Supply Analysis
                           </Title>
-                          <Text className="text-gray-500">Upgrade class demand vs available inventory</Text>
+                          <Text className="text-gray-500">
+                            Upgrade class demand vs available inventory
+                          </Text>
                         </div>
 
                         <div className="space-y-6">
@@ -1850,30 +2194,48 @@ export default function BidManagement() {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex space-x-8">
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-blue-600">78</Text>
+                                  <Text className="text-2xl font-bold text-blue-600">
+                                    78
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Demand
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-green-600">45</Text>
+                                  <Text className="text-2xl font-bold text-green-600">
+                                    45
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Supply
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-purple-600">1.73</Text>
+                                  <Text className="text-2xl font-bold text-purple-600">
+                                    1.73
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    D/S Ratio
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-red-600">$125</Text>
+                                  <Text className="text-2xl font-bold text-red-600">
+                                    $125
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Avg Bid
+                                  </Text>
                                 </div>
                               </div>
                               <Text className="text-gray-500">63.4%</Text>
                             </div>
                             <Progress percent={63.4} strokeColor="#3b82f6" />
-                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Demand Pressure
+                            </Text>
                           </div>
 
                           {/* Economy to Business */}
@@ -1885,30 +2247,48 @@ export default function BidManagement() {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex space-x-8">
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-blue-600">85</Text>
+                                  <Text className="text-2xl font-bold text-blue-600">
+                                    85
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Demand
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-green-600">25</Text>
+                                  <Text className="text-2xl font-bold text-green-600">
+                                    25
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Supply
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-purple-600">2.6</Text>
+                                  <Text className="text-2xl font-bold text-purple-600">
+                                    2.6
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    D/S Ratio
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-red-600">$285</Text>
+                                  <Text className="text-2xl font-bold text-red-600">
+                                    $285
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Avg Bid
+                                  </Text>
                                 </div>
                               </div>
                               <Text className="text-gray-500">72.2%</Text>
                             </div>
                             <Progress percent={72.2} strokeColor="#1890ff" />
-                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Demand Pressure
+                            </Text>
                           </div>
 
                           {/* Premium to Business */}
@@ -1920,30 +2300,48 @@ export default function BidManagement() {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex space-x-8">
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-blue-600">45</Text>
+                                  <Text className="text-2xl font-bold text-blue-600">
+                                    45
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Demand</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Demand
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-green-600">35</Text>
+                                  <Text className="text-2xl font-bold text-green-600">
+                                    35
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Supply</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Supply
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-purple-600">1.29</Text>
+                                  <Text className="text-2xl font-bold text-purple-600">
+                                    1.29
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">D/S Ratio</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    D/S Ratio
+                                  </Text>
                                 </div>
                                 <div className="text-center">
-                                  <Text className="text-2xl font-bold text-red-600">$180</Text>
+                                  <Text className="text-2xl font-bold text-red-600">
+                                    $180
+                                  </Text>
                                   <br />
-                                  <Text className="text-xs text-gray-500">Avg Bid</Text>
+                                  <Text className="text-xs text-gray-500">
+                                    Avg Bid
+                                  </Text>
                                 </div>
                               </div>
                               <Text className="text-gray-500">56.3%</Text>
                             </div>
                             <Progress percent={56.3} strokeColor="#f5222d" />
-                            <Text className="text-gray-500 text-sm">Demand Pressure</Text>
+                            <Text className="text-gray-500 text-sm">
+                              Demand Pressure
+                            </Text>
                           </div>
                         </div>
                       </Card>
@@ -1960,7 +2358,7 @@ export default function BidManagement() {
 
   const tabItems = [
     {
-      key: '1',
+      key: "1",
       label: (
         <span className="flex items-center">
           <BarChartOutlined className="mr-2" />
@@ -1970,7 +2368,7 @@ export default function BidManagement() {
       children: renderDashboardContent(),
     },
     {
-      key: '2',
+      key: "2",
       label: (
         <span className="flex items-center">
           <ClockCircleOutlined className="mr-2" />
@@ -1980,7 +2378,7 @@ export default function BidManagement() {
       children: renderActiveBidsContent(),
     },
     {
-      key: '3',
+      key: "3",
       label: (
         <span className="flex items-center">
           <SettingOutlined className="mr-2" />
@@ -1990,7 +2388,7 @@ export default function BidManagement() {
       children: renderBidSetupContent(),
     },
     {
-      key: '4',
+      key: "4",
       label: (
         <span className="flex items-center">
           <CreditCardOutlined className="mr-2" />
@@ -2000,7 +2398,7 @@ export default function BidManagement() {
       children: renderPaymentsContent(),
     },
     {
-      key: '5',
+      key: "5",
       label: (
         <span className="flex items-center">
           <HistoryOutlined className="mr-2" />
@@ -2023,7 +2421,9 @@ export default function BidManagement() {
                   <span className="text-white font-bold text-sm">GR</span>
                 </div>
                 <div>
-                  <Text className="text-gray-600 text-sm font-medium">GROUP RETAIL</Text>
+                  <Text className="text-gray-600 text-sm font-medium">
+                    GROUP RETAIL
+                  </Text>
                   <br />
                   <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
                 </div>
@@ -2040,7 +2440,7 @@ export default function BidManagement() {
                   </Avatar>
                   <div className="text-right">
                     <Text className="text-sm font-medium block">John Doe</Text>
-                    <Text className="text-xs text-gray-500">System Administrator</Text>
+                    <Text className="text-gray-500 text-sm">System Admin</Text>
                   </div>
                 </div>
               </Dropdown>
@@ -2054,18 +2454,18 @@ export default function BidManagement() {
         <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
           <div className="p-6">
             <nav className="space-y-2">
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/dashboard')}
+                onClick={() => setLocation("/admin/dashboard")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
                 <Text className="text-current">Dashboard</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/offer-management')}
+                onClick={() => setLocation("/admin/offer-management")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
@@ -2078,36 +2478,36 @@ export default function BidManagement() {
                 </div>
                 <Text className="text-white font-medium">Bid Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/bookings')}
+                onClick={() => setLocation("/admin/bookings")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📅</span>
                 </div>
                 <Text className="text-current">Bookings Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/cms')}
+                onClick={() => setLocation("/admin/cms")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">⚙️</span>
                 </div>
                 <Text className="text-current">CMS Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/reports')}
+                onClick={() => setLocation("/admin/reports")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
                 <Text className="text-current">Reports & Analytics</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/admin-settings')}
+                onClick={() => setLocation("/admin/admin-settings")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🔧</span>
@@ -2120,7 +2520,10 @@ export default function BidManagement() {
           {/* User Info at bottom */}
           <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
             <div className="flex items-center space-x-3">
-              <Avatar size="small" className="bg-gradient-to-r from-blue-600 to-purple-600">
+              <Avatar
+                size="small"
+                className="bg-gradient-to-r from-blue-600 to-purple-600"
+              >
                 <span className="text-white font-medium">JD</span>
               </Avatar>
               <div className="flex-1">
@@ -2128,8 +2531,8 @@ export default function BidManagement() {
                 <Text className="text-slate-300 text-sm">System Admin</Text>
               </div>
             </div>
-            <Button 
-              type="text" 
+            <Button
+              type="text"
               onClick={handleLogout}
               className="w-full mt-4 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
               size="small"
@@ -2163,8 +2566,8 @@ export default function BidManagement() {
           {/* Main Content Area */}
           <div className="bg-white rounded-lg shadow-sm">
             {/* Navigation Tabs */}
-            <Tabs 
-              activeKey={activeTab} 
+            <Tabs
+              activeKey={activeTab}
               onChange={setActiveTab}
               className="px-6"
               items={tabItems}
@@ -2204,36 +2607,40 @@ export default function BidManagement() {
         </div>
 
         <div className="px-6 py-4">
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleFinish}
-          >
+          <Form form={form} layout="vertical" onFinish={handleFinish}>
             {/* Simple Steps Display */}
             <div className="mb-6">
               <div className="relative">
                 {/* Progress Bar Background */}
                 <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
                 {/* Active Progress Bar */}
-                <div 
+                <div
                   className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
-                  style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                  style={{
+                    width: `${(currentStep / (steps.length - 1)) * 100}%`,
+                  }}
                 ></div>
 
                 {/* Steps */}
                 <div className="relative flex justify-between z-20">
                   {steps.map((step, index) => (
-                    <div key={step.title} className="flex flex-col items-center">
+                    <div
+                      key={step.title}
+                      className="flex flex-col items-center"
+                    >
                       {/* Step Circle */}
-                      <div className={`
+                      <div
+                        className={`
                         w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
-                        ${index < currentStep 
-                          ? 'bg-green-500 border-green-500 text-white' 
-                          : index === currentStep 
-                          ? 'bg-blue-500 border-blue-500 text-white' 
-                          : 'bg-white border-gray-300 text-gray-500'
+                        ${
+                          index < currentStep
+                            ? "bg-green-500 border-green-500 text-white"
+                            : index === currentStep
+                              ? "bg-blue-500 border-blue-500 text-white"
+                              : "bg-white border-gray-300 text-gray-500"
                         }
-                      `}>
+                      `}
+                      >
                         {index < currentStep ? (
                           <span className="text-sm">✓</span>
                         ) : (
@@ -2243,10 +2650,12 @@ export default function BidManagement() {
 
                       {/* Step Title */}
                       <div className="mt-2 text-center max-w-[120px]">
-                        <Text className={`
+                        <Text
+                          className={`
                           text-xs font-medium
-                          ${index <= currentStep ? 'text-gray-800' : 'text-gray-500'}
-                        `}>
+                          ${index <= currentStep ? "text-gray-800" : "text-gray-500"}
+                        `}
+                        >
                           {step.title}
                         </Text>
                       </div>
@@ -2264,20 +2673,28 @@ export default function BidManagement() {
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="w-1 h-5 bg-blue-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-blue-600">Flight & Route Details</Title>
+                      <Title level={5} className="!mb-0 text-blue-600">
+                        Flight & Route Details
+                      </Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Configure the basic flight information for bidding</Text>
+                    <Text className="text-gray-500 text-sm">
+                      Configure the basic flight information for bidding
+                    </Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Bid Title *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Bid Title *
+                            </span>
+                          }
                           name="bidTitle"
                         >
-                          <Input 
-                            placeholder="Enter bid configuration title" 
+                          <Input
+                            placeholder="Enter bid configuration title"
                             size="large"
                             className="rounded-md"
                           />
@@ -2285,28 +2702,42 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Flight Type</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Flight Type
+                            </span>
+                          }
                           name="flightType"
                         >
-                          <Select 
-                            placeholder="Select flight type" 
+                          <Select
+                            placeholder="Select flight type"
                             size="large"
                             className="w-full"
                           >
-                            <Select.Option value="Domestic">Domestic</Select.Option>
-                            <Select.Option value="International">International</Select.Option>
-                            <Select.Option value="Regional">Regional</Select.Option>
+                            <Select.Option value="Domestic">
+                              Domestic
+                            </Select.Option>
+                            <Select.Option value="International">
+                              International
+                            </Select.Option>
+                            <Select.Option value="Regional">
+                              Regional
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Origin Airport (IATA Code) *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Origin Airport (IATA Code) *
+                            </span>
+                          }
                           name="origin"
                         >
-                          <Select 
+                          <Select
                             mode="combobox"
-                            placeholder="Search city / airport" 
+                            placeholder="Search city / airport"
                             size="large"
                             showSearch
                             filterOption={(input, option) =>
@@ -2314,7 +2745,9 @@ export default function BidManagement() {
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                            suffixIcon={
+                              <EnvironmentOutlined className="text-gray-400" />
+                            }
                             notFoundContent="No locations found"
                           >
                             {originOptions.map((location) => (
@@ -2327,12 +2760,16 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Destination Airport (IATA Code) *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Destination Airport (IATA Code) *
+                            </span>
+                          }
                           name="destination"
                         >
-                          <Select 
+                          <Select
                             mode="combobox"
-                            placeholder="Search city / airport" 
+                            placeholder="Search city / airport"
                             size="large"
                             showSearch
                             filterOption={(input, option) =>
@@ -2340,7 +2777,9 @@ export default function BidManagement() {
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                            suffixIcon={
+                              <EnvironmentOutlined className="text-gray-400" />
+                            }
                             notFoundContent="No locations found"
                           >
                             {destinationOptions.map((location) => (
@@ -2353,7 +2792,11 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Travel Date *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Travel Date *
+                            </span>
+                          }
                           name="travelDate"
                         >
                           <DatePicker className="w-full" size="large" />
@@ -2361,10 +2804,18 @@ export default function BidManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Preferred Departure Time Range</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Preferred Departure Time Range
+                            </span>
+                          }
                           name="departureTimeRange"
                         >
-                          <TimePicker.RangePicker className="w-full" format="HH:mm" size="large" />
+                          <TimePicker.RangePicker
+                            className="w-full"
+                            format="HH:mm"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -2378,27 +2829,49 @@ export default function BidManagement() {
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="w-1 h-5 bg-green-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-green-600">Seat Configurations & Limits</Title>
+                      <Title level={5} className="!mb-0 text-green-600">
+                        Seat Configurations & Limits
+                      </Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Set up seating classes and availability limits</Text>
+                    <Text className="text-gray-500 text-sm">
+                      Set up seating classes and availability limits
+                    </Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Total Seats Available</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Total Seats Available
+                            </span>
+                          }
                           name="totalSeatsAvailable"
                         >
-                          <InputNumber min={1} className="w-full" placeholder="50" size="large" />
+                          <InputNumber
+                            min={1}
+                            className="w-full"
+                            placeholder="50"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Min Seats per Bid</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Min Seats per Bid
+                            </span>
+                          }
                           name="minSeatsPerBid"
                         >
-                          <InputNumber min={1} className="w-full" placeholder="5" size="large" />
+                          <InputNumber
+                            min={1}
+                            className="w-full"
+                            placeholder="5"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -2406,18 +2879,36 @@ export default function BidManagement() {
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Max Seats per Bid</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Max Seats per Bid
+                            </span>
+                          }
                           name="maxSeatsPerBid"
                         >
-                          <InputNumber min={1} className="w-full" placeholder="20" size="large" />
+                          <InputNumber
+                            min={1}
+                            className="w-full"
+                            placeholder="20"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Max Seats per User</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Max Seats per User
+                            </span>
+                          }
                           name="maxSeatsPerUser"
                         >
-                          <InputNumber min={1} className="w-full" placeholder="10" size="large" />
+                          <InputNumber
+                            min={1}
+                            className="w-full"
+                            placeholder="10"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -2431,37 +2922,49 @@ export default function BidManagement() {
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="w-1 h-5 bg-purple-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-purple-600">Bid Pricing & Currency</Title>
+                      <Title level={5} className="!mb-0 text-purple-600">
+                        Bid Pricing & Currency
+                      </Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Configure bidding schedule and automation settings</Text>
+                    <Text className="text-gray-500 text-sm">
+                      Configure bidding schedule and automation settings
+                    </Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Bid Start Time *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Bid Start Time *
+                            </span>
+                          }
                           name="bidStartTime"
                         >
-                          <DatePicker 
-                            showTime={{ format: 'HH:mm' }}
+                          <DatePicker
+                            showTime={{ format: "HH:mm" }}
                             format="DD/MM/YYYY HH:mm"
                             placeholder="Select start time"
-                            className="w-full" 
+                            className="w-full"
                             size="large"
                           />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Bid End Time *</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Bid End Time *
+                            </span>
+                          }
                           name="bidEndTime"
                         >
-                          <DatePicker 
-                            showTime={{ format: 'HH:mm' }}
+                          <DatePicker
+                            showTime={{ format: "HH:mm" }}
                             format="DD/MM/YYYY HH:mm"
                             placeholder="Select end time"
-                            className="w-full" 
+                            className="w-full"
                             size="large"
                           />
                         </Form.Item>
@@ -2470,55 +2973,70 @@ export default function BidManagement() {
                         <div className="space-y-4">
                           <div className="p-4 border rounded-lg">
                             <Form.Item
-                              label={<span className="font-semibold text-gray-700">Auto-Award Top Bidder</span>}
+                              label={
+                                <span className="font-semibold text-gray-700">
+                                  Auto-Award Top Bidder
+                                </span>
+                              }
                               name="autoAwardTopBidder"
                               valuePropName="checked"
                               className="!mb-2"
                             >
-                              <Switch 
+                              <Switch
                                 size="default"
                                 checkedChildren="ON"
                                 unCheckedChildren="OFF"
                               />
                             </Form.Item>
                             <Text className="text-gray-500 text-sm">
-                              Automatically accept the highest valid bid when bidding ends
+                              Automatically accept the highest valid bid when
+                              bidding ends
                             </Text>
                           </div>
-                          
+
                           <div className="p-4 border rounded-lg">
                             <Form.Item
-                              label={<span className="font-semibold text-gray-700">Manual Review Option</span>}
+                              label={
+                                <span className="font-semibold text-gray-700">
+                                  Manual Review Option
+                                </span>
+                              }
                               name="manualReviewOption"
                               valuePropName="checked"
                               className="!mb-2"
                             >
-                              <Switch 
+                              <Switch
                                 size="default"
                                 checkedChildren="ON"
                                 unCheckedChildren="OFF"
                               />
                             </Form.Item>
                             <Text className="text-gray-500 text-sm">
-                              Allow manual review and approval before awarding bids
+                              Allow manual review and approval before awarding
+                              bids
                             </Text>
                           </div>
-                          
+
                           <div className="p-4 border rounded-lg">
                             <Form.Item
-                              label={<span className="font-semibold text-gray-700">Auto Refund Non-Winners</span>}
+                              label={
+                                <span className="font-semibold text-gray-700">
+                                  Auto Refund Non-Winners
+                                </span>
+                              }
                               name="autoRefundNonWinners"
                               valuePropName="checked"
                               className="!mb-2"
                             >
-                              <Switch 
+                              <Switch
                                 size="default"
                                 checkedChildren="ON"
                                 unCheckedChildren="OFF"
                               />
                             </Form.Item>
                             <Text className="text-gray-500 text-sm">
-                              Automatically refund unsuccessful bidders when bids are awarded
+                              Automatically refund unsuccessful bidders when
+                              bids are awarded
                             </Text>
                           </div>
                         </div>
@@ -2534,46 +3052,92 @@ export default function BidManagement() {
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="w-1 h-5 bg-orange-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-orange-600">Fare Terms & Ancillaries</Title>
+                      <Title level={5} className="!mb-0 text-orange-600">
+                        Fare Terms & Ancillaries
+                      </Title>
                     </div>
-                    <Text className="text-gray-500 text-sm">Configure fare type, baggage allowance, and additional services</Text>
+                    <Text className="text-gray-500 text-sm">
+                      Configure fare type, baggage allowance, and additional
+                      services
+                    </Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Fare Type</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Fare Type
+                            </span>
+                          }
                           name="fareType"
                         >
                           <Select placeholder="Select fare type" size="large">
-                            <Select.Option value="Economy">Economy</Select.Option>
-                            <Select.Option value="Premium Economy">Premium Economy</Select.Option>
-                            <Select.Option value="Business Class">Business Class</Select.Option>
-                            <Select.Option value="First Class">First Class</Select.Option>
-                            <Select.Option value="Flexible Fare">Flexible Fare</Select.Option>
-                            <Select.Option value="Restricted Fare">Restricted Fare</Select.Option>
+                            <Select.Option value="Economy">
+                              Economy
+                            </Select.Option>
+                            <Select.Option value="Premium Economy">
+                              Premium Economy
+                            </Select.Option>
+                            <Select.Option value="Business Class">
+                              Business Class
+                            </Select.Option>
+                            <Select.Option value="First Class">
+                              First Class
+                            </Select.Option>
+                            <Select.Option value="Flexible Fare">
+                              Flexible Fare
+                            </Select.Option>
+                            <Select.Option value="Restricted Fare">
+                              Restricted Fare
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Baggage Allowance (kg)</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Baggage Allowance (kg)
+                            </span>
+                          }
                           name="baggageAllowance"
                         >
-                          <InputNumber min={0} max={100} className="w-full" placeholder="20" size="large" />
+                          <InputNumber
+                            min={0}
+                            max={100}
+                            className="w-full"
+                            placeholder="20"
+                            size="large"
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Cancellation Terms</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Cancellation Terms
+                            </span>
+                          }
                           name="cancellationTerms"
                         >
-                          <Select placeholder="Select cancellation terms" size="large">
-                            <Select.Option value="Flexible - Free cancellation">Flexible - Free cancellation</Select.Option>
-                            <Select.Option value="Standard - 24h free cancellation">Standard - 24h free cancellation</Select.Option>
-                            <Select.Option value="Restricted - Cancellation fee applies">Restricted - Cancellation fee applies</Select.Option>
-                            <Select.Option value="Non-refundable">Non-refundable</Select.Option>
+                          <Select
+                            placeholder="Select cancellation terms"
+                            size="large"
+                          >
+                            <Select.Option value="Flexible - Free cancellation">
+                              Flexible - Free cancellation
+                            </Select.Option>
+                            <Select.Option value="Standard - 24h free cancellation">
+                              Standard - 24h free cancellation
+                            </Select.Option>
+                            <Select.Option value="Restricted - Cancellation fee applies">
+                              Restricted - Cancellation fee applies
+                            </Select.Option>
+                            <Select.Option value="Non-refundable">
+                              Non-refundable
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
@@ -2595,11 +3159,15 @@ export default function BidManagement() {
                       </Col>
                       <Col span={24}>
                         <Form.Item
-                          label={<span className="font-semibold text-gray-700">Other Notes</span>}
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Other Notes
+                            </span>
+                          }
                           name="otherNotes"
                         >
-                          <Input.TextArea 
-                            rows={4} 
+                          <Input.TextArea
+                            rows={4}
                             placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, events), special conditions, or other relevant information..."
                             className="rounded-lg"
                           />
@@ -2609,8 +3177,6 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
-
-              
             </div>
 
             {/* Navigation Footer */}
@@ -2628,13 +3194,17 @@ export default function BidManagement() {
                   Cancel
                 </Button>
                 {currentStep < steps.length - 1 ? (
-                  <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    type="primary"
+                    onClick={handleNext}
+                    className="px-4 bg-blue-600 hover:bg-blue-700"
+                  >
                     Next
                     <span className="ml-1">→</span>
                   </Button>
                 ) : (
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     onClick={() => form.submit()}
                     className="px-6 bg-green-600 hover:bg-green-700"
                     loading={loading}
