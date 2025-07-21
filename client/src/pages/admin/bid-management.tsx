@@ -2846,8 +2846,6 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
-
-
             </div>
 
             {/* Navigation Footer */}
