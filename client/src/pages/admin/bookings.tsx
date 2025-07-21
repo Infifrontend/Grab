@@ -30,6 +30,7 @@ import {
   CheckCircleOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
+import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -197,6 +198,7 @@ export default function Bookings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
