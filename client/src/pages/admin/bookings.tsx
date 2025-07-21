@@ -27,7 +27,8 @@ import {
   CalendarOutlined,
   UserOutlined,
   DollarOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  LogoutOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -47,6 +48,11 @@ export default function Bookings() {
       setLocation('/admin/login');
     }
   }, [setLocation]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminLoggedIn');
+    setLocation('/admin/login');
+  };
 
   const mockBookings = [
     {
@@ -197,150 +203,232 @@ export default function Bookings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <Title level={2} className="!mb-1 text-gray-900">
-              Booking Management
+      {/* Admin Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="flex justify-between items-center px-6 py-4">
+          <div className="flex items-center space-x-4">
+            <img src="/src/images/Logo.png" alt="Logo" className="h-8 w-auto" />
+            <Title level={3} className="!mb-0 text-gray-900">
+              Admin Dashboard
             </Title>
-            <Text className="text-gray-600">
-              Manage and track all group travel bookings
-            </Text>
           </div>
-          <Space>
-            <Button icon={<ExportOutlined />}>Export Data</Button>
-          </Space>
+          <Button 
+            type="text" 
+            icon={<LogoutOutlined />} 
+            className="flex items-center text-gray-600 hover:text-gray-900"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
+          <div className="p-6">
+            <nav className="space-y-2">
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/dashboard')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📊</span>
+                </div>
+                <Text className="text-current">Dashboard</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/offer-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🎯</span>
+                </div>
+                <Text className="text-current">Offers Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bid-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📋</span>
+                </div>
+                <Text className="text-current">Bid Management</Text>
+              </div>
+              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
+                <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                  <span className="text-blue-600 text-xs">📅</span>
+                </div>
+                <Text className="text-white font-medium">Booking Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/cms')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">⚙️</span>
+                </div>
+                <Text className="text-current">CMS Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/reports')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📈</span>
+                </div>
+                <Text className="text-current">Reports</Text>
+              </div>
+            </nav>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <Row gutter={[24, 24]} className="mb-8">
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic
-                title="Total Bookings"
-                value={1247}
-                prefix={<CalendarOutlined />}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic
-                title="Total Passengers"
-                value={15634}
-                prefix={<UserOutlined />}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic
-                title="Total Revenue"
-                value={2850000}
-                prefix={<DollarOutlined />}
-                precision={0}
-                valueStyle={{ color: '#faad14' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic
-                title="Confirmed Bookings"
-                value={967}
-                prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Card>
-          </Col>
-        </Row>
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <Title level={2} className="!mb-1 text-gray-900">
+                Booking Management
+              </Title>
+              <Text className="text-gray-600">
+                Manage and track all group travel bookings
+              </Text>
+            </div>
+            <Space>
+              <Button icon={<ExportOutlined />}>Export Data</Button>
+            </Space>
+          </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <Space className="w-full" direction="horizontal" wrap>
-            <Input
-              placeholder="Search bookings..."
-              prefix={<SearchOutlined />}
-              style={{ width: 250 }}
-            />
-            <Select
-              placeholder="Status"
-              style={{ width: 120 }}
-              options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'confirmed', label: 'Confirmed' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'cancelled', label: 'Cancelled' },
-              ]}
-            />
-            <Select
-              placeholder="Airline"
-              style={{ width: 150 }}
-              options={[
-                { value: 'all', label: 'All Airlines' },
-                { value: 'american', label: 'American Airlines' },
-                { value: 'united', label: 'United Airlines' },
-                { value: 'delta', label: 'Delta Airlines' },
-              ]}
-            />
-            <RangePicker placeholder={['Start Date', 'End Date']} />
-          </Space>
-        </Card>
+          {/* Stats Cards */}
+          <Row gutter={[24, 24]} className="mb-8">
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="Total Bookings"
+                  value={1247}
+                  prefix={<CalendarOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="Total Passengers"
+                  value={15634}
+                  prefix={<UserOutlined />}
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="Total Revenue"
+                  value={2850000}
+                  prefix={<DollarOutlined />}
+                  precision={0}
+                  valueStyle={{ color: '#faad14' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="Confirmed Bookings"
+                  value={967}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: '#722ed1' }}
+                />
+              </Card>
+            </Col>
+          </Row>
 
-        {/* Bookings Table */}
-        <Card>
-          <Table
-            columns={columns}
-            dataSource={mockBookings}
-            loading={loading}
-            rowKey="id"
-            pagination={{
-              total: mockBookings.length,
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} bookings`,
-            }}
-          />
-        </Card>
+          {/* Filters */}
+          <Card className="mb-6">
+            <Space className="w-full" direction="horizontal" wrap>
+              <Input
+                placeholder="Search bookings..."
+                prefix={<SearchOutlined />}
+                style={{ width: 250 }}
+              />
+              <Select
+                placeholder="Status"
+                style={{ width: 120 }}
+                options={[
+                  { value: 'all', label: 'All Status' },
+                  { value: 'confirmed', label: 'Confirmed' },
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'cancelled', label: 'Cancelled' },
+                ]}
+              />
+              <Select
+                placeholder="Airline"
+                style={{ width: 150 }}
+                options={[
+                  { value: 'all', label: 'All Airlines' },
+                  { value: 'american', label: 'American Airlines' },
+                  { value: 'united', label: 'United Airlines' },
+                  { value: 'delta', label: 'Delta Airlines' },
+                ]}
+              />
+              <RangePicker placeholder={['Start Date', 'End Date']} />
+            </Space>
+          </Card>
 
-        {/* Booking Details Modal */}
-        <Modal
-          title="Booking Details"
-          open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setIsModalVisible(false)}>
-              Close
-            </Button>,
-            <Button key="edit" type="primary">
-              Edit Booking
-            </Button>,
-          ]}
-          width={800}
-        >
-          {selectedBooking && (
-            <Descriptions bordered column={2}>
-              <Descriptions.Item label="Booking ID">{selectedBooking.bookingId}</Descriptions.Item>
-              <Descriptions.Item label="Status">
-                <Tag color={selectedBooking.status === 'Confirmed' ? 'green' : 'orange'}>
-                  {selectedBooking.status}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Group Leader">{selectedBooking.groupLeader}</Descriptions.Item>
-              <Descriptions.Item label="Email">{selectedBooking.email}</Descriptions.Item>
-              <Descriptions.Item label="Route">{selectedBooking.route}</Descriptions.Item>
-              <Descriptions.Item label="Departure Date">{selectedBooking.departureDate}</Descriptions.Item>
-              <Descriptions.Item label="Passengers">{selectedBooking.passengers}</Descriptions.Item>
-              <Descriptions.Item label="Total Amount">${selectedBooking.totalAmount.toLocaleString()}</Descriptions.Item>
-              <Descriptions.Item label="Airline">{selectedBooking.airline}</Descriptions.Item>
-              <Descriptions.Item label="Booking Date">{selectedBooking.bookingDate}</Descriptions.Item>
-            </Descriptions>
-          )}
-        </Modal>
+          {/* Bookings Table */}
+          <Card>
+            <Table
+              columns={columns}
+              dataSource={mockBookings}
+              loading={loading}
+              rowKey="id"
+              pagination={{
+                total: mockBookings.length,
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} bookings`,
+              }}
+            />
+          </Card>
+
+          {/* Booking Details Modal */}
+          <Modal
+            title="Booking Details"
+            open={isModalVisible}
+            onCancel={() => setIsModalVisible(false)}
+            footer={[
+              <Button key="close" onClick={() => setIsModalVisible(false)}>
+                Close
+              </Button>,
+              <Button key="edit" type="primary">
+                Edit Booking
+              </Button>,
+            ]}
+            width={800}
+          >
+            {selectedBooking && (
+              <Descriptions bordered column={2}>
+                <Descriptions.Item label="Booking ID">{selectedBooking.bookingId}</Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  <Tag color={selectedBooking.status === 'Confirmed' ? 'green' : 'orange'}>
+                    {selectedBooking.status}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Group Leader">{selectedBooking.groupLeader}</Descriptions.Item>
+                <Descriptions.Item label="Email">{selectedBooking.email}</Descriptions.Item>
+                <Descriptions.Item label="Route">{selectedBooking.route}</Descriptions.Item>
+                <Descriptions.Item label="Departure Date">{selectedBooking.departureDate}</Descriptions.Item>
+                <Descriptions.Item label="Passengers">{selectedBooking.passengers}</Descriptions.Item>
+                <Descriptions.Item label="Total Amount">${selectedBooking.totalAmount.toLocaleString()}</Descriptions.Item>
+                <Descriptions.Item label="Airline">{selectedBooking.airline}</Descriptions.Item>
+                <Descriptions.Item label="Booking Date">{selectedBooking.bookingDate}</Descriptions.Item>
+              </Descriptions>
+            )}
+          </Modal>
+        </div>
       </div>
     </div>
   );
