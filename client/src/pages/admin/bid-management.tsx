@@ -461,31 +461,72 @@ export default function BidManagement() {
           configData = {};
         }
 
+        // Get user information
+        const userName = bid.user?.name || configData.groupLeaderName || `User ${bid.userId || 'Unknown'}`;
+        const userEmail = bid.user?.username || configData.groupLeaderEmail || "user@example.com";
+
+        // Get flight information with fallbacks
+        let flightNumber = "N/A";
+        let flightRoute = "Route not available";
+        let flightDate = "N/A";
+
+        if (bid.flight) {
+          flightNumber = bid.flight.flightNumber || "N/A";
+          
+          // Build route string
+          const origin = bid.flight.origin || configData.origin || "N/A";
+          const destination = bid.flight.destination || configData.destination || "N/A";
+          flightRoute = `${origin} → ${destination}`;
+          
+          // Format date
+          if (bid.flight.departureTime) {
+            try {
+              flightDate = new Date(bid.flight.departureTime).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            } catch (e) {
+              flightDate = "Date unavailable";
+            }
+          }
+        } else if (configData.origin && configData.destination) {
+          // Fallback to configuration data
+          flightRoute = `${configData.origin} → ${configData.destination}`;
+          if (configData.travelDate) {
+            try {
+              flightDate = new Date(configData.travelDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            } catch (e) {
+              flightDate = configData.travelDate;
+            }
+          }
+        }
+
         return {
           key: bid.id.toString(),
           bidId: `BID${bid.id.toString().padStart(3, "0")}`,
           passenger: {
-            name: configData.groupLeaderName || `User ${bid.userId}`,
-            email: configData.groupLeaderEmail || "user@example.com",
+            name: userName,
+            email: userEmail,
           },
           flight: {
-            number: bid.flight?.flightNumber || "N/A",
-            route: bid.flight
-              ? `${bid.flight.origin} → ${bid.flight.destination}`
-              : "Route not available",
-            date: bid.flight?.departureTime
-              ? new Date(bid.flight.departureTime).toLocaleDateString()
-              : "N/A",
+            number: flightNumber,
+            route: flightRoute,
+            date: flightDate,
           },
           upgrade: configData.fareType
             ? `Economy → ${configData.fareType}`
             : "Economy → Business",
-          bidAmount: `₹${bid.bidAmount}`,
-          maxBid: `₹${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+          bidAmount: `₹${bid.bidAmount || 0}`,
+          maxBid: `₹${(parseFloat(bid.bidAmount || 0) * 1.2).toFixed(0)}`,
           successRate: "75%", // This could be calculated based on historical data
           timeLeft: timeLeft,
           status: bid.bidStatus,
-          passengerCount: bid.passengerCount,
+          passengerCount: bid.passengerCount || 1,
           createdAt: bid.createdAt,
         };
       });
@@ -565,13 +606,17 @@ export default function BidManagement() {
                 key: "flightInfo",
                 render: (flight) => (
                   <div>
-                    <Text strong>{flight.number}</Text>
+                    <Text strong className="text-gray-900">
+                      {flight.number}
+                    </Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">
+                    <Text className="text-gray-600 text-sm">
                       {flight.route}
                     </Text>
                     <br />
-                    <Text className="text-gray-500 text-sm">{flight.date}</Text>
+                    <Text className="text-gray-500 text-xs">
+                      {flight.date}
+                    </Text>
                   </div>
                 ),
               },
@@ -591,7 +636,9 @@ export default function BidManagement() {
                 key: "bidAmount",
                 render: (amount, record) => (
                   <div>
-                    <Text strong>{amount}</Text>
+                    <Text strong className="text-blue-600">
+                      {amount}
+                    </Text>
                     <br />
                     <Text className="text-gray-500 text-sm">
                       Est. Max {record.maxBid}

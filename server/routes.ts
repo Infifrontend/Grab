@@ -548,7 +548,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all bids
   app.get("/api/bids", async (req, res) => {
     try {
-      const { userId } = req.query;
       const bids = await storage.getBids(
         userId ? parseInt(userId as string) : undefined,
       );
@@ -706,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
-      
+
       let errorMessage = "Failed to update bid configuration";
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
@@ -719,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = `Failed to update bid configuration: ${error.message}`;
         }
       }
-      
+
       res.status(500).json({
         success: false,
         message: errorMessage,
@@ -961,7 +960,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Migration endpoint to remove international flights
+  // Migration endpoint to remove```python
+ international flights
   app.post("/api/migrate-domestic", async (_req, res) => {
     try {
       await storage.migrateToDomesticFlights();
@@ -1189,6 +1189,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Payment creation error:", error);
         res.status(500).json({ message: "Payment creation failed" });
       }
+    }
+  });
+
+  // Get all bids
+  app.get("/api/bids", async (req, res) => {
+    try {
+      const bids = await storage.getBids(
+        req.query.userId ? parseInt(req.query.userId as string) : undefined,
+      );
+
+      // Sort bids by creation date (newest first) for recent activity display
+      const sortedBids = bids.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      res.json(sortedBids);
+    } catch (error) {
+      console.error("Error fetching bids:", error);
+      res.status(500).json({ message: "Failed to fetch bids" });
     }
   });
 
