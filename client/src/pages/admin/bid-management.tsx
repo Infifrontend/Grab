@@ -465,15 +465,19 @@ export default function BidManagement() {
           key: bid.id.toString(),
           bidId: `BID${bid.id.toString().padStart(3, "0")}`,
           passenger: {
-            name: configData.groupLeaderName || `User ${bid.userId}`,
-            email: configData.groupLeaderEmail || "user@example.com",
+            name: configData.groupLeaderName || configData.contactName || `User ${bid.userId}`,
+            email: configData.groupLeaderEmail || configData.email || "user@example.com",
           },
           flight: {
-            number: bid.flight?.flightNumber || "N/A",
-            route: bid.flight
+            number: configData.flightNumber || `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+            route: configData.origin && configData.destination
+              ? `${configData.origin} → ${configData.destination}`
+              : bid.flight
               ? `${bid.flight.origin} → ${bid.flight.destination}`
               : "Route not available",
-            date: bid.flight?.departureTime
+            date: configData.travelDate
+              ? new Date(configData.travelDate).toLocaleDateString()
+              : bid.flight?.departureTime
               ? new Date(bid.flight.departureTime).toLocaleDateString()
               : "N/A",
           },
@@ -485,7 +489,7 @@ export default function BidManagement() {
           successRate: "75%", // This could be calculated based on historical data
           timeLeft: timeLeft,
           status: bid.bidStatus,
-          passengerCount: bid.passengerCount,
+          passengerCount: bid.passengerCount || 1,
           createdAt: bid.createdAt,
         };
       });
@@ -681,10 +685,39 @@ export default function BidManagement() {
     console.log("Found bidData:", bidData);
     
     if (bidData) {
+      // Parse configuration data from notes to get flight information
+      let configData = {};
+      try {
+        configData = bidData.notes ? JSON.parse(bidData.notes) : {};
+      } catch (e) {
+        console.error("Error parsing bid notes:", e);
+        configData = {};
+      }
+
+      // Create comprehensive flight information from bid configuration
+      const flightInfo = {
+        flightNumber: configData.flightNumber || `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+        airline: "Group Retail Airways",
+        origin: configData.origin || bidRecord.flight?.origin || 'Unknown',
+        destination: configData.destination || bidRecord.flight?.destination || 'Unknown',
+        departureTime: configData.travelDate ? 
+          new Date(`${configData.travelDate}T${configData.departureTimeRange?.split(' - ')[0] || '09:00'}`).toISOString() :
+          bidData.createdAt,
+        arrivalTime: configData.travelDate ? 
+          new Date(`${configData.travelDate}T${configData.departureTimeRange?.split(' - ')[1] || '12:00'}`).toISOString() :
+          null,
+        price: bidData.bidAmount || 0,
+        availableSeats: configData.totalSeatsAvailable || 50,
+        cabin: configData.fareType || 'Economy'
+      };
+
       const reviewData = {
         ...bidData,
-        record: bidRecord
+        record: bidRecord,
+        flight: flightInfo,
+        configData: configData
       };
+      
       console.log("Setting selectedBidForReview to:", reviewData);
       
       setSelectedBidForReview(reviewData);
@@ -1594,10 +1627,10 @@ export default function BidManagement() {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Departure</Text>
+                    <Text className="text-gray-600 block text-sm">Travel Date</Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.departureTime ? 
-                        new Date(selectedBidForReview.flight.departureTime).toLocaleString() : 
+                      {selectedBidForReview.configData?.travelDate ? 
+                        new Date(selectedBidForReview.configData.travelDate).toLocaleDateString() : 
                         'N/A'
                       }
                     </Text>
@@ -1605,9 +1638,25 @@ export default function BidManagement() {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Regular Price</Text>
+                    <Text className="text-gray-600 block text-sm">Departure Time Range</Text>
                     <Text className="font-semibold">
-                      ₹{selectedBidForReview.flight?.price || '0'} per passenger
+                      {selectedBidForReview.configData?.departureTimeRange || 'N/A'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Flight Type</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.configData?.flightType || 'N/A'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Cabin Class</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.cabin || selectedBidForReview.configData?.fareType || 'Economy'}
                     </Text>
                   </div>
                 </Col>
@@ -1615,12 +1664,69 @@ export default function BidManagement() {
                   <div>
                     <Text className="text-gray-600 block text-sm">Available Seats</Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.availableSeats || 0} seats
+                      {selectedBidForReview.flight?.availableSeats || selectedBidForReview.configData?.totalSeatsAvailable || 0} seats
                     </Text>
                   </div>
                 </Col>
               </Row>
             </Card>
+
+            {/* Bid Configuration Information */}
+            {selectedBidForReview.configData && (
+              <Card>
+                <Title level={5} className="!mb-4">Bid Configuration Details</Title>
+                <Row gutter={[24, 16]}>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Configuration Title</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.title || selectedBidForReview.configData.bidTitle || 'N/A'}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Baggage Allowance</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.baggageAllowance || 'N/A'} kg
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Meal Included</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.mealIncluded ? 'Yes' : 'No'}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Cancellation Terms</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.cancellationTerms || 'Standard'}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Min Seats per Bid</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.minSeatsPerBid || 'N/A'}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">Max Seats per Bid</Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.maxSeatsPerBid || 'N/A'}
+                      </Text>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            )}
 
             {/* Additional Notes */}
             {selectedBidForReview.notes && (
