@@ -629,7 +629,12 @@ export default function BidManagement() {
                 title: "Actions",
                 key: "actions",
                 render: (_, record) => (
-                  <Button type="link" icon={<EyeOutlined />} size="small">
+                  <Button 
+                    type="link" 
+                    icon={<EyeOutlined />} 
+                    size="small"
+                    onClick={() => handleReviewBid(record)}
+                  >
                     Review Bid
                   </Button>
                 ),
@@ -645,12 +650,31 @@ export default function BidManagement() {
 
   const [viewBidModalVisible, setViewBidModalVisible] = useState(false);
   const [editBidModalVisible, setEditBidModalVisible] = useState(false);
+  const [reviewBidModalVisible, setReviewBidModalVisible] = useState(false);
   const [selectedBid, setSelectedBid] = useState(null);
+  const [selectedBidForReview, setSelectedBidForReview] = useState(null);
   const [editForm] = Form.useForm();
+  const [reviewForm] = Form.useForm();
 
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
     setViewBidModalVisible(true);
+  };
+
+  const handleReviewBid = (bidRecord) => {
+    // Find the actual bid data from recentBidsData
+    const bidData = (recentBidsData || []).find(bid => 
+      `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
+    );
+    
+    if (bidData) {
+      setSelectedBidForReview({
+        ...bidData,
+        record: bidRecord
+      });
+      setReviewBidModalVisible(true);
+      reviewForm.resetFields();
+    }
   };
 
   const handleEditBid = (bid) => {
@@ -712,6 +736,55 @@ export default function BidManagement() {
     } catch (error) {
       console.error("Error updating bid status:", error);
       message.error("Failed to update bid status. Please try again.");
+    }
+  };
+
+  const handleBidAction = async (action, values = {}) => {
+    if (!selectedBidForReview) return;
+
+    setLoading(true);
+    try {
+      const bidId = selectedBidForReview.id;
+      const newStatus = action === 'accept' ? 'accepted' : 'rejected';
+      
+      const response = await apiRequest(
+        "PUT",
+        `/api/bids/${bidId}/status`,
+        {
+          status: newStatus,
+          adminNotes: values.adminNotes || '',
+          counterOffer: values.counterOffer || null,
+          rejectionReason: values.rejectionReason || null
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update bid status");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        message.success(
+          `Bid ${action === 'accept' ? 'accepted' : 'rejected'} successfully`
+        );
+        
+        // Refresh data
+        queryClient.invalidateQueries(["recent-bids"]);
+        queryClient.invalidateQueries(["bid-configurations"]);
+        
+        // Close modal
+        setReviewBidModalVisible(false);
+        setSelectedBidForReview(null);
+        reviewForm.resetFields();
+      } else {
+        message.error(result.message || `Failed to ${action} bid`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing bid:`, error);
+      message.error(`Failed to ${action} bid. Please try again.`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1379,6 +1452,259 @@ export default function BidManagement() {
             </Button>
           </div>
         </Form>
+      </Modal>
+
+      {/* Review Bid Modal */}
+      <Modal
+        title="Review Bid Request"
+        visible={reviewBidModalVisible}
+        onCancel={() => {
+          setReviewBidModalVisible(false);
+          setSelectedBidForReview(null);
+          reviewForm.resetFields();
+        }}
+        footer={null}
+        width={900}
+      >
+        {selectedBidForReview && (
+          <div className="space-y-6">
+            {/* Bid Overview */}
+            <Card className="bg-blue-50 border-blue-200">
+              <div className="flex items-center justify-between mb-4">
+                <Title level={5} className="!mb-0 text-blue-800">
+                  Bid Overview
+                </Title>
+                <Tag 
+                  color={selectedBidForReview.bidStatus === 'active' ? 'green' : 'blue'}
+                  className="text-sm"
+                >
+                  {selectedBidForReview.bidStatus.toUpperCase()}
+                </Tag>
+              </div>
+              
+              <Row gutter={[24, 16]}>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Bid ID</Text>
+                    <Text className="font-semibold">
+                      BID{selectedBidForReview.id.toString().padStart(3, "0")}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Bid Amount</Text>
+                    <Text className="font-semibold text-green-600 text-lg">
+                      ₹{selectedBidForReview.bidAmount}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Passengers</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.passengerCount} passenger{selectedBidForReview.passengerCount > 1 ? 's' : ''}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Submitted</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.createdAt ? 
+                        new Date(selectedBidForReview.createdAt).toLocaleDateString() : 
+                        'Unknown'
+                      }
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Valid Until</Text>
+                    <Text className="font-semibold text-orange-600">
+                      {selectedBidForReview.validUntil ? 
+                        new Date(selectedBidForReview.validUntil).toLocaleDateString() : 
+                        'No expiry'
+                      }
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Total Value</Text>
+                    <Text className="font-semibold text-blue-600 text-lg">
+                      ₹{(parseFloat(selectedBidForReview.bidAmount) * selectedBidForReview.passengerCount).toLocaleString()}
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Flight Information */}
+            <Card>
+              <Title level={5} className="!mb-4">Flight Information</Title>
+              <Row gutter={[24, 16]}>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Flight Number</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.flightNumber || 'N/A'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Airline</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.airline || 'N/A'}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Route</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight ? 
+                        `${selectedBidForReview.flight.origin} → ${selectedBidForReview.flight.destination}` : 
+                        'N/A'
+                      }
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Departure</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.departureTime ? 
+                        new Date(selectedBidForReview.flight.departureTime).toLocaleString() : 
+                        'N/A'
+                      }
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Regular Price</Text>
+                    <Text className="font-semibold">
+                      ₹{selectedBidForReview.flight?.price || '0'} per passenger
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Available Seats</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.availableSeats || 0} seats
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Additional Notes */}
+            {selectedBidForReview.notes && (
+              <Card>
+                <Title level={5} className="!mb-4">Additional Information</Title>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <Text>{selectedBidForReview.notes}</Text>
+                </div>
+              </Card>
+            )}
+
+            {/* Action Form */}
+            <Card>
+              <Title level={5} className="!mb-4">Review & Decision</Title>
+              <Form form={reviewForm} layout="vertical">
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Form.Item
+                      label="Admin Notes"
+                      name="adminNotes"
+                    >
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Add notes about your decision (optional)"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Counter Offer Amount (₹)"
+                      name="counterOffer"
+                    >
+                      <InputNumber
+                        min={0}
+                        className="w-full"
+                        placeholder="Optional counter offer"
+                        formatter={(value) =>
+                          `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Rejection Reason"
+                      name="rejectionReason"
+                    >
+                      <Select placeholder="Select reason (if rejecting)">
+                        <Select.Option value="insufficient_bid">Bid amount too low</Select.Option>
+                        <Select.Option value="no_availability">No seats available</Select.Option>
+                        <Select.Option value="policy_violation">Policy violation</Select.Option>
+                        <Select.Option value="operational_reasons">Operational reasons</Select.Option>
+                        <Select.Option value="other">Other</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                onClick={() => {
+                  setReviewBidModalVisible(false);
+                  setSelectedBidForReview(null);
+                  reviewForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+              
+              <div className="flex space-x-3">
+                <Button
+                  danger
+                  loading={loading}
+                  onClick={() => {
+                    reviewForm.validateFields().then((values) => {
+                      if (!values.rejectionReason) {
+                        message.warning('Please select a rejection reason');
+                        return;
+                      }
+                      handleBidAction('reject', values);
+                    });
+                  }}
+                >
+                  Reject Bid
+                </Button>
+                <Button
+                  type="primary"
+                  loading={loading}
+                  onClick={() => {
+                    reviewForm.validateFields().then((values) => {
+                      handleBidAction('accept', values);
+                    });
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Accept Bid
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

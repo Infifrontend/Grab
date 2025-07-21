@@ -589,6 +589,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update bid status (accept/reject)
+  app.put("/api/bids/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminNotes, counterOffer, rejectionReason } = req.body;
+
+      console.log(`Updating bid ${id} status to ${status}`);
+
+      // Update the bid status in the database
+      const updateData = {
+        bidStatus: status,
+        updatedAt: new Date()
+      };
+
+      // Add admin notes to the bid notes if provided
+      if (adminNotes || counterOffer || rejectionReason) {
+        const existingBid = await storage.getBidById(parseInt(id));
+        let existingNotes = {};
+        
+        try {
+          existingNotes = existingBid?.bid?.notes ? JSON.parse(existingBid.bid.notes) : {};
+        } catch (e) {
+          existingNotes = {};
+        }
+
+        const adminData = {
+          ...existingNotes,
+          adminReview: {
+            status,
+            adminNotes: adminNotes || '',
+            counterOffer: counterOffer || null,
+            rejectionReason: rejectionReason || null,
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: 'Admin' // You might want to get this from session
+          }
+        };
+
+        updateData.notes = JSON.stringify(adminData);
+      }
+
+      await storage.updateBidDetails(parseInt(id), updateData);
+
+      // Get the updated bid to return
+      const updatedBid = await storage.getBidById(parseInt(id));
+
+      if (!updatedBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Bid ${status} successfully`,
+        bid: updatedBid
+      });
+    } catch (error) {
+      console.error("Error updating bid status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update bid status",
+        error: error.message
+      });
+    }
+  });
+
   // Update bid configuration status (toggle on/off)
   app.put("/api/bid-configurations/:id/status", async (req, res) => {
     try {
