@@ -17,7 +17,8 @@ import {
   Tag,
   Tabs,
   Upload,
-  Divider
+  Divider,
+  Badge
 } from "antd";
 import {
   PlusOutlined,
@@ -28,7 +29,9 @@ import {
   SecurityScanOutlined,
   UploadOutlined,
   MailOutlined,
-  PhoneOutlined
+  PhoneOutlined,
+  BellOutlined,
+  LogoutOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -79,6 +82,11 @@ export default function AdminSettings() {
       permissions: ["View Only"]
     }
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminLoggedIn');
+    setLocation('/admin/login');
+  };
 
   const userColumns = [
     {
@@ -137,18 +145,151 @@ export default function AdminSettings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <Title level={2} className="!mb-1 text-gray-900">
-              Admin Settings
-            </Title>
-            <Text className="text-gray-600">
-              Manage system settings, users, and security configurations
-            </Text>
+      {/* Admin Header */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">GR</span>
+                </div>
+                <div>
+                  <Text className="text-gray-600 text-sm font-medium">GROUP RETAIL</Text>
+                  <br />
+                  <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Badge count={5} size="small">
+                <BellOutlined className="text-gray-500 text-lg" />
+              </Badge>
+              <Avatar size="small" className="bg-blue-600">
+                <span className="text-white font-medium">JD</span>
+              </Avatar>
+              <div className="text-right">
+                <Text className="font-medium text-gray-900 block">John Doe</Text>
+                <Text className="text-gray-500 text-sm">System Administrator</Text>
+              </div>
+              <Button 
+                type="text" 
+                icon={<LogoutOutlined />}
+                className="flex items-center text-gray-600 hover:text-gray-900"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
+          <div className="p-6">
+            <nav className="space-y-2">
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/dashboard')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📊</span>
+                </div>
+                <Text className="text-current">Dashboard</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/offer-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🎯</span>
+                </div>
+                <Text className="text-current">Offer Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bid-management')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🏆</span>
+                </div>
+                <Text className="text-current">Bid Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/bookings')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">✈️</span>
+                </div>
+                <Text className="text-current">Booking Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/cms')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📝</span>
+                </div>
+                <Text className="text-current">CMS Management</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/reports')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">📊</span>
+                </div>
+                <Text className="text-current">Reports & Analytics</Text>
+              </div>
+              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 rounded-lg shadow-lg">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🔧</span>
+                </div>
+                <Text className="text-white font-medium">System Settings</Text>
+              </div>
+            </nav>
+
+            {/* User info section */}
+            <div className="mt-auto pt-8">
+              <div className="border-t border-slate-700 pt-4">
+                <div className="flex items-center space-x-3 px-4 py-3">
+                  <Avatar size="small" className="bg-blue-600">
+                    <span className="text-white font-medium text-xs">JD</span>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <Text className="text-white text-sm font-medium block truncate">John Doe</Text>
+                    <Text className="text-slate-400 text-xs truncate">Administrator</Text>
+                  </div>
+                </div>
+                <Button 
+                  type="text" 
+                  icon={<LogoutOutlined />}
+                  className="flex items-center w-full text-slate-300 hover:text-white hover:bg-slate-700 mt-2 mx-4"
+                  onClick={handleLogout}
+                >
+                  <span className="ml-2">Sign out</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {/* Page Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <Title level={2} className="!mb-1 text-gray-900">
+                System Settings
+              </Title>
+              <Text className="text-gray-600">
+                Manage system settings, users, and security configurations
+              </Text>
+            </div>
+          </div>
 
         {/* Settings Tabs */}
         <Card>
@@ -444,6 +585,7 @@ export default function AdminSettings() {
             </Form.Item>
           </Form>
         </Modal>
+        </div>
       </div>
     </div>
   );
