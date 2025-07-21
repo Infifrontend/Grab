@@ -706,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
-      
+
       let errorMessage = "Failed to update bid configuration";
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
@@ -719,7 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = `Failed to update bid configuration: ${error.message}`;
         }
       }
-      
+
       res.status(500).json({
         success: false,
         message: errorMessage,
@@ -794,8 +794,303 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create bid configuration
   app.post("/api/bid-configurations", async (req, res) => {
     try {
-      console.log("Received bid configuration request:", req.body);
+      const data = req.body;
+      console.log("Received bid configuration data:", data);
 
+      // Create a flight record first if origin and destination are provided
+      let flightId = null;
+      if (data.origin && data.destination) {
+        const flightResult = await storage.createFlight({
+          flightNumber: `BID-${Date.now()}`, // Generate unique flight number
+          airline: "Bid Configuration",
+          aircraft: "Various",
+          origin: data.origin,
+          destination: data.destination,
+          departureTime: data.travelDate ? new Date(data.travelDate) : new Date(),
+          arrivalTime: data.travelDate ? new Date(data.travelDate) : new Date(),
+          duration: "2h 30m",
+          price: data.bidAmount || 0,
+          availableSeats: data.totalSeatsAvailable || 50,
+          totalSeats: data.totalSeatsAvailable || 50,
+          cabin: data.fareType || "Economy",
+          stops: 0,
+        });
+
+        flightId = flightResult.id;
+      }
+
+      // Create a configuration record in the bids table with status 'configuration'
+      const bidData = {
+        userId: 1, // Default admin user ID for now
+        flightId: flightId,
+        bidAmount: data.bidAmount || "0",
+        bidStatus: 'active', // Mark as active configuration
+        validUntil: data.bidEndTime ? new Date(data.bidEndTime) : null,
+        passengerCount: data.totalSeatsAvailable || 1,
+        notes: JSON.stringify({
+          configType: 'bid_configuration',
+          title: data.bidTitle,
+          origin: data.origin,
+          destination: data.destination,
+          ...data,
+          createdAt: new Date().toISOString()
+        })
+      };
+
+      const bidConfig = await storage.createBid(bidData);
+
+      console.log("Created bid configuration:", bidConfig);
+
+      res.json({ 
+        success: true, 
+        message: `Bid configuration "${data.bidTitle || 'New Bid'}" created successfully!`,
+        bidConfiguration: bidConfig
+      });
+    } catch (error) {
+      console.error("Error creating bid configuration:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to create bid configuration",
+        error: error.message 
+      });
+    }
+  });
+
+  // Migration endpoint to remove international flights
+  app.post("/api/migrate-domestic", async (_req, res) => {
+    try {
+      await storage.migrateToDomesticFlights();
+
+      res.json({
+        success: true,
+        message: "Successfully migrated to domestic flights only",
+      });
+    } catch (error) {
+      console.error("Migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to migrate flights",
+      });
+    }
+  });
+
+  // Add return flights for round trip support
+  app.post("/api/add-return-flights", async (_req, res) => {
+    try {
+      const { addReturnFlights } = await import("./add-return-flights");
+      await addReturnFlights();
+
+      res.json({
+        success: true,
+        message: "Return flights added successfully",
+      });
+    } catch (error) {
+      console.error("Return flights migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to add return flights",
+      });
+    }
+  });
+
+  // Seed payment data
+  app.post("/api/seed-payment-data", async (_req, res) => {
+    try {
+      await storage.seedPaymentData();
+      res.json({
+        success: true,
+        message: "Payment data seeded successfully",
+      });
+    } catch (error) {
+      console.error("Payment data seeding error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to seed payment data",
+      });
+    }
+  });
+
+  // Update booking details (group leader info)
+  app.put("/api/booking-details/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { groupLeaderName, groupLeaderEmail, groupLeaderPhone } = req.body;
+
+      // Find the booking by ID or reference
+      let booking = await storage.getFlightBookingByReference(id);
+      if (!booking) {
+        const allFlightBookings = await storage.getFlightBookings();
+        booking = allFlightBookings.find((b) => b.id.toString() === id);
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Parse existing comprehensive data if available
+      let comprehensiveData = {};
+      if (booking.specialRequests) {
+        try {
+          comprehensiveData = JSON.parse(booking.specialRequests);
+        } catch (e) {
+          // If parsing fails, start with empty object
+        }
+      }
+
+      // Update group leader information
+      comprehensiveData.groupLeaderInfo = {
+        ...comprehensiveData.groupLeaderInfo,
+        name: groupLeaderName,
+        email: groupLeaderEmail,
+        phone: groupLeaderPhone,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Save back to database
+      await storage.updateBookingDetails(booking.id, {
+        specialRequests: JSON.stringify(comprehensiveData),
+      });
+
+      res.json({
+        success: true,
+        message: "Group leader information updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating booking details:", error);
+      res.status(500).json({ message: "Failed to update booking details" });
+    }
+  });
+
+  // Update passengers for a booking
+  app.put("/api/booking-passengers/:id",```python
+ async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { passengers } = req.body;
+
+      // Find the booking by ID or reference
+      let booking = await storage.getFlightBookingByReference(id);
+      if (!booking) {
+        const allFlightBookings = await storage.getFlightBookings();
+        booking = allFlightBookings.find((b) => b.id.toString() === id);
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Get existing passengers
+      const existingPassengers = await storage.getPassengersByBooking(
+        booking.id,
+      );
+
+      // Update existing passengers or create new ones
+      for (let i = 0; i < passengers.length; i++) {
+        const passengerData = passengers[i];
+
+        if (existingPassengers[i]) {
+          // Update existing passenger
+          await storage.updatePassenger(existingPassengers[i].id, {
+            firstName: passengerData.firstName,
+            lastName: passengerData.lastName,
+          });
+        } else {
+          // Create new passenger
+          await storage.createPassenger({
+            bookingId: booking.id,
+            title: "Mr",
+            firstName: passengerData.firstName,
+            lastName: passengerData.lastName,
+            dateOfBirth: new Date("1990-01-01"), // Default date
+            nationality: "Indian", // Default nationality
+          });
+        }
+      }
+
+      // Remove excess passengers if the new list is shorter
+      if (existingPassengers.length > passengers.length) {
+        for (let i = passengers.length; i < existingPassengers.length; i++) {
+          await storage.deletePassenger(existingPassengers[i].id);
+        }
+      }
+
+      // Update the booking's passenger count to match the actual number of passengers
+      await storage.updateBookingPassengerCount(booking.id, passengers.length);
+
+      res.json({
+        success: true,
+        message: "Passengers updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating passengers:", error);
+      res.status(500).json({ message: "Failed to update passengers" });
+    }
+  });
+
+  // Get payment statistics
+  app.get("/api/payments/statistics", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const stats = await storage.getPaymentStatistics(
+        userId ? parseInt(userId as string) : undefined,
+      );
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment statistics:", error);
+      res.status(500).json({ message: "Failed to fetch payment statistics" });
+    }
+  });
+
+  // Get all payments
+  app.get("/api/payments", async (req, res) => {
+    try {
+      const { userId, status } = req.query;
+      const payments = await storage.getPayments(
+        userId ? parseInt(userId as string) : undefined,
+        status as string,
+      );
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  // Get payment schedule (upcoming payments)
+  app.get("/api/payments/schedule", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const schedule = await storage.getPaymentSchedule(
+        userId ? parseInt(userId as string) : undefined,
+      );
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Failed to fetch payment schedule" });
+    }
+  });
+
+  // Create a new payment
+  app.post("/api/payments", async (req, res) => {
+    try {
+      const paymentData = insertPaymentSchema.parse(req.body);
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res
+          .status(400)
+          .json({ message: "Invalid payment data", errors: error.errors });
+      } else {
+        console.error("Payment creation error:", error);
+        res.status(500).json({ message: "Payment creation failed" });
+      }
+    }
+  });
+
+  // Create bid configuration
+  app.post("/api/bid-configurations", async (req, res) => {
+    try {
       const {
         bidTitle,
         flightType,
@@ -816,7 +1111,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baggageAllowance,
         cancellationTerms,
         mealIncluded,
-        otherNotes
+        otherNotes,
+        bidAmount
       } = req.body;
 
       // Allow submission without required field validation
@@ -904,7 +1200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bidData = {
         userId: 1, // Default admin user - you might want to get this from session/auth
         flightId: flightId,
-        bidAmount: "0", // Initial amount, will be set by actual bidders
+        bidAmount: bidAmount !== undefined ? bidAmount.toString() : "0", // Initial amount, will be set by actual bidders
         passengerCount: minSeatsPerBid || 1,
         bidStatus: "active",
         validUntil: validUntilDate,

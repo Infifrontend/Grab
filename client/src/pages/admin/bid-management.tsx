@@ -277,11 +277,13 @@ export default function BidManagement() {
     try {
       console.log("Form values before submission:", values);
 
-      // Allow submission without required field validation
-
-      // Format the data properly
+      // Format the data properly with all required fields
       const formattedData = {
-        ...values,
+        bidTitle: values.bidTitle || "",
+        origin: values.origin || "",
+        destination: values.destination || "",
+        bidAmount: values.bidAmount || 0,
+        flightType: values.flightType || "Domestic",
         travelDate: values.travelDate
           ? values.travelDate.format("YYYY-MM-DD")
           : null,
@@ -294,6 +296,18 @@ export default function BidManagement() {
               .map((time) => time.format("HH:mm"))
               .join(" - ")
           : null,
+        totalSeatsAvailable: values.totalSeatsAvailable || 50,
+        minSeatsPerBid: values.minSeatsPerBid || 1,
+        maxSeatsPerBid: values.maxSeatsPerBid || 10,
+        maxSeatsPerUser: values.maxSeatsPerUser || 5,
+        fareType: values.fareType || "Economy",
+        baggageAllowance: values.baggageAllowance || 20,
+        cancellationTerms: values.cancellationTerms || "Standard",
+        mealIncluded: values.mealIncluded || false,
+        otherNotes: values.otherNotes || "",
+        autoAwardTopBidder: values.autoAwardTopBidder || false,
+        manualReviewOption: values.manualReviewOption || false,
+        autoRefundNonWinners: values.autoRefundNonWinners || false,
       };
 
       console.log("Formatted data for submission:", formattedData);
@@ -2933,7 +2947,30 @@ export default function BidManagement() {
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
-                      <Col span={12}>
+                      <Col span={8}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Base Bid Amount (₹) *
+                            </span>
+                          }
+                          name="bidAmount"
+                          rules={[{ required: true, message: "Please enter bid amount" }]}
+                        >
+                          <InputNumber
+                            min={0}
+                            max={100000}
+                            className="w-full"
+                            placeholder="Enter base bid amount"
+                            size="large"
+                            formatter={(value) =>
+                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }
+                            parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
@@ -2951,7 +2988,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
+                      <Col span={8}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
