@@ -656,24 +656,43 @@ export default function BidManagement() {
   const [editForm] = Form.useForm();
   const [reviewForm] = Form.useForm();
 
+  // Reset review modal state when recentBidsData changes
+  useEffect(() => {
+    if (!recentBidsData && reviewBidModalVisible) {
+      setReviewBidModalVisible(false);
+      setSelectedBidForReview(null);
+    }
+  }, [recentBidsData, reviewBidModalVisible]);
+
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
     setViewBidModalVisible(true);
   };
 
   const handleReviewBid = (bidRecord) => {
+    console.log("handleReviewBid called with:", bidRecord);
+    console.log("recentBidsData:", recentBidsData);
+    
     // Find the actual bid data from recentBidsData
     const bidData = (recentBidsData || []).find(bid => 
       `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
     );
     
+    console.log("Found bidData:", bidData);
+    
     if (bidData) {
-      setSelectedBidForReview({
+      const reviewData = {
         ...bidData,
         record: bidRecord
-      });
+      };
+      console.log("Setting selectedBidForReview to:", reviewData);
+      
+      setSelectedBidForReview(reviewData);
       setReviewBidModalVisible(true);
       reviewForm.resetFields();
+    } else {
+      console.error("Bid data not found for bidId:", bidRecord.bidId);
+      message.error("Unable to find bid data. Please try again.");
     }
   };
 
@@ -1465,8 +1484,10 @@ export default function BidManagement() {
         }}
         footer={null}
         width={900}
+        destroyOnClose={true}
+        maskClosable={false}
       >
-        {selectedBidForReview && (
+        {selectedBidForReview && selectedBidForReview.id ? (
           <div className="space-y-6">
             {/* Bid Overview */}
             <Card className="bg-blue-50 border-blue-200">
@@ -1478,7 +1499,7 @@ export default function BidManagement() {
                   color={selectedBidForReview.bidStatus === 'active' ? 'green' : 'blue'}
                   className="text-sm"
                 >
-                  {selectedBidForReview.bidStatus.toUpperCase()}
+                  {selectedBidForReview.bidStatus ? selectedBidForReview.bidStatus.toUpperCase() : 'UNKNOWN'}
                 </Tag>
               </div>
               
@@ -1703,6 +1724,12 @@ export default function BidManagement() {
                 </Button>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Text className="text-gray-500">
+              {reviewBidModalVisible ? "Loading bid data..." : "No bid data available"}
+            </Text>
           </div>
         )}
       </Modal>
