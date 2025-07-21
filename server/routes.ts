@@ -694,10 +694,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
+      
+      let errorMessage = "Failed to update bid configuration";
+      if (error.message) {
+        if (error.message.includes("UNIQUE constraint")) {
+          errorMessage = "A bid configuration with these details already exists";
+        } else if (error.message.includes("NOT NULL constraint")) {
+          errorMessage = "Missing required information for bid configuration";
+        } else if (error.message.includes("FOREIGN KEY constraint")) {
+          errorMessage = "Invalid flight or user reference";
+        } else {
+          errorMessage = `Failed to update bid configuration: ${error.message}`;
+        }
+      }
+      
       res.status(500).json({
         success: false,
-        message: "Failed to update bid configuration",
-        error: error.message
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });

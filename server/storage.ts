@@ -101,6 +101,8 @@ export interface IStorage {
   getPayments(userId?: number, statusFilter?: string): Promise<any[]>;
   getPaymentSchedule(userId?: number): Promise<any[]>;
   createPayment(paymentData: any): Promise<Payment>;
+
+  updateBidDetails(bidId: number, updateData: any): Promise<any>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -741,7 +743,7 @@ export class DatabaseStorage implements IStorage {
   async createBid(bidData: InsertBid) {
     try {
       console.log("Creating bid with data:", bidData);
-      
+
       // Validate required fields before insertion
       if (!bidData.userId || !bidData.flightId || !bidData.bidAmount || !bidData.bidStatus) {
         throw new Error("Missing required fields for bid creation");
@@ -760,7 +762,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         })
         .returning();
-        
+
       console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
@@ -863,6 +865,25 @@ export class DatabaseStorage implements IStorage {
   async deletePassenger(passengerId: number): Promise<void> {
     await db.delete(passengers)
       .where(eq(passengers.id, passengerId));
+  }
+
+  async updateBidStatus(id: number, status: string): Promise<void> {
+    await db.update(bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(bids.id, id));
+  }
+
+  async updateBidDetails(bidId: number, updateData: any): Promise<any> {
+    try {
+      const [updatedBid] = await db
+        .update(bids)
+        .set(updateData)
+        .where(eq(bids.id, bidId))
+        .returning();
+
+      return updatedBid;
+    } catch (error) {
+      console.error("Error updating bid details:", error);
+      throw error;
+    }
   }
 }
 

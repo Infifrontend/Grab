@@ -582,13 +582,19 @@ export default function BidManagement() {
     
     setLoading(true);
     try {
+      console.log('Submitting edit form with values:', values);
+      console.log('Selected bid ID:', selectedBid.id);
+      
       const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, values);
       
       if (!response.ok) {
-        throw new Error('Failed to update bid configuration');
+        const errorText = await response.text();
+        console.error('API response error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
       
       const result = await response.json();
+      console.log('Update response:', result);
       
       if (result.success) {
         message.success('Bid configuration updated successfully');
@@ -602,7 +608,19 @@ export default function BidManagement() {
       }
     } catch (error) {
       console.error('Error updating bid configuration:', error);
-      message.error('Failed to update bid configuration. Please try again.');
+      
+      let errorMessage = 'Failed to update bid configuration. Please try again.';
+      if (error.message) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('API Error')) {
+          errorMessage = 'Server error. Please try again or contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
