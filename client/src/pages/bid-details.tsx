@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Select, DatePicker, Alert, Space, Divider, Spin } from 'antd';
+import { Card, Row, Col, Typography, Button, Input, Select, DatePicker, Alert, Space, Divider, Spin, Tag } from 'antd';
 import { ArrowLeftOutlined, InfoCircleOutlined, UserOutlined, DollarOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useLocation, useRoute } from 'wouter';
 import Header from "@/components/layout/header";
@@ -11,9 +11,6 @@ const { TextArea } = Input;
 export default function BidDetails() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/bid-details/:id");
-  const [passengers, setPassengers] = useState(0);
-  const [bidAmount, setBidAmount] = useState(0);
-  const [originalBidAmount, setOriginalBidAmount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [bidData, setBidData] = useState(null);
   const [error, setError] = useState(null);
@@ -22,21 +19,16 @@ export default function BidDetails() {
   useEffect(() => {
     const fetchBidDetails = async () => {
       if (!params?.id) return;
-      
+
       try {
         setLoading(true);
         const response = await fetch(`/api/bids/${params.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch bid details');
         }
-        
+
         const data = await response.json();
-        
-        // Set the fetched data
         setBidData(data);
-        setPassengers(data.bid.passengerCount);
-        setBidAmount(parseFloat(data.bid.bidAmount));
-        setOriginalBidAmount(parseFloat(data.bid.bidAmount));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -76,71 +68,77 @@ export default function BidDetails() {
     );
   }
 
-  // Calculate derived values
+  // Parse bid configuration data
+  let configData = {};
+  try {
+    configData = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
+  } catch (e) {
+    console.error("Error parsing bid notes:", e);
+  }
+
+  // Helper functions
   const formatDate = (dateString) => {
-    return dayjs(dateString).format('DD/MM/YYYY');
+    if (!dateString) return 'N/A';
+    return dayjs(dateString).format('DD MMM YYYY');
   };
 
-  const getStatusDisplay = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'Active';
-      case 'accepted': return 'Accepted';
-      case 'rejected': return 'Declined';
-      case 'expired': return 'Expired';
-      default: return 'Draft';
+      case 'active': return 'green';
+      case 'accepted': return 'blue';
+      case 'rejected': return 'red';
+      case 'expired': return 'orange';
+      default: return 'default';
     }
   };
 
-  const getTimeLeft = (validUntil) => {
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'active': return 'Active';
+      case 'accepted': return 'Accepted';
+      case 'rejected': return 'Rejected';
+      case 'expired': return 'Expired';
+      default: return 'Pending';
+    }
+  };
+
+  const calculateTimeLeft = (validUntil) => {
+    if (!validUntil) return 'N/A';
     const now = dayjs();
     const expiry = dayjs(validUntil);
     const diff = expiry.diff(now, 'hour');
-    
+
     if (diff <= 0) return 'Expired';
     if (diff < 24) return `${diff} hours`;
     return `${Math.ceil(diff / 24)} days`;
-  };
-
-  // Transform the fetched data to match component expectations
-  const transformedBidData = {
-    bidId: bidData.bid.id.toString(),
-    status: getStatusDisplay(bidData.bid.bidStatus),
-    timeLeft: getTimeLeft(bidData.bid.validUntil),
-    groupName: bidData.bid.notes || 'Group Travel',
-    groupCategory: 'Corporate',
-    origin: bidData.flight?.origin || 'Unknown',
-    destination: bidData.flight?.destination || 'Unknown',
-    departureDate: formatDate(bidData.flight?.departureTime),
-    returnDate: formatDate(bidData.flight?.arrivalTime),
-    passengers: passengers,
-    cabinClass: bidData.flight?.cabin || 'Economy',
-    bidAmount: bidAmount,
-    contactName: bidData.user?.name || 'Unknown',
-    email: bidData.user?.username || 'Unknown',
-    phone: '+1 (555) 123-4567',
-    specialRequests: bidData.bid.notes || 'No special requests',
-    route: `${bidData.flight?.origin || 'Unknown'} → ${bidData.flight?.destination || 'Unknown'}`,
-    totalBid: passengers * bidAmount,
-    depositRequired: (passengers * bidAmount) * 0.1,
-    refundPolicy: 'Full refund if bid not accepted'
   };
 
   const handleBack = () => {
     setLocation('/bids');
   };
 
-  const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newAmount = parseInt(e.target.value);
-    if (newAmount >= originalBidAmount) {
-      setBidAmount(newAmount);
-    }
-  };
-
-  const handlePassengersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPassengers = parseInt(e.target.value);
-    if (newPassengers > 0) {
-      setPassengers(newPassengers);
-    }
+  // Extract data for display
+  const bidInfo = {
+    bidId: `BID-${bidData.bid.id}`,
+    status: getStatusText(bidData.bid.bidStatus),
+    timeLeft: calculateTimeLeft(bidData.bid.validUntil),
+    bidAmount: parseFloat(bidData.bid.bidAmount || 0),
+    passengerCount: bidData.bid.passengerCount || 1,
+    submittedDate: formatDate(bidData.bid.createdAt),
+    validUntil: formatDate(bidData.bid.validUntil),
+    origin: configData.origin || bidData.flight?.origin || 'Unknown',
+    destination: configData.destination || bidData.flight?.destination || 'Unknown',
+    travelDate: configData.travelDate ? formatDate(configData.travelDate) : formatDate(bidData.flight?.departureTime),
+    flightType: configData.flightType || 'Domestic',
+    fareType: configData.fareType || 'Economy',
+    baggageAllowance: configData.baggageAllowance || 20,
+    mealIncluded: configData.mealIncluded || false,
+    groupName: configData.title || configData.bidTitle || 'Group Travel',
+    contactName: bidData.user?.name || 'Unknown',
+    contactEmail: bidData.user?.username || 'Unknown',
+    specialRequests: bidData.bid.notes || configData.otherNotes || 'No special requests',
+    totalBid: (parseFloat(bidData.bid.bidAmount || 0) * (bidData.bid.passengerCount || 1)),
+    depositRequired: (parseFloat(bidData.bid.bidAmount || 0) * (bidData.bid.passengerCount || 1)) * 0.1
   };
 
   return (
@@ -167,13 +165,13 @@ export default function BidDetails() {
                 </Title>
                 <div className="flex items-center gap-6 text-sm">
                   <span className="text-gray-600">
-                    <strong>Bid ID:</strong> {transformedBidData.bidId}
+                    <strong>Bid ID:</strong> {bidInfo.bidId}
                   </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                    {transformedBidData.status}
-                  </span>
+                  <Tag color={getStatusColor(bidData.bid.bidStatus)}>
+                    {bidInfo.status}
+                  </Tag>
                   <span className="text-gray-600">
-                    <strong>Time left:</strong> {transformedBidData.timeLeft}
+                    <strong>Time left:</strong> {bidInfo.timeLeft}
                   </span>
                 </div>
               </div>
@@ -181,340 +179,198 @@ export default function BidDetails() {
           </div>
         </div>
 
-        {/* Airline Minimum Bid Alert */}
-        <Alert
-          message="Airline Minimum Bid"
-          description={
-            <span>
-              The minimum bid amount set by the airline for this route is <strong>$750 per person</strong>. 
-              Your bid must meet or exceed this amount to be considered.
-            </span>
-          }
-          type="info"
-          icon={<InfoCircleOutlined />}
-          showIcon
-          className="mb-6 border-l-4 border-blue-500"
-          style={{ 
-            backgroundColor: '#f0f9ff',
-            borderColor: '#e0f2fe'
-          }}
-        />
-
-        {/* Main Form Card */}
-        <Card className="mb-6 shadow-sm">
-          <div className="mb-6">
-            <Title level={2} className="!mb-2 text-xl font-semibold text-gray-900">
-              Submit Your Group Travel Bid
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Group Information Section */}
+          <Card className="shadow-sm">
+            <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <UserOutlined className="text-blue-600" />
+              Group Information
             </Title>
-            <Text className="text-gray-600 text-base">
-              Enter your travel details and desired price. Airlines will review and respond within 48 hours.
-            </Text>
-          </div>
-
-          <div className="space-y-8">
-            {/* Group Information Section */}
-            <div>
-              <Title level={4} className="!mb-4 text-lg font-medium text-gray-800 flex items-center gap-2">
-                <UserOutlined className="text-blue-600" />
-                Group Information
-              </Title>
-              <Row gutter={[24, 20]}>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Group Name</Text>
-                    <Input 
-                      value={transformedBidData.groupName}
-                      placeholder="Corporate Team Building"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Group Category</Text>
-                    <Select 
-                      value={transformedBidData.groupCategory}
-                      placeholder="Select category"
-                      size="large"
-                      className="w-full rounded-md"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5' }}
-                    >
-                      <Select.Option value="Corporate">Corporate</Select.Option>
-                      <Select.Option value="Leisure">Leisure</Select.Option>
-                      <Select.Option value="Educational">Educational</Select.Option>
-                    </Select>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            <Divider />
-
-            {/* Travel Details Section */}
-            <div>
-              <Title level={4} className="!mb-4 text-lg font-medium text-gray-800 flex items-center gap-2">
-                <CalendarOutlined className="text-blue-600" />
-                Travel Details
-              </Title>
-              <Row gutter={[24, 20]}>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Origin</Text>
-                    <Input 
-                      value={transformedBidData.origin}
-                      placeholder="Departure city"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Destination</Text>
-                    <Input 
-                      value={transformedBidData.destination}
-                      placeholder="Arrival city"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-              </Row>
-
-              <Row gutter={[24, 20]} className="mt-5">
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Departure Date</Text>
-                    <DatePicker 
-                      value={dayjs(transformedBidData.departureDate, 'DD/MM/YYYY')}
-                      format="DD MMM YYYY"
-                      placeholder="Select departure date"
-                      size="large"
-                      className="w-full rounded-md"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Return Date</Text>
-                    <DatePicker 
-                      value={dayjs(transformedBidData.returnDate, 'DD/MM/YYYY')}
-                      format="DD MMM YYYY"
-                      placeholder="Select return date"
-                      size="large"
-                      className="w-full rounded-md"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            <Divider />
-
-            {/* Passenger and Pricing Section */}
-            <div>
-              <Title level={4} className="!mb-4 text-lg font-medium text-gray-800 flex items-center gap-2">
-                <DollarOutlined className="text-blue-600" />
-                Passenger & Pricing Details
-              </Title>
-              <Row gutter={[24, 20]}>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Number of Passengers</Text>
-                    <Input 
-                      value={passengers}
-                      onChange={handlePassengersChange}
-                      placeholder="25"
-                      size="large"
-                      type="number"
-                      min="1"
-                      prefix={<UserOutlined className="text-gray-400" />}
-                      className="rounded-md"
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Cabin Class</Text>
-                    <Select 
-                      value={transformedBidData.cabinClass}
-                      placeholder="Select class"
-                      size="large"
-                      className="w-full rounded-md"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5' }}
-                    >
-                      <Select.Option value="Economy">Economy</Select.Option>
-                      <Select.Option value="Business">Business</Select.Option>
-                      <Select.Option value="First">First</Select.Option>
-                    </Select>
-                  </div>
-                </Col>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Bid Amount (per person)</Text>
-                    <Input 
-                      value={bidAmount}
-                      onChange={handleBidAmountChange}
-                      placeholder="850"
-                      size="large"
-                      type="number"
-                      min={originalBidAmount}
-                      prefix={<span className="text-gray-400">₹</span>}
-                      className="rounded-md"
-                    />
-                    <Text className="text-gray-500 text-sm mt-1">
-                      Minimum bid amount: ₹{originalBidAmount} (can only increase)
-                    </Text>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            <Divider />
-
-            {/* Contact Information Section */}
-            <div>
-              <Title level={4} className="!mb-4 text-lg font-medium text-gray-800">
-                Contact Information
-              </Title>
-              <Row gutter={[24, 20]}>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Contact Name</Text>
-                    <Input 
-                      value={transformedBidData.contactName}
-                      placeholder="John Smith"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Email</Text>
-                    <Input 
-                      value={transformedBidData.email}
-                      placeholder="john.smith@company.com"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-                <Col xs={24} md={8}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Phone</Text>
-                    <Input 
-                      value={transformedBidData.phone}
-                      placeholder="+1 (555) 123-4567"
-                      size="large"
-                      className="rounded-md"
-                      readOnly
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Special Requests Section */}
-            <div>
-              <Text className="text-gray-700 font-medium block mb-2">Special Requests (Optional)</Text>
-              <TextArea 
-                value={transformedBidData.specialRequests}
-                placeholder="Any special requirements, meal preferences, seating requests, etc."
-                rows={4}
-                className="rounded-md"
-                readOnly
-                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Bid Summary Card */}
-        <Card className="shadow-sm">
-          <Title level={3} className="!mb-6 text-xl font-semibold text-gray-900">
-            Bid Summary
-          </Title>
-
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
             <Row gutter={[24, 20]}>
-              <Col xs={24} sm={12} md={6}>
-                <div className="text-center">
-                  <Text className="text-gray-500 text-sm block mb-1">Route</Text>
-                  <Text className="text-gray-900 font-semibold text-base">{transformedBidData.route}</Text>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Group Name</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.groupName}</Text>
                 </div>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="text-center">
-                  <Text className="text-gray-500 text-sm block mb-1">Passengers</Text>
-                  <Text className="text-gray-900 font-semibold text-base">{passengers} passengers</Text>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Flight Type</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.flightType}</Text>
                 </div>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="text-center">
-                  <Text className="text-gray-500 text-sm block mb-1">Bid per person</Text>
-                  <Text className="text-blue-600 font-bold text-lg">₹{bidAmount}</Text>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Fare Type</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.fareType}</Text>
                 </div>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="text-center">
-                  <Text className="text-gray-500 text-sm block mb-1">Total Bid</Text>
-                  <Text className="text-blue-600 font-bold text-2xl">₹{(passengers * bidAmount).toLocaleString()}</Text>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Baggage Allowance</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.baggageAllowance} kg</Text>
                 </div>
               </Col>
             </Row>
-          </div>
+          </Card>
 
-          <Row gutter={[24, 20]} className="mb-8">
-            <Col xs={24} md={12}>
-              <div className="flex justify-between items-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <Text className="text-gray-700 font-medium">Deposit Required (10%)</Text>
-                <Text className="text-orange-600 font-bold text-lg">₹{((passengers * bidAmount) * 0.1).toLocaleString()}</Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
-                <Text className="text-gray-700 font-medium">Refund Policy</Text>
-                <Text className="text-green-600 font-semibold">{transformedBidData.refundPolicy}</Text>
-              </div>
-            </Col>
-          </Row>
+          {/* Travel Details Section */}
+          <Card className="shadow-sm">
+            <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <CalendarOutlined className="text-blue-600" />
+              Travel Details
+            </Title>
+            <Row gutter={[24, 20]}>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Origin</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.origin}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Destination</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.destination}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Travel Date</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.travelDate}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Route</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.origin} → {bidInfo.destination}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Meal Included</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.mealIncluded ? 'Yes' : 'No'}</Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
 
-          <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
+          {/* Passenger & Pricing Details Section */}
+          <Card className="shadow-sm">
+            <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <DollarOutlined className="text-blue-600" />
+              Passenger & Pricing Details
+            </Title>
+            <Row gutter={[24, 20]}>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Number of Passengers</Text>
+                  <Text className="text-gray-900 text-base font-semibold">{bidInfo.passengerCount} passenger{bidInfo.passengerCount > 1 ? 's' : ''}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Bid Amount (per person)</Text>
+                  <Text className="text-blue-600 text-lg font-bold">₹{bidInfo.bidAmount.toLocaleString()}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Total Bid Amount</Text>
+                  <Text className="text-green-600 text-xl font-bold">₹{bidInfo.totalBid.toLocaleString()}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Deposit Required (10%)</Text>
+                  <Text className="text-orange-600 text-lg font-semibold">₹{bidInfo.depositRequired.toLocaleString()}</Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Contact Information Section */}
+          <Card className="shadow-sm">
+            <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900">
+              Contact Information
+            </Title>
+            <Row gutter={[24, 20]}>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Contact Name</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.contactName}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Email</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.contactEmail}</Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Special Requests Section */}
+          {bidInfo.specialRequests && bidInfo.specialRequests !== 'No special requests' && (
+            <Card className="shadow-sm">
+              <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900">
+                Special Requests
+              </Title>
+              <div className="bg-gray-50 p-4 rounded-md">
+                <Text className="text-gray-700">{bidInfo.specialRequests}</Text>
+              </div>
+            </Card>
+          )}
+
+          {/* Bid Timeline Section */}
+          <Card className="shadow-sm">
+            <Title level={3} className="!mb-4 text-xl font-semibold text-gray-900">
+              Bid Timeline
+            </Title>
+            <Row gutter={[24, 20]}>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Submitted Date</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.submittedDate}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Valid Until</Text>
+                  <Text className="text-gray-900 text-base">{bidInfo.validUntil}</Text>
+                </div>
+              </Col>
+              <Col xs={24} md={8}>
+                <div>
+                  <Text className="text-gray-700 font-medium block mb-2">Current Status</Text>
+                  <Tag color={getStatusColor(bidData.bid.bidStatus)} className="text-base">
+                    {bidInfo.status}
+                  </Tag>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-6">
             <Button 
               size="large" 
               onClick={handleBack}
-              className="order-2 sm:order-1 rounded-md px-8"
+              className="px-8"
             >
-              Cancel
+              Back to Bids
             </Button>
-            <Button 
-              type="primary" 
-              size="large"
-              className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
-            >
-              Continue to Payment
-            </Button>
+            {bidData.bid.bidStatus === 'active' && (
+              <Button 
+                type="primary" 
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700 px-8"
+              >
+                Modify Bid
+              </Button>
+            )}
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
