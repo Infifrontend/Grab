@@ -1860,9 +1860,7 @@ export default function BidManagement() {
               label: 'Insights',
               children: (
                 <div>
-                  {/* Insights Alert Cards */}Fixing the typo in the `<Row>` component's `gutter` prop.
-
-<replit_final_file>
+                  {/* Insights Alert Cards */}
                   <Row gutter={[24, 24]} className="mb-6">
                     <Col xs={24} lg={8}>
                       <Card className="border-l-4 border-l-green-500">
