@@ -328,6 +328,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBidStatus(id: number, status: string): Promise<void> {
+    console.log(`Updating bid ${id} status to ${status}`);
     await db.update(bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(bids.id, id));
   }
 
@@ -867,14 +868,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(passengers.id, passengerId));
   }
 
-  async updateBidStatus(id: number, status: string): Promise<void> {
-    await db.update(bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(bids.id, id));
-  }
-
   async updateBidDetails(bidId: number, updateData: any): Promise<any> {
     try {
       console.log(`Updating bid ${bidId} with data:`, updateData);
-      
+
       const [updatedBid] = await db
         .update(bids)
         .set({

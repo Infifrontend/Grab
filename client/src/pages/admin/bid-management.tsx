@@ -546,6 +546,7 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || 'Standard',
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || '',
+      bidAmount: parseFloat(bid.bidAmount) || 0,
     });
     
     setEditBidModalVisible(true);
@@ -599,7 +600,8 @@ export default function BidManagement() {
         baggageAllowance: values.baggageAllowance,
         cancellationTerms: values.cancellationTerms,
         mealIncluded: values.mealIncluded,
-        otherNotes: values.otherNotes
+        otherNotes: values.otherNotes,
+        bidAmount: values.bidAmount
       };
       
       const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, updateData);
@@ -732,8 +734,8 @@ export default function BidManagement() {
                       </Col>
                       <Col span={6}>
                         <div>
-                          <Text className="text-gray-500 text-sm block mb-1">Bid Amount:</Text>
-                          <Text className="font-medium">₹{bid.bidAmount}</Text>
+                          <Text className="text-gray-500 text-sm block mb-1">Base Bid Amount:</Text>
+                          <Text className="font-medium">₹{bid.bidAmount || 0}</Text>
                         </div>
                       </Col>
                     </Row>
@@ -879,6 +881,12 @@ export default function BidManagement() {
                       <div>
                         <Text className="text-gray-500 block mb-1">Meal Included:</Text>
                         <Text className="font-medium">{configData.mealIncluded ? 'Yes' : 'No'}</Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>
+                        <Text className="text-gray-500 block mb-1">Base Bid Amount:</Text>
+                        <Text className="font-medium">₹{selectedBid.bidAmount || 0}</Text>
                       </div>
                     </Col>
                     <Col span={12}>
@@ -1055,6 +1063,22 @@ export default function BidManagement() {
                   <Select.Option value="Restricted - Cancellation fee applies">Restricted - Cancellation fee applies</Select.Option>
                   <Select.Option value="Non-refundable">Non-refundable</Select.Option>
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Base Bid Amount (₹)"
+                name="bidAmount"
+                rules={[{ required: true, message: 'Please enter bid amount' }]}
+              >
+                <InputNumber 
+                  min={0} 
+                  max={100000} 
+                  className="w-full" 
+                  placeholder="Enter base bid amount"
+                  formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={value => value.replace(/₹\s?|(,*)/g, '')}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>

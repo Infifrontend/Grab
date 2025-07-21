@@ -597,8 +597,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Updating bid configuration ${id} status to ${status}`);
 
-      // Assuming storage.updateBidStatus is a function to update the bid status in the storage
-      const updatedBid = await storage.updateBidStatus(parseInt(id), status);
+      // Update the bid status in the database
+      await storage.updateBidStatus(parseInt(id), status);
+
+      // Get the updated bid to return
+      const updatedBid = await storage.getBidById(parseInt(id));
 
       if (!updatedBid) {
         return res.status(404).json({
@@ -639,7 +642,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baggageAllowance,
         cancellationTerms,
         mealIncluded,
-        otherNotes
+        otherNotes,
+        bidAmount
       } = req.body;
 
       console.log(`Updating bid configuration ${id}:`, req.body);
@@ -688,6 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedBid = await storage.updateBidDetails(parseInt(id), {
         notes: JSON.stringify(updatedConfigurationData),
         passengerCount: updatedConfigurationData.minSeatsPerBid,
+        bidAmount: bidAmount !== undefined ? bidAmount.toString() : existingBid.bid.bidAmount,
         updatedAt: new Date()
       });
 
