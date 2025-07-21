@@ -873,12 +873,22 @@ export class DatabaseStorage implements IStorage {
 
   async updateBidDetails(bidId: number, updateData: any): Promise<any> {
     try {
+      console.log(`Updating bid ${bidId} with data:`, updateData);
+      
       const [updatedBid] = await db
         .update(bids)
-        .set(updateData)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
         .where(eq(bids.id, bidId))
         .returning();
 
+      if (!updatedBid) {
+        throw new Error(`Bid with ID ${bidId} not found`);
+      }
+
+      console.log('Bid updated in database:', updatedBid);
       return updatedBid;
     } catch (error) {
       console.error("Error updating bid details:", error);

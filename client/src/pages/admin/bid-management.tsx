@@ -585,7 +585,24 @@ export default function BidManagement() {
       console.log('Submitting edit form with values:', values);
       console.log('Selected bid ID:', selectedBid.id);
       
-      const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, values);
+      // Prepare the update data with all fields
+      const updateData = {
+        bidTitle: values.bidTitle,
+        flightType: values.flightType,
+        origin: values.origin,
+        destination: values.destination,
+        totalSeatsAvailable: values.totalSeatsAvailable,
+        minSeatsPerBid: values.minSeatsPerBid,
+        maxSeatsPerBid: values.maxSeatsPerBid,
+        maxSeatsPerUser: values.maxSeatsPerUser,
+        fareType: values.fareType,
+        baggageAllowance: values.baggageAllowance,
+        cancellationTerms: values.cancellationTerms,
+        mealIncluded: values.mealIncluded,
+        otherNotes: values.otherNotes
+      };
+      
+      const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, updateData);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -601,8 +618,22 @@ export default function BidManagement() {
         setEditBidModalVisible(false);
         setSelectedBid(null);
         editForm.resetFields();
+        
         // Refetch bid configurations to update the display
-        refetchBids();
+        await refetchBids();
+        
+        // Also invalidate and refetch recent bids to update activity
+        queryClient.invalidateQueries(['recent-bids']);
+        queryClient.invalidateQueries(['bid-configurations']);
+        
+        // Update local state to reflect changes immediately
+        setBidConfigurations(prev => 
+          prev.map(bid => 
+            bid.id === selectedBid.id 
+              ? { ...bid, notes: JSON.stringify({ ...JSON.parse(bid.notes || '{}'), ...updateData, updatedAt: new Date().toISOString() }) }
+              : bid
+          )
+        );
       } else {
         message.error(result.message || 'Failed to update bid configuration');
       }

@@ -657,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse existing notes to preserve other data
       let existingConfigData = {};
       try {
-        existingConfigData = existingBid.notes ? JSON.parse(existingBid.notes) : {};
+        existingConfigData = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
       } catch (e) {
         console.warn("Could not parse existing notes, using empty object");
       }
@@ -665,32 +665,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create updated configuration data
       const updatedConfigurationData = {
         ...existingConfigData,
-        title: bidTitle,
-        flightType: flightType || "Domestic",
-        origin,
-        destination,
-        totalSeatsAvailable: totalSeatsAvailable || 50,
-        minSeatsPerBid: minSeatsPerBid || 1,
-        maxSeatsPerBid: maxSeatsPerBid || 10,
-        maxSeatsPerUser: maxSeatsPerUser || 5,
-        fareType: fareType || "Economy",
-        baggageAllowance: baggageAllowance || 20,
-        cancellationTerms: cancellationTerms || "Standard",
-        mealIncluded: mealIncluded || false,
-        otherNotes: otherNotes || "",
-        updatedAt: new Date().toISOString()
+        title: bidTitle || existingConfigData.title,
+        flightType: flightType || existingConfigData.flightType || "Domestic",
+        origin: origin || existingConfigData.origin,
+        destination: destination || existingConfigData.destination,
+        totalSeatsAvailable: totalSeatsAvailable !== undefined ? totalSeatsAvailable : existingConfigData.totalSeatsAvailable || 50,
+        minSeatsPerBid: minSeatsPerBid !== undefined ? minSeatsPerBid : existingConfigData.minSeatsPerBid || 1,
+        maxSeatsPerBid: maxSeatsPerBid !== undefined ? maxSeatsPerBid : existingConfigData.maxSeatsPerBid || 10,
+        maxSeatsPerUser: maxSeatsPerUser !== undefined ? maxSeatsPerUser : existingConfigData.maxSeatsPerUser || 5,
+        fareType: fareType || existingConfigData.fareType || "Economy",
+        baggageAllowance: baggageAllowance !== undefined ? baggageAllowance : existingConfigData.baggageAllowance || 20,
+        cancellationTerms: cancellationTerms || existingConfigData.cancellationTerms || "Standard",
+        mealIncluded: mealIncluded !== undefined ? mealIncluded : existingConfigData.mealIncluded || false,
+        otherNotes: otherNotes !== undefined ? otherNotes : existingConfigData.otherNotes || "",
+        updatedAt: new Date().toISOString(),
+        configType: "bid_configuration" // Ensure this remains set
       };
+
+      console.log('Updated configuration data:', updatedConfigurationData);
 
       // Update the bid configuration
       const updatedBid = await storage.updateBidDetails(parseInt(id), {
         notes: JSON.stringify(updatedConfigurationData),
-        passengerCount: minSeatsPerBid || 1
+        passengerCount: updatedConfigurationData.minSeatsPerBid,
+        updatedAt: new Date()
       });
+
+      console.log('Bid updated successfully:', updatedBid);
 
       res.json({
         success: true,
         message: "Bid configuration updated successfully",
-        bid: updatedBid
+        bid: updatedBid,
+        configData: updatedConfigurationData
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
