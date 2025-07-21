@@ -70,6 +70,7 @@ export default function BidManagement() {
   const [createBidModalVisible, setCreateBidModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
+  const [reviewForm] = Form.useForm();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
@@ -654,7 +655,6 @@ export default function BidManagement() {
   const [selectedBid, setSelectedBid] = useState(null);
   const [selectedBidForReview, setSelectedBidForReview] = useState(null);
   const [editForm] = Form.useForm();
-  const [reviewForm] = Form.useForm();
 
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
