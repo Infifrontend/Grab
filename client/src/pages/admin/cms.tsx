@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -30,7 +29,7 @@ import {
   PictureOutlined,
   SettingOutlined,
   GlobalOutlined,
-  ImageOutlined
+  // ImageOutlined, Removed ImageOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -250,8 +249,8 @@ export default function CMS() {
                   <Title level={3} className="!mb-0 text-gray-900">156</Title>
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <ImageOutlined className="text-green-600 text-xl" />
-                </div>
+                    <PictureOutlined className="text-green-600 text-xl" />
+                  </div>
               </div>
             </Card>
           </Col>
