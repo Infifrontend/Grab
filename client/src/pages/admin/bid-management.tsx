@@ -277,13 +277,11 @@ export default function BidManagement() {
     try {
       console.log("Form values before submission:", values);
 
-      // Format the data properly with all required fields
+      // Allow submission without required field validation
+
+      // Format the data properly
       const formattedData = {
-        bidTitle: values.bidTitle || "",
-        origin: values.origin || "",
-        destination: values.destination || "",
-        bidAmount: values.bidAmount || 0,
-        flightType: values.flightType || "Domestic",
+        ...values,
         travelDate: values.travelDate
           ? values.travelDate.format("YYYY-MM-DD")
           : null,
@@ -296,18 +294,6 @@ export default function BidManagement() {
               .map((time) => time.format("HH:mm"))
               .join(" - ")
           : null,
-        totalSeatsAvailable: values.totalSeatsAvailable || 50,
-        minSeatsPerBid: values.minSeatsPerBid || 1,
-        maxSeatsPerBid: values.maxSeatsPerBid || 10,
-        maxSeatsPerUser: values.maxSeatsPerUser || 5,
-        fareType: values.fareType || "Economy",
-        baggageAllowance: values.baggageAllowance || 20,
-        cancellationTerms: values.cancellationTerms || "Standard",
-        mealIncluded: values.mealIncluded || false,
-        otherNotes: values.otherNotes || "",
-        autoAwardTopBidder: values.autoAwardTopBidder || false,
-        manualReviewOption: values.manualReviewOption || false,
-        autoRefundNonWinners: values.autoRefundNonWinners || false,
       };
 
       console.log("Formatted data for submission:", formattedData);
@@ -2484,7 +2470,7 @@ export default function BidManagement() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
                 </div>
-                <Text className="text-current">Offer Management</Text>
+                <Text className="text-current">Offers Management</Text>
               </div>
               <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
                 <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -2499,7 +2485,7 @@ export default function BidManagement() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📅</span>
                 </div>
-                <Text className="text-current">Booking Management</Text>
+                <Text className="text-current">Bookings Management</Text>
               </div>
               <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
@@ -2947,30 +2933,7 @@ export default function BidManagement() {
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
-                      <Col span={8}>
-                        <Form.Item
-                          label={
-                            <span className="font-semibold text-gray-700">
-                              Base Bid Amount (₹) *
-                            </span>
-                          }
-                          name="bidAmount"
-                          rules={[{ required: true, message: "Please enter bid amount" }]}
-                        >
-                          <InputNumber
-                            min={0}
-                            max={100000}
-                            className="w-full"
-                            placeholder="Enter base bid amount"
-                            size="large"
-                            formatter={(value) =>
-                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                            }
-                            parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={8}>
+                      <Col span={12}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
@@ -2988,7 +2951,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={8}>
+                      <Col span={12}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">

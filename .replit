@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Start Application"
+runButton = "Start Dev Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -51,15 +51,6 @@ args = "pkill -f \"vite\" || true"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "sleep 3"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Start Application"
-author = 42141631
-mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
