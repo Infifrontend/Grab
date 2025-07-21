@@ -264,8 +264,18 @@ export default function BidManagement() {
     form.resetFields();
   };
 
-  const handleNext = () => {
-    setCurrentStep(currentStep + 1);
+  const handleNext = async () => {
+    // Validate current step before moving to next
+    try {
+      if (currentStep === 0) {
+        // Validate step 1 fields
+        await form.validateFields(['bidTitle', 'origin', 'destination', 'bidAmount']);
+      }
+      setCurrentStep(currentStep + 1);
+    } catch (error) {
+      console.log('Validation failed:', error);
+      // Form validation will show the error messages automatically
+    }
   };
 
   const handlePrev = () => {
@@ -275,56 +285,58 @@ export default function BidManagement() {
   const handleFinish = async (values: any) => {
     setLoading(true);
     try {
-      console.log("Form values before submission:", values);
+      console.log("Form values from handleFinish:", values);
 
-      // Get current form values to ensure we have the latest data
-      const currentFormValues = form.getFieldsValue();
-      const mergedValues = { ...currentFormValues, ...values };
+      // Get ALL current form values to ensure we have complete data
+      const allFormValues = form.getFieldsValue(true); // Get all fields including empty ones
+      console.log("All form values:", allFormValues);
       
-      console.log("Current form values:", currentFormValues);
-      console.log("Merged values:", mergedValues);
+      // Merge with current values, giving priority to handleFinish values
+      const finalValues = { ...allFormValues, ...values };
+      console.log("Final merged values:", finalValues);
 
-      // Validate required fields with merged values
-      if (!mergedValues.bidTitle || mergedValues.bidTitle.trim() === "") {
-        message.error("Bid title is required");
-        setLoading(false);
-        return;
-      }
+      // Validate required fields with final values
+      const errors = [];
       
-      if (!mergedValues.origin || mergedValues.origin.trim() === "") {
-        message.error("Origin airport is required");
-        setLoading(false);
-        return;
+      if (!finalValues.bidTitle || (typeof finalValues.bidTitle === 'string' && finalValues.bidTitle.trim() === "")) {
+        errors.push("Bid title is required");
       }
       
-      if (!mergedValues.destination || mergedValues.destination.trim() === "") {
-        message.error("Destination airport is required");
+      if (!finalValues.origin || (typeof finalValues.origin === 'string' && finalValues.origin.trim() === "")) {
+        errors.push("Origin airport is required");
+      }
+      
+      if (!finalValues.destination || (typeof finalValues.destination === 'string' && finalValues.destination.trim() === "")) {
+        errors.push("Destination airport is required");
+      }
+
+      if (!finalValues.bidAmount || finalValues.bidAmount < 100) {
+        errors.push("Bid amount is required and must be at least ₹100");
+      }
+
+      // Show all validation errors at once
+      if (errors.length > 0) {
+        errors.forEach(error => message.error(error));
         setLoading(false);
         return;
       }
 
-      if (!mergedValues.bidAmount || mergedValues.bidAmount < 100) {
-        message.error("Bid amount is required and must be at least ₹100");
-        setLoading(false);
-        return;
-      }
-
-      // Format the data properly using merged values
+      // Format the data properly using final values
       const formattedData = {
-        ...mergedValues,
-        bidTitle: mergedValues.bidTitle.trim(),
-        origin: mergedValues.origin.trim(),
-        destination: mergedValues.destination.trim(),
-        bidAmount: mergedValues.bidAmount || 0,
-        travelDate: mergedValues.travelDate
-          ? mergedValues.travelDate.format("YYYY-MM-DD")
+        ...finalValues,
+        bidTitle: finalValues.bidTitle ? finalValues.bidTitle.trim() : "",
+        origin: finalValues.origin ? finalValues.origin.trim() : "",
+        destination: finalValues.destination ? finalValues.destination.trim() : "",
+        bidAmount: finalValues.bidAmount || 0,
+        travelDate: finalValues.travelDate
+          ? finalValues.travelDate.format("YYYY-MM-DD")
           : null,
-        bidStartTime: mergedValues.bidStartTime
-          ? mergedValues.bidStartTime.toISOString()
+        bidStartTime: finalValues.bidStartTime
+          ? finalValues.bidStartTime.toISOString()
           : null,
-        bidEndTime: mergedValues.bidEndTime ? mergedValues.bidEndTime.toISOString() : null,
-        departureTimeRange: mergedValues.departureTimeRange
-          ? mergedValues.departureTimeRange
+        bidEndTime: finalValues.bidEndTime ? finalValues.bidEndTime.toISOString() : null,
+        departureTimeRange: finalValues.departureTimeRange
+          ? finalValues.departureTimeRange
               .map((time) => time.format("HH:mm"))
               .join(" - ")
           : null,
@@ -351,7 +363,7 @@ export default function BidManagement() {
         // Show success message
         message.success(
           result.message ||
-            `Bid configuration "${mergedValues.bidTitle || "New Bid"}" created successfully!`,
+            `Bid configuration "${finalValues.bidTitle || "New Bid"}" created successfully!`,
         );
 
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
