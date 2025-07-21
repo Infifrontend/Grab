@@ -666,7 +666,7 @@ export default function BidManagement() {
     const bidData = (recentBidsData || []).find(bid => 
       `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
     );
-    
+
     if (bidData) {
       setSelectedBidForReview({
         ...bidData,
@@ -746,7 +746,7 @@ export default function BidManagement() {
     try {
       const bidId = selectedBidForReview.id;
       const newStatus = action === 'accept' ? 'accepted' : 'rejected';
-      
+
       const response = await apiRequest(
         "PUT",
         `/api/bids/${bidId}/status`,
@@ -768,11 +768,11 @@ export default function BidManagement() {
         message.success(
           `Bid ${action === 'accept' ? 'accepted' : 'rejected'} successfully`
         );
-        
+
         // Refresh data
         queryClient.invalidateQueries(["recent-bids"]);
         queryClient.invalidateQueries(["bid-configurations"]);
-        
+
         // Close modal
         setReviewBidModalVisible(false);
         setSelectedBidForReview(null);
@@ -1050,6 +1050,7 @@ export default function BidManagement() {
         }}
         footer={[
           <Button key="close" onClick={() => setViewBidModalVisible(false)}>
+```python
             Close
           </Button>,
         ]}
@@ -1481,7 +1482,7 @@ export default function BidManagement() {
                   {selectedBidForReview.bidStatus.toUpperCase()}
                 </Tag>
               </div>
-              
+
               <Row gutter={[24, 16]}>
                 <Col span={8}>
                   <div>
@@ -1672,7 +1673,7 @@ export default function BidManagement() {
               >
                 Cancel
               </Button>
-              
+
               <div className="flex space-x-3">
                 <Button
                   danger
@@ -2079,7 +2080,8 @@ export default function BidManagement() {
                               <InfoCircleOutlined className="text-blue-500 ml-2" />
                             </div>
                             <Text className="text-gray-500 text-xs">
-                              Awaiting response
+                              ```python
+Awaiting response
                             </Text>
                           </div>
                         </div>
@@ -2991,7 +2993,8 @@ export default function BidManagement() {
                 <Title level={4} className="!mb-1 text-gray-800 font-bold">
                   Create New Bid Configuration
                 </Title>
-                <Text className="text-gray-600 text-sm">
+                <Text```python
+ className="text-gray-600 text-sm">
                   Set up a new bidding configuration for your airline route
                 </Text>
               </div>
