@@ -29,7 +29,8 @@ import {
   FileTextOutlined,
   PictureOutlined,
   SettingOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  ImageOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
