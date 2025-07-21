@@ -47,22 +47,47 @@ export default function Bids() {
         const bids = await bidsResponse.json();
         
         // Transform bids data to match table format
-        const transformedBids = bids.map((bid: any) => ({
-          bidId: `BID-${bid.id}`,
-          route: `${bid.flight.origin} → ${bid.flight.destination}`,
-          passengers: bid.passengerCount,
-          travelDate: new Date(bid.flight.departureTime).toLocaleDateString(),
-          bidAmount: `$${bid.bidAmount}`,
-          deposit: `$${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
-          status: bid.bidStatus === 'active' ? 'Pending' : 
-                  bid.bidStatus === 'accepted' ? 'Accepted' :
-                  bid.bidStatus === 'rejected' ? 'Declined' :
-                  bid.bidStatus === 'expired' ? 'Expired' : 'Under Review',
-          payment: bid.bidStatus === 'accepted' ? 'Converted to Booking' :
-                   bid.bidStatus === 'rejected' || bid.bidStatus === 'expired' ? 'Refunded' : 'Paid',
-          submitted: new Date(bid.createdAt).toLocaleDateString(),
-          actions: 'View Details'
-        }));
+        const transformedBids = bids.map((bid: any) => {
+          // Parse configuration data from notes to get flight information
+          let configData = {};
+          try {
+            configData = bid.notes ? JSON.parse(bid.notes) : {};
+          } catch (e) {
+            console.error("Error parsing bid notes:", e);
+            configData = {};
+          }
+
+          // Get origin and destination from bid configuration data
+          const origin = configData.origin || bid.flight?.origin || "Unknown";
+          const destination = configData.destination || bid.flight?.destination || "Unknown";
+          const flightRoute = `${origin} → ${destination}`;
+
+          // Get travel date from configuration or flight data
+          const travelDate = configData.travelDate 
+            ? new Date(configData.travelDate).toLocaleDateString()
+            : bid.flight?.departureTime
+            ? new Date(bid.flight.departureTime).toLocaleDateString()
+            : bid.createdAt
+            ? new Date(bid.createdAt).toLocaleDateString()
+            : "N/A";
+
+          return {
+            bidId: `BID-${bid.id}`,
+            route: flightRoute,
+            passengers: bid.passengerCount,
+            travelDate: travelDate,
+            bidAmount: `$${bid.bidAmount}`,
+            deposit: `$${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
+            status: bid.bidStatus === 'active' ? 'Pending' : 
+                    bid.bidStatus === 'accepted' ? 'Accepted' :
+                    bid.bidStatus === 'rejected' ? 'Declined' :
+                    bid.bidStatus === 'expired' ? 'Expired' : 'Under Review',
+            payment: bid.bidStatus === 'accepted' ? 'Converted to Booking' :
+                     bid.bidStatus === 'rejected' || bid.bidStatus === 'expired' ? 'Refunded' : 'Paid',
+            submitted: new Date(bid.createdAt).toLocaleDateString(),
+            actions: 'View Details'
+          };
+        });
         
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);
