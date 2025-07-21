@@ -2444,6 +2444,7 @@ export default function BidManagement() {
             layout="vertical"
             onFinish={handleFinish}
           >
+            <>
             {/* Simple Steps Display */}
             <div className="mb-6">
               <div className="relative">
@@ -2843,11 +2844,8 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
-
-
             </div>
-
-            {/* Navigation Footer */}
+            
             <div className="flex justify-between items-center mt-4 pt-4 border-t">
               <div>
                 {currentStep > 0 && (
@@ -2879,6 +2877,7 @@ export default function BidManagement() {
                 )}
               </div>
             </div>
+            </>
           </Form>
         </div>
       </Modal>
