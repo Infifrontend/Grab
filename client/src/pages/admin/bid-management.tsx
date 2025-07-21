@@ -2076,7 +2076,8 @@ export default function BidManagement() {
                             {
                               key: "2",
                               route: "JFK-LHR",
-                              totalBids: 89,
+                              totalBids:```text
+ 89,
                               accepted: 76,
                               successRate: "85.4%",
                               avgBid: "$420",
