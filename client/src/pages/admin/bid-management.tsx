@@ -1,3 +1,6 @@
+` tag and the python code block are removed, and the correct JSX structure is maintained.
+
+<replit_final_file>
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -169,15 +172,15 @@ export default function BidManagement() {
     let title, route, activityType, color;
 
     if (isConfiguration) {
-      title = (configData && configData.title) || "Bid Configuration #" + bid.id;
+      title = (configData && configData.title) || `Bid Configuration #${bid.id}`;
       route = configData && configData.origin && configData.destination ? 
-        configData.origin + " → " + configData.destination : 'Route not specified';
+        `${configData.origin} → ${configData.destination}` : 'Route not specified';
       activityType = 'Bid configuration created';
       color = '#1890ff';
     } else {
       // Regular bid activity
-      title = "Bid #" + bid.id;
-      route = bid.flight ? bid.flight.origin + " → " + bid.flight.destination : 'Route not specified';
+      title = `Bid #${bid.id}`;
+      route = bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not specified';
       activityType = bid.bidStatus === 'active' ? 'Active bid submitted' : 
                     bid.bidStatus === 'accepted' ? 'Bid accepted' :
                     bid.bidStatus === 'rejected' ? 'Bid declined' :
@@ -190,9 +193,9 @@ export default function BidManagement() {
     return {
       type: bid.bidStatus,
       color: color,
-      title: activityType + ": " + title + " (" + route + ")",
+      title: `${activityType}: ${title} (${route})`,
       time: timeAgo,
-      amount: bid.bidAmount ? "₹" + bid.bidAmount : null
+      amount: bid.bidAmount ? `₹${bid.bidAmount}` : null
     };
   });
 
@@ -205,11 +208,11 @@ export default function BidManagement() {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInMinutes < 60) {
-      return diffInMinutes + " minutes ago";
+      return `${diffInMinutes} minutes ago`;
     } else if (diffInHours < 24) {
-      return diffInHours + " hours ago";
+      return `${diffInHours} hours ago`;
     } else {
-      return diffInDays + " days ago";
+      return `${diffInDays} days ago`;
     }
   }
 
@@ -227,11 +230,11 @@ export default function BidManagement() {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays > 0) {
-      return diffInDays + "d " + (diffInHours % 24) + "h";
+      return `${diffInDays}d ${diffInHours % 24}h`;
     } else if (diffInHours > 0) {
-      return diffInHours + "h " + (diffInMinutes % 60) + "m";
+      return `${diffInHours}h ${diffInMinutes % 60}m`;
     } else {
-      return diffInMinutes + "m";
+      return `${diffInMinutes}m`;
     }
   }
 
@@ -278,7 +281,7 @@ export default function BidManagement() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
-        throw new Error("replace_me");
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -286,7 +289,7 @@ export default function BidManagement() {
 
       if (result.success) {
         // Show success message
-        message.success(result.message || "replace_me");
+        message.success(result.message || `Bid configuration "${values.bidTitle || 'New Bid'}" created successfully!`);
 
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
         refetchBids();
@@ -361,19 +364,19 @@ export default function BidManagement() {
 
         return {
           key: bid.id.toString(),
-          bidId: "replace_me",
+          bidId: `BID${bid.id.toString().padStart(3, '0')}`,
           passenger: { 
-            name: configData.groupLeaderName || "replace_me", 
+            name: configData.groupLeaderName || `User ${bid.userId}`, 
             email: configData.groupLeaderEmail || 'user@example.com' 
           },
           flight: { 
             number: bid.flight?.flightNumber || 'N/A',
-            route: bid.flight ? "replace_me" : 'Route not available',
+            route: bid.flight ? `${bid.flight.origin} → ${bid.flight.destination}` : 'Route not available',
             date: bid.flight?.departureTime ? new Date(bid.flight.departureTime).toLocaleDateString() : 'N/A'
           },
-          upgrade: configData.fareType ? "replace_me" : 'Economy → Business',
-          bidAmount: "replace_me",
-          maxBid: "replace_me",
+          upgrade: configData.fareType ? `Economy → ${configData.fareType}` : 'Economy → Business',
+          bidAmount: `₹${bid.bidAmount}`,
+          maxBid: `₹${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
           successRate: '75%', // This could be calculated based on historical data
           timeLeft: timeLeft,
           status: bid.bidStatus,
@@ -566,7 +569,7 @@ export default function BidManagement() {
   const handleToggleBidStatus = async (bid, checked) => {
     try {
       const newStatus = checked ? 'active' : 'inactive';
-      const response = await apiRequest('PUT', "replace_me", {
+      const response = await apiRequest('PUT', `/api/bid-configurations/${bid.id}/status`, {
         status: newStatus
       });
 
@@ -577,7 +580,7 @@ export default function BidManagement() {
       const result = await response.json();
 
       if (result.success) {
-        message.success("replace_me");
+        message.success(`Bid configuration ${checked ? 'activated' : 'deactivated'} successfully`);
         // Refetch bid configurations to update the display
         refetchBids();
       } else {
@@ -616,7 +619,7 @@ export default function BidManagement() {
       console.log('Reviewing bid:', { bidId, decision, adminNotes });
 
       // Update bid status based on admin decision
-      const response = await apiRequest('PUT', "replace_me", {
+      const response = await apiRequest('PUT', `/api/bids/${bidId}/review`, {
         status: decision,
         adminNotes: adminNotes,
         reviewedAt: new Date().toISOString()
@@ -625,14 +628,14 @@ export default function BidManagement() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
-        throw new Error("replace_me");
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
       console.log('Review response:', result);
 
       if (result.success) {
-        message.success("replace_me");
+        message.success(`Bid ${decision} successfully`);
         setReviewBidModalVisible(false);
         setSelectedActiveBid(null);
         reviewForm.resetFields();
@@ -642,7 +645,7 @@ export default function BidManagement() {
         queryClient.invalidateQueries(['bid-configurations']);
 
       } else {
-        message.error(result.message || "replace_me");
+        message.error(result.message || `Failed to ${decision} bid`);
       }
     } catch (error) {
       console.error('Error reviewing bid:', error);
@@ -690,12 +693,12 @@ export default function BidManagement() {
         bidAmount: values.bidAmount
       };
 
-      const response = await apiRequest('PUT', "replace_me", updateData);
+      const response = await apiRequest('PUT', `/api/bid-configurations/${selectedBid.id}`, updateData);
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API response error:', errorText);
-        throw new Error("replace_me");
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -778,9 +781,9 @@ export default function BidManagement() {
               configData = {};
             }
 
-            const title = configData.title || "replace_me";
+            const title = configData.title || `Bid Configuration #${bid.id}`;
             const route = configData.origin && configData.destination ? 
-              "replace_me" : 'Route not specified';
+              `${configData.origin} → ${configData.destination}` : 'Route not specified';
             const totalSeats = configData.totalSeatsAvailable || 'N/A';
             const fareType = configData.fareType || 'Economy';
             const createdDate = bid.createdAt ? new Date(bid.createdAt).toLocaleDateString() : 'Unknown';
@@ -1162,7 +1165,7 @@ export default function BidManagement() {
                   max={100000} 
                   className="w-full" 
                   placeholder="Enter base bid amount"
-                  formatter={value => "replace_me".replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   parser={value => value.replace(/₹\s?|(,*)/g, '')}
                 />
               </Form.Item>
@@ -2452,7 +2455,7 @@ export default function BidManagement() {
                 {/* Active Progress Bar */}
                 <div 
                   className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
-                  style={{ width: "replace_me" }}
+                  style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
                 ></div>
 
                 {/* Steps */}
@@ -2460,15 +2463,15 @@ export default function BidManagement() {
                   {steps.map((step, index) => (
                     <div key={step.title} className="flex flex-col items-center">
                       {/* Step Circle */}
-                      <div className={
-                        "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3 " +
-                        (index < currentStep 
+                      <div className={`
+                        w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
+                        ${index < currentStep 
                           ? 'bg-green-500 border-green-500 text-white' 
                           : index === currentStep 
                           ? 'bg-blue-500 border-blue-500 text-white' 
                           : 'bg-white border-gray-300 text-gray-500'
-                        )
-                      }>
+                        }
+                      `}>
                         {index < currentStep ? (
                           <span className="text-sm">✓</span>
                         ) : (
@@ -2478,10 +2481,10 @@ export default function BidManagement() {
 
                       {/* Step Title */}
                       <div className="mt-2 text-center max-w-[120px]">
-                        <Text className={
-                          "text-xs font-medium " +
-                          (index <= currentStep ? 'text-gray-800' : 'text-gray-500')
-                        }>
+                        <Text className={`
+                          text-xs font-medium
+                          ${index <= currentStep ? 'text-gray-800' : 'text-gray-500'}
+                        `}>
                           {step.title}
                         </Text>
                       </div>
@@ -2491,11 +2494,10 @@ export default function BidManagement() {
               </div>
             </div>
 
-            <div>
-              {/* Step Content */}
-              <div className="min-h-[380px] bg-gray-50 rounded-lg p-4">
-                {/* Step 1: Flight & Route Details */}
-                {currentStep === 0 && (
+            {/* Step Content */}
+            <div className="min-h-[380px] bg-gray-50 rounded-lg p-4">
+              {/* Step 1: Flight & Route Details */}
+              {currentStep === 0 && (
                 <div>
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
@@ -2844,46 +2846,47 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
-              </div>
-              
-              {/* Navigation Footer */}
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div>
+
+
+            </div>
+
+            {/* Navigation Footer */}
+            <div className="flex justify-between items-center mt-4 pt-4 border-t">
+              <div>
                 {currentStep > 0 && (
                   <Button onClick={handlePrev} className="px-4">
                     <span className="mr-1">←</span>
                     Previous
                   </Button>
                 )}
-                </div>
-                <div className="flex space-x-2">
-                  <Button onClick={handleModalCancel} className="px-4">
-                    Cancel
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleModalCancel} className="px-4">
+                  Cancel
+                </Button>
+                {currentStep < steps.length - 1 ? (
+                  <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
+                    Next
+                    <span className="ml-1">→</span>
                   </Button>
-                  {currentStep < steps.length - 1 ? (
-                    <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
-                      Next
-                      <span className="ml-1">→</span>
-                    </Button>
-                  ) : (
-                    <Button 
-                      type="primary" 
-                      onClick={() => form.submit()}
-                      className="px-6 bg-green-600 hover:bg-green-700"
-                      loading={loading}
-                    >
-                      <PlusOutlined className="mr-1" />
-                      Create Bid
-                    </Button>
-                  )}
-                </div>
+                ) : (
+                  <Button 
+                    type="primary" 
+                    onClick={() => form.submit()}
+                    className="px-6 bg-green-600 hover:bg-green-700"
+                    loading={loading}
+                  >
+                    <PlusOutlined className="mr-1" />
+                    Create Bid
+                  </Button>
+                )}
               </div>
             </div>
           </Form>
         </div>
       </Modal>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style>{`
         .ant-tabs-nav {
           margin-bottom: 0;
         }
@@ -3028,7 +3031,7 @@ export default function BidManagement() {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
-      `}} />
+      `}</style>
     </div>
   );
 }

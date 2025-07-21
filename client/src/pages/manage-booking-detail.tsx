@@ -77,7 +77,7 @@ export default function ManageBookingDetail() {
   React.useEffect(() => {
     if (bookingDetails?.passengers && bookingDetails.passengers.length > 0) {
       setPassengers(
-        bookingDetails.passengers.map((p: any) => ({
+        bookingDetails.passengers.map((p) => ({
           firstName: p.firstName || "",
           lastName: p.lastName || "",
         })),
@@ -256,11 +256,12 @@ export default function ManageBookingDetail() {
       passengers.forEach((passenger, index) => {
         const firstName = passenger.firstName || `Passenger${index + 1}`;
         const lastName = passenger.lastName || "";
-        const dateOfBirth = "";
-        const passportNumber = "";
-        const nationality = "";
-        const gender = "";
-        const specialRequirements = "";
+        const dateOfBirth = passenger.dateOfBirth || "";
+        const passportNumber = passenger.passportNumber || "";
+        const nationality = passenger.nationality || "";
+        const gender = passenger.gender || "";
+        const specialRequirements =
+          passenger.specialRequirements || passenger.specialRequests || "";
 
         csvContent += `${firstName},${lastName},${dateOfBirth},${passportNumber},${nationality},${gender},"${specialRequirements}"\n`;
       });
@@ -434,11 +435,11 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                       Current Group Size
                     </Text>
                     <Text className="text-gray-600 text-sm block mb-2">
-                      Confirmed passengers
+                      Confirmed passengers with names filled
                     </Text>
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
                       <Text className="text-green-700 font-semibold text-lg">
-                        {currentGroupSize} passengers
+                        {confirmedPassengersCount} confirmed Passengers
                       </Text>
                     </div>
                   </div>
