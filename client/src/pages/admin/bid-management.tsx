@@ -2491,10 +2491,11 @@ export default function BidManagement() {
               </div>
             </div>
 
-            {/* Step Content */}
-            <div className="min-h-[380px] bg-gray-50 rounded-lg p-4">
-              {/* Step 1: Flight & Route Details */}
-              {currentStep === 0 && (
+            <div>
+              {/* Step Content */}
+              <div className="min-h-[380px] bg-gray-50 rounded-lg p-4">
+                {/* Step 1: Flight & Route Details */}
+                {currentStep === 0 && (
                 <div>
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
@@ -2843,47 +2844,46 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
-
-
-            </div>
-
-            {/* Navigation Footer */}
-            <div className="flex justify-between items-center mt-4 pt-4 border-t">
-              <div>
+              </div>
+              
+              {/* Navigation Footer */}
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <div>
                 {currentStep > 0 && (
                   <Button onClick={handlePrev} className="px-4">
                     <span className="mr-1">←</span>
                     Previous
                   </Button>
                 )}
-              </div>
-              <div className="flex space-x-2">
-                <Button onClick={handleModalCancel} className="px-4">
-                  Cancel
-                </Button>
-                {currentStep < steps.length - 1 ? (
-                  <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
-                    Next
-                    <span className="ml-1">→</span>
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={handleModalCancel} className="px-4">
+                    Cancel
                   </Button>
-                ) : (
-                  <Button 
-                    type="primary" 
-                    onClick={() => form.submit()}
-                    className="px-6 bg-green-600 hover:bg-green-700"
-                    loading={loading}
-                  >
-                    <PlusOutlined className="mr-1" />
-                    Create Bid
-                  </Button>
-                )}
+                  {currentStep < steps.length - 1 ? (
+                    <Button type="primary" onClick={handleNext} className="px-4 bg-blue-600 hover:bg-blue-700">
+                      Next
+                      <span className="ml-1">→</span>
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="primary" 
+                      onClick={() => form.submit()}
+                      className="px-6 bg-green-600 hover:bg-green-700"
+                      loading={loading}
+                    >
+                      <PlusOutlined className="mr-1" />
+                      Create Bid
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </Form>
         </div>
       </Modal>
 
-      <style dangerouslySetInnerHTML={{__html: "
+      <style dangerouslySetInnerHTML={{__html: `
         .ant-tabs-nav {
           margin-bottom: 0;
         }
@@ -3028,7 +3028,7 @@ export default function BidManagement() {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
-      "}} />
+      `}} />
     </div>
   );
 }
