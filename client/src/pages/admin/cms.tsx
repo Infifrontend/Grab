@@ -619,62 +619,6 @@ export default function CMS() {
         </Modal>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t mt-12">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-2">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">GR</span>
-                </div>
-                <Text className="font-semibold text-gray-900">GROUP RETAIL</Text>
-              </div>
-              <Text className="text-gray-600 text-sm mb-4">
-                Comprehensive content management system for your travel platform. 
-                Manage pages, content blocks, media, and site settings efficiently.
-              </Text>
-              <Text className="text-gray-500 text-xs">
-                © 2024 Group Retail. All rights reserved.
-              </Text>
-            </div>
-
-            <div>
-              <Text className="font-medium text-gray-900 mb-3">Quick Links</Text>
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Dashboard</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Pages</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Media Library</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Settings</div>
-              </div>
-            </div>
-
-            <div>
-              <Text className="font-medium text-gray-900 mb-3">Support</Text>
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Help Center</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Documentation</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">Contact Support</div>
-                <div className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer">System Status</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t pt-6 mt-8 flex justify-between items-center">
-            <Text className="text-xs text-gray-500">
-              Version 1.0.0 | Last updated: {new Date().toLocaleDateString()}
-            </Text>
-            <div className="flex items-center space-x-4">
-              <Text className="text-xs text-gray-500">Server Status:</Text>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <Text className="text-xs text-green-600 font-medium">Online</Text>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
