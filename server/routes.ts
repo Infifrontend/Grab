@@ -816,8 +816,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baggageAllowance,
         cancellationTerms,
         mealIncluded,
-        otherNotes
+        otherNotes,
+        bidAmount
       } = req.body;
+
+      // Validate required fields
+      if (!bidTitle || !origin || !destination) {
+        return res.status(400).json({
+          success: false,
+          message: "Bid title, origin, and destination are required fields"
+        });
+      }
+
+      // Validate bid amount
+      const validBidAmount = bidAmount && bidAmount >= 100 ? bidAmount : 1000; // Default to 1000 if not provided or invalid
 
       // Allow submission without required field validation
 
@@ -904,7 +916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bidData = {
         userId: 1, // Default admin user - you might want to get this from session/auth
         flightId: flightId,
-        bidAmount: "0", // Initial amount, will be set by actual bidders
+        bidAmount: validBidAmount.toString(), // Use the validated bid amount
         passengerCount: minSeatsPerBid || 1,
         bidStatus: "active",
         validUntil: validUntilDate,

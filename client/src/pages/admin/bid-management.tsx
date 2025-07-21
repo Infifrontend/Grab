@@ -277,11 +277,38 @@ export default function BidManagement() {
     try {
       console.log("Form values before submission:", values);
 
-      // Allow submission without required field validation
+      // Validate required fields
+      if (!values.bidTitle || values.bidTitle.trim() === "") {
+        message.error("Bid title is required");
+        setLoading(false);
+        return;
+      }
+      
+      if (!values.origin || values.origin.trim() === "") {
+        message.error("Origin airport is required");
+        setLoading(false);
+        return;
+      }
+      
+      if (!values.destination || values.destination.trim() === "") {
+        message.error("Destination airport is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!values.bidAmount || values.bidAmount < 100) {
+        message.error("Bid amount is required and must be at least ₹100");
+        setLoading(false);
+        return;
+      }
 
       // Format the data properly
       const formattedData = {
         ...values,
+        bidTitle: values.bidTitle.trim(),
+        origin: values.origin.trim(),
+        destination: values.destination.trim(),
+        bidAmount: values.bidAmount || 0,
         travelDate: values.travelDate
           ? values.travelDate.format("YYYY-MM-DD")
           : null,
@@ -2692,6 +2719,10 @@ export default function BidManagement() {
                             </span>
                           }
                           name="bidTitle"
+                          rules={[
+                            { required: true, message: "Please enter bid title" },
+                            { min: 3, message: "Bid title must be at least 3 characters" }
+                          ]}
                         >
                           <Input
                             placeholder="Enter bid configuration title"
@@ -2734,12 +2765,17 @@ export default function BidManagement() {
                             </span>
                           }
                           name="origin"
+                          rules={[
+                            { required: true, message: "Please select origin airport" },
+                            { min: 2, message: "Please enter a valid airport code" }
+                          ]}
                         >
                           <Select
                             mode="combobox"
                             placeholder="Search city / airport"
                             size="large"
                             showSearch
+                            allowClear
                             filterOption={(input, option) =>
                               (option?.value ?? "")
                                 .toLowerCase()
@@ -2766,12 +2802,17 @@ export default function BidManagement() {
                             </span>
                           }
                           name="destination"
+                          rules={[
+                            { required: true, message: "Please select destination airport" },
+                            { min: 2, message: "Please enter a valid airport code" }
+                          ]}
                         >
                           <Select
                             mode="combobox"
                             placeholder="Search city / airport"
                             size="large"
                             showSearch
+                            allowClear
                             filterOption={(input, option) =>
                               (option?.value ?? "")
                                 .toLowerCase()
@@ -2815,6 +2856,32 @@ export default function BidManagement() {
                             className="w-full"
                             format="HH:mm"
                             size="large"
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Base Bid Amount (₹) *
+                            </span>
+                          }
+                          name="bidAmount"
+                          rules={[
+                            { required: true, message: "Please enter bid amount" },
+                            { type: "number", min: 100, message: "Minimum bid amount is ₹100" }
+                          ]}
+                        >
+                          <InputNumber
+                            min={100}
+                            max={100000}
+                            className="w-full"
+                            placeholder="Enter base bid amount"
+                            size="large"
+                            formatter={(value) =>
+                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }
+                            parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
                           />
                         </Form.Item>
                       </Col>
