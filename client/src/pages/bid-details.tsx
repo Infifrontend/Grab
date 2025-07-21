@@ -332,7 +332,7 @@ export default function BidDetails() {
               <Row gutter={[24, 20]}>
                 <Col xs={24} md={8}>
                   <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Number of Passengers</Text>
+                    <Text className="text-gray-700 font-medium block mb-2">Number of Passengers *</Text>
                     <Input 
                       value={passengers}
                       onChange={handlePassengersChange}
@@ -340,9 +340,17 @@ export default function BidDetails() {
                       size="large"
                       type="number"
                       min="1"
-                      prefix={<UserOutlined className="text-gray-400" />}
-                      className="rounded-md"
+                      prefix={<UserOutlined className="text-blue-600" />}
+                      className="rounded-md border-blue-300 focus:border-blue-500"
+                      style={{ 
+                        backgroundColor: '#ffffff',
+                        borderColor: '#3b82f6',
+                        boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)'
+                      }}
                     />
+                    <Text className="text-blue-600 text-sm mt-1">
+                      Editable field - Update passenger count as needed
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={8}>
@@ -364,7 +372,7 @@ export default function BidDetails() {
                 </Col>
                 <Col xs={24} md={8}>
                   <div>
-                    <Text className="text-gray-700 font-medium block mb-2">Bid Amount (per person)</Text>
+                    <Text className="text-gray-700 font-medium block mb-2">Bid Amount (per person) *</Text>
                     <Input 
                       value={bidAmount}
                       onChange={handleBidAmountChange}
@@ -372,11 +380,16 @@ export default function BidDetails() {
                       size="large"
                       type="number"
                       min={originalBidAmount}
-                      prefix={<span className="text-gray-400">₹</span>}
-                      className="rounded-md"
+                      prefix={<span className="text-blue-600">₹</span>}
+                      className="rounded-md border-blue-300 focus:border-blue-500"
+                      style={{ 
+                        backgroundColor: '#ffffff',
+                        borderColor: '#3b82f6',
+                        boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)'
+                      }}
                     />
-                    <Text className="text-gray-500 text-sm mt-1">
-                      Minimum bid amount: ₹{originalBidAmount} (can only increase)
+                    <Text className="text-blue-600 text-sm mt-1">
+                      Editable field - Minimum: ₹{originalBidAmount} (can only increase)
                     </Text>
                   </div>
                 </Col>
@@ -502,14 +515,25 @@ export default function BidDetails() {
             <Button 
               size="large" 
               onClick={handleBack}
-              className="order-2 sm:order-1 rounded-md px-8"
+              className="order-3 sm:order-1 rounded-md px-8"
             >
-              Cancel
+              Back to Bids
+            </Button>
+            <Button 
+              size="large"
+              onClick={() => {
+                // Save changes functionality
+                console.log('Saving changes...', { passengers, bidAmount });
+                // You can add API call here to update the bid
+              }}
+              className="order-2 sm:order-2 rounded-md px-8 bg-green-600 hover:bg-green-700 text-white font-semibold"
+            >
+              Save Changes
             </Button>
             <Button 
               type="primary" 
               size="large"
-              className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+              className="order-1 sm:order-3 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
             >
               Continue to Payment
             </Button>
