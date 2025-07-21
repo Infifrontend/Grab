@@ -589,6 +589,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get active bids with complete flight details for admin dashboard
+  app.get("/api/active-bids-with-flights", async (req, res) => {
+    try {
+      console.log("Fetching active bids with flight details...");
+      
+      // Get all bids with their related flight and user data
+      const bids = await storage.getBidsWithDetails();
+      
+      // Filter only active bids and format for admin display
+      const activeBids = bids
+        .filter(bid => bid.bidStatus === 'active')
+        .map(bid => {
+          // Parse configuration data if available
+          let configData = {};
+          try {
+            configData = bid.notes ? JSON.parse(bid.notes) : {};
+          } catch (e) {
+            configData = {};
+          }
+
+          return {
+            ...bid,
+            configData: configData,
+            // Ensure flight data is properly formatted
+            flight: bid.flight ? {
+              ...bid.flight,
+              duration: bid.flight.duration || calculateFlightDuration(bid.flight.departureTime, bid.flight.arrivalTime),
+              stops: bid.flight.stops || 0
+            } : null
+          };
+        })
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      console.log(`Found ${activeBids.length} active bids with flight details`);
+      res.json(activeBids);
+    } catch (error) {
+      console.error("Error fetching active bids with flight details:", error);
+      res.status(500).json({ message: "Failed to fetch active bids with flight details" });
+    }
+  });
+
+  // Helper function to calculate flight duration
+  function calculateFlightDuration(departureTime, arrivalTime) {
+    if (!departureTime || !arrivalTime) return "N/A";
+    
+    const departure = new Date(departureTime);
+    const arrival = new Date(arrivalTime);
+    const diffMs = arrival - departure;
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${diffHrs}h ${diffMins}m`;
+  }
+
   // Update bid configuration status (toggle on/off)
   app.put("/api/bid-configurations/:id/status", async (req, res) => {
     try {
