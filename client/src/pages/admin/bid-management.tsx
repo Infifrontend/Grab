@@ -1,3 +1,6 @@
+` tag and the python code block are removed, and the correct JSX structure is maintained.
+
+<replit_final_file>
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -940,9 +943,6 @@ export default function BidManagement() {
                       </div>
                     </Col>
                     <Col span={12}>
-```python
-Line-by-line analysis: The code is modified to correctly handle the `selectedActiveBid` and `reviewBidModalVisible` states, ensuring the Review Bid modal works correctly on first click.
-<replit_final_file>
                       <div>
                         <Text className="text-gray-500 block mb-1">Max Seats per User:</Text>
                         <Text className="font-medium">{configData.maxSeatsPerUser || 'N/A'}</Text>
@@ -2660,7 +2660,6 @@ Line-by-line analysis: The code is modified to correctly handle the `selectedAct
                       </Col>
                     </Row>
                   </div>
-```python
               )}
 
               {/* Step 3: Bid Pricing & Currency */}
