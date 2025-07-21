@@ -422,99 +422,52 @@ export default function BidManagement() {
     },
   ];
 
-  // Fetch flight details for active bids
-  const { data: flightDetailsData } = useQuery({
-    queryKey: ["active-bids-flight-details"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/active-bids-with-flights");
-      return response.json();
-    },
-  });
-
   const renderActiveBidsContent = () => {
-    // Use the detailed flight data if available, otherwise fall back to recentBidsData
-    const activeBidsData = flightDetailsData || (recentBidsData || []).filter((bid) => bid.bidStatus === "active");
-    
-    const activeBids = activeBidsData.map((bid, index) => {
-      // Calculate time left until bid expires
-      const timeLeft = bid.validUntil
-        ? calculateTimeLeft(new Date(bid.validUntil))
-        : "No expiry";
+    // Filter active bids from the fetched data
+    const activeBids = (recentBidsData || [])
+      .filter((bid) => bid.bidStatus === "active")
+      .map((bid, index) => {
+        // Calculate time left until bid expires
+        const timeLeft = bid.validUntil
+          ? calculateTimeLeft(new Date(bid.validUntil))
+          : "No expiry";
 
-      // Parse configuration data if available
-      let configData = {};
-      try {
-        configData = bid.notes ? JSON.parse(bid.notes) : {};
-      } catch (e) {
-        configData = {};
-      }
+        // Parse configuration data if available
+        let configData = {};
+        try {
+          configData = bid.notes ? JSON.parse(bid.notes) : {};
+        } catch (e) {
+          configData = {};
+        }
 
-      // Extract flight information
-      const flight = bid.flight || {};
-      const flightNumber = flight.flightNumber || `GR-${String(flight.id || Math.floor(Math.random() * 9999)).padStart(4, '0')}`;
-      const origin = flight.origin || "N/A";
-      const destination = flight.destination || "N/A";
-      const departureDate = flight.departureTime 
-        ? new Date(flight.departureTime).toLocaleDateString('en-US', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          })
-        : "N/A";
-      const departureTime = flight.departureTime 
-        ? new Date(flight.departureTime).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        : "N/A";
-      const arrivalTime = flight.arrivalTime 
-        ? new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        : "N/A";
-
-      return {
-        key: bid.id.toString(),
-        bidId: `BID${bid.id.toString().padStart(3, "0")}`,
-        passenger: {
-          name: configData.groupLeaderName || bid.user?.name || `User ${bid.userId}`,
-          email: configData.groupLeaderEmail || bid.user?.username || "user@example.com",
-          phone: configData.groupLeaderPhone || "+1 (555) 123-4567",
-        },
-        flight: {
-          number: flightNumber,
-          airline: flight.airline || "Group Retail Airways",
-          aircraft: flight.aircraft || "Boeing 737-800",
-          route: `${origin} → ${destination}`,
-          origin: origin,
-          destination: destination,
-          date: departureDate,
-          departureTime: departureTime,
-          arrivalTime: arrivalTime,
-          duration: flight.duration || "2h 30m",
-          stops: flight.stops || 0,
-        },
-        upgrade: configData.fareType
-          ? `Economy → ${configData.fareType}`
-          : "Economy → Premium Economy",
-        bidAmount: `₹${Number(bid.bidAmount).toLocaleString()}`,
-        bidAmountPerPerson: `₹${Number(bid.bidAmount).toLocaleString()}`,
-        maxBid: `₹${(parseFloat(bid.bidAmount) * 1.25).toLocaleString()}`,
-        totalBidAmount: `₹${(Number(bid.bidAmount) * (bid.passengerCount || 1)).toLocaleString()}`,
-        successRate: "75%", // This could be calculated based on historical data
-        timeLeft: timeLeft,
-        status: bid.bidStatus,
-        passengerCount: bid.passengerCount || 1,
-        createdAt: bid.createdAt,
-        seatPreferences: configData.seatPreferences || "Window",
-        mealPreferences: configData.mealPreferences || "Standard",
-        specialRequests: configData.specialRequests || "None",
-        baggageAllowance: configData.baggageAllowance || "20kg",
-        cancellationTerms: configData.cancellationTerms || "Standard",
-      };
-    });
+        return {
+          key: bid.id.toString(),
+          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+          passenger: {
+            name: configData.groupLeaderName || `User ${bid.userId}`,
+            email: configData.groupLeaderEmail || "user@example.com",
+          },
+          flight: {
+            number: bid.flight?.flightNumber || "N/A",
+            route: bid.flight
+              ? `${bid.flight.origin} → ${bid.flight.destination}`
+              : "Route not available",
+            date: bid.flight?.departureTime
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
+          },
+          upgrade: configData.fareType
+            ? `Economy → ${configData.fareType}`
+            : "Economy → Business",
+          bidAmount: `₹${bid.bidAmount}`,
+          maxBid: `₹${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+          successRate: "75%", // This could be calculated based on historical data
+          timeLeft: timeLeft,
+          status: bid.bidStatus,
+          passengerCount: bid.passengerCount,
+          createdAt: bid.createdAt,
+        };
+      });
 
     return (
       <div>
@@ -561,196 +514,103 @@ export default function BidManagement() {
                 title: "Bid Details",
                 dataIndex: "bidId",
                 key: "bidDetails",
-                width: 130,
                 render: (bidId, record) => (
                   <div>
-                    <Text strong className="text-blue-600">{bidId}</Text>
+                    <Text strong>{bidId}</Text>
                     <br />
-                    <Tag color="blue" size="small" className="mt-1">
+                    <Text className="text-gray-500 text-sm">
                       {record.upgrade}
-                    </Tag>
+                    </Text>
                   </div>
                 ),
               },
               {
-                title: "Passenger Information",
+                title: "Passenger",
                 dataIndex: "passenger",
                 key: "passenger",
-                width: 200,
-                render: (passenger, record) => (
+                render: (passenger) => (
                   <div>
                     <Text strong>{passenger.name}</Text>
                     <br />
                     <Text className="text-gray-500 text-sm">
                       {passenger.email}
                     </Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      {passenger.phone}
-                    </Text>
-                    <br />
-                    <Text className="text-blue-600 text-sm">
-                      {record.passengerCount} passenger{record.passengerCount > 1 ? "s" : ""}
-                    </Text>
                   </div>
                 ),
               },
               {
-                title: "Flight Details",
+                title: "Flight Info",
                 dataIndex: "flight",
                 key: "flightInfo",
-                width: 280,
                 render: (flight) => (
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <Text strong className="text-lg">{flight.number}</Text>
-                      <Text className="text-gray-500 text-sm">{flight.airline}</Text>
-                    </div>
-                    <div className="mb-2">
-                      <Text className="text-gray-900 font-medium">
-                        {flight.route}
-                      </Text>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <Text className="text-gray-500">Date:</Text>
-                        <br />
-                        <Text>{flight.date}</Text>
-                      </div>
-                      <div>
-                        <Text className="text-gray-500">Aircraft:</Text>
-                        <br />
-                        <Text>{flight.aircraft}</Text>
-                      </div>
-                      <div>
-                        <Text className="text-gray-500">Departure:</Text>
-                        <br />
-                        <Text>{flight.departureTime}</Text>
-                      </div>
-                      <div>
-                        <Text className="text-gray-500">Arrival:</Text>
-                        <br />
-                        <Text>{flight.arrivalTime}</Text>
-                      </div>
-                      <div>
-                        <Text className="text-gray-500">Duration:</Text>
-                        <br />
-                        <Text>{flight.duration}</Text>
-                      </div>
-                      <div>
-                        <Text className="text-gray-500">Stops:</Text>
-                        <br />
-                        <Text>{flight.stops === 0 ? "Non-stop" : `${flight.stops} stop${flight.stops > 1 ? "s" : ""}`}</Text>
-                      </div>
-                    </div>
+                    <Text strong>{flight.number}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">
+                      {flight.route}
+                    </Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">{flight.date}</Text>
                   </div>
                 ),
               },
               {
-                title: "Bid Information",
-                key: "bidInfo",
-                width: 180,
-                render: (_, record) => (
+                title: "Passengers",
+                dataIndex: "passengerCount",
+                key: "passengerCount",
+                render: (count) => (
+                  <Text>
+                    {count} passenger{count > 1 ? "s" : ""}
+                  </Text>
+                ),
+              },
+              {
+                title: "Bid Amount",
+                dataIndex: "bidAmount",
+                key: "bidAmount",
+                render: (amount, record) => (
                   <div>
-                    <div className="mb-2">
-                      <Text className="text-gray-500 text-sm block">Per Person:</Text>
-                      <Text strong className="text-lg">{record.bidAmountPerPerson}</Text>
-                    </div>
-                    <div className="mb-2">
-                      <Text className="text-gray-500 text-sm block">Total Bid:</Text>
-                      <Text strong className="text-xl text-blue-600">{record.totalBidAmount}</Text>
-                    </div>
-                    <div>
-                      <Text className="text-gray-500 text-sm block">Est. Maximum:</Text>
-                      <Text className="text-orange-600">{record.maxBid}</Text>
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                title: "Service Details",
-                key: "serviceDetails",
-                width: 160,
-                render: (_, record) => (
-                  <div className="space-y-1">
-                    <div>
-                      <Text className="text-gray-500 text-xs">Seat:</Text>
-                      <Text className="text-sm ml-1">{record.seatPreferences}</Text>
-                    </div>
-                    <div>
-                      <Text className="text-gray-500 text-xs">Meal:</Text>
-                      <Text className="text-sm ml-1">{record.mealPreferences}</Text>
-                    </div>
-                    <div>
-                      <Text className="text-gray-500 text-xs">Baggage:</Text>
-                      <Text className="text-sm ml-1">{record.baggageAllowance}</Text>
-                    </div>
-                    {record.specialRequests !== "None" && (
-                      <div>
-                        <Text className="text-gray-500 text-xs">Special:</Text>
-                        <Text className="text-sm ml-1">{record.specialRequests}</Text>
-                      </div>
-                    )}
-                  </div>
-                ),
-              },
-              {
-                title: "Time & Status",
-                key: "timeStatus",
-                width: 120,
-                render: (_, record) => (
-                  <div className="text-center">
-                    <Tag
-                      color={
-                        record.timeLeft.includes("hour") && parseInt(record.timeLeft) < 24
-                          ? "red"
-                          : record.timeLeft.includes("day")
-                          ? "blue"
-                          : "orange"
-                      }
-                      className="mb-2"
-                    >
-                      {record.timeLeft}
-                    </Tag>
+                    <Text strong>{amount}</Text>
                     <br />
-                    <Tag color={record.status === "active" ? "green" : "blue"}>
-                      {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                    </Tag>
-                    <br />
-                    <Text className="text-gray-500 text-xs mt-1">
-                      Success: {record.successRate}
+                    <Text className="text-gray-500 text-sm">
+                      Est. Max {record.maxBid}
                     </Text>
                   </div>
+                ),
+              },
+              {
+                title: "Time Left",
+                dataIndex: "timeLeft",
+                key: "timeLeft",
+                render: (time) => (
+                  <Tag
+                    color={
+                      time.includes("hour") && parseInt(time) < 24
+                        ? "red"
+                        : "blue"
+                    }
+                  >
+                    {time}
+                  </Tag>
+                ),
+              },
+              {
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
+                render: (status) => (
+                  <Tag color={status === "active" ? "green" : "blue"}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Tag>
                 ),
               },
               {
                 title: "Actions",
                 key: "actions",
-                width: 120,
                 render: (_, record) => (
-                  <div className="flex flex-col space-y-1">
-                    <Button 
-                      type="primary" 
-                      size="small" 
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Accept
-                    </Button>
-                    <Button 
-                      danger 
-                      size="small"
-                    >
-                      Decline
-                    </Button>
-                    <Button 
-                      type="link" 
-                      icon={<EyeOutlined />} 
-                      size="small"
-                      className="p-0 h-auto"
-                    >
-                      Review
-                    </Button>
-                  </div>
+                  <Button type="link" icon={<EyeOutlined />} size="small">
+                    Review Bid
+                  </Button>
                 ),
               },
             ]}

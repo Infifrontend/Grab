@@ -67,7 +67,6 @@ export interface IStorage {
   updateBidStatus(id: number, status: string): Promise<void>;
   deleteBid(id: number): Promise<void>;
   getBidById(bidId: number): Promise<any>;
-    getBidsWithDetails(): Promise<any>;
 
   // Payments
   getPaymentsByBooking(bookingId: number): Promise<Payment[]>;
@@ -892,51 +891,6 @@ export class DatabaseStorage implements IStorage {
       console.error("Error updating bid details:", error);
       throw error;
     }
-  }
-
-  async getBidsWithDetails() {
-    return db.select({
-      // Bid fields
-      id: bids.id,
-      userId: bids.userId,
-      flightId: bids.flightId,
-      bidAmount: bids.bidAmount,
-      passengerCount: bids.passengerCount,
-      bidStatus: bids.bidStatus,
-      validUntil: bids.validUntil,
-      notes: bids.notes,
-      createdAt: bids.createdAt,
-      updatedAt: bids.updatedAt,
-      // Flight fields
-      flight: {
-        id: flights.id,
-        flightNumber: flights.flightNumber,
-        airline: flights.airline,
-        aircraft: flights.aircraft,
-        origin: flights.origin,
-        destination: flights.destination,
-        departureTime: flights.departureTime,
-        arrivalTime: flights.arrivalTime,
-        duration: flights.duration,
-        stops: flights.stops,
-        cabin: flights.cabin,
-        price: flights.price,
-        currency: flights.currency,
-        availableSeats: flights.availableSeats,
-        totalSeats: flights.totalSeats
-      },
-      // User fields
-      user: {
-        id: users.id,
-        username: users.username,
-        name: users.name,
-        email: users.email
-      }
-    })
-    .from(bids)
-    .leftJoin(flights, eq(bids.flightId, flights.id))
-    .leftJoin(users, eq(bids.userId, users.id))
-    .orderBy(desc(bids.createdAt));
   }
 }
 
