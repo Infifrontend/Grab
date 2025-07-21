@@ -172,8 +172,8 @@ export default function BidManagement() {
     let title, route, activityType, color;
 
     if (isConfiguration) {
-      title = configData.title || `Bid Configuration #${bid.id}`;
-      route = configData.origin && configData.destination ? 
+      title = (configData && configData.title) || `Bid Configuration #${bid.id}`;
+      route = configData && configData.origin && configData.destination ? 
         `${configData.origin} → ${configData.destination}` : 'Route not specified';
       activityType = 'Bid configuration created';
       color = '#1890ff';
