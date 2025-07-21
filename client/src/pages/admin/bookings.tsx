@@ -269,9 +269,10 @@ export default function Bookings() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
-          <div className="p-6">
-            <nav className="space-y-2">
+        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl" style={{ height: 'calc(100vh - 73px)' }}>
+          <div className="h-full overflow-y-auto">
+            <div className="p-6">
+              <nav className="space-y-2">
               <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
                 onClick={() => setLocation("/admin/dashboard")}
@@ -335,6 +336,7 @@ export default function Bookings() {
                 <Text className="text-current">System Settings</Text>
               </div>
             </nav>
+            </div>
           </div>
         </div>
 
