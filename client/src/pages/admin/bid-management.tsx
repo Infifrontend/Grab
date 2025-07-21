@@ -498,7 +498,12 @@ export default function BidManagement() {
                 title: 'Actions',
                 key: 'actions',
                 render: (_, record) => (
-                  <Button type="link" icon={<EyeOutlined />} size="small">
+                  <Button 
+                    type="link" 
+                    icon={<EyeOutlined />} 
+                    size="small"
+                    onClick={() => handleReviewBid(record)}
+                  >
                     Review Bid
                   </Button>
                 ),
@@ -514,8 +519,11 @@ export default function BidManagement() {
 
   const [viewBidModalVisible, setViewBidModalVisible] = useState(false);
   const [editBidModalVisible, setEditBidModalVisible] = useState(false);
+  const [reviewBidModalVisible, setReviewBidModalVisible] = useState(false);
   const [selectedBid, setSelectedBid] = useState(null);
+  const [selectedActiveBid, setSelectedActiveBid] = useState(null);
   const [editForm] = Form.useForm();
+  const [reviewForm] = Form.useForm();
 
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
@@ -575,6 +583,81 @@ export default function BidManagement() {
     } catch (error) {
       console.error('Error updating bid status:', error);
       message.error('Failed to update bid status. Please try again.');
+    }
+  };
+
+  const handleReviewBid = (bid) => {
+    setSelectedActiveBid(bid);
+    setReviewBidModalVisible(true);
+    reviewForm.resetFields();
+    
+    // Pre-populate form with bid details
+    reviewForm.setFieldsValue({
+      bidId: bid.bidId,
+      bidAmount: bid.bidAmount,
+      passengerCount: bid.passengerCount,
+      decision: null,
+      adminNotes: ''
+    });
+  };
+
+  const handleBidReviewSubmit = async (values) => {
+    if (!selectedActiveBid) return;
+    
+    setLoading(true);
+    try {
+      const bidId = selectedActiveBid.key; // Use the key which is the bid ID
+      const decision = values.decision; // 'accepted' or 'rejected'
+      const adminNotes = values.adminNotes || '';
+      
+      console.log('Reviewing bid:', { bidId, decision, adminNotes });
+      
+      // Update bid status based on admin decision
+      const response = await apiRequest('PUT', `/api/bids/${bidId}/review`, {
+        status: decision,
+        adminNotes: adminNotes,
+        reviewedAt: new Date().toISOString()
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API response error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Review response:', result);
+      
+      if (result.success) {
+        message.success(`Bid ${decision} successfully`);
+        setReviewBidModalVisible(false);
+        setSelectedActiveBid(null);
+        reviewForm.resetFields();
+        
+        // Refetch data to update the display
+        queryClient.invalidateQueries(['recent-bids']);
+        queryClient.invalidateQueries(['bid-configurations']);
+        
+      } else {
+        message.error(result.message || `Failed to ${decision} bid`);
+      }
+    } catch (error) {
+      console.error('Error reviewing bid:', error);
+      
+      let errorMessage = 'Failed to review bid. Please try again.';
+      if (error.message) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('API Error')) {
+          errorMessage = 'Server error. Please try again or contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1116,6 +1199,155 @@ export default function BidManagement() {
             </Button>
           </div>
         </Form>
+      </Modal>
+
+      {/* Review Bid Modal */}
+      <Modal
+        title="Review Bid"
+        visible={reviewBidModalVisible}
+        onCancel={() => {
+          setReviewBidModalVisible(false);
+          setSelectedActiveBid(null);
+          reviewForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        {selectedActiveBid && (
+          <div className="space-y-6">
+            {/* Bid Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <Title level={5} className="!mb-3">Bid Details</Title>
+              <Row gutter={[24, 16]}>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Bid ID:</Text>
+                    <Text className="font-medium">{selectedActiveBid.bidId}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Passenger:</Text>
+                    <Text className="font-medium">{selectedActiveBid.passenger.name}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Flight:</Text>
+                    <Text className="font-medium">{selectedActiveBid.flight.number} - {selectedActiveBid.flight.route}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Upgrade Type:</Text>
+                    <Text className="font-medium">{selectedActiveBid.upgrade}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Bid Amount:</Text>
+                    <Text className="font-medium text-lg text-green-600">{selectedActiveBid.bidAmount}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Passengers:</Text>
+                    <Text className="font-medium">{selectedActiveBid.passengerCount}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Time Left:</Text>
+                    <Text className="font-medium">{selectedActiveBid.timeLeft}</Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-500 block mb-1">Success Rate:</Text>
+                    <Text className="font-medium">{selectedActiveBid.successRate}</Text>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+
+            {/* Review Form */}
+            <Form
+              form={reviewForm}
+              layout="vertical"
+              onFinish={handleBidReviewSubmit}
+            >
+              <div className="space-y-4">
+                <div>
+                  <Text className="text-lg font-semibold block mb-3">Admin Decision</Text>
+                  <Form.Item
+                    name="decision"
+                    rules={[{ required: true, message: 'Please select a decision' }]}
+                  >
+                    <Radio.Group size="large">
+                      <div className="space-y-3">
+                        <div className="border border-green-200 rounded-lg p-4 hover:bg-green-50">
+                          <Radio value="accepted" className="font-medium text-green-700">
+                            <div>
+                              <div className="font-semibold">Accept Bid</div>
+                              <div className="text-sm text-gray-600">
+                                Approve the upgrade request and process the payment
+                              </div>
+                            </div>
+                          </Radio>
+                        </div>
+                        <div className="border border-red-200 rounded-lg p-4 hover:bg-red-50">
+                          <Radio value="rejected" className="font-medium text-red-700">
+                            <div>
+                              <div className="font-semibold">Reject Bid</div>
+                              <div className="text-sm text-gray-600">
+                                Decline the upgrade request and refund if applicable
+                              </div>
+                            </div>
+                          </Radio>
+                        </div>
+                      </div>
+                    </Radio.Group>
+                  </Form.Item>
+                </div>
+
+                <div>
+                  <Form.Item
+                    label={<span className="font-semibold">Admin Notes (Optional)</span>}
+                    name="adminNotes"
+                  >
+                    <Input.TextArea 
+                      rows={4} 
+                      placeholder="Add any internal notes about this decision..."
+                      className="rounded-md"
+                    />
+                  </Form.Item>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-6 pt-4 border-t">
+                <Button 
+                  onClick={() => {
+                    setReviewBidModalVisible(false);
+                    setSelectedActiveBid(null);
+                    reviewForm.resetFields();
+                  }}
+                  size="large"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={loading}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Submit Decision
+                </Button>
+              </div>
+            </Form>
+          </div>
+        )}
       </Modal>
     </div>
   );
