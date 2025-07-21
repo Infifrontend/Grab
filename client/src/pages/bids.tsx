@@ -62,13 +62,21 @@ export default function Bids() {
           const destination = configData.destination || bid.flight?.destination || "Unknown";
           const flightRoute = `${origin} → ${destination}`;
 
-          // Get travel date from configuration or flight data
+          // Get travel date from configuration or flight data - format as DD MM YYYY
+          const formatDateToDDMMYYYY = (date) => {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day} ${month} ${year}`;
+          };
+
           const travelDate = configData.travelDate 
-            ? new Date(configData.travelDate).toLocaleDateString()
+            ? formatDateToDDMMYYYY(configData.travelDate)
             : bid.flight?.departureTime
-            ? new Date(bid.flight.departureTime).toLocaleDateString()
+            ? formatDateToDDMMYYYY(bid.flight.departureTime)
             : bid.createdAt
-            ? new Date(bid.createdAt).toLocaleDateString()
+            ? formatDateToDDMMYYYY(bid.createdAt)
             : "N/A";
 
           return {
@@ -84,7 +92,7 @@ export default function Bids() {
                     bid.bidStatus === 'expired' ? 'Expired' : 'Under Review',
             payment: bid.bidStatus === 'accepted' ? 'Converted to Booking' :
                      bid.bidStatus === 'rejected' || bid.bidStatus === 'expired' ? 'Refunded' : 'Paid',
-            submitted: new Date(bid.createdAt).toLocaleDateString(),
+            submitted: formatDateToDDMMYYYY(bid.createdAt),
             actions: 'View Details'
           };
         });
@@ -134,10 +142,12 @@ export default function Bids() {
       );
     }
 
-    // Filter by date range
+    // Filter by date range - convert DD MM YYYY format back to Date for comparison
     if (searchParams.dateFrom) {
       filtered = filtered.filter(bid => {
-        const bidDate = new Date(bid.submitted);
+        // Convert DD MM YYYY format back to Date object
+        const [day, month, year] = bid.submitted.split(' ');
+        const bidDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         const fromDate = new Date(searchParams.dateFrom);
         return bidDate >= fromDate;
       });
@@ -145,7 +155,9 @@ export default function Bids() {
 
     if (searchParams.dateTo) {
       filtered = filtered.filter(bid => {
-        const bidDate = new Date(bid.submitted);
+        // Convert DD MM YYYY format back to Date object
+        const [day, month, year] = bid.submitted.split(' ');
+        const bidDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         const toDate = new Date(searchParams.dateTo);
         return bidDate <= toDate;
       });
