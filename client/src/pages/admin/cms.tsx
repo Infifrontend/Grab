@@ -284,7 +284,7 @@ export default function CMS() {
                 onClick={() => setLocation('/admin/bid-management')}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📋</span>
+                  <span className="text-current text-xs">🏆</span>
                 </div>
                 <Text className="text-current">Bid Management</Text>
               </div>
@@ -293,7 +293,7 @@ export default function CMS() {
                 onClick={() => setLocation('/admin/bookings')}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📅</span>
+                  <span className="text-current text-xs">✈️</span>
                 </div>
                 <Text className="text-current">Booking Management</Text>
               </div>

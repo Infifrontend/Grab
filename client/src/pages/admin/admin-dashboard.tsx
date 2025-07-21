@@ -1002,7 +1002,7 @@ export default function AdminDashboard() {
                 onClick={() => setLocation('/admin/bid-management')}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📋</span>
+                  <span className="text-current text-xs">🏆</span>
                 </div>
                 <Text className="text-current">Bid Management</Text>
               </div>
@@ -1011,27 +1011,18 @@ export default function AdminDashboard() {
                 onClick={() => setLocation('/admin/bookings')}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📅</span>
+                  <span className="text-current text-xs">✈️</span>
                 </div>
-                <Text className="text-current">Bookings</Text>
+                <Text className="text-current">Booking Management</Text>
               </div>
               <div 
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
                 onClick={() => setLocation('/admin/cms')}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">⚙️</span>
+                  <span className="text-current text-xs">📝</span>
                 </div>
-                <Text className="text-current">CMS</Text>
-              </div>
-              <div 
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/admin-settings')}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🔧</span>
-                </div>
-                <Text className="text-current">Admin Settings</Text>
+                <Text className="text-current">CMS Management</Text>
               </div>
               <div 
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
@@ -1040,7 +1031,16 @@ export default function AdminDashboard() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
-                <Text className="text-current">Reports</Text>
+                <Text className="text-current">Reports & Analytics</Text>
+              </div>
+              <div 
+                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                onClick={() => setLocation('/admin/admin-settings')}
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <span className="text-current text-xs">🔧</span>
+                </div>
+                <Text className="text-current">System Settings</Text>
               </div>
             </nav>
           </div>
