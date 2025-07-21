@@ -589,57 +589,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Review bid (accept/reject)
-  app.put("/api/bids/:id/review", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { status, adminNotes } = req.body;
-
-      console.log(`Reviewing bid ${id} with status ${status}`);
-
-      if (!status || !['accepted', 'rejected'].includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid status. Must be 'accepted' or 'rejected'"
-        });
-      }
-
-      // Update the bid status in the database
-      await storage.updateBidStatus(parseInt(id), status);
-
-      // If there are admin notes, update those too
-      if (adminNotes) {
-        await storage.updateBidDetails(parseInt(id), {
-          notes: adminNotes,
-          reviewedAt: new Date()
-        });
-      }
-
-      // Get the updated bid to return
-      const updatedBid = await storage.getBidById(parseInt(id));
-
-      if (!updatedBid) {
-        return res.status(404).json({
-          success: false,
-          message: "Bid not found"
-        });
-      }
-
-      res.json({
-        success: true,
-        message: `Bid ${status} successfully`,
-        bid: updatedBid
-      });
-    } catch (error) {
-      console.error("Error reviewing bid:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to review bid",
-        error: error.message
-      });
-    }
-  });
-
   // Update bid configuration status (toggle on/off)
   app.put("/api/bid-configurations/:id/status", async (req, res) => {
     try {
