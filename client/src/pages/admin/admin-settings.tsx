@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -18,7 +17,7 @@ import {
   Tabs,
   Upload,
   Divider,
-  Badge
+  Badge,
 } from "antd";
 import {
   PlusOutlined,
@@ -31,7 +30,7 @@ import {
   MailOutlined,
   PhoneOutlined,
   BellOutlined,
-  LogoutOutlined
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -42,14 +41,14 @@ export default function AdminSettings() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
   const [isUserModalVisible, setIsUserModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState("users");
   const [form] = Form.useForm();
 
   useEffect(() => {
     // Check if admin is logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
+    const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
     if (!isAdminLoggedIn) {
-      setLocation('/admin/login');
+      setLocation("/admin/login");
     }
   }, [setLocation]);
 
@@ -61,7 +60,7 @@ export default function AdminSettings() {
       role: "Super Admin",
       status: "Active",
       lastLogin: "2024-01-15 14:30",
-      permissions: ["Full Access"]
+      permissions: ["Full Access"],
     },
     {
       id: 2,
@@ -70,7 +69,7 @@ export default function AdminSettings() {
       role: "Admin",
       status: "Active",
       lastLogin: "2024-01-14 09:15",
-      permissions: ["Booking Management", "Offer Management"]
+      permissions: ["Booking Management", "Offer Management"],
     },
     {
       id: 3,
@@ -79,61 +78,61 @@ export default function AdminSettings() {
       role: "Operator",
       status: "Inactive",
       lastLogin: "2024-01-10 16:45",
-      permissions: ["View Only"]
-    }
+      permissions: ["View Only"],
+    },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    setLocation('/admin/login');
+    localStorage.removeItem("adminLoggedIn");
+    setLocation("/admin/login");
   };
 
   const userColumns = [
     {
-      title: 'User',
-      key: 'user',
+      title: "User",
+      key: "user",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <Avatar icon={<UserOutlined />} />
           <div>
             <Text strong>{record.name}</Text>
             <br />
-            <Text type="secondary" className="text-sm">{record.email}</Text>
+            <Text type="secondary" className="text-sm">
+              {record.email}
+            </Text>
           </div>
         </div>
       ),
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
       render: (role) => {
         const colors = {
-          'Super Admin': 'red',
-          'Admin': 'blue',
-          'Operator': 'green'
+          "Super Admin": "red",
+          Admin: "blue",
+          Operator: "green",
         };
         return <Tag color={colors[role]}>{role}</Tag>;
       },
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
-          {status}
-        </Tag>
+        <Tag color={status === "Active" ? "green" : "red"}>{status}</Tag>
       ),
     },
     {
-      title: 'Last Login',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
+      title: "Last Login",
+      dataIndex: "lastLogin",
+      key: "lastLogin",
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: () => (
         <Space>
           <Button type="text" icon={<EditOutlined />} size="small" />
@@ -155,7 +154,9 @@ export default function AdminSettings() {
                   <span className="text-white font-bold text-sm">GR</span>
                 </div>
                 <div>
-                  <Text className="text-gray-600 text-sm font-medium">GROUP RETAIL</Text>
+                  <Text className="text-gray-600 text-sm font-medium">
+                    GROUP RETAIL
+                  </Text>
                   <br />
                   <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
                 </div>
@@ -169,17 +170,11 @@ export default function AdminSettings() {
                 <span className="text-white font-medium">JD</span>
               </Avatar>
               <div className="text-right">
-                <Text className="font-medium text-gray-900 block">John Doe</Text>
-                <Text className="text-gray-500 text-sm">System Administrator</Text>
+                <Text className="font-medium text-gray-900 block">
+                  John Doe
+                </Text>
+                <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
-              <Button 
-                type="text" 
-                icon={<LogoutOutlined />}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
             </div>
           </div>
         </div>
@@ -190,54 +185,54 @@ export default function AdminSettings() {
         <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 min-h-screen sticky top-[73px] shadow-xl">
           <div className="p-6">
             <nav className="space-y-2">
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/dashboard')}
+                onClick={() => setLocation("/admin/dashboard")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
                 </div>
                 <Text className="text-current">Dashboard</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/offer-management')}
+                onClick={() => setLocation("/admin/offer-management")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🎯</span>
                 </div>
                 <Text className="text-current">Offer Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/bid-management')}
+                onClick={() => setLocation("/admin/bid-management")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">🏆</span>
                 </div>
                 <Text className="text-current">Bid Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/bookings')}
+                onClick={() => setLocation("/admin/bookings")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">✈️</span>
                 </div>
                 <Text className="text-current">Booking Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/cms')}
+                onClick={() => setLocation("/admin/cms")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📝</span>
                 </div>
                 <Text className="text-current">CMS Management</Text>
               </div>
-              <div 
+              <div
                 className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation('/admin/reports')}
+                onClick={() => setLocation("/admin/reports")}
               >
                 <div className="w-5 h-5 flex items-center justify-center">
                   <span className="text-current text-xs">📊</span>
@@ -260,12 +255,16 @@ export default function AdminSettings() {
                     <span className="text-white font-medium text-xs">JD</span>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <Text className="text-white text-sm font-medium block truncate">John Doe</Text>
-                    <Text className="text-slate-400 text-xs truncate">Administrator</Text>
+                    <Text className="text-white text-sm font-medium block truncate">
+                      John Doe
+                    </Text>
+                    <Text className="text-slate-400 text-xs truncate">
+                      Administrator
+                    </Text>
                   </div>
                 </div>
-                <Button 
-                  type="text" 
+                <Button
+                  type="text"
                   icon={<LogoutOutlined />}
                   className="flex items-center w-full text-slate-300 hover:text-white hover:bg-slate-700 mt-2 mx-4"
                   onClick={handleLogout}
@@ -291,300 +290,329 @@ export default function AdminSettings() {
             </div>
           </div>
 
-        {/* Settings Tabs */}
-        <Card>
-          <Tabs activeKey={activeTab} onChange={setActiveTab}>
-            <TabPane tab="User Management" key="users">
-              <div className="mb-4">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => setIsUserModalVisible(true)}
-                >
-                  Add New User
-                </Button>
-              </div>
-              <Table
-                columns={userColumns}
-                dataSource={mockUsers}
-                loading={loading}
-                rowKey="id"
-                pagination={false}
-              />
-            </TabPane>
+          {/* Settings Tabs */}
+          <Card>
+            <Tabs activeKey={activeTab} onChange={setActiveTab}>
+              <TabPane tab="User Management" key="users">
+                <div className="mb-4">
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsUserModalVisible(true)}
+                  >
+                    Add New User
+                  </Button>
+                </div>
+                <Table
+                  columns={userColumns}
+                  dataSource={mockUsers}
+                  loading={loading}
+                  rowKey="id"
+                  pagination={false}
+                />
+              </TabPane>
 
-            <TabPane tab="System Settings" key="system">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} lg={12}>
-                  <Card title="Application Settings" className="mb-6">
-                    <Form layout="vertical">
-                      <Form.Item label="Application Name">
-                        <Input defaultValue="Group Retail Admin" />
-                      </Form.Item>
-                      <Form.Item label="Default Language">
-                        <Select defaultValue="en" style={{ width: '100%' }}>
-                          <Select.Option value="en">English</Select.Option>
-                          <Select.Option value="es">Spanish</Select.Option>
-                          <Select.Option value="fr">French</Select.Option>
-                        </Select>
-                      </Form.Item>
-                      <Form.Item label="Time Zone">
-                        <Select defaultValue="UTC" style={{ width: '100%' }}>
-                          <Select.Option value="UTC">UTC</Select.Option>
-                          <Select.Option value="EST">Eastern Time</Select.Option>
-                          <Select.Option value="PST">Pacific Time</Select.Option>
-                        </Select>
-                      </Form.Item>
-                      <Form.Item label="Session Timeout (minutes)">
-                        <Input defaultValue="60" type="number" />
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
+              <TabPane tab="System Settings" key="system">
+                <Row gutter={[24, 24]}>
+                  <Col xs={24} lg={12}>
+                    <Card title="Application Settings" className="mb-6">
+                      <Form layout="vertical">
+                        <Form.Item label="Application Name">
+                          <Input defaultValue="Group Retail Admin" />
+                        </Form.Item>
+                        <Form.Item label="Default Language">
+                          <Select defaultValue="en" style={{ width: "100%" }}>
+                            <Select.Option value="en">English</Select.Option>
+                            <Select.Option value="es">Spanish</Select.Option>
+                            <Select.Option value="fr">French</Select.Option>
+                          </Select>
+                        </Form.Item>
+                        <Form.Item label="Time Zone">
+                          <Select defaultValue="UTC" style={{ width: "100%" }}>
+                            <Select.Option value="UTC">UTC</Select.Option>
+                            <Select.Option value="EST">
+                              Eastern Time
+                            </Select.Option>
+                            <Select.Option value="PST">
+                              Pacific Time
+                            </Select.Option>
+                          </Select>
+                        </Form.Item>
+                        <Form.Item label="Session Timeout (minutes)">
+                          <Input defaultValue="60" type="number" />
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
 
-                <Col xs={24} lg={12}>
-                  <Card title="Email Settings" className="mb-6">
-                    <Form layout="vertical">
-                      <Form.Item label="SMTP Server">
-                        <Input placeholder="smtp.example.com" />
-                      </Form.Item>
-                      <Form.Item label="SMTP Port">
-                        <Input defaultValue="587" type="number" />
-                      </Form.Item>
-                      <Form.Item label="Email Username">
-                        <Input placeholder="admin@example.com" />
-                      </Form.Item>
-                      <Form.Item label="From Email">
-                        <Input defaultValue="noreply@groupretail.com" />
-                      </Form.Item>
-                      <Form.Item label="Enable SSL">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
+                  <Col xs={24} lg={12}>
+                    <Card title="Email Settings" className="mb-6">
+                      <Form layout="vertical">
+                        <Form.Item label="SMTP Server">
+                          <Input placeholder="smtp.example.com" />
+                        </Form.Item>
+                        <Form.Item label="SMTP Port">
+                          <Input defaultValue="587" type="number" />
+                        </Form.Item>
+                        <Form.Item label="Email Username">
+                          <Input placeholder="admin@example.com" />
+                        </Form.Item>
+                        <Form.Item label="From Email">
+                          <Input defaultValue="noreply@groupretail.com" />
+                        </Form.Item>
+                        <Form.Item label="Enable SSL">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
+                </Row>
+              </TabPane>
 
-            <TabPane tab="Security" key="security">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} lg={12}>
-                  <Card title="Password Policy" className="mb-6">
-                    <Form layout="vertical">
-                      <Form.Item label="Minimum Password Length">
-                        <Input defaultValue="8" type="number" />
-                      </Form.Item>
-                      <Form.Item label="Require Uppercase Letters">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                      <Form.Item label="Require Numbers">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                      <Form.Item label="Require Special Characters">
-                        <Switch />
-                      </Form.Item>
-                      <Form.Item label="Password Expiry (days)">
-                        <Input defaultValue="90" type="number" />
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
+              <TabPane tab="Security" key="security">
+                <Row gutter={[24, 24]}>
+                  <Col xs={24} lg={12}>
+                    <Card title="Password Policy" className="mb-6">
+                      <Form layout="vertical">
+                        <Form.Item label="Minimum Password Length">
+                          <Input defaultValue="8" type="number" />
+                        </Form.Item>
+                        <Form.Item label="Require Uppercase Letters">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                        <Form.Item label="Require Numbers">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                        <Form.Item label="Require Special Characters">
+                          <Switch />
+                        </Form.Item>
+                        <Form.Item label="Password Expiry (days)">
+                          <Input defaultValue="90" type="number" />
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
 
-                <Col xs={24} lg={12}>
-                  <Card title="Login Security" className="mb-6">
-                    <Form layout="vertical">
-                      <Form.Item label="Max Login Attempts">
-                        <Input defaultValue="5" type="number" />
-                      </Form.Item>
-                      <Form.Item label="Account Lockout Duration (minutes)">
-                        <Input defaultValue="30" type="number" />
-                      </Form.Item>
-                      <Form.Item label="Two-Factor Authentication">
-                        <Switch />
-                      </Form.Item>
-                      <Form.Item label="IP Whitelist">
-                        <Input.TextArea
-                          rows={3}
-                          placeholder="Enter IP addresses, one per line"
-                        />
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
+                  <Col xs={24} lg={12}>
+                    <Card title="Login Security" className="mb-6">
+                      <Form layout="vertical">
+                        <Form.Item label="Max Login Attempts">
+                          <Input defaultValue="5" type="number" />
+                        </Form.Item>
+                        <Form.Item label="Account Lockout Duration (minutes)">
+                          <Input defaultValue="30" type="number" />
+                        </Form.Item>
+                        <Form.Item label="Two-Factor Authentication">
+                          <Switch />
+                        </Form.Item>
+                        <Form.Item label="IP Whitelist">
+                          <Input.TextArea
+                            rows={3}
+                            placeholder="Enter IP addresses, one per line"
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
+                </Row>
+              </TabPane>
 
-            <TabPane tab="Notifications" key="notifications">
-              <Card title="Notification Settings">
-                <Form layout="vertical">
-                  <Title level={4}>Email Notifications</Title>
-                  <Row gutter={[24, 16]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="New Booking Notifications">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="Payment Notifications">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="System Alerts">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="User Registration">
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+              <TabPane tab="Notifications" key="notifications">
+                <Card title="Notification Settings">
+                  <Form layout="vertical">
+                    <Title level={4}>Email Notifications</Title>
+                    <Row gutter={[24, 16]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="New Booking Notifications">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="Payment Notifications">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="System Alerts">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="User Registration">
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                  <Divider />
+                    <Divider />
 
-                  <Title level={4}>SMS Notifications</Title>
-                  <Row gutter={[24, 16]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="Critical Alerts Only">
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item label="Booking Confirmations">
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                    <Title level={4}>SMS Notifications</Title>
+                    <Row gutter={[24, 16]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="Critical Alerts Only">
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item label="Booking Confirmations">
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                  <Divider />
+                    <Divider />
 
-                  <Title level={4}>Admin Email Recipients</Title>
-                  <Form.Item label="Primary Admin Email">
-                    <Input defaultValue="admin@groupretail.com" />
-                  </Form.Item>
-                  <Form.Item label="Secondary Admin Email">
-                    <Input placeholder="secondary@groupretail.com" />
-                  </Form.Item>
-                </Form>
-              </Card>
-            </TabPane>
+                    <Title level={4}>Admin Email Recipients</Title>
+                    <Form.Item label="Primary Admin Email">
+                      <Input defaultValue="admin@groupretail.com" />
+                    </Form.Item>
+                    <Form.Item label="Secondary Admin Email">
+                      <Input placeholder="secondary@groupretail.com" />
+                    </Form.Item>
+                  </Form>
+                </Card>
+              </TabPane>
 
-            <TabPane tab="Backup & Logs" key="backup">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} lg={12}>
-                  <Card title="Backup Settings">
-                    <Form layout="vertical">
-                      <Form.Item label="Automatic Backup">
-                        <Switch defaultChecked />
-                      </Form.Item>
-                      <Form.Item label="Backup Frequency">
-                        <Select defaultValue="daily" style={{ width: '100%' }}>
-                          <Select.Option value="hourly">Hourly</Select.Option>
-                          <Select.Option value="daily">Daily</Select.Option>
-                          <Select.Option value="weekly">Weekly</Select.Option>
-                        </Select>
-                      </Form.Item>
-                      <Form.Item label="Backup Retention (days)">
-                        <Input defaultValue="30" type="number" />
-                      </Form.Item>
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary">Create Backup Now</Button>
-                          <Button>Download Latest Backup</Button>
-                        </Space>
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
+              <TabPane tab="Backup & Logs" key="backup">
+                <Row gutter={[24, 24]}>
+                  <Col xs={24} lg={12}>
+                    <Card title="Backup Settings">
+                      <Form layout="vertical">
+                        <Form.Item label="Automatic Backup">
+                          <Switch defaultChecked />
+                        </Form.Item>
+                        <Form.Item label="Backup Frequency">
+                          <Select
+                            defaultValue="daily"
+                            style={{ width: "100%" }}
+                          >
+                            <Select.Option value="hourly">Hourly</Select.Option>
+                            <Select.Option value="daily">Daily</Select.Option>
+                            <Select.Option value="weekly">Weekly</Select.Option>
+                          </Select>
+                        </Form.Item>
+                        <Form.Item label="Backup Retention (days)">
+                          <Input defaultValue="30" type="number" />
+                        </Form.Item>
+                        <Form.Item>
+                          <Space>
+                            <Button type="primary">Create Backup Now</Button>
+                            <Button>Download Latest Backup</Button>
+                          </Space>
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
 
-                <Col xs={24} lg={12}>
-                  <Card title="System Logs">
-                    <Form layout="vertical">
-                      <Form.Item label="Log Level">
-                        <Select defaultValue="info" style={{ width: '100%' }}>
-                          <Select.Option value="debug">Debug</Select.Option>
-                          <Select.Option value="info">Info</Select.Option>
-                          <Select.Option value="warning">Warning</Select.Option>
-                          <Select.Option value="error">Error</Select.Option>
-                        </Select>
-                      </Form.Item>
-                      <Form.Item label="Log Retention (days)">
-                        <Input defaultValue="90" type="number" />
-                      </Form.Item>
-                      <Form.Item>
-                        <Space>
-                          <Button>View Error Logs</Button>
-                          <Button>View Access Logs</Button>
-                          <Button>Download Logs</Button>
-                        </Space>
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
-          </Tabs>
+                  <Col xs={24} lg={12}>
+                    <Card title="System Logs">
+                      <Form layout="vertical">
+                        <Form.Item label="Log Level">
+                          <Select defaultValue="info" style={{ width: "100%" }}>
+                            <Select.Option value="debug">Debug</Select.Option>
+                            <Select.Option value="info">Info</Select.Option>
+                            <Select.Option value="warning">
+                              Warning
+                            </Select.Option>
+                            <Select.Option value="error">Error</Select.Option>
+                          </Select>
+                        </Form.Item>
+                        <Form.Item label="Log Retention (days)">
+                          <Input defaultValue="90" type="number" />
+                        </Form.Item>
+                        <Form.Item>
+                          <Space>
+                            <Button>View Error Logs</Button>
+                            <Button>View Access Logs</Button>
+                            <Button>Download Logs</Button>
+                          </Space>
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  </Col>
+                </Row>
+              </TabPane>
+            </Tabs>
 
-          <div className="mt-6 flex justify-end">
-            <Space>
-              <Button>Reset to Defaults</Button>
-              <Button type="primary">Save All Settings</Button>
-            </Space>
-          </div>
-        </Card>
-
-        {/* Add User Modal */}
-        <Modal
-          title="Add New User"
-          open={isUserModalVisible}
-          onCancel={() => setIsUserModalVisible(false)}
-          footer={null}
-          width={600}
-        >
-          <Form form={form} layout="vertical">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="firstName" label="First Name" rules={[{ required: true }]}>
-                  <Input placeholder="Enter first name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="lastName" label="Last Name" rules={[{ required: true }]}>
-                  <Input placeholder="Enter last name" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
-              <Input placeholder="Enter email address" />
-            </Form.Item>
-            <Form.Item name="role" label="Role" rules={[{ required: true }]}>
-              <Select placeholder="Select role">
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="operator">Operator</Select.Option>
-                <Select.Option value="viewer">Viewer</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="permissions" label="Permissions">
-              <Select mode="multiple" placeholder="Select permissions">
-                <Select.Option value="booking_management">Booking Management</Select.Option>
-                <Select.Option value="offer_management">Offer Management</Select.Option>
-                <Select.Option value="bid_management">Bid Management</Select.Option>
-                <Select.Option value="cms">CMS</Select.Option>
-                <Select.Option value="reports">Reports</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="status" label="Status" valuePropName="checked">
-              <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
-            </Form.Item>
-            <Form.Item>
+            <div className="mt-6 flex justify-end">
               <Space>
-                <Button onClick={() => setIsUserModalVisible(false)}>Cancel</Button>
-                <Button type="primary">Create User</Button>
+                <Button>Reset to Defaults</Button>
+                <Button type="primary">Save All Settings</Button>
               </Space>
-            </Form.Item>
-          </Form>
-        </Modal>
+            </div>
+          </Card>
+
+          {/* Add User Modal */}
+          <Modal
+            title="Add New User"
+            open={isUserModalVisible}
+            onCancel={() => setIsUserModalVisible(false)}
+            footer={null}
+            width={600}
+          >
+            <Form form={form} layout="vertical">
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="firstName"
+                    label="First Name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input placeholder="Enter first name" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="lastName"
+                    label="Last Name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input placeholder="Enter last name" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[{ required: true, type: "email" }]}
+              >
+                <Input placeholder="Enter email address" />
+              </Form.Item>
+              <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+                <Select placeholder="Select role">
+                  <Select.Option value="admin">Admin</Select.Option>
+                  <Select.Option value="operator">Operator</Select.Option>
+                  <Select.Option value="viewer">Viewer</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name="permissions" label="Permissions">
+                <Select mode="multiple" placeholder="Select permissions">
+                  <Select.Option value="booking_management">
+                    Booking Management
+                  </Select.Option>
+                  <Select.Option value="offer_management">
+                    Offer Management
+                  </Select.Option>
+                  <Select.Option value="bid_management">
+                    Bid Management
+                  </Select.Option>
+                  <Select.Option value="cms">CMS</Select.Option>
+                  <Select.Option value="reports">Reports</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name="status" label="Status" valuePropName="checked">
+                <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+              </Form.Item>
+              <Form.Item>
+                <Space>
+                  <Button onClick={() => setIsUserModalVisible(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="primary">Create User</Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Modal>
         </div>
       </div>
     </div>
