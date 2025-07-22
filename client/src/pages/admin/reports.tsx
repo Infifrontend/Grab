@@ -13,6 +13,9 @@ import {
   Col,
   Statistic,
   Tooltip,
+  Tabs,
+  List,
+  Progress,
 } from "antd";
 import {
   DownloadOutlined,
@@ -21,6 +24,10 @@ import {
   FilePdfOutlined,
   BellOutlined,
   LogoutOutlined,
+  UserOutlined,
+  DollarOutlined,
+  CalendarOutlined,
+  TrophyOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import {
