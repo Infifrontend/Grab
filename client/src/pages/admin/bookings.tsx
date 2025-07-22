@@ -132,7 +132,6 @@ export default function Bookings() {
       title: "Booking ID",
       dataIndex: "bookingId",
       key: "bookingId",
-      sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
       render: (bookingId, record) => (
         <div>
           <Text strong className="text-blue-600">
@@ -152,7 +151,6 @@ export default function Bookings() {
     {
       title: "Group Leader",
       key: "groupLeader",
-      sorter: (a, b) => a.groupLeader.localeCompare(b.groupLeader),
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <Avatar size="small" icon={<UserOutlined />} />
@@ -169,12 +167,6 @@ export default function Bookings() {
     {
       title: "Route & Date",
       key: "route",
-      sorter: (a, b) => {
-        if (a.departureDate === "N/A" && b.departureDate === "N/A") return 0;
-        if (a.departureDate === "N/A") return 1;
-        if (b.departureDate === "N/A") return -1;
-        return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime();
-      },
       render: (_, record) => (
         <div>
           <Text strong>{record.route}</Text>
@@ -193,7 +185,6 @@ export default function Bookings() {
       title: "Passengers",
       dataIndex: "passengers",
       key: "passengers",
-      sorter: (a, b) => a.passengers - b.passengers,
       render: (passengers) => (
         <div className="text-center">
           <Text strong className="text-lg">
@@ -210,7 +201,6 @@ export default function Bookings() {
       title: "Total Amount",
       dataIndex: "totalAmount",
       key: "totalAmount",
-      sorter: (a, b) => a.totalAmount - b.totalAmount,
       render: (amount) => (
         <div>
           <Text strong className="text-green-600 text-lg">
@@ -227,14 +217,6 @@ export default function Bookings() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      sorter: (a, b) => a.status.localeCompare(b.status),
-      filters: [
-        { text: "Confirmed", value: "confirmed" },
-        { text: "Pending", value: "pending" },
-        { text: "Cancelled", value: "cancelled" },
-        { text: "Processing", value: "processing" },
-      ],
-      onFilter: (value, record) => record.status === value,
       render: (status) => {
         const colors = {
           confirmed: "green",
