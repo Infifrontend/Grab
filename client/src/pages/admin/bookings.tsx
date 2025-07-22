@@ -814,8 +814,10 @@ export default function Bookings() {
                     <Title level={5} className="!mb-3 !mt-6">Passenger Information</Title>
                     <div className="space-y-2">
                       {selectedBooking.passengers.map((passenger, index) => (
-                        <Card key={index} size="small" className="bg-gray-50">
-                          <Text strong>{passenger.title} {passenger.firstName} {passenger.lastName}</Text>
+                        <Card key={passenger.id || index} size="small" className="bg-gray-50">
+                          <Text strong>
+                            {passenger.title || ''} {passenger.firstName || ''} {passenger.lastName || ''}
+                          </Text>
                           {passenger.nationality && (
                             <Text className="ml-2 text-gray-600">({passenger.nationality})</Text>
                           )}
