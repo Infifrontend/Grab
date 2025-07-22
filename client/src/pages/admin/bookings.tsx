@@ -850,10 +850,3 @@ export default function Bookings() {
     </div>
   );
 }
-            )}
-          </Modal>
-        </div>
-      </div>
-    </div>
-  );
-}
