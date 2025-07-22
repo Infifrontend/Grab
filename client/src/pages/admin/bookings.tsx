@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -697,7 +696,7 @@ export default function Bookings() {
                   Start a new group travel booking for your organization
                 </Text>
               </div>
-              
+
               <Row gutter={24}>
                 <Col xs={24} lg={14}>
                   <Card className="h-fit">
@@ -706,7 +705,8 @@ export default function Bookings() {
                         Admin Quick Booking
                       </h2>
                       <p className="text-sm text-gray-600">
-                        Create a new group booking and navigate through the complete booking flow
+                        Create a new group booking and navigate through the
+                        complete booking flow
                       </p>
                     </div>
 
@@ -714,8 +714,9 @@ export default function Bookings() {
                       layout="vertical"
                       onFinish={(values) => {
                         // Store booking data and navigate to flight search flow
-                        const totalPassengers = values.adults + values.kids + values.infants;
-                        
+                        const totalPassengers =
+                          values.adults + values.kids + values.infants;
+
                         const bookingData = {
                           origin: values.origin,
                           destination: values.destination,
@@ -727,12 +728,15 @@ export default function Bookings() {
                           infants: values.infants,
                           cabin: values.cabin,
                           totalPassengers,
-                          isAdminBooking: true
+                          isAdminBooking: true,
                         };
 
-                        localStorage.setItem("bookingFormData", JSON.stringify(bookingData));
+                        localStorage.setItem(
+                          "bookingFormData",
+                          JSON.stringify(bookingData),
+                        );
                         localStorage.setItem("isAdminBooking", "true");
-                        
+
                         // Navigate to flight search bundle page to start the complete flow
                         setLocation("/flight-search-bundle");
                       }}
@@ -741,7 +745,7 @@ export default function Bookings() {
                         adults: 1,
                         kids: 0,
                         infants: 0,
-                        cabin: "economy"
+                        cabin: "economy",
                       }}
                     >
                       {/* Trip Type */}
@@ -763,7 +767,12 @@ export default function Bookings() {
                           <Form.Item
                             label="Origin *"
                             name="origin"
-                            rules={[{ required: true, message: "Please select origin" }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select origin",
+                              },
+                            ]}
                             className="mb-4"
                           >
                             <Select
@@ -792,7 +801,12 @@ export default function Bookings() {
                           <Form.Item
                             label="Destination *"
                             name="destination"
-                            rules={[{ required: true, message: "Please select destination" }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select destination",
+                              },
+                            ]}
                             className="mb-4"
                           >
                             <Select
@@ -825,7 +839,12 @@ export default function Bookings() {
                           <Form.Item
                             label="Departure Date *"
                             name="departureDate"
-                            rules={[{ required: true, message: "Please select departure date" }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select departure date",
+                              },
+                            ]}
                             className="mb-4"
                           >
                             <DatePicker
@@ -860,7 +879,12 @@ export default function Bookings() {
                           <Form.Item
                             label="Adults *"
                             name="adults"
-                            rules={[{ required: true, message: "At least 1 adult required" }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "At least 1 adult required",
+                              },
+                            ]}
                             className="mb-4"
                           >
                             <InputNumber min={1} max={50} className="w-full" />
@@ -887,11 +911,7 @@ export default function Bookings() {
                       </Row>
 
                       {/* Cabin */}
-                      <Form.Item
-                        label="Cabin *"
-                        name="cabin"
-                        className="mb-6"
-                      >
+                      <Form.Item label="Cabin *" name="cabin" className="mb-6">
                         <Select placeholder="Select cabin class">
                           <Option value="economy">Economy</Option>
                           <Option value="business">Business</Option>
@@ -921,7 +941,11 @@ export default function Bookings() {
                       </Text>
                     </div>
 
-                    <Space direction="vertical" size="middle" className="w-full">
+                    <Space
+                      direction="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
                       <Button
                         size="large"
                         className="w-full text-left flex items-center justify-start"
@@ -966,22 +990,6 @@ export default function Bookings() {
                           </div>
                         </div>
                       </Button>
-
-                      <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <Title level={5} className="!mb-2 text-blue-700">
-                          Complete Booking Flow
-                        </Title>
-                        <Text className="text-blue-600 text-sm">
-                          After clicking "Search Flight", you'll be taken through the complete booking process:
-                        </Text>
-                        <ul className="mt-2 text-blue-600 text-sm list-disc list-inside space-y-1">
-                          <li>Flight search results & selection</li>
-                          <li>Service bundles & add-ons</li>
-                          <li>Group leader information</li>
-                          <li>Passenger details</li>
-                          <li>Payment & confirmation</li>
-                        </ul>
-                      </div>
                     </Space>
                   </Card>
                 </Col>
@@ -1073,7 +1081,11 @@ export default function Bookings() {
                       </Text>
                     </div>
 
-                    <Space direction="vertical" size="middle" className="w-full">
+                    <Space
+                      direction="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
                       <Button
                         size="large"
                         icon={<UserOutlined />}
@@ -1156,22 +1168,37 @@ export default function Bookings() {
                     <Row gutter={[16, 16]}>
                       {processedBookings.slice(0, 6).map((booking) => (
                         <Col xs={24} sm={12} lg={8} key={booking.id}>
-                          <Card 
+                          <Card
                             className="h-full hover:shadow-md transition-shadow cursor-pointer"
-                            onClick={() => handleManageBooking(booking.bookingId)}
+                            onClick={() =>
+                              handleManageBooking(booking.bookingId)
+                            }
                           >
                             <div className="mb-4">
                               <div className="flex justify-between items-start mb-2">
                                 <Text className="font-bold text-lg text-blue-600">
                                   {booking.bookingId}
                                 </Text>
-                                <Tag color={booking.status === 'confirmed' ? 'green' : booking.status === 'pending' ? 'orange' : 'red'}>
-                                  {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                <Tag
+                                  color={
+                                    booking.status === "confirmed"
+                                      ? "green"
+                                      : booking.status === "pending"
+                                        ? "orange"
+                                        : "red"
+                                  }
+                                >
+                                  {booking.status?.charAt(0).toUpperCase() +
+                                    booking.status?.slice(1)}
                                 </Tag>
                               </div>
                             </div>
 
-                            <Space direction="vertical" size="small" className="w-full mb-4">
+                            <Space
+                              direction="vertical"
+                              size="small"
+                              className="w-full mb-4"
+                            >
                               <div className="flex items-center gap-2 text-gray-600">
                                 <UserOutlined className="text-sm" />
                                 <Text className="text-sm">
@@ -1182,7 +1209,11 @@ export default function Bookings() {
                               <div className="flex items-center gap-2 text-gray-600">
                                 <CalendarOutlined className="text-sm" />
                                 <Text className="text-sm">
-                                  {booking.comprehensiveData?.tripDetails?.origin || 'N/A'} → {booking.comprehensiveData?.tripDetails?.destination || 'N/A'}
+                                  {booking.comprehensiveData?.tripDetails
+                                    ?.origin || "N/A"}{" "}
+                                  →{" "}
+                                  {booking.comprehensiveData?.tripDetails
+                                    ?.destination || "N/A"}
                                 </Text>
                               </div>
 
@@ -1269,12 +1300,18 @@ export default function Bookings() {
                   {selectedBooking.email}
                 </Descriptions.Item>
                 <Descriptions.Item label="Route">
-                  {selectedBooking.comprehensiveData?.tripDetails?.origin || 'N/A'} {" - "}
-                  {selectedBooking.comprehensiveData?.tripDetails?.destination || 'N/A'}
+                  {selectedBooking.comprehensiveData?.tripDetails?.origin ||
+                    "N/A"}{" "}
+                  {" - "}
+                  {selectedBooking.comprehensiveData?.tripDetails
+                    ?.destination || "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.comprehensiveData?.tripDetails?.departureDate !== "N/A"
-                    ? new Date(selectedBooking.comprehensiveData?.tripDetails?.departureDate).toLocaleDateString()
+                  {selectedBooking.comprehensiveData?.tripDetails
+                    ?.departureDate !== "N/A"
+                    ? new Date(
+                        selectedBooking.comprehensiveData?.tripDetails?.departureDate,
+                      ).toLocaleDateString()
                     : "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
@@ -1284,10 +1321,12 @@ export default function Bookings() {
                   ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
-                  {selectedBooking.comprehensiveData?.flightDetails?.outbound?.airline || 'N/A'}
+                  {selectedBooking.comprehensiveData?.flightDetails?.outbound
+                    ?.airline || "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Flight Number">
-                  {selectedBooking.comprehensiveData?.flightDetails?.outbound?.flightNumber || 'N/A'}
+                  {selectedBooking.comprehensiveData?.flightDetails?.outbound
+                    ?.flightNumber || "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
                   <Tag
