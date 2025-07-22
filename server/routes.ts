@@ -11,6 +11,19 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+import { eq, and, desc, sql, asc, inArray } from "drizzle-orm";
+import type { Request, Response } from "express";
+import { db } from "./db.js";
+import {
+  users,
+  flights,
+  bookings,
+  passengers,
+  bids,
+  bidConfigurations,
+  payments,
+  notifications,
+} from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all deals
@@ -607,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (adminNotes || counterOffer || rejectionReason) {
         const existingBid = await storage.getBidById(parseInt(id));
         let existingNotes = {};
-        
+
         try {
           existingNotes = existingBid?.bid?.notes ? JSON.parse(existingBid.bid.notes) : {};
         } catch (e) {
@@ -773,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
-      
+
       let errorMessage = "Failed to update bid configuration";
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
@@ -786,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = `Failed to update bid configuration: ${error.message}`;
         }
       }
-      
+
       res.status(500).json({
         success: false,
         message: errorMessage,
@@ -859,9 +872,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create bid configuration
-  app.post("/api/bid-configurations", async (req, res) => {
+  app.post("/api/bid-configurations", async (req: Request, res: Response) => {
     try {
-      console.log("Received bid configuration request:", req.body);
+      console.log("Received bid configuration data:", req.body);
 
       const {
         bidTitle,
@@ -995,6 +1008,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bidConfig = await storage.createBid(bidData);
 
       console.log("Bid configuration created successfully:", bidConfig);
+
+      // Create notification for new bid configuration
+      await createNotification(
+        'bid_created',
+        'New Bid Configuration Created',
+        `A new bid configuration "${bidTitle}" for route ${origin} → ${destination} has been created with base amount ₹${validBidAmount}.`,
+        'medium',
+        {
+          bidId: bidConfig.id,
+          bidTitle,
+          route: `${origin} → ${destination}`,
+          amount: validBidAmount
+        }
+      );
 
       res.json({
         success: true,
@@ -1258,6 +1285,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+
+  // Notification endpoints
+  app.get("/api/notifications", async (req: Request, res: Response) => {
+    try {
+      const notificationsList = await db
+        .select()
+        .from(notifications)
+        .orderBy(desc(notifications.createdAt))
+        .limit(50); // Limit to recent 50 notifications
+
+      res.json({ notifications: notificationsList });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.json({ notifications: [] });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", async (req: Request, res: Response) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+
+      await db
+        .update(notifications)
+        .set({ 
+          isRead: true,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(notifications.id, notificationId));
+
+      res.json({ success: true, message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ success: false, error: "Failed to mark notification as read" });
+    }
+  });
+
+  app.put("/api/notifications/mark-all-read", async (req: Request, res: Response) => {
+    try {
+      await db
+        .update(notifications)
+        .set({ 
+          isRead: true,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(notifications.isRead, false));
+
+      res.json({ success: true, message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ success: false, error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Create notification (helper function for internal use)
+  const createNotification = async (type: string, title: string, message: string, priority: string = 'medium', actionData: any = null) => {
+    try {
+      await db.insert(notifications).values({
+        type,
+        title,
+        message,
+        priority,
+        isRead: false,
+        actionData: actionData ? JSON.stringify(actionData) : null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error creating notification:", error);
+    }
+  };
 
   const httpServer = createServer(app);
   return httpServer;

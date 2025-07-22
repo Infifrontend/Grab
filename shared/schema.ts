@@ -128,8 +128,8 @@ export const bids = pgTable("bids", {
 // Payment handling for transactions
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
-  bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
-  paymentReference: text("payment_reference").notNull().unique(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  userId: integer("user_id").references(() => users.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: text("currency").notNull().default("USD"),
   paymentMethod: text("payment_method").notNull(), // credit_card, debit_card, paypal, bank_transfer
@@ -151,6 +151,18 @@ export const refunds = pgTable("refunds", {
   refundStatus: text("refund_status").notNull().default("pending"), // pending, processing, completed, failed
   processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // bid_created, bid_accepted, payment_received, etc.
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  priority: text("priority").default("medium"), // low, medium, high
+  actionData: text("action_data"), // JSON string for any action-specific data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relations
