@@ -200,7 +200,15 @@ export default function Header() {
                   </div>
 
                   {/* View All Button */}
-                  <div className="px-6 py-4 border-t border-gray-100"></div>
+                  <div className="px-6 py-4 border-t border-gray-100">
+                    <Button
+                      type="primary"
+                      className="w-full h-10 bg-blue-500 hover:bg-blue-600 border-0 rounded-lg font-medium"
+                      onClick={handleViewAllNotifications}
+                    >
+                      View All
+                    </Button>
+                  </div>
                 </div>
               }
               placement="bottomRight"
