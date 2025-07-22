@@ -81,6 +81,10 @@ export default function Bookings() {
     let comprehensiveData = {};
     let groupLeaderName = "N/A";
     let groupLeaderEmail = "N/A";
+    let route = "N/A";
+    let departureDate = "N/A";
+    let airline = "N/A";
+    let flightNumber = "N/A";
 
     if (booking.specialRequests) {
       try {
@@ -89,11 +93,34 @@ export default function Bookings() {
           groupLeaderName =
             comprehensiveData.groupLeaderInfo.name ||
             comprehensiveData.groupLeaderInfo.groupLeaderName ||
+            comprehensiveData.groupLeaderInfo.firstName + " " + comprehensiveData.groupLeaderInfo.lastName ||
             "N/A";
           groupLeaderEmail =
             comprehensiveData.groupLeaderInfo.email ||
             comprehensiveData.groupLeaderInfo.groupLeaderEmail ||
             "N/A";
+        }
+        
+        // Extract flight details from comprehensive data
+        if (comprehensiveData.tripDetails) {
+          if (comprehensiveData.tripDetails.origin && comprehensiveData.tripDetails.destination) {
+            route = `${comprehensiveData.tripDetails.origin} → ${comprehensiveData.tripDetails.destination}`;
+          }
+          if (comprehensiveData.tripDetails.departureDate) {
+            departureDate = new Date(comprehensiveData.tripDetails.departureDate).toISOString().split("T")[0];
+          }
+        }
+        
+        // Check for selected flights data
+        if (comprehensiveData.selectedFlights?.outbound) {
+          airline = comprehensiveData.selectedFlights.outbound.airline || airline;
+          flightNumber = comprehensiveData.selectedFlights.outbound.flightNumber || flightNumber;
+        }
+        
+        // Check for flight details data
+        if (comprehensiveData.flightDetails?.outbound) {
+          airline = comprehensiveData.flightDetails.outbound.airline || airline;
+          flightNumber = comprehensiveData.flightDetails.outbound.flightNumber || flightNumber;
         }
       } catch (e) {
         // If parsing fails, use default values
@@ -107,19 +134,19 @@ export default function Bookings() {
       email: groupLeaderEmail,
       route: booking.flight
         ? `${booking.flight.origin} → ${booking.flight.destination}`
-        : "N/A",
+        : route,
       departureDate: booking.flight
         ? new Date(booking.flight.departureTime).toISOString().split("T")[0]
-        : "N/A",
+        : departureDate,
       passengers: booking.passengerCount || 0,
       totalAmount: parseFloat(booking.totalAmount || "0"),
       status: booking.bookingStatus || "pending",
       bookingDate: booking.bookedAt
         ? new Date(booking.bookedAt).toISOString().split("T")[0]
         : "N/A",
-      airline: booking.flight ? booking.flight.airline : "N/A",
+      airline: booking.flight ? booking.flight.airline : airline,
       paymentStatus: booking.paymentStatus || "pending",
-      flightNumber: booking.flight ? booking.flight.flightNumber : "N/A",
+      flightNumber: booking.flight ? booking.flight.flightNumber : flightNumber,
       comprehensiveData,
     };
   });
@@ -718,16 +745,20 @@ export default function Bookings() {
                 <Descriptions.Item label="Route">
                   {selectedBooking.flightData 
                     ? `${selectedBooking.flightData.origin} → ${selectedBooking.flightData.destination}`
-                    : selectedBooking.route !== "N/A" 
-                      ? selectedBooking.route 
-                      : "Route information not available"}
+                    : selectedBooking.comprehensiveData?.tripDetails?.origin && selectedBooking.comprehensiveData?.tripDetails?.destination
+                      ? `${selectedBooking.comprehensiveData.tripDetails.origin} → ${selectedBooking.comprehensiveData.tripDetails.destination}`
+                      : selectedBooking.route !== "N/A" 
+                        ? selectedBooking.route 
+                        : "Route information not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
                   {selectedBooking.flightData?.departureTime
                     ? new Date(selectedBooking.flightData.departureTime).toLocaleDateString()
-                    : selectedBooking.departureDate !== "N/A"
-                      ? new Date(selectedBooking.departureDate).toLocaleDateString()
-                      : "Date not available"}
+                    : selectedBooking.comprehensiveData?.tripDetails?.departureDate
+                      ? new Date(selectedBooking.comprehensiveData.tripDetails.departureDate).toLocaleDateString()
+                      : selectedBooking.departureDate !== "N/A"
+                        ? new Date(selectedBooking.departureDate).toLocaleDateString()
+                        : "Date not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
                   {selectedBooking.passengers?.length || selectedBooking.passengerCount || selectedBooking.passengers}
@@ -736,14 +767,16 @@ export default function Bookings() {
                   ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
-                  {selectedBooking.flightData?.airline || selectedBooking.airline !== "N/A" 
-                    ? selectedBooking.airline 
-                    : "Airline information not available"}
+                  {selectedBooking.flightData?.airline || 
+                   selectedBooking.comprehensiveData?.selectedFlights?.outbound?.airline ||
+                   selectedBooking.comprehensiveData?.flightDetails?.outbound?.airline ||
+                   (selectedBooking.airline !== "N/A" ? selectedBooking.airline : "Airline information not available")}
                 </Descriptions.Item>
                 <Descriptions.Item label="Flight Number">
-                  {selectedBooking.flightData?.flightNumber || selectedBooking.flightNumber !== "N/A" 
-                    ? selectedBooking.flightNumber 
-                    : "Flight number not available"}
+                  {selectedBooking.flightData?.flightNumber || 
+                   selectedBooking.comprehensiveData?.selectedFlights?.outbound?.flightNumber ||
+                   selectedBooking.comprehensiveData?.flightDetails?.outbound?.flightNumber ||
+                   (selectedBooking.flightNumber !== "N/A" ? selectedBooking.flightNumber : "Flight number not available")}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
                   <Tag
