@@ -58,7 +58,11 @@ export default function AdminLogin() {
           </div>
           
           {/* Airline Branding */}
-          <Title level={2} className="!mb-2 text-gray-900 font-bold tracking-wide">
+          <Title 
+            level={2} 
+            className="!mb-2 text-gray-900 font-bold tracking-wide cursor-pointer hover:text-blue-600 transition-colors duration-200"
+            onClick={() => setLocation('/')}
+          >
             INFINITI AIRWAYS
           </Title>
           <Text className="text-blue-600 text-base font-semibold uppercase tracking-widest">
