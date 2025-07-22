@@ -335,9 +335,41 @@ export default function Bookings() {
     },
   ];
 
-  const handleViewBooking = (booking) => {
-    setSelectedBooking(booking);
-    setIsModalVisible(true);
+  const handleViewBooking = async (booking) => {
+    try {
+      // Fetch complete booking details including flight information
+      const response = await fetch(`/api/booking-details/${booking.bookingId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking details');
+      }
+      
+      const bookingDetails = await response.json();
+      
+      // Merge the fetched details with the existing booking data
+      const completeBookingData = {
+        ...booking,
+        route: bookingDetails.flightData 
+          ? `${bookingDetails.flightData.origin} → ${bookingDetails.flightData.destination}`
+          : booking.route,
+        departureDate: bookingDetails.flightData
+          ? new Date(bookingDetails.flightData.departureTime).toISOString().split('T')[0]
+          : booking.departureDate,
+        airline: bookingDetails.flightData?.airline || booking.airline,
+        flightNumber: bookingDetails.flightData?.flightNumber || booking.flightNumber,
+        passengers: bookingDetails.passengers || [],
+        flightData: bookingDetails.flightData,
+        comprehensiveData: bookingDetails.comprehensiveData
+      };
+      
+      setSelectedBooking(completeBookingData);
+      setIsModalVisible(true);
+    } catch (error) {
+      console.error('Error fetching booking details:', error);
+      message.error('Failed to fetch complete booking details');
+      // Fallback to showing basic booking data
+      setSelectedBooking(booking);
+      setIsModalVisible(true);
+    }
   };
 
   const handleEditBooking = (booking) => {
@@ -684,26 +716,34 @@ export default function Bookings() {
                   {selectedBooking.email}
                 </Descriptions.Item>
                 <Descriptions.Item label="Route">
-                  {selectedBooking.route}
+                  {selectedBooking.flightData 
+                    ? `${selectedBooking.flightData.origin} → ${selectedBooking.flightData.destination}`
+                    : selectedBooking.route !== "N/A" 
+                      ? selectedBooking.route 
+                      : "Route information not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.departureDate !== "N/A"
-                    ? new Date(
-                        selectedBooking.departureDate,
-                      ).toLocaleDateString()
-                    : "N/A"}
+                  {selectedBooking.flightData?.departureTime
+                    ? new Date(selectedBooking.flightData.departureTime).toLocaleDateString()
+                    : selectedBooking.departureDate !== "N/A"
+                      ? new Date(selectedBooking.departureDate).toLocaleDateString()
+                      : "Date not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
-                  {selectedBooking.passengers}
+                  {selectedBooking.passengers?.length || selectedBooking.passengerCount || selectedBooking.passengers}
                 </Descriptions.Item>
                 <Descriptions.Item label="Total Amount">
                   ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
-                  {selectedBooking.airline}
+                  {selectedBooking.flightData?.airline || selectedBooking.airline !== "N/A" 
+                    ? selectedBooking.airline 
+                    : "Airline information not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Flight Number">
-                  {selectedBooking.flightNumber}
+                  {selectedBooking.flightData?.flightNumber || selectedBooking.flightNumber !== "N/A" 
+                    ? selectedBooking.flightNumber 
+                    : "Flight number not available"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
                   <Tag
@@ -723,6 +763,53 @@ export default function Bookings() {
                     : "N/A"}
                 </Descriptions.Item>
               </Descriptions>
+
+              {selectedBooking?.passengers && Array.isArray(selectedBooking.passengers) && selectedBooking.passengers.length > 0 && (
+                <>
+                  <Title level={5} className="!mb-3 !mt-6">Passenger Information</Title>
+                  <div className="space-y-2">
+                    {selectedBooking.passengers.map((passenger, index) => (
+                      <Card key={passenger.id || index} size="small" className="bg-gray-50">
+                        <div>
+                          <Text strong>
+                            {passenger.title || ''} {passenger.firstName || ''} {passenger.lastName || ''}
+                          </Text>
+                          {passenger.nationality && (
+                            <div>
+                              <Text className="ml-2 text-gray-600">({passenger.nationality})</Text>
+                            </div>
+                          )}
+                          {passenger.seatPreference && (
+                            <div>
+                              <Text className="ml-2 text-blue-600">• {passenger.seatPreference} seat</Text>
+                            </div>
+                          )}
+                          {passenger.mealPreference && (
+                            <div>
+                              <Text className="ml-2 text-green-600">• {passenger.mealPreference} meal</Text>
+                            </div>
+                          )}
+                          {passenger.dateOfBirth && (
+                            <div>
+                              <Text className="ml-2 text-gray-600">• DOB: {new Date(passenger.dateOfBirth).toLocaleDateString()}</Text>
+                            </div>
+                          )}
+                          {passenger.passportNumber && (
+                            <div>
+                              <Text className="ml-2 text-gray-600">• Passport: {passenger.passportNumber}</Text>
+                            </div>
+                          )}
+                          {passenger.specialAssistance && (
+                            <div>
+                              <Text className="ml-2 text-orange-600">• Special Assistance: {passenger.specialAssistance}</Text>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
             )}
           </Modal>
         </div>
