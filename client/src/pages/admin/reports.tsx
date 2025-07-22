@@ -1,32 +1,24 @@
 import { useState, useEffect } from "react";
 import {
   Card,
-  Row,
-  Col,
+  Table,
   Typography,
+  Space,
   Button,
+  Badge,
+  Avatar,
   Select,
   DatePicker,
-  Space,
-  Table,
+  Row,
+  Col,
   Statistic,
-  Progress,
-  Tabs,
-  List,
-  Avatar,
-  Badge,
+  Tooltip,
 } from "antd";
 import {
   DownloadOutlined,
+  PrinterOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
-  PrinterOutlined,
-  CalendarOutlined,
-  DollarOutlined,
-  UserOutlined,
-  TrophyOutlined,
-  BarChartOutlined,
-  LineChartOutlined,
   BellOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
@@ -50,6 +42,13 @@ const { TabPane } = Tabs;
 
 export default function Reports() {
   const [, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminUsername');
+    setLocation('/admin/login');
+  };
+
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState("last30days");
   const [activeTab, setActiveTab] = useState("overview");
@@ -177,11 +176,6 @@ export default function Reports() {
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
-    setLocation("/admin/login");
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -215,6 +209,13 @@ export default function Reports() {
                 </Text>
                 <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
+              <Tooltip title="Sign out">
+                <Button
+                  type="text"
+                  icon={<LogoutOutlined />}
+                  onClick={handleLogout}
+                />
+              </Tooltip>
             </div>
           </div>
         </div>

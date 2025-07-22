@@ -18,6 +18,7 @@ import {
   Upload,
   Divider,
   Badge,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -83,8 +84,9 @@ export default function AdminSettings() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
-    setLocation("/admin/login");
+    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminUsername');
+    setLocation('/admin/login');
   };
 
   const userColumns = [
@@ -175,6 +177,12 @@ export default function AdminSettings() {
                 </Text>
                 <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
+              <Tooltip title="Logout">
+                <LogoutOutlined
+                  className="text-gray-500 text-lg cursor-pointer"
+                  onClick={handleLogout}
+                />
+              </Tooltip>
             </div>
           </div>
         </div>
