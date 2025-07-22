@@ -335,55 +335,9 @@ export default function Bookings() {
     },
   ];
 
-  const handleViewBooking = async (booking) => {
-    try {
-      message.loading("Loading booking details...");
-      
-      // Fetch complete booking details from the database
-      const response = await fetch(`/api/booking-details/${booking.bookingId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch booking details");
-      }
-      
-      const bookingDetails = await response.json();
-      
-      // Combine the existing booking data with fetched details
-      const completeBookingData = {
-        ...booking,
-        route: bookingDetails.flightData 
-          ? `${bookingDetails.flightData.origin} → ${bookingDetails.flightData.destination}`
-          : booking.route,
-        departureDate: bookingDetails.flightData 
-          ? new Date(bookingDetails.flightData.departureTime).toISOString().split("T")[0]
-          : booking.departureDate,
-        airline: bookingDetails.flightData?.airline || booking.airline,
-        flightNumber: bookingDetails.flightData?.flightNumber || booking.flightNumber,
-        aircraft: bookingDetails.flightData?.aircraft || "N/A",
-        departureTime: bookingDetails.flightData 
-          ? new Date(bookingDetails.flightData.departureTime).toLocaleString()
-          : "N/A",
-        arrivalTime: bookingDetails.flightData 
-          ? new Date(bookingDetails.flightData.arrivalTime).toLocaleString()
-          : "N/A",
-        duration: bookingDetails.flightData?.duration || "N/A",
-        stops: bookingDetails.flightData?.stops || 0,
-        availableSeats: bookingDetails.flightData?.availableSeats || 0,
-        totalSeats: bookingDetails.flightData?.totalSeats || 0,
-        comprehensiveData: bookingDetails.comprehensiveData,
-        passengers: bookingDetails.passengers || [],
-      };
-      
-      setSelectedBooking(completeBookingData);
-      setIsModalVisible(true);
-      message.destroy();
-    } catch (error) {
-      console.error("Error fetching booking details:", error);
-      message.error("Failed to load booking details");
-      
-      // Fallback to showing existing data
-      setSelectedBooking(booking);
-      setIsModalVisible(true);
-    }
+  const handleViewBooking = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalVisible(true);
   };
 
   const handleEditBooking = (booking) => {
@@ -705,157 +659,70 @@ export default function Bookings() {
             width={800}
           >
             {selectedBooking && (
-              <div>
-                <Descriptions bordered column={2} className="mb-4">
-                  <Descriptions.Item label="Booking ID">
-                    {selectedBooking.bookingId}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Status">
-                    <Tag
-                      color={
-                        selectedBooking.status === "confirmed"
-                          ? "green"
-                          : selectedBooking.status === "pending"
-                            ? "orange"
-                            : "red"
-                      }
-                    >
-                      {selectedBooking.status?.charAt(0).toUpperCase() +
-                        selectedBooking.status?.slice(1)}
-                    </Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Group Leader">
-                    {selectedBooking.groupLeader}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Email">
-                    {selectedBooking.email}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Passengers">
-                    {selectedBooking.passengers}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Total Amount">
-                    ₹{selectedBooking.totalAmount.toLocaleString()}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Payment Status">
-                    <Tag
-                      color={
-                        selectedBooking.paymentStatus === "paid"
-                          ? "green"
-                          : "orange"
-                      }
-                    >
-                      {selectedBooking.paymentStatus?.charAt(0).toUpperCase() +
-                        selectedBooking.paymentStatus?.slice(1)}
-                    </Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Booking Date">
-                    {selectedBooking.bookingDate !== "N/A"
-                      ? new Date(selectedBooking.bookingDate).toLocaleDateString()
-                      : "N/A"}
-                  </Descriptions.Item>
-                </Descriptions>
-
-                {/* Flight Information Section */}
-                <Title level={5} className="!mb-3 !mt-6">Flight Information</Title>
-                <Descriptions bordered column={2} className="mb-4">
-                  <Descriptions.Item label="Route">
-                    <Text strong className="text-blue-600">
-                      {selectedBooking.route}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Departure Date">
-                    <Text strong>
-                      {selectedBooking.departureDate !== "N/A"
-                        ? new Date(selectedBooking.departureDate).toLocaleDateString()
-                        : "N/A"}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Airline">
-                    <Text strong className="text-green-600">
-                      {selectedBooking.airline}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Flight Number">
-                    <Text strong className="text-purple-600">
-                      {selectedBooking.flightNumber}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Aircraft">
-                    {selectedBooking.aircraft}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Duration">
-                    {selectedBooking.duration}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Departure Time">
-                    {selectedBooking.departureTime}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Arrival Time">
-                    {selectedBooking.arrivalTime}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Stops">
-                    <Badge 
-                      count={selectedBooking.stops} 
-                      style={{ backgroundColor: selectedBooking.stops === 0 ? '#52c41a' : '#faad14' }}
-                    />
-                    <Text className="ml-2">
-                      {selectedBooking.stops === 0 ? 'Non-stop' : `${selectedBooking.stops} stop(s)`}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Seat Availability">
-                    <Text>
-                      {selectedBooking.availableSeats} / {selectedBooking.totalSeats} available
-                    </Text>
-                  </Descriptions.Item>
-                </Descriptions>
-
-                {/* Passengers Information */}
-                {selectedBooking.passengers && selectedBooking.passengers.length > 0 && (
-                  <>
-                    <Title level={5} className="!mb-3 !mt-6">Passenger Information</Title>
-                    <div className="space-y-2">
-                      {selectedBooking.passengers.map((passenger, index) => (
-                        <Card key={passenger.id || index} size="small" className="bg-gray-50">
-                          <div>
-                            <Text strong>
-                              {passenger.title || ''} {passenger.firstName || ''} {passenger.lastName || ''}
-                            </Text>
-                            {passenger.nationality && (
-                              <div>
-                                <Text className="ml-2 text-gray-600">({passenger.nationality})</Text>
-                              </div>
-                            )}
-                            {passenger.seatPreference && (
-                              <div>
-                                <Text className="ml-2 text-blue-600">• {passenger.seatPreference} seat</Text>
-                              </div>
-                            )}
-                            {passenger.mealPreference && (
-                              <div>
-                                <Text className="ml-2 text-green-600">• {passenger.mealPreference} meal</Text>
-                              </div>
-                            )}
-                            {passenger.dateOfBirth && (
-                              <div>
-                                <Text className="ml-2 text-gray-600">• DOB: {new Date(passenger.dateOfBirth).toLocaleDateString()}</Text>
-                              </div>
-                            )}
-                            {passenger.passportNumber && (
-                              <div>
-                                <Text className="ml-2 text-gray-600">• Passport: {passenger.passportNumber}</Text>
-                              </div>
-                            )}
-                            {passenger.specialAssistance && (
-                              <div>
-                                <Text className="ml-2 text-orange-600">• Special Assistance: {passenger.specialAssistance}</Text>
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              <Descriptions bordered column={2}>
+                <Descriptions.Item label="Booking ID">
+                  {selectedBooking.bookingId}
+                </Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  <Tag
+                    color={
+                      selectedBooking.status === "confirmed"
+                        ? "green"
+                        : selectedBooking.status === "pending"
+                          ? "orange"
+                          : "red"
+                    }
+                  >
+                    {selectedBooking.status?.charAt(0).toUpperCase() +
+                      selectedBooking.status?.slice(1)}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Group Leader">
+                  {selectedBooking.groupLeader}
+                </Descriptions.Item>
+                <Descriptions.Item label="Email">
+                  {selectedBooking.email}
+                </Descriptions.Item>
+                <Descriptions.Item label="Route">
+                  {selectedBooking.route}
+                </Descriptions.Item>
+                <Descriptions.Item label="Departure Date">
+                  {selectedBooking.departureDate !== "N/A"
+                    ? new Date(
+                        selectedBooking.departureDate,
+                      ).toLocaleDateString()
+                    : "N/A"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Passengers">
+                  {selectedBooking.passengers}
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Amount">
+                  ₹{selectedBooking.totalAmount.toLocaleString()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Airline">
+                  {selectedBooking.airline}
+                </Descriptions.Item>
+                <Descriptions.Item label="Flight Number">
+                  {selectedBooking.flightNumber}
+                </Descriptions.Item>
+                <Descriptions.Item label="Payment Status">
+                  <Tag
+                    color={
+                      selectedBooking.paymentStatus === "paid"
+                        ? "green"
+                        : "orange"
+                    }
+                  >
+                    {selectedBooking.paymentStatus?.charAt(0).toUpperCase() +
+                      selectedBooking.paymentStatus?.slice(1)}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Booking Date">
+                  {selectedBooking.bookingDate !== "N/A"
+                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
+                    : "N/A"}
+                </Descriptions.Item>
+              </Descriptions>
             )}
           </Modal>
         </div>
