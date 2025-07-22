@@ -60,7 +60,11 @@ export default function Bookings() {
   };
 
   // Fetch flight bookings from API
-  const { data: flightBookings = [], isLoading, error } = useQuery({
+  const {
+    data: flightBookings = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["/api/flight-bookings"],
     queryFn: async () => {
       const response = await fetch("/api/flight-bookings");
@@ -82,8 +86,14 @@ export default function Bookings() {
       try {
         comprehensiveData = JSON.parse(booking.specialRequests);
         if (comprehensiveData.groupLeaderInfo) {
-          groupLeaderName = comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.groupLeaderName || "N/A";
-          groupLeaderEmail = comprehensiveData.groupLeaderInfo.email || comprehensiveData.groupLeaderInfo.groupLeaderEmail || "N/A";
+          groupLeaderName =
+            comprehensiveData.groupLeaderInfo.name ||
+            comprehensiveData.groupLeaderInfo.groupLeaderName ||
+            "N/A";
+          groupLeaderEmail =
+            comprehensiveData.groupLeaderInfo.email ||
+            comprehensiveData.groupLeaderInfo.groupLeaderEmail ||
+            "N/A";
         }
       } catch (e) {
         // If parsing fails, use default values
@@ -95,37 +105,55 @@ export default function Bookings() {
       bookingId: booking.bookingReference,
       groupLeader: groupLeaderName,
       email: groupLeaderEmail,
-      route: booking.flight ? `${booking.flight.origin} → ${booking.flight.destination}` : "N/A",
-      departureDate: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : "N/A",
+      route: booking.flight
+        ? `${booking.flight.origin} → ${booking.flight.destination}`
+        : "N/A",
+      departureDate: booking.flight
+        ? new Date(booking.flight.departureTime).toISOString().split("T")[0]
+        : "N/A",
       passengers: booking.passengerCount || 0,
       totalAmount: parseFloat(booking.totalAmount || "0"),
       status: booking.bookingStatus || "pending",
-      bookingDate: booking.bookedAt ? new Date(booking.bookedAt).toISOString().split('T')[0] : "N/A",
+      bookingDate: booking.bookedAt
+        ? new Date(booking.bookedAt).toISOString().split("T")[0]
+        : "N/A",
       airline: booking.flight ? booking.flight.airline : "N/A",
       paymentStatus: booking.paymentStatus || "pending",
       flightNumber: booking.flight ? booking.flight.flightNumber : "N/A",
-      comprehensiveData
+      comprehensiveData,
     };
   });
 
   // Filter bookings based on search and filters
   const filteredBookings = processedBookings.filter((booking) => {
-    const matchesSearch = searchText === "" || 
+    const matchesSearch =
+      searchText === "" ||
       booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
       booking.groupLeader.toLowerCase().includes(searchText.toLowerCase()) ||
       booking.email.toLowerCase().includes(searchText.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
-    const matchesAirline = airlineFilter === "all" || booking.airline.toLowerCase().includes(airlineFilter.toLowerCase());
-    
+
+    const matchesStatus =
+      statusFilter === "all" || booking.status === statusFilter;
+    const matchesAirline =
+      airlineFilter === "all" ||
+      booking.airline.toLowerCase().includes(airlineFilter.toLowerCase());
+
     return matchesSearch && matchesStatus && matchesAirline;
   });
 
   // Calculate statistics
   const totalBookings = processedBookings.length;
-  const totalPassengers = processedBookings.reduce((sum, booking) => sum + booking.passengers, 0);
-  const totalRevenue = processedBookings.reduce((sum, booking) => sum + booking.totalAmount, 0);
-  const confirmedBookings = processedBookings.filter(booking => booking.status === "confirmed").length;
+  const totalPassengers = processedBookings.reduce(
+    (sum, booking) => sum + booking.passengers,
+    0,
+  );
+  const totalRevenue = processedBookings.reduce(
+    (sum, booking) => sum + booking.totalAmount,
+    0,
+  );
+  const confirmedBookings = processedBookings.filter(
+    (booking) => booking.status === "confirmed",
+  ).length;
 
   const columns = [
     {
@@ -140,7 +168,9 @@ export default function Bookings() {
           </Text>
           <br />
           <Text type="secondary" className="text-sm">
-            {record.bookingDate !== "N/A" ? new Date(record.bookingDate).toLocaleDateString() : "N/A"}
+            {record.bookingDate !== "N/A"
+              ? new Date(record.bookingDate).toLocaleDateString()
+              : "N/A"}
           </Text>
           <br />
           <Text type="secondary" className="text-xs">
@@ -173,14 +203,19 @@ export default function Bookings() {
         if (a.departureDate === "N/A" && b.departureDate === "N/A") return 0;
         if (a.departureDate === "N/A") return 1;
         if (b.departureDate === "N/A") return -1;
-        return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime();
+        return (
+          new Date(a.departureDate).getTime() -
+          new Date(b.departureDate).getTime()
+        );
       },
       render: (_, record) => (
         <div>
           <Text strong>{record.route}</Text>
           <br />
           <Text type="secondary" className="text-sm">
-            {record.departureDate !== "N/A" ? new Date(record.departureDate).toLocaleDateString() : "N/A"}
+            {record.departureDate !== "N/A"
+              ? new Date(record.departureDate).toLocaleDateString()
+              : "N/A"}
           </Text>
           <br />
           <Text type="secondary" className="text-xs">
@@ -218,7 +253,9 @@ export default function Bookings() {
           </Text>
           <br />
           <Text type="secondary" className="text-xs">
-            Payment: {filteredBookings.find(b => b.totalAmount === amount)?.paymentStatus || "pending"}
+            Payment:{" "}
+            {filteredBookings.find((b) => b.totalAmount === amount)
+              ?.paymentStatus || "pending"}
           </Text>
         </div>
       ),
@@ -242,7 +279,11 @@ export default function Bookings() {
           cancelled: "red",
           processing: "blue",
         };
-        return <Tag color={colors[status] || "default"}>{status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"}</Tag>;
+        return (
+          <Tag color={colors[status] || "default"}>
+            {status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"}
+          </Tag>
+        );
       },
     },
     {
@@ -256,9 +297,9 @@ export default function Bookings() {
             size="small"
             onClick={() => handleViewBooking(record)}
           />
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
+          <Button
+            type="text"
+            icon={<EditOutlined />}
             size="small"
             onClick={() => handleEditBooking(record)}
           />
@@ -271,9 +312,9 @@ export default function Bookings() {
                   icon: <CheckCircleOutlined />,
                   onClick: () => handleSendConfirmation(record),
                 },
-                { 
-                  key: "2", 
-                  label: "Cancel Booking", 
+                {
+                  key: "2",
+                  label: "Cancel Booking",
                   icon: <MoreOutlined />,
                   onClick: () => handleCancelBooking(record),
                 },
@@ -309,7 +350,7 @@ export default function Bookings() {
 
   const handleCancelBooking = (booking) => {
     Modal.confirm({
-      title: 'Cancel Booking',
+      title: "Cancel Booking",
       content: `Are you sure you want to cancel booking ${booking.bookingId}?`,
       onOk() {
         message.success(`Booking ${booking.bookingId} has been cancelled`);
@@ -319,7 +360,9 @@ export default function Bookings() {
   };
 
   const handleDownloadInvoice = (booking) => {
-    message.success(`Invoice for booking ${booking.bookingId} is being prepared`);
+    message.success(
+      `Invoice for booking ${booking.bookingId} is being prepared`,
+    );
   };
 
   if (error) {
@@ -366,73 +409,76 @@ export default function Bookings() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl" style={{ height: 'calc(100vh - 73px)' }}>
+        <div
+          className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
+          style={{ height: "calc(100vh - 73px)" }}
+        >
           <div className="h-full overflow-y-auto">
             <div className="p-6">
               <nav className="space-y-2">
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/dashboard")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📊</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/dashboard")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📊</span>
+                  </div>
+                  <Text className="text-current">Dashboard</Text>
                 </div>
-                <Text className="text-current">Dashboard</Text>
-              </div>
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/offer-management")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🎯</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/offer-management")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">🎯</span>
+                  </div>
+                  <Text className="text-current">Offer Management</Text>
                 </div>
-                <Text className="text-current">Offer Management</Text>
-              </div>
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/bid-management")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🏆</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/bid-management")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">🏆</span>
+                  </div>
+                  <Text className="text-current">Bid Management</Text>
                 </div>
-                <Text className="text-current">Bid Management</Text>
-              </div>
-              <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                  <span className="text-blue-600 text-xs">📅</span>
+                <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-blue-600 text-xs">📅</span>
+                  </div>
+                  <Text className="text-white font-medium">
+                    Booking Management
+                  </Text>
                 </div>
-                <Text className="text-white font-medium">
-                  Booking Management
-                </Text>
-              </div>
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/cms")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📝</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/cms")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📝</span>
+                  </div>
+                  <Text className="text-current">CMS Management</Text>
                 </div>
-                <Text className="text-current">CMS Management</Text>
-              </div>
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/reports")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">📊</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/reports")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">📊</span>
+                  </div>
+                  <Text className="text-current">Reports & Analytics</Text>
                 </div>
-                <Text className="text-current">Reports & Analytics</Text>
-              </div>
-              <div
-                className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                onClick={() => setLocation("/admin/admin-settings")}
-              >
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <span className="text-current text-xs">🔧</span>
+                <div
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  onClick={() => setLocation("/admin/admin-settings")}
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <span className="text-current text-xs">🔧</span>
+                  </div>
+                  <Text className="text-current">System Settings</Text>
                 </div>
-                <Text className="text-current">System Settings</Text>
-              </div>
-            </nav>
+              </nav>
             </div>
           </div>
         </div>
@@ -529,12 +575,14 @@ export default function Bookings() {
                 onChange={setAirlineFilter}
                 options={[
                   { value: "all", label: "All Airlines" },
-                  ...Array.from(new Set(processedBookings.map(b => b.airline)))
-                    .filter(airline => airline !== "N/A")
-                    .map(airline => ({
+                  ...Array.from(
+                    new Set(processedBookings.map((b) => b.airline)),
+                  )
+                    .filter((airline) => airline !== "N/A")
+                    .map((airline) => ({
                       value: airline,
-                      label: airline
-                    }))
+                      label: airline,
+                    })),
                 ]}
               />
               <RangePicker placeholder={["Start Date", "End Date"]} />
@@ -568,8 +616,8 @@ export default function Bookings() {
               <Button key="close" onClick={() => setIsModalVisible(false)}>
                 Close
               </Button>,
-              <Button 
-                key="edit" 
+              <Button
+                key="edit"
                 type="primary"
                 onClick={() => {
                   setIsModalVisible(false);
@@ -592,11 +640,12 @@ export default function Bookings() {
                       selectedBooking.status === "confirmed"
                         ? "green"
                         : selectedBooking.status === "pending"
-                        ? "orange"
-                        : "red"
+                          ? "orange"
+                          : "red"
                     }
                   >
-                    {selectedBooking.status?.charAt(0).toUpperCase() + selectedBooking.status?.slice(1)}
+                    {selectedBooking.status?.charAt(0).toUpperCase() +
+                      selectedBooking.status?.slice(1)}
                   </Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="Group Leader">
@@ -609,10 +658,11 @@ export default function Bookings() {
                   {selectedBooking.route}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.departureDate !== "N/A" ? 
-                    new Date(selectedBooking.departureDate).toLocaleDateString() : 
-                    "N/A"
-                  }
+                  {selectedBooking.departureDate !== "N/A"
+                    ? new Date(
+                        selectedBooking.departureDate,
+                      ).toLocaleDateString()
+                    : "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
                   {selectedBooking.passengers}
@@ -627,15 +677,21 @@ export default function Bookings() {
                   {selectedBooking.flightNumber}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
-                  <Tag color={selectedBooking.paymentStatus === "paid" ? "green" : "orange"}>
-                    {selectedBooking.paymentStatus?.charAt(0).toUpperCase() + selectedBooking.paymentStatus?.slice(1)}
+                  <Tag
+                    color={
+                      selectedBooking.paymentStatus === "paid"
+                        ? "green"
+                        : "orange"
+                    }
+                  >
+                    {selectedBooking.paymentStatus?.charAt(0).toUpperCase() +
+                      selectedBooking.paymentStatus?.slice(1)}
                   </Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="Booking Date">
-                  {selectedBooking.bookingDate !== "N/A" ? 
-                    new Date(selectedBooking.bookingDate).toLocaleDateString() : 
-                    "N/A"
-                  }
+                  {selectedBooking.bookingDate !== "N/A"
+                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
+                    : "N/A"}
                 </Descriptions.Item>
               </Descriptions>
             )}
