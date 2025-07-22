@@ -31,12 +31,7 @@ interface SearchFormData {
   cabin: string;
 }
 
-interface QuickBookingFormProps {
-  onSuccess?: () => void;
-  isAdminBooking?: boolean;
-}
-
-export default function QuickBookingForm({ onSuccess, isAdminBooking = false }: QuickBookingFormProps) {
+export default function QuickBookingForm() {
   const [form] = Form.useForm();
   const [tripType, setTripType] = useState<
     "oneWay" | "roundTrip" | "multiCity"
