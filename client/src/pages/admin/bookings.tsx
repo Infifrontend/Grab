@@ -797,7 +797,7 @@ export default function Bookings() {
                 </Descriptions.Item>
               </Descriptions>
 
-              {selectedBooking?.passengers && Array.isArray(selectedBooking.passengers) && selectedBooking.passengers.length > 0 && (
+              {selectedBooking?.passengers && Array.isArray(selectedBooking.passengers) && selectedBooking.passengers.length > 0 ? (
                 <>
                   <Title level={5} className="!mb-3 !mt-6">Passenger Information</Title>
                   <div className="space-y-2">
@@ -842,7 +842,7 @@ export default function Bookings() {
                     ))}
                   </div>
                 </>
-              )}
+              ) : null}
             )}
           </Modal>
         </div>
