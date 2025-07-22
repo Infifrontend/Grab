@@ -117,7 +117,6 @@ export const bids = pgTable("bids", {
   userId: integer("user_id").references(() => users.id).notNull(),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
-  minimumBidAmount: decimal("minimum_bid_amount", { precision: 10, scale: 2 }),
   passengerCount: integer("passenger_count").notNull(),
   bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
   validUntil: timestamp("valid_until").notNull(),

@@ -288,14 +288,19 @@ const services: Record<string, IndividualService[]> = {
 
 export default function AddServicesBundles() {
   const [, setLocation] = useLocation();
-  const [selectedBundles, setSelectedBundles] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [individualServiceCounts, setIndividualServiceCounts] = useState<
     Record<string, number>
   >({});
   const [bookingData, setBookingData] = useState<any>(null);
+  const [isAdminBooking, setIsAdminBooking] = useState<boolean>(false);
 
-  // Load booking data from localStorage
+  // Load booking data from localStorage on component mount
   useEffect(() => {
+    // Check if this is an admin booking
+    const adminBooking = localStorage.getItem("isAdminBooking");
+    setIsAdminBooking(adminBooking === "true");
+
     const storedBookingData = localStorage.getItem("bookingFormData");
     if (storedBookingData) {
       setBookingData(JSON.parse(storedBookingData));
@@ -303,7 +308,11 @@ export default function AddServicesBundles() {
   }, []);
 
   const handleBack = () => {
-    setLocation("/flight-search-bundle");
+      if (isAdminBooking) {
+          setLocation("/flight-search-bundle?admin=true");
+      } else {
+          setLocation("/flight-search-bundle");
+      }
   };
 
   const handleContinue = () => {
@@ -355,9 +364,14 @@ export default function AddServicesBundles() {
 
     // Store selected services
     localStorage.setItem("selectedServices", JSON.stringify(selectedServices));
+    let nextLocation = "/group-leader";
+
+      if (isAdminBooking) {
+          nextLocation += "?admin=true";
+      }
 
     console.log("Continue to Group Leader", { selectedServices });
-    setLocation("/group-leader");
+    setLocation(nextLocation);
   };
 
   const toggleBundle = (bundleId: string) => {
@@ -493,9 +507,30 @@ export default function AddServicesBundles() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <Title level={2} className="!mb-2 text-gray-900">
-            Add Services & Bundles
-          </Title>
+          <div className="flex items-center justify-between mb-6">
+          <div>
+            <Title level={2} className="!mb-2 text-gray-900">
+              Add Services & Bundles
+            </Title>
+            {isAdminBooking && (
+              <div className="flex items-center gap-2">
+                <Badge color="blue" text="Admin Booking" />
+                <Text className="text-gray-600">
+                  Creating booking through admin panel
+                </Text>
+              </div>
+            )}
+          </div>
+          {isAdminBooking && (
+            <Button
+              type="text"
+              onClick={() => setLocation("/admin/bookings")}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              ← Back to Admin Panel
+            </Button>
+          )}
+        </div>
           <Text className="text-gray-600">
             Choose from our curated bundles or select individual services to
             enhance your group travel experience.
@@ -1037,7 +1072,7 @@ export default function AddServicesBundles() {
                                 onClick={() =>
                                   updateServiceCount(
                                     "inflight-wifi",
-                                    (individualServiceCounts["inflight-wifi"] ||
+                                                                   (individualServiceCounts["inflight-wifi"] ||
                                       0) + 1,
                                   )
                                 }

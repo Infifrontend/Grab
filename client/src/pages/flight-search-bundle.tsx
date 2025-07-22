@@ -174,6 +174,7 @@ export default function FlightSearchBundle() {
   const [passengerCount, setPassengerCount] = useState<number>(1);
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+  const [isAdminBooking, setIsAdminBooking] = useState<boolean>(false);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
@@ -218,6 +219,10 @@ export default function FlightSearchBundle() {
   // Load flight data from localStorage on component mount
   useEffect(() => {
     const loadData = () => {
+      // Check if this is an admin booking
+      const adminBooking = localStorage.getItem("isAdminBooking");
+      setIsAdminBooking(adminBooking === "true");
+
       // Load search results
       const searchResults = localStorage.getItem("searchResults");
       if (searchResults) {
@@ -583,7 +588,11 @@ export default function FlightSearchBundle() {
   ]);
 
   const handleBackToTripDetails = () => {
-    setLocation("/new-booking");
+    if (isAdminBooking) {
+      setLocation("/admin/bookings");
+    } else {
+      setLocation("/new-booking");
+    }
   };
 
   const handleContinue = () => {
@@ -610,6 +619,11 @@ export default function FlightSearchBundle() {
       JSON.stringify(selectedFlightData),
     );
     localStorage.setItem("selectedBundleData", JSON.stringify(bundleData));
+
+    // Maintain admin booking context
+    if (isAdminBooking) {
+      localStorage.setItem("isAdminBooking", "true");
+    }
 
     console.log("Continue to Add Services & Bundles");
     setLocation("/add-services-bundles");
@@ -1065,9 +1079,30 @@ export default function FlightSearchBundle() {
           <BookingSteps currentStep={1} size="small" className="mb-6" />
         </div>
 
-        <Title level={2} className="!mb-6 text-gray-900">
-          Flight Search & Bundle Selection
-        </Title>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <Title level={2} className="!mb-2 text-gray-900">
+              Flight Search & Bundle Selection
+            </Title>
+            {isAdminBooking && (
+              <div className="flex items-center gap-2">
+                <Badge color="blue" text="Admin Booking" />
+                <Text className="text-gray-600">
+                  Creating booking through admin panel
+                </Text>
+              </div>
+            )}
+          </div>
+          {isAdminBooking && (
+            <Button
+              type="text"
+              onClick={() => setLocation("/admin/bookings")}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              ← Back to Admin Panel
+            </Button>
+          )}
+        </div>
 
         {/* Search Summary / Modify Search Section */}
         <Card className="mb-6">

@@ -677,14 +677,14 @@ export default function BidManagement() {
   const handleReviewBid = (bidRecord) => {
     console.log("handleReviewBid called with:", bidRecord);
     console.log("recentBidsData:", recentBidsData);
-
+    
     // Find the actual bid data from recentBidsData
     const bidData = (recentBidsData || []).find(bid => 
       `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
     );
-
+    
     console.log("Found bidData:", bidData);
-
+    
     if (bidData) {
       // Parse configuration data from notes to get flight information
       let configData = {};
@@ -718,9 +718,9 @@ export default function BidManagement() {
         flight: flightInfo,
         configData: configData
       };
-
+      
       console.log("Setting selectedBidForReview to:", reviewData);
-
+      
       setSelectedBidForReview(reviewData);
       setReviewBidModalVisible(true);
       reviewForm.resetFields();
@@ -741,22 +741,21 @@ export default function BidManagement() {
 
     // Populate the edit form with existing data
     editForm.setFieldsValue({
-        bidTitle: configData.title || "",
-        flightType: configData.flightType || "Domestic",
-        origin: configData.origin || "",
-        destination: configData.destination || "",
-        totalSeatsAvailable: configData.totalSeatsAvailable || 50,
-        minSeatsPerBid: configData.minSeatsPerBid || 1,
-        maxSeatsPerBid: configData.maxSeatsPerBid || 10,
-        maxSeatsPerUser: configData.maxSeatsPerUser || 5,
-        fareType: configData.fareType || "Economy",
-        baggageAllowance: configData.baggageAllowance || 20,
-        cancellationTerms: configData.cancellationTerms || "Standard",
-        mealIncluded: configData.mealIncluded || false,
-        otherNotes: configData.otherNotes || "",
-        bidAmount: parseFloat(bid.bidAmount) || 0,
-        minimumBidAmount: configData.minimumBidAmount || parseFloat(bid.bidAmount) || 0,
-      });
+      bidTitle: configData.title || "",
+      flightType: configData.flightType || "Domestic",
+      origin: configData.origin || "",
+      destination: configData.destination || "",
+      totalSeatsAvailable: configData.totalSeatsAvailable || 50,
+      minSeatsPerBid: configData.minSeatsPerBid || 1,
+      maxSeatsPerBid: configData.maxSeatsPerBid || 10,
+      maxSeatsPerUser: configData.maxSeatsPerUser || 5,
+      fareType: configData.fareType || "Economy",
+      baggageAllowance: configData.baggageAllowance || 20,
+      cancellationTerms: configData.cancellationTerms || "Standard",
+      mealIncluded: configData.mealIncluded || false,
+      otherNotes: configData.otherNotes || "",
+      bidAmount: parseFloat(bid.bidAmount) || 0,
+    });
 
     setEditBidModalVisible(true);
   };
@@ -800,7 +799,7 @@ export default function BidManagement() {
     try {
       const bidId = selectedBidForReview.id;
       const newStatus = action === 'accept' ? 'accepted' : 'rejected';
-
+      
       const response = await apiRequest(
         "PUT",
         `/api/bids/${bidId}/status`,
@@ -822,11 +821,11 @@ export default function BidManagement() {
         message.success(
           `Bid ${action === 'accept' ? 'accepted' : 'rejected'} successfully`
         );
-
+        
         // Refresh data
         queryClient.invalidateQueries(["recent-bids"]);
         queryClient.invalidateQueries(["bid-configurations"]);
-
+        
         // Close modal
         setReviewBidModalVisible(false);
         setSelectedBidForReview(null);
@@ -1474,32 +1473,12 @@ export default function BidManagement() {
             </Col>
             <Col span={12}>
               <Form.Item
-                label="Minimum Bid Amount (₹)"
-                name="minimumBidAmount"
-                rules={[{ required: true, message: "Please enter minimum bid amount" }]}
+                name="mealIncluded"
+                valuePropName="checked"
+                className="pt-8"
               >
-                <InputNumber
-                  min={50}
-                  max={100000}
-                  className="w-full"
-                  placeholder="Enter minimum bid amount"
-                  formatter={(value) =>
-                    `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/₹\s?|(,*)/g, "")}
-                />
+                <Checkbox>Meal Included</Checkbox>
               </Form.Item>
-            </Col>
-            <Col span={12}>
-              <div className="pt-8">
-                <Form.Item
-                  name="mealIncluded"
-                  valuePropName="checked"
-                  className="!mb-2"
-                >
-                  <Checkbox>Meal Included</Checkbox>
-                </Form.Item>
-              </div>
             </Col>
             <Col span={24}>
               <Form.Item label="Other Notes" name="otherNotes">
@@ -1557,7 +1536,7 @@ export default function BidManagement() {
                   {selectedBidForReview.bidStatus ? selectedBidForReview.bidStatus.toUpperCase() : 'UNKNOWN'}
                 </Tag>
               </div>
-
+              
               <Row gutter={[24, 16]}>
                 <Col span={8}>
                   <div>
@@ -1821,7 +1800,7 @@ export default function BidManagement() {
               >
                 Cancel
               </Button>
-
+              
               <div className="flex space-x-3">
                 <Button
                   danger
@@ -2013,7 +1992,7 @@ export default function BidManagement() {
               ),
             },
             {
-              title: "Amount",```python
+              title: "Amount",
               dataIndex: "amount",
               key: "amount",
             },
@@ -3068,7 +3047,7 @@ export default function BidManagement() {
                 </div>
               </nav>
             </div>
-
+            
             {/* User Info Section at Bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
               <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
