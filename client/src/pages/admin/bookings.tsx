@@ -35,6 +35,8 @@ import {
   BellOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import { Form, Radio, DatePicker, InputNumber } from "antd";
+import dayjs from "dayjs";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
@@ -698,7 +700,215 @@ export default function Bookings() {
               
               <Row gutter={24}>
                 <Col xs={24} lg={14}>
-                  <QuickBookingForm />
+                  <Card className="h-fit">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                        Admin Quick Booking
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        Create a new group booking and navigate through the complete booking flow
+                      </p>
+                    </div>
+
+                    <Form
+                      layout="vertical"
+                      onFinish={(values) => {
+                        // Store booking data and navigate to flight search flow
+                        const totalPassengers = values.adults + values.kids + values.infants;
+                        
+                        const bookingData = {
+                          origin: values.origin,
+                          destination: values.destination,
+                          departureDate: values.departureDate,
+                          returnDate: values.returnDate,
+                          tripType: values.tripType || "oneWay",
+                          adults: values.adults,
+                          kids: values.kids,
+                          infants: values.infants,
+                          cabin: values.cabin,
+                          totalPassengers,
+                          isAdminBooking: true
+                        };
+
+                        localStorage.setItem("bookingFormData", JSON.stringify(bookingData));
+                        localStorage.setItem("isAdminBooking", "true");
+                        
+                        // Navigate to flight search bundle page to start the complete flow
+                        setLocation("/flight-search-bundle");
+                      }}
+                      initialValues={{
+                        tripType: "oneWay",
+                        adults: 1,
+                        kids: 0,
+                        infants: 0,
+                        cabin: "economy"
+                      }}
+                    >
+                      {/* Trip Type */}
+                      <Form.Item
+                        label="Trip Type"
+                        name="tripType"
+                        className="mb-4"
+                      >
+                        <Radio.Group>
+                          <Radio value="oneWay">One way</Radio>
+                          <Radio value="roundTrip">Round trip</Radio>
+                          <Radio value="multiCity">Multi city</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+
+                      {/* Origin and Destination */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Origin *"
+                            name="origin"
+                            rules={[{ required: true, message: "Please select origin" }]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select origin"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                            >
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Destination *"
+                            name="destination"
+                            rules={[{ required: true, message: "Please select destination" }]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select destination"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                            >
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Dates */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Departure Date *"
+                            name="departureDate"
+                            rules={[{ required: true, message: "Please select departure date" }]}
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Return Date"
+                            name="returnDate"
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Passengers */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Adults *"
+                            name="adults"
+                            rules={[{ required: true, message: "At least 1 adult required" }]}
+                            className="mb-4"
+                          >
+                            <InputNumber min={1} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Kids (2-11)"
+                            name="kids"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Infants (0-2)"
+                            name="infants"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Cabin */}
+                      <Form.Item
+                        label="Cabin *"
+                        name="cabin"
+                        className="mb-6"
+                      >
+                        <Select placeholder="Select cabin class">
+                          <Option value="economy">Economy</Option>
+                          <Option value="business">Business</Option>
+                          <Option value="first">First Class</Option>
+                        </Select>
+                      </Form.Item>
+
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        size="large"
+                        className="w-full infiniti-btn-primary"
+                      >
+                        Search Flight & Start Booking Flow
+                      </Button>
+                    </Form>
+                  </Card>
                 </Col>
                 <Col xs={24} lg={10}>
                   <Card>
@@ -756,6 +966,22 @@ export default function Bookings() {
                           </div>
                         </div>
                       </Button>
+
+                      <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <Title level={5} className="!mb-2 text-blue-700">
+                          Complete Booking Flow
+                        </Title>
+                        <Text className="text-blue-600 text-sm">
+                          After clicking "Search Flight", you'll be taken through the complete booking process:
+                        </Text>
+                        <ul className="mt-2 text-blue-600 text-sm list-disc list-inside space-y-1">
+                          <li>Flight search results & selection</li>
+                          <li>Service bundles & add-ons</li>
+                          <li>Group leader information</li>
+                          <li>Passenger details</li>
+                          <li>Payment & confirmation</li>
+                        </ul>
+                      </div>
                     </Space>
                   </Card>
                 </Col>
