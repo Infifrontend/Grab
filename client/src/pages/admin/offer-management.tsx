@@ -44,7 +44,6 @@ import {
   PieChartOutlined,
   TrophyOutlined,
 } from "@ant-design/icons";
-import { LogoutOutlined } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
 const { Title, Text } = Typography;
@@ -924,7 +923,7 @@ export default function OfferManagement() {
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
                               High Impact
-                            </Badge>```python
+                            </Badge>
                           </div>
                           <Text className="text-gray-600 text-sm mb-3">
                             Increasing customer demand for eco-friendly travel
@@ -1432,34 +1431,28 @@ export default function OfferManagement() {
             </nav>
           </div>
 
-          {/* User Info Section at Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
-              <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
-                <Avatar size="small" className="bg-blue-600 flex-shrink-0">
-                  <span className="text-white font-medium">JD</span>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Text className="text-white font-medium text-sm block truncate">
-                        John Doe
-                      </Text>
-                      <Text className="text-slate-400 text-xs truncate">
-                        System Admin
-                      </Text>
-                    </div>
-                    <Button
-                      type="text"
-                      icon={<LogoutOutlined />}
-                      size="small"
-                      className="text-slate-400 hover:text-white flex-shrink-0"
-                      onClick={handleLogout}
-                      title="Logout"
-                    />
-                  </div>
-                </div>
+          {/* User Info at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 w-64 p-6 border-t border-slate-700">
+            <div className="flex items-center space-x-3">
+              <Avatar
+                size="small"
+                className="bg-gradient-to-r from-blue-600 to-purple-600"
+              >
+                <span className="text-white font-medium">JD</span>
+              </Avatar>
+              <div className="flex-1">
+                <Text className="text-white font-medium block">John Doe</Text>
+                <Text className="text-slate-300 text-sm">System Admin</Text>
               </div>
             </div>
+            <Button
+              type="text"
+              onClick={handleLogout}
+              className="w-full mt-4 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
+              size="small"
+            >
+              Sign Out
+            </Button>
           </div>
         </div>
 
@@ -1838,7 +1831,7 @@ export default function OfferManagement() {
 
                     <div className="text-sm text-gray-500">
                       <Text>Created: Jan 15, 2024</Text>
-                      <Text className="ml-6">LastModified: Feb 28, 2024</Text>
+                      <Text className="ml-6">Last Modified: Feb 28, 2024</Text>
                     </div>
                   </div>
 
@@ -2927,7 +2920,7 @@ export default function OfferManagement() {
                     rules={[
                       { required: true, message: "Please enter promo code" },
                     ]}
->
+                  >
                     <Input placeholder="e.g. SUMMER2024" size="large" />
                   </Form.Item>
                 </Col>
