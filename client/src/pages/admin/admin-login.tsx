@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, Form, Input, Button, message, Typography, Divider } from "antd";
-import { UserOutlined, LockOutlined, AirportOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined, RocketOutlined } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
 const { Title, Text } = Typography;
@@ -54,7 +54,7 @@ export default function AdminLogin() {
         <div className="text-center mb-8">
           {/* Airline Logo Area */}
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-6 shadow-lg">
-            <AirportOutlined className="text-white text-3xl" />
+            <RocketOutlined className="text-white text-3xl" />
           </div>
           
           {/* Airline Branding */}
