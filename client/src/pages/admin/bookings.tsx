@@ -815,18 +815,41 @@ export default function Bookings() {
                     <div className="space-y-2">
                       {selectedBooking.passengers.map((passenger, index) => (
                         <Card key={passenger.id || index} size="small" className="bg-gray-50">
-                          <Text strong>
-                            {passenger.title || ''} {passenger.firstName || ''} {passenger.lastName || ''}
-                          </Text>
-                          {passenger.nationality && (
-                            <Text className="ml-2 text-gray-600">({passenger.nationality})</Text>
-                          )}
-                          {passenger.seatPreference && (
-                            <Text className="ml-2 text-blue-600">• {passenger.seatPreference} seat</Text>
-                          )}
-                          {passenger.mealPreference && (
-                            <Text className="ml-2 text-green-600">• {passenger.mealPreference} meal</Text>
-                          )}
+                          <div>
+                            <Text strong>
+                              {passenger.title || ''} {passenger.firstName || ''} {passenger.lastName || ''}
+                            </Text>
+                            {passenger.nationality && (
+                              <div>
+                                <Text className="ml-2 text-gray-600">({passenger.nationality})</Text>
+                              </div>
+                            )}
+                            {passenger.seatPreference && (
+                              <div>
+                                <Text className="ml-2 text-blue-600">• {passenger.seatPreference} seat</Text>
+                              </div>
+                            )}
+                            {passenger.mealPreference && (
+                              <div>
+                                <Text className="ml-2 text-green-600">• {passenger.mealPreference} meal</Text>
+                              </div>
+                            )}
+                            {passenger.dateOfBirth && (
+                              <div>
+                                <Text className="ml-2 text-gray-600">• DOB: {new Date(passenger.dateOfBirth).toLocaleDateString()}</Text>
+                              </div>
+                            )}
+                            {passenger.passportNumber && (
+                              <div>
+                                <Text className="ml-2 text-gray-600">• Passport: {passenger.passportNumber}</Text>
+                              </div>
+                            )}
+                            {passenger.specialAssistance && (
+                              <div>
+                                <Text className="ml-2 text-orange-600">• Special Assistance: {passenger.specialAssistance}</Text>
+                              </div>
+                            )}
+                          </div>
                         </Card>
                       ))}
                     </div>
