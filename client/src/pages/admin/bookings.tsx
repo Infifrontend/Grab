@@ -480,6 +480,35 @@ export default function Bookings() {
                 </div>
               </nav>
             </div>
+            
+            {/* User Info Section at Bottom */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
+              <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
+                <Avatar size="small" className="bg-blue-600 flex-shrink-0">
+                  <span className="text-white font-medium">JD</span>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text className="text-white font-medium text-sm block truncate">
+                        John Doe
+                      </Text>
+                      <Text className="text-slate-400 text-xs truncate">
+                        System Admin
+                      </Text>
+                    </div>
+                    <Button
+                      type="text"
+                      icon={<LogoutOutlined />}
+                      size="small"
+                      className="text-slate-400 hover:text-white flex-shrink-0"
+                      onClick={handleLogout}
+                      title="Logout"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
