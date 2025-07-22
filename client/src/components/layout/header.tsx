@@ -1,4 +1,15 @@
-import { Badge, Dropdown, Avatar, Popconfirm, Typography, Empty, Card, Space, Button, Divider } from "antd";
+import {
+  Badge,
+  Dropdown,
+  Avatar,
+  Popconfirm,
+  Typography,
+  Empty,
+  Card,
+  Space,
+  Button,
+  Divider,
+} from "antd";
 import {
   BellOutlined,
   DownOutlined,
@@ -35,7 +46,7 @@ export default function Header() {
   const [location] = useLocation();
 
   const handleViewAllNotifications = () => {
-    console.log('View all notifications');
+    console.log("View all notifications");
   };
 
   return (
@@ -44,7 +55,12 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="infiniti-logo cursor-pointer">
-            <img src="/src/images/Logo.png" alt="Volaris" title="Volaris" className="cursor-pointer" />
+            <img
+              src="/src/images/Logo.png"
+              alt="Volaris"
+              title="Volaris"
+              className="cursor-pointer"
+            />
           </Link>
 
           {/* Navigation */}
@@ -64,11 +80,17 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <Popconfirm
               title={
-                <div className="bg-white rounded-lg shadow-lg" style={{ width: 340 }}>
+                <div
+                  className="bg-white rounded-lg shadow-lg"
+                  style={{ width: 340 }}
+                >
                   {/* Header */}
                   <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                      <Typography.Title level={5} className="!mb-0 text-gray-900">
+                      <Typography.Title
+                        level={5}
+                        className="!mb-0 text-gray-900"
+                      >
                         Notifications
                       </Typography.Title>
                     </div>
@@ -92,7 +114,8 @@ export default function Header() {
                             Your Order Has Been Shipped
                           </Typography.Text>
                           <Typography.Text className="text-gray-500 text-xs mt-1">
-                            Order No: 123456 Has Shipped To Your Delivery Address
+                            Order No: 123456 Has Shipped To Your Delivery
+                            Address
                           </Typography.Text>
                         </div>
                       </div>
@@ -177,17 +200,7 @@ export default function Header() {
                   </div>
 
                   {/* View All Button */}
-                  <div className="px-6 py-4 border-t border-gray-100">
-                    <Button
-                      type="primary"
-                      block
-                      size="large"
-                      className="bg-blue-500 hover:bg-blue-600 border-blue-500 font-medium rounded-lg h-12"
-                      onClick={handleViewAllNotifications}
-                    >
-                      View All
-                    </Button>
-                  </div>
+                  <div className="px-6 py-4 border-t border-gray-100"></div>
                 </div>
               }
               placement="bottomRight"
@@ -197,9 +210,7 @@ export default function Header() {
               icon={null}
             >
               <Badge count={5} size="small">
-                <BellOutlined
-                  className="text-lg text-gray-600 cursor-pointer hover:text-blue-600 transition-colors"
-                />
+                <BellOutlined className="text-lg text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
               </Badge>
             </Popconfirm>
 
@@ -209,19 +220,27 @@ export default function Header() {
               dropdownRender={() => (
                 <Card
                   className="user-profile-dropdown"
-                  style={{ 
-                    width: 320, 
+                  style={{
+                    width: 320,
                     border: "1px solid #e5e7eb",
                     borderRadius: "12px",
-                    boxShadow: "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+                    boxShadow:
+                      "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
                   }}
                   bodyStyle={{ padding: "20px" }}
                 >
                   {/* User Info Section */}
                   <div className="flex items-start gap-3 mb-4">
-                    <Avatar size={48} icon={<UserOutlined />} className="bg-gray-200" />
+                    <Avatar
+                      size={48}
+                      icon={<UserOutlined />}
+                      className="bg-gray-200"
+                    />
                     <div className="flex-1">
-                      <Typography.Title level={5} className="!mb-1 text-gray-900">
+                      <Typography.Title
+                        level={5}
+                        className="!mb-1 text-gray-900"
+                      >
                         John Smith
                       </Typography.Title>
                       <Typography.Text className="text-sm text-blue-600 font-medium">
@@ -320,17 +339,15 @@ export default function Header() {
         </div>
       </div>
 
-      
-
       <style jsx global>{`
         .user-profile-dropdown .ant-card-body {
           padding: 20px !important;
         }
-        
+
         .user-profile-dropdown .ant-btn-text:hover {
           background-color: #f9fafb !important;
         }
-        
+
         .user-profile-dropdown .ant-divider {
           margin: 12px 0 !important;
         }
