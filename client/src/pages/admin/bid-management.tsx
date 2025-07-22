@@ -336,7 +336,11 @@ export default function BidManagement() {
         errors.push("Base bid amount is required and must be at least ₹100");
       }
 
-      if (finalValues.minBidAmount && finalValues.bidAmount && finalValues.minBidAmount > finalValues.bidAmount) {
+      if (
+        finalValues.minBidAmount &&
+        finalValues.bidAmount &&
+        finalValues.minBidAmount > finalValues.bidAmount
+      ) {
         errors.push("Minimum bid amount cannot exceed base bid amount");
       }
 
@@ -475,21 +479,30 @@ export default function BidManagement() {
           key: bid.id.toString(),
           bidId: `BID${bid.id.toString().padStart(3, "0")}`,
           passenger: {
-            name: configData.groupLeaderName || configData.contactName || `User ${bid.userId}`,
-            email: configData.groupLeaderEmail || configData.email || "user@example.com",
+            name:
+              configData.groupLeaderName ||
+              configData.contactName ||
+              `User ${bid.userId}`,
+            email:
+              configData.groupLeaderEmail ||
+              configData.email ||
+              "user@example.com",
           },
           flight: {
-            number: configData.flightNumber || `GR-${Math.floor(Math.random() * 9000) + 1000}`,
-            route: configData.origin && configData.destination
-              ? `${configData.origin} → ${configData.destination}`
-              : bid.flight
-              ? `${bid.flight.origin} → ${bid.flight.destination}`
-              : "Route not available",
+            number:
+              configData.flightNumber ||
+              `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+            route:
+              configData.origin && configData.destination
+                ? `${configData.origin} → ${configData.destination}`
+                : bid.flight
+                  ? `${bid.flight.origin} → ${bid.flight.destination}`
+                  : "Route not available",
             date: configData.travelDate
               ? new Date(configData.travelDate).toLocaleDateString()
               : bid.flight?.departureTime
-              ? new Date(bid.flight.departureTime).toLocaleDateString()
-              : "N/A",
+                ? new Date(bid.flight.departureTime).toLocaleDateString()
+                : "N/A",
           },
           upgrade: configData.fareType
             ? `Economy → ${configData.fareType}`
@@ -643,9 +656,9 @@ export default function BidManagement() {
                 title: "Actions",
                 key: "actions",
                 render: (_, record) => (
-                  <Button 
-                    type="link" 
-                    icon={<EyeOutlined />} 
+                  <Button
+                    type="link"
+                    icon={<EyeOutlined />}
                     size="small"
                     onClick={() => handleReviewBid(record)}
                   >
@@ -686,14 +699,14 @@ export default function BidManagement() {
   const handleReviewBid = (bidRecord) => {
     console.log("handleReviewBid called with:", bidRecord);
     console.log("recentBidsData:", recentBidsData);
-    
+
     // Find the actual bid data from recentBidsData
-    const bidData = (recentBidsData || []).find(bid => 
-      `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
+    const bidData = (recentBidsData || []).find(
+      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
     );
-    
+
     console.log("Found bidData:", bidData);
-    
+
     if (bidData) {
       // Parse configuration data from notes to get flight information
       let configData = {};
@@ -706,30 +719,37 @@ export default function BidManagement() {
 
       // Create comprehensive flight information from bid configuration
       const flightInfo = {
-        flightNumber: configData.flightNumber || `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+        flightNumber:
+          configData.flightNumber ||
+          `GR-${Math.floor(Math.random() * 9000) + 1000}`,
         airline: "Group Retail Airways",
-        origin: configData.origin || bidRecord.flight?.origin || 'Unknown',
-        destination: configData.destination || bidRecord.flight?.destination || 'Unknown',
-        departureTime: configData.travelDate ? 
-          new Date(`${configData.travelDate}T${configData.departureTimeRange?.split(' - ')[0] || '09:00'}`).toISOString() :
-          bidData.createdAt,
-        arrivalTime: configData.travelDate ? 
-          new Date(`${configData.travelDate}T${configData.departureTimeRange?.split(' - ')[1] || '12:00'}`).toISOString() :
-          null,
+        origin: configData.origin || bidRecord.flight?.origin || "Unknown",
+        destination:
+          configData.destination || bidRecord.flight?.destination || "Unknown",
+        departureTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
+            ).toISOString()
+          : bidData.createdAt,
+        arrivalTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
+            ).toISOString()
+          : null,
         price: bidData.bidAmount || 0,
         availableSeats: configData.totalSeatsAvailable || 50,
-        cabin: configData.fareType || 'Economy'
+        cabin: configData.fareType || "Economy",
       };
 
       const reviewData = {
         ...bidData,
         record: bidRecord,
         flight: flightInfo,
-        configData: configData
+        configData: configData,
       };
-      
+
       console.log("Setting selectedBidForReview to:", reviewData);
-      
+
       setSelectedBidForReview(reviewData);
       setReviewBidModalVisible(true);
       reviewForm.resetFields();
@@ -763,7 +783,8 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-      minBidAmount: configData.minBidAmount || parseFloat(bid.bidAmount) * 0.8 || 0,
+      minBidAmount:
+        configData.minBidAmount || parseFloat(bid.bidAmount) * 0.8 || 0,
       bidAmount: parseFloat(bid.bidAmount) || 0,
     });
 
@@ -808,18 +829,14 @@ export default function BidManagement() {
     setLoading(true);
     try {
       const bidId = selectedBidForReview.id;
-      const newStatus = action === 'accept' ? 'accepted' : 'rejected';
-      
-      const response = await apiRequest(
-        "PUT",
-        `/api/bids/${bidId}/status`,
-        {
-          status: newStatus,
-          adminNotes: values.adminNotes || '',
-          counterOffer: values.counterOffer || null,
-          rejectionReason: values.rejectionReason || null
-        }
-      );
+      const newStatus = action === "accept" ? "accepted" : "rejected";
+
+      const response = await apiRequest("PUT", `/api/bids/${bidId}/status`, {
+        status: newStatus,
+        adminNotes: values.adminNotes || "",
+        counterOffer: values.counterOffer || null,
+        rejectionReason: values.rejectionReason || null,
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update bid status");
@@ -829,13 +846,13 @@ export default function BidManagement() {
 
       if (result.success) {
         message.success(
-          `Bid ${action === 'accept' ? 'accepted' : 'rejected'} successfully`
+          `Bid ${action === "accept" ? "accepted" : "rejected"} successfully`,
         );
-        
+
         // Refresh data
         queryClient.invalidateQueries(["recent-bids"]);
         queryClient.invalidateQueries(["bid-configurations"]);
-        
+
         // Close modal
         setReviewBidModalVisible(false);
         setSelectedBidForReview(null);
@@ -1479,14 +1496,21 @@ export default function BidManagement() {
                 label="Minimum Bid Amount (₹)"
                 name="minBidAmount"
                 rules={[
-                  { required: true, message: "Please enter minimum bid amount" },
+                  {
+                    required: true,
+                    message: "Please enter minimum bid amount",
+                  },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      const baseBidAmount = getFieldValue('bidAmount');
+                      const baseBidAmount = getFieldValue("bidAmount");
                       if (!value || !baseBidAmount || value <= baseBidAmount) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('Minimum bid amount cannot exceed base bid amount'));
+                      return Promise.reject(
+                        new Error(
+                          "Minimum bid amount cannot exceed base bid amount",
+                        ),
+                      );
                     },
                   }),
                 ]}
@@ -1511,11 +1535,15 @@ export default function BidManagement() {
                   { required: true, message: "Please enter bid amount" },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      const minBidAmount = getFieldValue('minBidAmount');
+                      const minBidAmount = getFieldValue("minBidAmount");
                       if (!value || !minBidAmount || value >= minBidAmount) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('Base bid amount must be greater than or equal to minimum bid amount'));
+                      return Promise.reject(
+                        new Error(
+                          "Base bid amount must be greater than or equal to minimum bid amount",
+                        ),
+                      );
                     },
                   }),
                 ]}
@@ -1590,14 +1618,20 @@ export default function BidManagement() {
                 <Title level={5} className="!mb-0 text-blue-800">
                   Bid Overview
                 </Title>
-                <Tag 
-                  color={selectedBidForReview.bidStatus === 'active' ? 'green' : 'blue'}
+                <Tag
+                  color={
+                    selectedBidForReview.bidStatus === "active"
+                      ? "green"
+                      : "blue"
+                  }
                   className="text-sm"
                 >
-                  {selectedBidForReview.bidStatus ? selectedBidForReview.bidStatus.toUpperCase() : 'UNKNOWN'}
+                  {selectedBidForReview.bidStatus
+                    ? selectedBidForReview.bidStatus.toUpperCase()
+                    : "UNKNOWN"}
                 </Tag>
               </div>
-              
+
               <Row gutter={[24, 16]}>
                 <Col span={8}>
                   <div>
@@ -1609,7 +1643,9 @@ export default function BidManagement() {
                 </Col>
                 <Col span={8}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Bid Amount</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Bid Amount
+                    </Text>
                     <Text className="font-semibold text-green-600 text-lg">
                       ₹{selectedBidForReview.bidAmount}
                     </Text>
@@ -1617,39 +1653,54 @@ export default function BidManagement() {
                 </Col>
                 <Col span={8}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Passengers</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Passengers
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.passengerCount} passenger{selectedBidForReview.passengerCount > 1 ? 's' : ''}
+                      {selectedBidForReview.passengerCount} passenger
+                      {selectedBidForReview.passengerCount > 1 ? "s" : ""}
                     </Text>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Submitted</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Submitted
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.createdAt ? 
-                        new Date(selectedBidForReview.createdAt).toLocaleDateString() : 
-                        'Unknown'
-                      }
+                      {selectedBidForReview.createdAt
+                        ? new Date(
+                            selectedBidForReview.createdAt,
+                          ).toLocaleDateString()
+                        : "Unknown"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Valid Until</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Valid Until
+                    </Text>
                     <Text className="font-semibold text-orange-600">
-                      {selectedBidForReview.validUntil ? 
-                        new Date(selectedBidForReview.validUntil).toLocaleDateString() : 
-                        'No expiry'
-                      }
+                      {selectedBidForReview.validUntil
+                        ? new Date(
+                            selectedBidForReview.validUntil,
+                          ).toLocaleDateString()
+                        : "No expiry"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Total Value</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Total Value
+                    </Text>
                     <Text className="font-semibold text-blue-600 text-lg">
-                      ₹{(parseFloat(selectedBidForReview.bidAmount) * selectedBidForReview.passengerCount).toLocaleString()}
+                      ₹
+                      {(
+                        parseFloat(selectedBidForReview.bidAmount) *
+                        selectedBidForReview.passengerCount
+                      ).toLocaleString()}
                     </Text>
                   </div>
                 </Col>
@@ -1658,13 +1709,17 @@ export default function BidManagement() {
 
             {/* Flight Information */}
             <Card>
-              <Title level={5} className="!mb-4">Flight Information</Title>
+              <Title level={5} className="!mb-4">
+                Flight Information
+              </Title>
               <Row gutter={[24, 16]}>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Flight Number</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Flight Number
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.flightNumber || 'N/A'}
+                      {selectedBidForReview.flight?.flightNumber || "N/A"}
                     </Text>
                   </div>
                 </Col>
@@ -1672,7 +1727,7 @@ export default function BidManagement() {
                   <div>
                     <Text className="text-gray-600 block text-sm">Airline</Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.airline || 'N/A'}
+                      {selectedBidForReview.flight?.airline || "N/A"}
                     </Text>
                   </div>
                 </Col>
@@ -1680,53 +1735,69 @@ export default function BidManagement() {
                   <div>
                     <Text className="text-gray-600 block text-sm">Route</Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight ? 
-                        `${selectedBidForReview.flight.origin} → ${selectedBidForReview.flight.destination}` : 
-                        'N/A'
-                      }
+                      {selectedBidForReview.flight
+                        ? `${selectedBidForReview.flight.origin} → ${selectedBidForReview.flight.destination}`
+                        : "N/A"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Travel Date</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Travel Date
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.configData?.travelDate ? 
-                        new Date(selectedBidForReview.configData.travelDate).toLocaleDateString() : 
-                        'N/A'
-                      }
+                      {selectedBidForReview.configData?.travelDate
+                        ? new Date(
+                            selectedBidForReview.configData.travelDate,
+                          ).toLocaleDateString()
+                        : "N/A"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Departure Time Range</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Departure Time Range
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.configData?.departureTimeRange || 'N/A'}
+                      {selectedBidForReview.configData?.departureTimeRange ||
+                        "N/A"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Flight Type</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Flight Type
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.configData?.flightType || 'N/A'}
+                      {selectedBidForReview.configData?.flightType || "N/A"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Cabin Class</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Cabin Class
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.cabin || selectedBidForReview.configData?.fareType || 'Economy'}
+                      {selectedBidForReview.flight?.cabin ||
+                        selectedBidForReview.configData?.fareType ||
+                        "Economy"}
                     </Text>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <Text className="text-gray-600 block text-sm">Available Seats</Text>
+                    <Text className="text-gray-600 block text-sm">
+                      Available Seats
+                    </Text>
                     <Text className="font-semibold">
-                      {selectedBidForReview.flight?.availableSeats || selectedBidForReview.configData?.totalSeatsAvailable || 0} seats
+                      {selectedBidForReview.flight?.availableSeats ||
+                        selectedBidForReview.configData?.totalSeatsAvailable ||
+                        0}{" "}
+                      seats
                     </Text>
                   </div>
                 </Col>
@@ -1736,53 +1807,76 @@ export default function BidManagement() {
             {/* Bid Configuration Information */}
             {selectedBidForReview.configData && (
               <Card>
-                <Title level={5} className="!mb-4">Bid Configuration Details</Title>
+                <Title level={5} className="!mb-4">
+                  Bid Configuration Details
+                </Title>
                 <Row gutter={[24, 16]}>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Configuration Title</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Configuration Title
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.title || selectedBidForReview.configData.bidTitle || 'N/A'}
+                        {selectedBidForReview.configData.title ||
+                          selectedBidForReview.configData.bidTitle ||
+                          "N/A"}
                       </Text>
                     </div>
                   </Col>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Baggage Allowance</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Baggage Allowance
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.baggageAllowance || 'N/A'} kg
+                        {selectedBidForReview.configData.baggageAllowance ||
+                          "N/A"}{" "}
+                        kg
                       </Text>
                     </div>
                   </Col>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Meal Included</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Meal Included
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.mealIncluded ? 'Yes' : 'No'}
+                        {selectedBidForReview.configData.mealIncluded
+                          ? "Yes"
+                          : "No"}
                       </Text>
                     </div>
                   </Col>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Cancellation Terms</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Cancellation Terms
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.cancellationTerms || 'Standard'}
+                        {selectedBidForReview.configData.cancellationTerms ||
+                          "Standard"}
                       </Text>
                     </div>
                   </Col>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Min Seats per Bid</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Min Seats per Bid
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.minSeatsPerBid || 'N/A'}
+                        {selectedBidForReview.configData.minSeatsPerBid ||
+                          "N/A"}
                       </Text>
                     </div>
                   </Col>
                   <Col span={12}>
                     <div>
-                      <Text className="text-gray-600 block text-sm">Max Seats per Bid</Text>
+                      <Text className="text-gray-600 block text-sm">
+                        Max Seats per Bid
+                      </Text>
                       <Text className="font-semibold">
-                        {selectedBidForReview.configData.maxSeatsPerBid || 'N/A'}
+                        {selectedBidForReview.configData.maxSeatsPerBid ||
+                          "N/A"}
                       </Text>
                     </div>
                   </Col>
@@ -1793,7 +1887,9 @@ export default function BidManagement() {
             {/* Additional Notes */}
             {selectedBidForReview.notes && (
               <Card>
-                <Title level={5} className="!mb-4">Additional Information</Title>
+                <Title level={5} className="!mb-4">
+                  Additional Information
+                </Title>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <Text>{selectedBidForReview.notes}</Text>
                 </div>
@@ -1802,14 +1898,13 @@ export default function BidManagement() {
 
             {/* Action Form */}
             <Card>
-              <Title level={5} className="!mb-4">Review & Decision</Title>
+              <Title level={5} className="!mb-4">
+                Review & Decision
+              </Title>
               <Form form={reviewForm} layout="vertical">
                 <Row gutter={[16, 16]}>
                   <Col span={24}>
-                    <Form.Item
-                      label="Admin Notes"
-                      name="adminNotes"
-                    >
+                    <Form.Item label="Admin Notes" name="adminNotes">
                       <Input.TextArea
                         rows={3}
                         placeholder="Add notes about your decision (optional)"
@@ -1833,15 +1928,20 @@ export default function BidManagement() {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item
-                      label="Rejection Reason"
-                      name="rejectionReason"
-                    >
+                    <Form.Item label="Rejection Reason" name="rejectionReason">
                       <Select placeholder="Select reason (if rejecting)">
-                        <Select.Option value="insufficient_bid">Bid amount too low</Select.Option>
-                        <Select.Option value="no_availability">No seats available</Select.Option>
-                        <Select.Option value="policy_violation">Policy violation</Select.Option>
-                        <Select.Option value="operational_reasons">Operational reasons</Select.Option>
+                        <Select.Option value="insufficient_bid">
+                          Bid amount too low
+                        </Select.Option>
+                        <Select.Option value="no_availability">
+                          No seats available
+                        </Select.Option>
+                        <Select.Option value="policy_violation">
+                          Policy violation
+                        </Select.Option>
+                        <Select.Option value="operational_reasons">
+                          Operational reasons
+                        </Select.Option>
                         <Select.Option value="other">Other</Select.Option>
                       </Select>
                     </Form.Item>
@@ -1861,7 +1961,7 @@ export default function BidManagement() {
               >
                 Cancel
               </Button>
-              
+
               <div className="flex space-x-3">
                 <Button
                   danger
@@ -1869,10 +1969,10 @@ export default function BidManagement() {
                   onClick={() => {
                     reviewForm.validateFields().then((values) => {
                       if (!values.rejectionReason) {
-                        message.warning('Please select a rejection reason');
+                        message.warning("Please select a rejection reason");
                         return;
                       }
-                      handleBidAction('reject', values);
+                      handleBidAction("reject", values);
                     });
                   }}
                 >
@@ -1883,7 +1983,7 @@ export default function BidManagement() {
                   loading={loading}
                   onClick={() => {
                     reviewForm.validateFields().then((values) => {
-                      handleBidAction('accept', values);
+                      handleBidAction("accept", values);
                     });
                   }}
                   className="bg-green-600 hover:bg-green-700"
@@ -1896,7 +1996,9 @@ export default function BidManagement() {
         ) : (
           <div className="text-center py-8">
             <Text className="text-gray-500">
-              {reviewBidModalVisible ? "Loading bid data..." : "No bid data available"}
+              {reviewBidModalVisible
+                ? "Loading bid data..."
+                : "No bid data available"}
             </Text>
           </div>
         )}
@@ -3108,7 +3210,7 @@ export default function BidManagement() {
                 </div>
               </nav>
             </div>
-            
+
             {/* User Info Section at Bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
               <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
@@ -3465,15 +3567,25 @@ export default function BidManagement() {
                             {
                               type: "number",
                               min: 50,
-                              message: "Minimum bid amount should be at least ₹50",
+                              message:
+                                "Minimum bid amount should be at least ₹50",
                             },
                             ({ getFieldValue }) => ({
                               validator(_, value) {
-                                const baseBidAmount = getFieldValue('bidAmount');
-                                if (!value || !baseBidAmount || value <= baseBidAmount) {
+                                const baseBidAmount =
+                                  getFieldValue("bidAmount");
+                                if (
+                                  !value ||
+                                  !baseBidAmount ||
+                                  value <= baseBidAmount
+                                ) {
                                   return Promise.resolve();
                                 }
-                                return Promise.reject(new Error('Minimum bid amount cannot exceed base bid amount'));
+                                return Promise.reject(
+                                  new Error(
+                                    "Minimum bid amount cannot exceed base bid amount",
+                                  ),
+                                );
                               },
                             }),
                           ]}
@@ -3507,15 +3619,25 @@ export default function BidManagement() {
                             {
                               type: "number",
                               min: 100,
-                              message: "Base bid amount should be at least ₹100",
+                              message:
+                                "Base bid amount should be at least ₹100",
                             },
                             ({ getFieldValue }) => ({
                               validator(_, value) {
-                                const minBidAmount = getFieldValue('minBidAmount');
-                                if (!value || !minBidAmount || value >= minBidAmount) {
+                                const minBidAmount =
+                                  getFieldValue("minBidAmount");
+                                if (
+                                  !value ||
+                                  !minBidAmount ||
+                                  value >= minBidAmount
+                                ) {
                                   return Promise.resolve();
                                 }
-                                return Promise.reject(new Error('Base bid amount must be greater than or equal to minimum bid amount'));
+                                return Promise.reject(
+                                  new Error(
+                                    "Base bid amount must be greater than or equal to minimum bid amount",
+                                  ),
+                                );
                               },
                             }),
                           ]}
