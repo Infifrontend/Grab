@@ -289,6 +289,7 @@ const services: Record<string, IndividualService[]> = {
 export default function AddServicesBundles() {
   const [, setLocation] = useLocation();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedBundles, setSelectedBundles] = useState<string[]>([]);
   const [individualServiceCounts, setIndividualServiceCounts] = useState<
     Record<string, number>
   >({});
