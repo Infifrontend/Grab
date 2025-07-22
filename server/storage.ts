@@ -274,14 +274,7 @@ export class DatabaseStorage implements IStorage {
     await db.update(flightBookings).set(updateData).where(eq(flightBookings.id, id));
   }
 
-  async updateBookingDetails(bookingId: number, updates: { 
-    specialRequests?: string;
-    bookingStatus?: string;
-    paymentStatus?: string;
-    passengerCount?: number;
-    totalAmount?: string;
-    updatedAt?: Date;
-  }): Promise<void> {
+  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
     await db.update(flightBookings)
       .set(updates)
       .where(eq(flightBookings.id, bookingId));

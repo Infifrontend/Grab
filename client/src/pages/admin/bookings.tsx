@@ -353,7 +353,7 @@ export default function Bookings() {
   };
 
   const handleEditBooking = (booking) => {
-    setLocation(`/admin/booking-edit/${booking.bookingId}`);
+    setLocation(`/booking-details/${booking.bookingId}`);
   };
 
   const handleSendConfirmation = (booking) => {
