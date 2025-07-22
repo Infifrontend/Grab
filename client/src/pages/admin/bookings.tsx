@@ -712,33 +712,85 @@ export default function Bookings() {
 
                     <Form
                       layout="vertical"
-                      onFinish={(values) => {
-                        // Store booking data and navigate to flight search flow
-                        const totalPassengers =
-                          values.adults + values.kids + values.infants;
+                      onFinish={async (values) => {
+                        try {
+                          // Validate required fields
+                          if (!values.origin || !values.destination || !values.departureDate) {
+                            message.error("Please fill in origin, destination, and departure date");
+                            return;
+                          }
 
-                        const bookingData = {
-                          origin: values.origin,
-                          destination: values.destination,
-                          departureDate: values.departureDate,
-                          returnDate: values.returnDate,
-                          tripType: values.tripType || "oneWay",
-                          adults: values.adults,
-                          kids: values.kids,
-                          infants: values.infants,
-                          cabin: values.cabin,
-                          totalPassengers,
-                          isAdminBooking: true,
-                        };
+                          // Validate at least one adult passenger
+                          const totalPassengers = values.adults + values.kids + values.infants;
+                          if (totalPassengers === 0 || values.adults === 0) {
+                            message.error("At least one adult passenger is required");
+                            return;
+                          }
 
-                        localStorage.setItem(
-                          "bookingFormData",
-                          JSON.stringify(bookingData),
-                        );
-                        localStorage.setItem("isAdminBooking", "true");
+                          // Prepare search data
+                          const searchData = {
+                            origin: values.origin,
+                            destination: values.destination,
+                            departureDate: values.departureDate.format("YYYY-MM-DD"),
+                            returnDate: values.returnDate?.format("YYYY-MM-DD") || null,
+                            passengers: totalPassengers,
+                            cabin: values.cabin || "economy",
+                            tripType: values.tripType,
+                          };
 
-                        // Navigate to flight search bundle page to start the complete flow
-                        setLocation("/flight-search-bundle");
+                          // Search for flights
+                          const searchResponse = await fetch("/api/search", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(searchData),
+                          });
+
+                          if (!searchResponse.ok) {
+                            throw new Error("Failed to search flights");
+                          }
+
+                          const searchResult = await searchResponse.json();
+
+                          if (!searchResult.flights || searchResult.flights.length === 0) {
+                            message.error("No flights found for your search criteria");
+                            return;
+                          }
+
+                          // Store search results and booking data for the flight search results page
+                          localStorage.setItem("searchResults", JSON.stringify(searchResult.flights));
+                          if (searchResult.returnFlights) {
+                            localStorage.setItem("returnFlights", JSON.stringify(searchResult.returnFlights));
+                          }
+                          
+                          const bookingData = {
+                            origin: values.origin,
+                            destination: values.destination,
+                            departureDate: values.departureDate,
+                            returnDate: values.returnDate,
+                            tripType: values.tripType || "oneWay",
+                            adults: values.adults,
+                            kids: values.kids,
+                            infants: values.infants,
+                            cabin: values.cabin,
+                            totalPassengers,
+                            isAdminBooking: true,
+                          };
+
+                          localStorage.setItem("bookingFormData", JSON.stringify(bookingData));
+                          localStorage.setItem("searchCriteria", JSON.stringify(searchData));
+                          localStorage.setItem("passengerCount", totalPassengers.toString());
+                          localStorage.setItem("isAdminBooking", "true");
+
+                          message.success(`Found ${searchResult.flights.length} flights! Redirecting to flight selection...`);
+
+                          // Navigate to flight search results page
+                          setLocation("/flight-search-results");
+                        } catch (error) {
+                          console.error("Search error:", error);
+                          message.error("Flight search failed. Please try again.");
+                        }
                       }}
                       initialValues={{
                         tripType: "oneWay",
