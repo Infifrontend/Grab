@@ -415,7 +415,7 @@ export default function BidDetails() {
                       className="rounded-md"
                     />
                     <Text className="text-gray-500 text-sm mt-1">
-                      Minimum bid amount: ₹{originalBidAmount} (can only increase)
+                      Minimum bid amount: ₹{bidData?.bid?.minimumBidAmount || originalBidAmount} (can only increase)
                     </Text>
                   </div>
                 </Col>

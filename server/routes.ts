@@ -872,10 +872,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create bid configuration
-  app.post("/api/bid-configurations", async (req: Request, res: Response) => {
+  app.post("/api/bid-configurations", async (req, res) => {
     try {
-      console.log("Received bid configuration data:", req.body);
-
       const {
         bidTitle,
         flightType,
@@ -897,7 +895,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancellationTerms,
         mealIncluded,
         otherNotes,
-        bidAmount
+        bidAmount,
+        minBidAmount
       } = req.body;
 
       // Validate required fields
@@ -997,6 +996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: 1, // Default admin user - you might want to get this from session/auth
         flightId: flightId,
         bidAmount: validBidAmount.toString(), // Use the validated bid amount
+        minimumBidAmount: minBidAmount ? minBidAmount.toString() : validBidAmount.toString(),
         passengerCount: minSeatsPerBid || 1,
         bidStatus: "active",
         validUntil: validUntilDate,
