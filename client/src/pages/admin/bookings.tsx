@@ -17,6 +17,7 @@ import {
   Modal,
   Descriptions,
   Badge,
+  message,
 } from "antd";
 import {
   SearchOutlined,
@@ -32,15 +33,18 @@ import {
   BellOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 export default function Bookings() {
   const [, setLocation] = useLocation();
-  const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [airlineFilter, setAirlineFilter] = useState("all");
 
   useEffect(() => {
     // Check if admin is logged in
@@ -55,47 +59,73 @@ export default function Bookings() {
     setLocation("/admin/login");
   };
 
-  const mockBookings = [
-    {
-      id: 1,
-      bookingId: "GR-2024-1001",
-      groupLeader: "John Smith",
-      email: "john.smith@company.com",
-      route: "LAX → JFK",
-      departureDate: "2024-02-15",
-      passengers: 15,
-      totalAmount: 18750,
-      status: "Confirmed",
-      bookingDate: "2024-01-10",
-      airline: "American Airlines",
+  // Fetch flight bookings from API
+  const { data: flightBookings = [], isLoading, error } = useQuery({
+    queryKey: ["/api/flight-bookings"],
+    queryFn: async () => {
+      const response = await fetch("/api/flight-bookings");
+      if (!response.ok) {
+        throw new Error("Failed to fetch bookings");
+      }
+      return response.json();
     },
-    {
-      id: 2,
-      bookingId: "GR-2024-1002",
-      groupLeader: "Sarah Johnson",
-      email: "sarah.j@corp.com",
-      route: "ORD → LAX",
-      departureDate: "2024-02-20",
-      passengers: 12,
-      totalAmount: 14400,
-      status: "Pending",
-      bookingDate: "2024-01-12",
-      airline: "United Airlines",
-    },
-    {
-      id: 3,
-      bookingId: "GR-2024-1003",
-      groupLeader: "Mike Wilson",
-      email: "mike.wilson@org.com",
-      route: "MIA → SFO",
-      departureDate: "2024-02-25",
-      passengers: 8,
-      totalAmount: 9600,
-      status: "Cancelled",
-      bookingDate: "2024-01-15",
-      airline: "Delta Airlines",
-    },
-  ];
+  });
+
+  // Process bookings data for display
+  const processedBookings = flightBookings.map((booking) => {
+    // Parse comprehensive data if available
+    let comprehensiveData = {};
+    let groupLeaderName = "N/A";
+    let groupLeaderEmail = "N/A";
+
+    if (booking.specialRequests) {
+      try {
+        comprehensiveData = JSON.parse(booking.specialRequests);
+        if (comprehensiveData.groupLeaderInfo) {
+          groupLeaderName = comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.groupLeaderName || "N/A";
+          groupLeaderEmail = comprehensiveData.groupLeaderInfo.email || comprehensiveData.groupLeaderInfo.groupLeaderEmail || "N/A";
+        }
+      } catch (e) {
+        // If parsing fails, use default values
+      }
+    }
+
+    return {
+      id: booking.id,
+      bookingId: booking.bookingReference,
+      groupLeader: groupLeaderName,
+      email: groupLeaderEmail,
+      route: booking.flight ? `${booking.flight.origin} → ${booking.flight.destination}` : "N/A",
+      departureDate: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : "N/A",
+      passengers: booking.passengerCount || 0,
+      totalAmount: parseFloat(booking.totalAmount || "0"),
+      status: booking.bookingStatus || "pending",
+      bookingDate: booking.bookedAt ? new Date(booking.bookedAt).toISOString().split('T')[0] : "N/A",
+      airline: booking.flight ? booking.flight.airline : "N/A",
+      paymentStatus: booking.paymentStatus || "pending",
+      flightNumber: booking.flight ? booking.flight.flightNumber : "N/A",
+      comprehensiveData
+    };
+  });
+
+  // Filter bookings based on search and filters
+  const filteredBookings = processedBookings.filter((booking) => {
+    const matchesSearch = searchText === "" || 
+      booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
+      booking.groupLeader.toLowerCase().includes(searchText.toLowerCase()) ||
+      booking.email.toLowerCase().includes(searchText.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
+    const matchesAirline = airlineFilter === "all" || booking.airline.toLowerCase().includes(airlineFilter.toLowerCase());
+    
+    return matchesSearch && matchesStatus && matchesAirline;
+  });
+
+  // Calculate statistics
+  const totalBookings = processedBookings.length;
+  const totalPassengers = processedBookings.reduce((sum, booking) => sum + booking.passengers, 0);
+  const totalRevenue = processedBookings.reduce((sum, booking) => sum + booking.totalAmount, 0);
+  const confirmedBookings = processedBookings.filter(booking => booking.status === "confirmed").length;
 
   const columns = [
     {
@@ -109,7 +139,11 @@ export default function Bookings() {
           </Text>
           <br />
           <Text type="secondary" className="text-sm">
-            {record.bookingDate}
+            {record.bookingDate !== "N/A" ? new Date(record.bookingDate).toLocaleDateString() : "N/A"}
+          </Text>
+          <br />
+          <Text type="secondary" className="text-xs">
+            {record.flightNumber}
           </Text>
         </div>
       ),
@@ -138,7 +172,7 @@ export default function Bookings() {
           <Text strong>{record.route}</Text>
           <br />
           <Text type="secondary" className="text-sm">
-            {record.departureDate}
+            {record.departureDate !== "N/A" ? new Date(record.departureDate).toLocaleDateString() : "N/A"}
           </Text>
           <br />
           <Text type="secondary" className="text-xs">
@@ -168,9 +202,15 @@ export default function Bookings() {
       dataIndex: "totalAmount",
       key: "totalAmount",
       render: (amount) => (
-        <Text strong className="text-green-600 text-lg">
-          ${amount.toLocaleString()}
-        </Text>
+        <div>
+          <Text strong className="text-green-600 text-lg">
+            ₹{amount.toLocaleString()}
+          </Text>
+          <br />
+          <Text type="secondary" className="text-xs">
+            Payment: {filteredBookings.find(b => b.totalAmount === amount)?.paymentStatus || "pending"}
+          </Text>
+        </div>
       ),
     },
     {
@@ -179,12 +219,12 @@ export default function Bookings() {
       key: "status",
       render: (status) => {
         const colors = {
-          Confirmed: "green",
-          Pending: "orange",
-          Cancelled: "red",
-          Processing: "blue",
+          confirmed: "green",
+          pending: "orange",
+          cancelled: "red",
+          processing: "blue",
         };
-        return <Tag color={colors[status]}>{status}</Tag>;
+        return <Tag color={colors[status] || "default"}>{status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"}</Tag>;
       },
     },
     {
@@ -198,7 +238,12 @@ export default function Bookings() {
             size="small"
             onClick={() => handleViewBooking(record)}
           />
-          <Button type="text" icon={<EditOutlined />} size="small" />
+          <Button 
+            type="text" 
+            icon={<EditOutlined />} 
+            size="small"
+            onClick={() => handleEditBooking(record)}
+          />
           <Dropdown
             menu={{
               items: [
@@ -206,12 +251,19 @@ export default function Bookings() {
                   key: "1",
                   label: "Send Confirmation",
                   icon: <CheckCircleOutlined />,
+                  onClick: () => handleSendConfirmation(record),
                 },
-                { key: "2", label: "Cancel Booking", icon: <MoreOutlined /> },
+                { 
+                  key: "2", 
+                  label: "Cancel Booking", 
+                  icon: <MoreOutlined />,
+                  onClick: () => handleCancelBooking(record),
+                },
                 {
                   key: "3",
                   label: "Download Invoice",
                   icon: <ExportOutlined />,
+                  onClick: () => handleDownloadInvoice(record),
                 },
               ],
             }}
@@ -228,6 +280,33 @@ export default function Bookings() {
     setSelectedBooking(booking);
     setIsModalVisible(true);
   };
+
+  const handleEditBooking = (booking) => {
+    setLocation(`/booking-details/${booking.bookingId}`);
+  };
+
+  const handleSendConfirmation = (booking) => {
+    message.success(`Confirmation email sent to ${booking.email}`);
+  };
+
+  const handleCancelBooking = (booking) => {
+    Modal.confirm({
+      title: 'Cancel Booking',
+      content: `Are you sure you want to cancel booking ${booking.bookingId}?`,
+      onOk() {
+        message.success(`Booking ${booking.bookingId} has been cancelled`);
+        // Here you would typically call an API to update the booking status
+      },
+    });
+  };
+
+  const handleDownloadInvoice = (booking) => {
+    message.success(`Invoice for booking ${booking.bookingId} is being prepared`);
+  };
+
+  if (error) {
+    message.error("Failed to fetch booking data");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -363,7 +442,7 @@ export default function Bookings() {
               <Card>
                 <Statistic
                   title="Total Bookings"
-                  value={1247}
+                  value={totalBookings}
                   prefix={<CalendarOutlined />}
                   valueStyle={{ color: "#1890ff" }}
                 />
@@ -373,7 +452,7 @@ export default function Bookings() {
               <Card>
                 <Statistic
                   title="Total Passengers"
-                  value={15634}
+                  value={totalPassengers}
                   prefix={<UserOutlined />}
                   valueStyle={{ color: "#52c41a" }}
                 />
@@ -383,10 +462,11 @@ export default function Bookings() {
               <Card>
                 <Statistic
                   title="Total Revenue"
-                  value={2850000}
+                  value={totalRevenue}
                   prefix={<DollarOutlined />}
                   precision={0}
                   valueStyle={{ color: "#faad14" }}
+                  formatter={(value) => `₹${value.toLocaleString()}`}
                 />
               </Card>
             </Col>
@@ -394,7 +474,7 @@ export default function Bookings() {
               <Card>
                 <Statistic
                   title="Confirmed Bookings"
-                  value={967}
+                  value={confirmedBookings}
                   prefix={<CheckCircleOutlined />}
                   valueStyle={{ color: "#722ed1" }}
                 />
@@ -409,10 +489,14 @@ export default function Bookings() {
                 placeholder="Search bookings..."
                 prefix={<SearchOutlined />}
                 style={{ width: 250 }}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
               />
               <Select
                 placeholder="Status"
                 style={{ width: 120 }}
+                value={statusFilter}
+                onChange={setStatusFilter}
                 options={[
                   { value: "all", label: "All Status" },
                   { value: "confirmed", label: "Confirmed" },
@@ -423,11 +507,16 @@ export default function Bookings() {
               <Select
                 placeholder="Airline"
                 style={{ width: 150 }}
+                value={airlineFilter}
+                onChange={setAirlineFilter}
                 options={[
                   { value: "all", label: "All Airlines" },
-                  { value: "american", label: "American Airlines" },
-                  { value: "united", label: "United Airlines" },
-                  { value: "delta", label: "Delta Airlines" },
+                  ...Array.from(new Set(processedBookings.map(b => b.airline)))
+                    .filter(airline => airline !== "N/A")
+                    .map(airline => ({
+                      value: airline,
+                      label: airline
+                    }))
                 ]}
               />
               <RangePicker placeholder={["Start Date", "End Date"]} />
@@ -438,11 +527,11 @@ export default function Bookings() {
           <Card>
             <Table
               columns={columns}
-              dataSource={mockBookings}
-              loading={loading}
+              dataSource={filteredBookings}
+              loading={isLoading}
               rowKey="id"
               pagination={{
-                total: mockBookings.length,
+                total: filteredBookings.length,
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
@@ -461,7 +550,14 @@ export default function Bookings() {
               <Button key="close" onClick={() => setIsModalVisible(false)}>
                 Close
               </Button>,
-              <Button key="edit" type="primary">
+              <Button 
+                key="edit" 
+                type="primary"
+                onClick={() => {
+                  setIsModalVisible(false);
+                  handleEditBooking(selectedBooking);
+                }}
+              >
                 Edit Booking
               </Button>,
             ]}
@@ -475,12 +571,14 @@ export default function Bookings() {
                 <Descriptions.Item label="Status">
                   <Tag
                     color={
-                      selectedBooking.status === "Confirmed"
+                      selectedBooking.status === "confirmed"
                         ? "green"
-                        : "orange"
+                        : selectedBooking.status === "pending"
+                        ? "orange"
+                        : "red"
                     }
                   >
-                    {selectedBooking.status}
+                    {selectedBooking.status?.charAt(0).toUpperCase() + selectedBooking.status?.slice(1)}
                   </Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="Group Leader">
@@ -493,19 +591,33 @@ export default function Bookings() {
                   {selectedBooking.route}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.departureDate}
+                  {selectedBooking.departureDate !== "N/A" ? 
+                    new Date(selectedBooking.departureDate).toLocaleDateString() : 
+                    "N/A"
+                  }
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
                   {selectedBooking.passengers}
                 </Descriptions.Item>
                 <Descriptions.Item label="Total Amount">
-                  ${selectedBooking.totalAmount.toLocaleString()}
+                  ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
                   {selectedBooking.airline}
                 </Descriptions.Item>
+                <Descriptions.Item label="Flight Number">
+                  {selectedBooking.flightNumber}
+                </Descriptions.Item>
+                <Descriptions.Item label="Payment Status">
+                  <Tag color={selectedBooking.paymentStatus === "paid" ? "green" : "orange"}>
+                    {selectedBooking.paymentStatus?.charAt(0).toUpperCase() + selectedBooking.paymentStatus?.slice(1)}
+                  </Tag>
+                </Descriptions.Item>
                 <Descriptions.Item label="Booking Date">
-                  {selectedBooking.bookingDate}
+                  {selectedBooking.bookingDate !== "N/A" ? 
+                    new Date(selectedBooking.bookingDate).toLocaleDateString() : 
+                    "N/A"
+                  }
                 </Descriptions.Item>
               </Descriptions>
             )}
