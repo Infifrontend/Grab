@@ -2013,7 +2013,7 @@ export default function BidManagement() {
               ),
             },
             {
-              title: "Amount",```python
+              title: "Amount",
               dataIndex: "amount",
               key: "amount",
             },
