@@ -55,6 +55,7 @@ import {
   DollarOutlined,
   AlertOutlined,
   EnvironmentOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
