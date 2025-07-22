@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -18,6 +19,7 @@ import {
   Descriptions,
   Badge,
   message,
+  Tabs,
 } from "antd";
 import {
   SearchOutlined,
@@ -31,10 +33,11 @@ import {
   CheckCircleOutlined,
   LogoutOutlined,
   BellOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { json } from "express";
+import QuickBookingForm from "@/components/booking/quick-booking-form";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -46,6 +49,7 @@ export default function Bookings() {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     // Check if admin is logged in
@@ -377,9 +381,30 @@ export default function Bookings() {
     );
   };
 
+  // Handle manage booking - navigate to existing manage booking flow
+  const handleManageBooking = (bookingId) => {
+    setLocation(`/manage-booking/${bookingId}`);
+  };
+
   if (error) {
     message.error("Failed to fetch booking data");
   }
+
+  // Tab items for the main content
+  const tabItems = [
+    {
+      key: "dashboard",
+      label: "Dashboard",
+    },
+    {
+      key: "create-booking",
+      label: "Create Group Booking",
+    },
+    {
+      key: "manage-bookings",
+      label: "Manage Bookings",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -536,117 +561,439 @@ export default function Bookings() {
                 Manage and track all group travel bookings
               </Text>
             </div>
-            <Space>
-              <Button icon={<ExportOutlined />}>Export Data</Button>
-            </Space>
           </div>
 
-          {/* Stats Cards */}
-          <Row gutter={[24, 24]} className="mb-8">
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Total Bookings"
-                  value={totalBookings}
-                  prefix={<CalendarOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Total Passengers"
-                  value={totalPassengers}
-                  prefix={<UserOutlined />}
-                  valueStyle={{ color: "#52c41a" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Total Revenue"
-                  value={totalRevenue}
-                  prefix={<DollarOutlined />}
-                  precision={0}
-                  valueStyle={{ color: "#faad14" }}
-                  formatter={(value) => `₹${value.toLocaleString()}`}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Confirmed Bookings"
-                  value={confirmedBookings}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: "#722ed1" }}
-                />
-              </Card>
-            </Col>
-          </Row>
+          {/* Main Tabs */}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            className="mb-6"
+          />
 
-          {/* Filters */}
-          <Card className="mb-6">
-            <Space className="w-full" direction="horizontal" wrap>
-              <Input
-                placeholder="Search bookings..."
-                prefix={<SearchOutlined />}
-                style={{ width: 250 }}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
-              <Select
-                placeholder="Status"
-                style={{ width: 120 }}
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={[
-                  { value: "all", label: "All Status" },
-                  { value: "confirmed", label: "Confirmed" },
-                  { value: "pending", label: "Pending" },
-                  { value: "cancelled", label: "Cancelled" },
-                ]}
-              />
-              <Select
-                placeholder="Airline"
-                style={{ width: 150 }}
-                value={airlineFilter}
-                onChange={setAirlineFilter}
-                options={[
-                  { value: "all", label: "All Airlines" },
-                  ...Array.from(
-                    new Set(processedBookings.map((b) => b.airline)),
-                  )
-                    .filter((airline) => airline !== "N/A")
-                    .map((airline) => ({
-                      value: airline,
-                      label: airline,
-                    })),
-                ]}
-              />
-              <RangePicker placeholder={["Start Date", "End Date"]} />
-            </Space>
-          </Card>
+          {/* Dashboard Tab Content */}
+          {activeTab === "dashboard" && (
+            <>
+              {/* Stats Cards */}
+              <Row gutter={[24, 24]} className="mb-8">
+                <Col xs={24} sm={12} lg={6}>
+                  <Card>
+                    <Statistic
+                      title="Total Bookings"
+                      value={totalBookings}
+                      prefix={<CalendarOutlined />}
+                      valueStyle={{ color: "#1890ff" }}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                  <Card>
+                    <Statistic
+                      title="Total Passengers"
+                      value={totalPassengers}
+                      prefix={<UserOutlined />}
+                      valueStyle={{ color: "#52c41a" }}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                  <Card>
+                    <Statistic
+                      title="Total Revenue"
+                      value={totalRevenue}
+                      prefix={<DollarOutlined />}
+                      precision={0}
+                      valueStyle={{ color: "#faad14" }}
+                      formatter={(value) => `₹${value.toLocaleString()}`}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                  <Card>
+                    <Statistic
+                      title="Confirmed Bookings"
+                      value={confirmedBookings}
+                      prefix={<CheckCircleOutlined />}
+                      valueStyle={{ color: "#722ed1" }}
+                    />
+                  </Card>
+                </Col>
+              </Row>
 
-          {/* Bookings Table */}
-          <Card>
-            <Table
-              columns={columns}
-              dataSource={filteredBookings}
-              loading={isLoading}
-              rowKey="id"
-              pagination={{
-                total: filteredBookings.length,
-                pageSize: 10,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} of ${total} bookings`,
-              }}
-            />
-          </Card>
+              {/* Filters */}
+              <Card className="mb-6">
+                <Space className="w-full" direction="horizontal" wrap>
+                  <Input
+                    placeholder="Search bookings..."
+                    prefix={<SearchOutlined />}
+                    style={{ width: 250 }}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                  <Select
+                    placeholder="Status"
+                    style={{ width: 120 }}
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                    options={[
+                      { value: "all", label: "All Status" },
+                      { value: "confirmed", label: "Confirmed" },
+                      { value: "pending", label: "Pending" },
+                      { value: "cancelled", label: "Cancelled" },
+                    ]}
+                  />
+                  <Select
+                    placeholder="Airline"
+                    style={{ width: 150 }}
+                    value={airlineFilter}
+                    onChange={setAirlineFilter}
+                    options={[
+                      { value: "all", label: "All Airlines" },
+                      ...Array.from(
+                        new Set(processedBookings.map((b) => b.airline)),
+                      )
+                        .filter((airline) => airline !== "N/A")
+                        .map((airline) => ({
+                          value: airline,
+                          label: airline,
+                        })),
+                    ]}
+                  />
+                  <RangePicker placeholder={["Start Date", "End Date"]} />
+                  <Button icon={<ExportOutlined />}>Export Data</Button>
+                </Space>
+              </Card>
+
+              {/* Bookings Table */}
+              <Card>
+                <Table
+                  columns={columns}
+                  dataSource={filteredBookings}
+                  loading={isLoading}
+                  rowKey="id"
+                  pagination={{
+                    total: filteredBookings.length,
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} bookings`,
+                  }}
+                />
+              </Card>
+            </>
+          )}
+
+          {/* Create Group Booking Tab Content */}
+          {activeTab === "create-booking" && (
+            <div className="max-w-4xl">
+              <div className="mb-6">
+                <Title level={3} className="!mb-2 text-gray-900">
+                  Create New Group Booking
+                </Title>
+                <Text className="text-gray-600">
+                  Start a new group travel booking for your organization
+                </Text>
+              </div>
+              
+              <Row gutter={24}>
+                <Col xs={24} lg={14}>
+                  <QuickBookingForm />
+                </Col>
+                <Col xs={24} lg={10}>
+                  <Card>
+                    <div className="mb-4">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Admin Booking Tools
+                      </Title>
+                      <Text className="text-gray-600">
+                        Additional tools for managing group bookings
+                      </Text>
+                    </div>
+
+                    <Space direction="vertical" size="middle" className="w-full">
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Bulk Passenger Import
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Upload CSV file with passenger details
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Corporate Discount
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Apply special pricing for corporate clients
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Payment Options
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Configure payment schedules and methods
+                          </div>
+                        </div>
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
+          )}
+
+          {/* Manage Bookings Tab Content */}
+          {activeTab === "manage-bookings" && (
+            <>
+              <div className="mb-6">
+                <Title level={3} className="!mb-2 text-gray-900">
+                  Manage Existing Bookings
+                </Title>
+                <Text className="text-gray-600">
+                  Search and manage existing group bookings
+                </Text>
+              </div>
+
+              <Row gutter={[24, 24]}>
+                {/* Search Booking Form */}
+                <Col xs={24} lg={14}>
+                  <Card className="mb-6">
+                    <div className="mb-6">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Find Booking
+                      </Title>
+                      <Text className="text-gray-600">
+                        Search for existing bookings by ID or customer details
+                      </Text>
+                    </div>
+
+                    <Space direction="vertical" size="large" className="w-full">
+                      <div>
+                        <Text className="block mb-2 text-gray-700 font-medium">
+                          Booking ID / Reference
+                        </Text>
+                        <Input
+                          size="large"
+                          placeholder="Enter booking ID or reference number"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Text className="block mb-2 text-gray-700 font-medium">
+                          Customer Email
+                        </Text>
+                        <Input
+                          size="large"
+                          placeholder="Enter customer email address"
+                          type="email"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Text className="block mb-2 text-gray-700 font-medium">
+                          Group Leader Name
+                        </Text>
+                        <Input
+                          size="large"
+                          placeholder="Enter group leader name"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <Button
+                        type="primary"
+                        size="large"
+                        icon={<SearchOutlined />}
+                        className="w-full infiniti-btn-primary"
+                      >
+                        Search Bookings
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+
+                {/* Quick Actions */}
+                <Col xs={24} lg={10}>
+                  <Card>
+                    <div className="mb-4">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Quick Actions
+                      </Title>
+                      <Text className="text-gray-600">
+                        Common booking management tasks
+                      </Text>
+                    </div>
+
+                    <Space direction="vertical" size="middle" className="w-full">
+                      <Button
+                        size="large"
+                        icon={<UserOutlined />}
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div className="ml-2">
+                          <div className="font-medium text-gray-900">
+                            Add Passengers
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Add passengers to existing booking
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        icon={<CalendarOutlined />}
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div className="ml-2">
+                          <div className="font-medium text-gray-900">
+                            Modify Dates
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Change flight dates and times
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        icon={<DollarOutlined />}
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div className="ml-2">
+                          <div className="font-medium text-gray-900">
+                            Payment Management
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Process payments and refunds
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        icon={<ExportOutlined />}
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div className="ml-2">
+                          <div className="font-medium text-gray-900">
+                            Generate Reports
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Export booking details and manifests
+                          </div>
+                        </div>
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+
+                {/* Recent Bookings for Management */}
+                <Col span={24}>
+                  <Card>
+                    <div className="mb-4">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Recent Bookings
+                      </Title>
+                      <Text className="text-gray-600">
+                        Click on any booking to manage it
+                      </Text>
+                    </div>
+
+                    <Row gutter={[16, 16]}>
+                      {processedBookings.slice(0, 6).map((booking) => (
+                        <Col xs={24} sm={12} lg={8} key={booking.id}>
+                          <Card 
+                            className="h-full hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => handleManageBooking(booking.bookingId)}
+                          >
+                            <div className="mb-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <Text className="font-bold text-lg text-blue-600">
+                                  {booking.bookingId}
+                                </Text>
+                                <Tag color={booking.status === 'confirmed' ? 'green' : booking.status === 'pending' ? 'orange' : 'red'}>
+                                  {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                                </Tag>
+                              </div>
+                            </div>
+
+                            <Space direction="vertical" size="small" className="w-full mb-4">
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <UserOutlined className="text-sm" />
+                                <Text className="text-sm">
+                                  {booking.groupLeader}
+                                </Text>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <CalendarOutlined className="text-sm" />
+                                <Text className="text-sm">
+                                  {booking.comprehensiveData?.tripDetails?.origin || 'N/A'} → {booking.comprehensiveData?.tripDetails?.destination || 'N/A'}
+                                </Text>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <span className="text-sm">👥</span>
+                                <Text className="text-sm">
+                                  {booking.passengers} passengers
+                                </Text>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <span className="text-sm">💰</span>
+                                <Text className="text-sm font-semibold text-green-600">
+                                  ₹{booking.totalAmount.toLocaleString()}
+                                </Text>
+                              </div>
+                            </Space>
+
+                            <Button
+                              type="primary"
+                              className="w-full infiniti-btn-primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleManageBooking(booking.bookingId);
+                              }}
+                            >
+                              Manage Booking
+                            </Button>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Card>
+                </Col>
+              </Row>
+            </>
+          )}
 
           {/* Booking Details Modal */}
           <Modal
@@ -696,15 +1043,12 @@ export default function Bookings() {
                   {selectedBooking.email}
                 </Descriptions.Item>
                 <Descriptions.Item label="Route">
-                  {selectedBooking.comprehensiveData.tripDetails.origin} {" - "}
-                  {selectedBooking.comprehensiveData.tripDetails.destination}
+                  {selectedBooking.comprehensiveData?.tripDetails?.origin || 'N/A'} {" - "}
+                  {selectedBooking.comprehensiveData?.tripDetails?.destination || 'N/A'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.comprehensiveData.tripDetails
-                    .departureDate !== "N/A"
-                    ? new Date(
-                        selectedBooking.comprehensiveData.tripDetails.departureDate,
-                      ).toLocaleDateString()
+                  {selectedBooking.comprehensiveData?.tripDetails?.departureDate !== "N/A"
+                    ? new Date(selectedBooking.comprehensiveData?.tripDetails?.departureDate).toLocaleDateString()
                     : "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
@@ -714,16 +1058,10 @@ export default function Bookings() {
                   ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
-                  {
-                    selectedBooking.comprehensiveData.flightDetails.outbound
-                      .airline
-                  }
+                  {selectedBooking.comprehensiveData?.flightDetails?.outbound?.airline || 'N/A'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Flight Number">
-                  {
-                    selectedBooking.comprehensiveData.flightDetails.outbound
-                      .flightNumber
-                  }
+                  {selectedBooking.comprehensiveData?.flightDetails?.outbound?.flightNumber || 'N/A'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
                   <Tag
