@@ -27,6 +27,7 @@ import {
   ExportOutlined,
   CalendarOutlined,
   UserOutlined,
+  DollarOutlined,
   CheckCircleOutlined,
   LogoutOutlined,
   BellOutlined,
@@ -55,7 +56,6 @@ export default function Bookings() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
-    localStorage.removeItem("adminUsername");
     setLocation("/admin/login");
   };
 
@@ -114,10 +114,10 @@ export default function Bookings() {
       booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
       booking.groupLeader.toLowerCase().includes(searchText.toLowerCase()) ||
       booking.email.toLowerCase().includes(searchText.toLowerCase());
-
+    
     const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
     const matchesAirline = airlineFilter === "all" || booking.airline.toLowerCase().includes(airlineFilter.toLowerCase());
-
+    
     return matchesSearch && matchesStatus && matchesAirline;
   });
 
@@ -359,11 +359,6 @@ export default function Bookings() {
                 </Text>
                 <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
-              <Button
-                  type="text"
-                  icon={<LogoutOutlined />}
-                  onClick={handleLogout}
-                />
             </div>
           </div>
         </div>

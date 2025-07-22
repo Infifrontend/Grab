@@ -19,7 +19,6 @@ import {
   Avatar,
   Badge,
   Breadcrumb,
-  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -58,7 +57,6 @@ export default function CMS() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
-    localStorage.removeItem("adminUsername");
     setLocation("/admin/login");
   };
 
@@ -249,13 +247,6 @@ export default function CMS() {
                 </Text>
                 <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
-              <Tooltip title="Sign Out">
-                <Button
-                  type="text"
-                  icon={<LogoutOutlined />}
-                  onClick={handleLogout}
-                />
-              </Tooltip>
             </div>
           </div>
         </div>

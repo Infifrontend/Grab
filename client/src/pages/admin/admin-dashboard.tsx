@@ -4,24 +4,28 @@ import {
   Row, 
   Col, 
   Typography, 
-  Statistic,
-  Progress,
-  Avatar,
-  Button,
-  Badge,
+  Button, 
+  Avatar, 
+  Badge, 
+  Select, 
   Space,
-  Tooltip,
+  Divider,
+  Progress,
+  Table,
+  Statistic
 } from "antd";
 import { 
+  DollarOutlined, 
+  CalendarOutlined, 
+  GiftOutlined, 
   UserOutlined,
   BellOutlined,
+  ReloadOutlined,
+  DownloadOutlined,
   RiseOutlined,
   FallOutlined,
-  TeamOutlined,
-  DollarOutlined,
-  ShoppingOutlined,
-  PercentageOutlined,
-  LogoutOutlined,
+  TrophyOutlined,
+  LineChartOutlined
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
@@ -661,7 +665,8 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mt-1">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-centerAdding navigation to all menu items in the admin dashboard.
+``` justify-center mt-1">
                     <span className="text-white text-xs">💡</span>
                   </div>
                   <div>
@@ -967,12 +972,6 @@ export default function AdminDashboard() {
                 <Text className="font-medium text-gray-900 block">John Doe</Text>
                 <Text className="text-gray-500 text-sm">System Admin</Text>
               </div>
-              <Tooltip title="Logout">
-                <LogoutOutlined 
-                  className="text-gray-500 hover:text-red-600 text-lg cursor-pointer ml-3 transition-colors duration-200"
-                  onClick={handleLogout}
-                />
-              </Tooltip>
             </div>
           </div>
         </div>
