@@ -322,8 +322,16 @@ export class DatabaseStorage implements IStorage {
     return bid || undefined;
   }
 
-  async createBid(bid: InsertBid): Promise<Bid> {
-    const [newBid] = await db.insert(bids).values(bid).returning();
+  async createBid(bidData: InsertBid & { minimumBidAmount?: string }): Promise<Bid> {
+    const [newBid] = await db
+      .insert(bids)
+      .values({
+        ...bidData,
+        minimumBidAmount: bidData.minimumBidAmount || bidData.bidAmount,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
     return newBid;
   }
 
@@ -741,7 +749,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createBid(bidData: InsertBid) {
+  async createBid(bidData: InsertBid & { minimumBidAmount?: string }) {
     try {
       console.log("Creating bid with data:", bidData);
 
@@ -759,6 +767,7 @@ export class DatabaseStorage implements IStorage {
         .insert(bids)
         .values({
           ...bidData,
+          minimumBidAmount: bidData.minimumBidAmount || bidData.bidAmount,
           createdAt: new Date(),
           updatedAt: new Date()
         })

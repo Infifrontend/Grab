@@ -723,7 +723,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancellationTerms,
         mealIncluded,
         otherNotes,
-        bidAmount
+        bidAmount,
+        minimumBidAmount
       } = req.body;
 
       console.log(`Updating bid configuration ${id}:`, req.body);
@@ -763,7 +764,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mealIncluded: mealIncluded !== undefined ? mealIncluded : existingConfigData.mealIncluded || false,
         otherNotes: otherNotes !== undefined ? otherNotes : existingConfigData.otherNotes || "",
         updatedAt: new Date().toISOString(),
-        configType: "bid_configuration" // Ensure this remains set
+        configType: "bid_configuration", // Ensure this remains set
+        minimumBidAmount: minimumBidAmount !== undefined ? minimumBidAmount : existingConfigData.minimumBidAmount
       };
 
       console.log('Updated configuration data:', updatedConfigurationData);
@@ -897,7 +899,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancellationTerms,
         mealIncluded,
         otherNotes,
-        bidAmount
+        bidAmount,
+        minimumBidAmount
       } = req.body;
 
       // Validate required fields
@@ -989,7 +992,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otherNotes: otherNotes || "",
         configType: "bid_configuration",
         createdAt: new Date().toISOString(),
-        status: "active"
+        status: "active",
+        minimumBidAmount: minimumBidAmount || 100
       };
 
       // Create bid configuration record
