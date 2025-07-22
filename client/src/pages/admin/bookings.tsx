@@ -34,6 +34,7 @@ import {
 } from "@ant-design/icons";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { json } from "express";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -169,7 +170,11 @@ export default function Bookings() {
           <br />
           <Text type="secondary" className="text-sm">
             {record.bookingDate !== "N/A"
-              ? new Date(record.bookingDate).toLocaleDateString()
+              ? new Date(record.bookingDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
               : "N/A"}
           </Text>
           <br />
@@ -185,7 +190,6 @@ export default function Bookings() {
       sorter: (a, b) => a.groupLeader.localeCompare(b.groupLeader),
       render: (_, record) => (
         <div className="flex items-center space-x-3">
-          <Avatar size="small" icon={<UserOutlined />} />
           <div>
             <Text strong>{record.groupLeader}</Text>
             <br />
@@ -197,7 +201,7 @@ export default function Bookings() {
       ),
     },
     {
-      title: "Origin & Destination",
+      title: "Route & Date",
       key: "route",
       sorter: (a, b) => {
         if (a.departureDate === "N/A" && b.departureDate === "N/A") return 0;
@@ -208,35 +212,27 @@ export default function Bookings() {
           new Date(b.departureDate).getTime()
         );
       },
-      render: (_, record) => {
-        const [origin, destination] = record.route !== "N/A" 
-          ? record.route.split(" → ") 
-          : ["N/A", "N/A"];
-        
+      render: (text, record) => {
+        const origin = record?.comprehensiveData?.tripDetails?.origin;
+        const destination = record?.comprehensiveData?.tripDetails?.destination;
+        const departureDate =
+          record?.comprehensiveData?.tripDetails?.departureDate;
+
+        // Formatting departureDate in DD MMM YYYY format
+        const formattedDate = departureDate
+          ? new Date(departureDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "N/A";
+
         return (
-          <div>
-            <div className="space-y-1">
-              <div>
-                <Text type="secondary" className="text-xs">From:</Text>
-                <Text strong className="block">{origin}</Text>
-              </div>
-              <div>
-                <Text type="secondary" className="text-xs">To:</Text>
-                <Text strong className="block">{destination}</Text>
-              </div>
-            </div>
-            <div className="mt-2">
-              <Text type="secondary" className="text-sm">
-                {record.departureDate !== "N/A"
-                  ? new Date(record.departureDate).toLocaleDateString()
-                  : "N/A"}
-              </Text>
-              <br />
-              <Text type="secondary" className="text-xs">
-                {record.airline}
-              </Text>
-            </div>
-          </div>
+          <>
+            {origin} - {destination}
+            <br />
+            {formattedDate}
+          </>
         );
       },
     },
@@ -496,7 +492,7 @@ export default function Bookings() {
                 </div>
               </nav>
             </div>
-            
+
             {/* User Info Section at Bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
               <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
@@ -700,12 +696,14 @@ export default function Bookings() {
                   {selectedBooking.email}
                 </Descriptions.Item>
                 <Descriptions.Item label="Route">
-                  {selectedBooking.route}
+                  {selectedBooking.comprehensiveData.tripDetails.origin} {" - "}
+                  {selectedBooking.comprehensiveData.tripDetails.destination}
                 </Descriptions.Item>
                 <Descriptions.Item label="Departure Date">
-                  {selectedBooking.departureDate !== "N/A"
+                  {selectedBooking.comprehensiveData.tripDetails
+                    .departureDate !== "N/A"
                     ? new Date(
-                        selectedBooking.departureDate,
+                        selectedBooking.comprehensiveData.tripDetails.departureDate,
                       ).toLocaleDateString()
                     : "N/A"}
                 </Descriptions.Item>
@@ -716,10 +714,16 @@ export default function Bookings() {
                   ₹{selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
-                  {selectedBooking.airline}
+                  {
+                    selectedBooking.comprehensiveData.flightDetails.outbound
+                      .airline
+                  }
                 </Descriptions.Item>
                 <Descriptions.Item label="Flight Number">
-                  {selectedBooking.flightNumber}
+                  {
+                    selectedBooking.comprehensiveData.flightDetails.outbound
+                      .flightNumber
+                  }
                 </Descriptions.Item>
                 <Descriptions.Item label="Payment Status">
                   <Tag
