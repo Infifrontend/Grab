@@ -3689,9 +3689,6 @@ export default function BidManagement() {
                             className="w-full"
                             size="large"
                             disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
-                          />"Select end time"
-                            className="w-full"
-                            size="large"
                           />
                         </Form.Item>
                       </Col>
