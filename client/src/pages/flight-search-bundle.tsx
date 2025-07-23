@@ -297,8 +297,14 @@ export default function FlightSearchBundle() {
         const searchCriteriaData = localStorage.getItem("searchCriteria");
         if (searchCriteriaData) {
           const criteria = JSON.parse(searchCriteriaData);
-          setOrigin(criteria.origin || localStorage.getItem("searchOrigin") || "");
-          setDestination(criteria.destination || localStorage.getItem("searchDestination") || "");
+          setOrigin(
+            criteria.origin || localStorage.getItem("searchOrigin") || "",
+          );
+          setDestination(
+            criteria.destination ||
+              localStorage.getItem("searchDestination") ||
+              "",
+          );
         } else {
           setOrigin(localStorage.getItem("searchOrigin") || "");
           setDestination(localStorage.getItem("searchDestination") || "");
@@ -354,9 +360,10 @@ export default function FlightSearchBundle() {
     const searchOrigin = searchCriteria.origin || origin;
     const searchDestination = searchCriteria.destination || destination;
 
-    let filtered = availableFlights.filter((flight) => 
-      flight.origin === searchOrigin && 
-      flight.destination === searchDestination
+    let filtered = availableFlights.filter(
+      (flight) =>
+        flight.origin === searchOrigin &&
+        flight.destination === searchDestination,
     );
 
     // Filter by airlines
@@ -469,12 +476,21 @@ export default function FlightSearchBundle() {
     const searchOrigin = searchCriteria.origin || origin;
     const searchDestination = searchCriteria.destination || destination;
 
-    console.log("Return flights filter - Looking for flights from:", searchDestination, "to:", searchOrigin);
-    console.log("Available return flights routes:", returnFlights.map(f => `${f.origin}→${f.destination}`));
+    console.log(
+      "Return flights filter - Looking for flights from:",
+      searchDestination,
+      "to:",
+      searchOrigin,
+    );
+    console.log(
+      "Available return flights routes:",
+      returnFlights.map((f) => `${f.origin}→${f.destination}`),
+    );
 
-    let filtered = returnFlights.filter((flight) => 
-      flight.origin === searchDestination && 
-      flight.destination === searchOrigin
+    let filtered = returnFlights.filter(
+      (flight) =>
+        flight.origin === searchDestination &&
+        flight.destination === searchOrigin,
     );
 
     console.log("After route filtering:", filtered.length, "return flights");
@@ -768,12 +784,28 @@ export default function FlightSearchBundle() {
         }
 
         // Verify flight separation
-        console.log("Outbound flights (should be", origin, "to", destination, "):", 
-          processedFlights.map(f => `${f.flightNumber}: ${f.origin}→${f.destination}`));
+        console.log(
+          "Outbound flights (should be",
+          origin,
+          "to",
+          destination,
+          "):",
+          processedFlights.map(
+            (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`,
+          ),
+        );
 
         if (processedReturnFlights.length > 0) {
-          console.log("Return flights (should be", destination, "to", origin, "):", 
-            processedReturnFlights.map(f => `${f.flightNumber}: ${f.origin}→${f.destination}`));
+          console.log(
+            "Return flights (should be",
+            destination,
+            "to",
+            origin,
+            "):",
+            processedReturnFlights.map(
+              (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`,
+            ),
+          );
         }
 
         // Set the first flight as selected by default
@@ -896,30 +928,30 @@ export default function FlightSearchBundle() {
     try {
       // Handle both ISO string format and simple time format
       let date;
-      if (timeStr.includes('T') && timeStr.includes('Z')) {
+      if (timeStr.includes("T") && timeStr.includes("Z")) {
         // ISO format like "2025-07-21T08:30:00.000Z"
         date = new Date(timeStr);
-      } else if (timeStr.includes(':')) {
+      } else if (timeStr.includes(":")) {
         // Simple time format like "08:30"
         date = new Date();
-        const [hours, minutes] = timeStr.split(':');
+        const [hours, minutes] = timeStr.split(":");
         date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
       } else {
         return timeStr; // Return as-is if format is unrecognized
       }
 
       // Format to local timezone with date and time
-      return date.toLocaleString('en-US', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: true,
-        timeZoneName: 'short'
+        timeZoneName: "short",
       });
     } catch (error) {
-      console.error('Error formatting time:', timeStr, error);
+      console.error("Error formatting time:", timeStr, error);
       return timeStr; // Return original if formatting fails
     }
   };
@@ -979,7 +1011,9 @@ export default function FlightSearchBundle() {
               <Text className="font-medium text-xs">
                 {formatFlightTime(flight.arrivalTime)}
               </Text>
-              <Text className="text-xs text-gray-500">{flight.destination}</Text>
+              <Text className="text-xs text-gray-500">
+                {flight.destination}
+              </Text>
             </div>
             <div className="ml-4">
               <Text className="text-gray-600 text-sm">({flight.duration})</Text>
@@ -1481,7 +1515,7 @@ export default function FlightSearchBundle() {
                   {/* Price Range */}
                   <div className="mb-6">
                     <Text className="text-gray-700 font-medium block mb-3">
-                      💰 Price Rang
+                      💰 Price Range
                     </Text>
                     <Slider
                       range
@@ -1706,7 +1740,9 @@ export default function FlightSearchBundle() {
                               {returnFlights.length > 0 && (
                                 <div className="mt-4">
                                   <Text className="text-sm text-gray-400">
-                                    Found {returnFlights.length} return flights total, but {filteredReturnFlights.length} match current filters
+                                    Found {returnFlights.length} return flights
+                                    total, but {filteredReturnFlights.length}{" "}
+                                    match current filters
                                   </Text>
                                 </div>
                               )}
@@ -1813,8 +1849,8 @@ export default function FlightSearchBundle() {
         }
 
         :global(
-            .flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn
-          ) {
+          .flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn
+        ) {
           color: #2a0a22;
         }
 
@@ -1823,8 +1859,8 @@ export default function FlightSearchBundle() {
         }
 
         :global(
-            .flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn
-          ) {
+          .flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn
+        ) {
           color: #9ca3af;
           cursor: not-allowed;
         }
