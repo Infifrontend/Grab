@@ -331,7 +331,6 @@ export default function BidDetails() {
                     <Text className="text-gray-700 font-medium block mb-2">
                       Special Requests / Notes
                     </Text>
-                    <p>{JSON.stringify(transformedBidData)}</p>
                     <TextArea
                       value={transformedBidData.specialRequests}
                       placeholder="No special requests"
