@@ -191,7 +191,8 @@ export default function BidDetails() {
 
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = parseInt(e.target.value);
-    if (newAmount >= originalBidAmount) {
+    const minBidAmount = parseFloat(bidData?.bid?.minimumBidAmount || originalBidAmount);
+    if (newAmount >= minBidAmount) {
       setBidAmount(newAmount);
     }
   };
@@ -250,7 +251,7 @@ export default function BidDetails() {
           description={
             <span>
               The minimum bid amount set by the airline for this route is{" "}
-              <strong>$750 per person</strong>. Your bid must meet or exceed
+              <strong>₹{bidData?.bid?.minimumBidAmount || 750} per person</strong>. Your bid must meet or exceed
               this amount to be considered.
             </span>
           }
@@ -518,7 +519,7 @@ export default function BidDetails() {
                       className="rounded-md"
                     />
                     <Text className="text-gray-500 text-sm mt-1">
-                      Minimum bid amount: ₹{originalBidAmount} (can only
+                      Minimum bid amount: ₹{bidData?.bid?.minimumBidAmount || originalBidAmount} (can only
                       increase)
                     </Text>
                   </div>
