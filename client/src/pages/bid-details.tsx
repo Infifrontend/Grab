@@ -211,6 +211,12 @@ export default function BidDetails() {
     }
   };
 
+  const handleContinueToPayment = () => {
+    // Navigate to payment page with bid details
+    const totalAmount = passengers * bidAmount;
+    setLocation(`/payment-options?bidId=${params?.id}&amount=${totalAmount}&passengers=${passengers}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -728,6 +734,7 @@ export default function BidDetails() {
             <Button
               type="primary"
               size="large"
+              onClick={handleContinueToPayment}
               className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
             >
               Continue to Payment

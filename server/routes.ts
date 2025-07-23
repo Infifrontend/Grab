@@ -871,6 +871,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update bid details and status
+  app.put("/api/bids/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { passengerCount, bidAmount, bidStatus } = req.body;
+
+      console.log(`Updating bid ${id} with:`, { passengerCount, bidAmount, bidStatus });
+
+      // Update the bid in the database
+      const updateData = {
+        passengerCount: passengerCount ? parseInt(passengerCount) : undefined,
+        bidAmount: bidAmount ? bidAmount.toString() : undefined,
+        bidStatus: bidStatus || undefined,
+        updatedAt: new Date()
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => 
+        updateData[key] === undefined && delete updateData[key]
+      );
+
+      await storage.updateBidDetails(parseInt(id), updateData);
+
+      // Get the updated bid to return
+      const updatedBid = await storage.getBidById(parseInt(id));
+
+      if (!updatedBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Bid updated successfully",
+        bid: updatedBid
+      });
+    } catch (error) {
+      console.error("Error updating bid:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update bid",
+        error: error.message
+      });
+    }
+  });
+
   // Create bid configuration
   app.post("/api/bid-configurations", async (req: Request, res: Response) => {
     try {
