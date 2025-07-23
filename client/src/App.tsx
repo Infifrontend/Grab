@@ -43,7 +43,6 @@ function Router() {
       <Route path="/manage-booking" component={ManageBooking} />
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
-      <Route path="/payment-options" component={PaymentOptions} />
       <Route path="/payment-details/:id" component={PaymentDetails} />
       <Route path="/bids" component={Bids} />
       <Route path="/bid-details/:id" component={BidDetails} />
