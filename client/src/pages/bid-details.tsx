@@ -211,39 +211,6 @@ export default function BidDetails() {
     }
   };
 
-  const handleContinueToPayment = async () => {
-    try {
-      setLoading(true);
-      
-      // Update the bid with new passenger count and bid amount
-      const response = await fetch(`/api/bids/${params?.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          passengerCount: passengers,
-          bidAmount: bidAmount.toString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update bid');
-      }
-
-      const result = await response.json();
-      
-      // Navigate to payment page with updated bid data
-      setLocation(`/payment-options?bidId=${params?.id}&amount=${passengers * bidAmount}&passengers=${passengers}`);
-      
-    } catch (error) {
-      console.error('Error updating bid:', error);
-      // You might want to show an error message to the user here
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -761,8 +728,6 @@ export default function BidDetails() {
             <Button
               type="primary"
               size="large"
-              loading={loading}
-              onClick={handleContinueToPayment}
               className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
             >
               Continue to Payment
