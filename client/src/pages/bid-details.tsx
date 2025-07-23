@@ -211,6 +211,28 @@ export default function BidDetails() {
     }
   };
 
+  const handleContinueToPayment = () => {
+    // Store bid participation data for payment
+    const bidParticipationData = {
+      bidId: transformedBidData.bidId,
+      passengerCount: passengers,
+      bidAmount: bidAmount,
+      totalBid: passengers * bidAmount,
+      depositRequired: passengers * bidAmount * 0.1,
+      configData: {
+        title: transformedBidData.groupName,
+        route: transformedBidData.route,
+        travelDate: transformedBidData.departureDate,
+      }
+    };
+
+    // Store in localStorage for payment page
+    localStorage.setItem('bidParticipationData', JSON.stringify(bidParticipationData));
+    
+    // Navigate to payment page
+    setLocation(`/payment-details/${transformedBidData.bidId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -728,6 +750,7 @@ export default function BidDetails() {
             <Button
               type="primary"
               size="large"
+              onClick={handleContinueToPayment}
               className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
             >
               Continue to Payment

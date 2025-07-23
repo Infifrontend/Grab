@@ -1,221 +1,462 @@
 
-import { Card, Row, Col, Typography, Button, Space, Badge, Divider } from 'antd';
-import { ArrowLeftOutlined, DownloadOutlined, UserOutlined } from '@ant-design/icons';
-import { useRoute, useLocation } from 'wouter';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Row,
+  Col,
+  Typography,
+  Button,
+  Input,
+  Radio,
+  Space,
+  Divider,
+  Form,
+  Alert,
+  Modal,
+  message,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  CreditCardOutlined,
+  BankOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import { useLocation, useRoute } from "wouter";
 import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
 
 export default function PaymentDetails() {
-  const [, params] = useRoute("/payment-details/:id");
+  const [form] = Form.useForm();
   const [, setLocation] = useLocation();
+  const [, params] = useRoute("/payment-details/:bidId");
+  const [paymentMethod, setPaymentMethod] = useState("creditCard");
+  const [bidParticipationData, setBidParticipationData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [paymentReference, setPaymentReference] = useState('');
 
-  // Mock payment data - in real app, this would come from API
-  const paymentData = {
-    paymentId: params?.id || 'PAY-1234',
-    status: 'Completed',
-    amount: 2500.00,
-    paymentDate: 'May 15, 2024',
-    paymentMethod: 'Credit Card (**** 4242)',
-    transactionId: 'txn_123456789',
-    bookingId: 'GF-2024-1001',
-    groupName: 'ABC Corporation Annual Meeting',
-    route: 'New York → London',
-    travelDate: 'Jun 15, 2024',
-    passengers: 32,
-    partialPayment: 2500.00,
-    processingFee: 0.00,
-    totalPaid: 2500.00,
-    totalBookingAmount: 8500.00,
-    amountPaid: 4000.00,
-    remainingBalance: 4500.00,
-    payerName: 'John Smith',
-    payerEmail: 'john.smith@example.com',
-    payerPhone: '+1 (555) 123-4567',
-    paymentNote: 'Payment made on behalf of ABC Corporation'
+  useEffect(() => {
+    // Load bid participation data from localStorage
+    const storedData = localStorage.getItem('bidParticipationData');
+    if (storedData) {
+      setBidParticipationData(JSON.parse(storedData));
+    } else {
+      // If no data, redirect back to bids
+      setLocation('/bids');
+    }
+  }, [setLocation]);
+
+  const handleBack = () => {
+    setLocation(`/bid-details/${params?.bidId}`);
   };
 
-  const handleBackToPayments = () => {
-    setLocation('/payments');
+  const handlePaymentSubmit = async () => {
+    try {
+      setLoading(true);
+
+      // Validate form if credit card payment
+      if (paymentMethod === "creditCard") {
+        await form.validateFields();
+      }
+
+      const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
+
+      // Submit bid participation
+      const participationResponse = await fetch("/api/bid-participation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bidId: parseInt(params?.bidId || '0'),
+          userId: 1, // Default user - would come from auth in real app
+          passengerCount: bidParticipationData.passengerCount,
+          bidAmount: bidParticipationData.bidAmount.toString(),
+          participationStatus: "pending",
+        }),
+      });
+
+      if (!participationResponse.ok) {
+        throw new Error("Failed to submit bid participation");
+      }
+
+      const participationResult = await participationResponse.json();
+
+      // Submit payment
+      const paymentResponse = await fetch("/api/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bidId: parseInt(params?.bidId || '0'),
+          participationId: participationResult.id,
+          amount: bidParticipationData.depositRequired.toString(),
+          currency: "INR",
+          paymentMethod: paymentMethod,
+          paymentStatus: "completed",
+          paymentType: "deposit",
+          cardDetails: paymentMethod === "creditCard" ? {
+            cardNumber: formValues.cardNumber?.replace(/\s/g, ''),
+            cardholderName: formValues.cardholderName,
+            expiryDate: formValues.expiryDate,
+          } : null,
+        }),
+      });
+
+      if (!paymentResponse.ok) {
+        throw new Error("Failed to process payment");
+      }
+
+      const paymentResult = await paymentResponse.json();
+      setPaymentReference(paymentResult.paymentReference);
+
+      // Clear localStorage
+      localStorage.removeItem('bidParticipationData');
+
+      // Show success modal
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Payment error:", error);
+      message.error(error.message || "Payment failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSuccessModalOk = () => {
+    setShowSuccessModal(false);
+    setLocation('/bids');
+  };
+
+  if (!bidParticipationData) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-4xl mx-auto px-6 py-6">
         {/* Page Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="flex items-center gap-4">
-           
-            <div>
-              <Title level={2} className="!mb-0">Payment Details</Title>
-            </div>
-          </div>
-          <Button 
-            icon={<DownloadOutlined />} 
-            className="flex items-center"
+        <div className="mb-6">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBack}
+            className="mb-4 p-0 h-auto text-gray-600 hover:text-blue-600 font-medium"
           >
-            Download Receipt
+            Back to Bid Details
           </Button>
+
+          <Title level={2} className="!mb-2 text-gray-900">
+            Payment Details
+          </Title>
+          <Text className="text-gray-600">
+            Complete your bid by paying the required deposit. This amount will be refunded if your bid is not accepted.
+          </Text>
         </div>
 
-        <Row gutter={[24, 24]}>
-          {/* Payment Information */}
-          <Col xs={24} lg={12}>
-            <Card>
-              <Title level={4} className="!mb-2 text-gray-900">Payment Information</Title>
-              <Text className="text-gray-600 block mb-6">Details about this payment transaction</Text>
+        <Row gutter={24}>
+          {/* Left Column - Payment Form */}
+          <Col xs={24} lg={14}>
+            <Card className="mb-6">
+              <Title level={4} className="!mb-4 text-gray-800">
+                Payment Summary
+              </Title>
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Payment ID</Text>
-                  <Text className="font-medium text-gray-900">{paymentData.paymentId}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Status</Text>
-                  <Badge status="success" text="Completed" className="font-medium" />
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Amount</Text>
-                  <Text className="font-semibold text-gray-900">${paymentData.amount.toFixed(2)}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Payment Date</Text>
-                  <Text className="text-gray-900">{paymentData.paymentDate}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Payment Method</Text>
-                  <div className="flex items-center gap-2">
-                    <span className="text-blue-600">💳</span>
-                    <Text className="text-gray-900">{paymentData.paymentMethod}</Text>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Transaction ID</Text>
-                  <Text className="text-gray-900">{paymentData.transactionId}</Text>
-                </div>
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Text className="text-gray-500 text-sm block mb-1">
+                      Total Bid Amount:
+                    </Text>
+                    <Text className="text-gray-900 font-semibold text-lg">
+                      ₹{bidParticipationData.totalBid.toLocaleString()}
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text className="text-gray-500 text-sm block mb-1">
+                      Deposit Required:
+                    </Text>
+                    <Text className="text-blue-600 font-bold text-xl">
+                      ₹{bidParticipationData.depositRequired.toLocaleString()}
+                    </Text>
+                  </Col>
+                </Row>
               </div>
+
+              <Alert
+                message="Deposit Information"
+                description="This deposit (10% of bid amount) secures your participation in the bid. If your bid is not accepted by the airline, the full amount will be refunded within 5-7 business days."
+                type="info"
+                showIcon
+                className="mb-6"
+              />
+            </Card>
+
+            {/* Payment Method */}
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCardOutlined className="text-blue-600" />
+                <Title level={4} className="!mb-0 text-gray-800">
+                  Payment Method
+                </Title>
+              </div>
+
+              <Radio.Group
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full"
+              >
+                <Space direction="vertical" className="w-full" size={16}>
+                  <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
+                    <Radio value="creditCard" className="!flex !items-start">
+                      <div className="flex-1 ml-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CreditCardOutlined className="text-blue-600" />
+                          <Text className="font-semibold text-gray-900">
+                            Credit/Debit Card
+                          </Text>
+                        </div>
+                        <Text className="text-gray-600 text-sm block mb-3">
+                          Pay securely with your credit or debit card.
+                        </Text>
+
+                        {paymentMethod === "creditCard" && (
+                          <Form form={form} layout="vertical" className="mt-4">
+                            <Row gutter={16}>
+                              <Col xs={24} md={12}>
+                                <Form.Item
+                                  label="Card Number"
+                                  name="cardNumber"
+                                  rules={[{ required: true, message: 'Please enter card number' }]}
+                                >
+                                  <Input
+                                    placeholder="1234 5678 9012 3456"
+                                    size="large"
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} md={12}>
+                                <Form.Item
+                                  label="Cardholder Name"
+                                  name="cardholderName"
+                                  rules={[{ required: true, message: 'Please enter cardholder name' }]}
+                                >
+                                  <Input placeholder="John Doe" size="large" />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                            <Row gutter={16}>
+                              <Col xs={24} md={12}>
+                                <Form.Item
+                                  label="Expiry Date"
+                                  name="expiryDate"
+                                  rules={[{ required: true, message: 'Please enter expiry date' }]}
+                                >
+                                  <Input placeholder="MM/YY" size="large" />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} md={12}>
+                                <Form.Item 
+                                  label="CVV" 
+                                  name="cvv"
+                                  rules={[{ required: true, message: 'Please enter CVV' }]}
+                                >
+                                  <Input placeholder="123" size="large" />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          </Form>
+                        )}
+                      </div>
+                    </Radio>
+                  </div>
+
+                  <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
+                    <Radio value="bankTransfer" className="!flex !items-start">
+                      <div className="flex-1 ml-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <BankOutlined className="text-blue-600" />
+                          <Text className="font-semibold text-gray-900">
+                            Bank Transfer
+                          </Text>
+                        </div>
+                        <Text className="text-gray-600 text-sm block">
+                          Direct bank transfer. Payment confirmation may take 1-2 business days.
+                        </Text>
+                      </div>
+                    </Radio>
+                  </div>
+                </Space>
+              </Radio.Group>
             </Card>
           </Col>
 
-          {/* Booking Information */}
-          <Col xs={24} lg={12}>
-            <Card>
-              <Title level={4} className="!mb-2 text-gray-900">Booking Information</Title>
-              <Text className="text-gray-600 block mb-6">Related booking details</Text>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Booking ID</Text>
-                  <Text className="font-medium text-gray-900">{paymentData.bookingId}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Group Name</Text>
-                  <Text className="text-gray-900">{paymentData.groupName}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Route</Text>
-                  <Text className="text-gray-900">{paymentData.route}</Text>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Travel Date</Text>
-                  <div className="flex items-center gap-2">
-                    <span className="text-blue-600">📅</span>
-                    <Text className="text-gray-900">{paymentData.travelDate}</Text>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Passengers</Text>
-                  <Text className="text-gray-900">{paymentData.passengers} passengers</Text>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          {/* Payment Breakdown */}
-          <Col xs={24}>
-            <Card>
-              <Title level={4} className="!mb-2 text-gray-900">Payment Breakdown</Title>
-              <Text className="text-gray-600 block mb-6">Detailed breakdown of this payment</Text>
+          {/* Right Column - Bid Summary */}
+          <Col xs={24} lg={10}>
+            <Card className="sticky top-6">
+              <Title level={4} className="!mb-4 text-gray-800">
+                Bid Summary
+              </Title>
 
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Partial Payment (Deposit)</Text>
-                  <Text className="font-medium text-gray-900">${paymentData.partialPayment.toFixed(2)}</Text>
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-1">
+                    Bid Configuration
+                  </Text>
+                  <Text className="text-gray-900 font-medium">
+                    {bidParticipationData.configData.title}
+                  </Text>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <Text className="text-gray-600">Processing Fee</Text>
-                  <Text className="text-gray-900">${paymentData.processingFee.toFixed(2)}</Text>
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-1">
+                    Route
+                  </Text>
+                  <Text className="text-gray-900 font-medium">
+                    {bidParticipationData.configData.route}
+                  </Text>
                 </div>
 
-                <Divider />
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-1">
+                    Travel Date
+                  </Text>
+                  <Text className="text-gray-900 font-medium">
+                    {bidParticipationData.configData.travelDate}
+                  </Text>
+                </div>
 
-                <div className="flex justify-between items-center">
-                  <Text className="font-semibold text-gray-900 text-lg">Total Paid</Text>
-                  <Text className="font-bold text-gray-900 text-lg">${paymentData.totalPaid.toFixed(2)}</Text>
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-1">
+                    Passengers
+                  </Text>
+                  <Text className="text-gray-900 font-medium">
+                    {bidParticipationData.passengerCount} passenger{bidParticipationData.passengerCount > 1 ? 's' : ''}
+                  </Text>
+                </div>
+
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-1">
+                    Bid Amount (per person)
+                  </Text>
+                  <Text className="text-gray-900 font-medium">
+                    ₹{bidParticipationData.bidAmount.toLocaleString()}
+                  </Text>
+                </div>
+              </div>
+
+              <Divider />
+
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <Text className="text-gray-600">Total Bid Amount</Text>
+                  <Text className="text-gray-900 font-semibold">
+                    ₹{bidParticipationData.totalBid.toLocaleString()}
+                  </Text>
+                </div>
+
+                <div className="flex justify-between">
+                  <Text className="text-gray-600">Deposit Required (10%)</Text>
+                  <Text className="text-blue-600 font-bold text-lg">
+                    ₹{bidParticipationData.depositRequired.toLocaleString()}
+                  </Text>
                 </div>
               </div>
 
-              {/* Remaining Balance Section */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <Title level={5} className="!mb-3 text-blue-700">Remaining Balance</Title>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Text className="text-blue-600">Total Booking Amount:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.totalBookingAmount.toFixed(2)}</Text>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <Text className="text-blue-600">Amount Paid:</Text>
-                    <Text className="font-semibold text-blue-900">${paymentData.amountPaid.toFixed(2)}</Text>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <Text className="text-blue-600">Remaining Balance:</Text>
-                    <Text className="font-bold text-blue-900">${paymentData.remainingBalance.toFixed(2)}</Text>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
+              <Divider />
 
-          {/* Payer Information */}
-          <Col xs={24}>
-            <Card>
-              <Title level={4} className="!mb-2 text-gray-900">Payer Information</Title>
-              <Text className="text-gray-600 block mb-6">Details about who made this payment</Text>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <UserOutlined className="text-gray-500 text-xl" />
-                </div>
-                
-                <div className="flex-1">
-                  <Text className="font-semibold text-gray-900 block text-lg">{paymentData.payerName}</Text>
-                  <Text className="text-gray-600 block">{paymentData.payerEmail}</Text>
-                  <Text className="text-gray-600 block">{paymentData.payerPhone}</Text>
-                  
-                  <div className="mt-4">
-                    <Text className="text-gray-600">{paymentData.paymentNote}</Text>
-                  </div>
-                </div>
-              </div>
+              <Button
+                type="primary"
+                size="large"
+                block
+                loading={loading}
+                onClick={handlePaymentSubmit}
+                className="bg-blue-600 hover:bg-blue-700 font-semibold"
+              >
+                Pay ₹{bidParticipationData.depositRequired.toLocaleString()} & Submit Bid
+              </Button>
             </Card>
           </Col>
         </Row>
       </div>
+
+      {/* Success Modal */}
+      <Modal
+        title={null}
+        open={showSuccessModal}
+        onOk={handleSuccessModalOk}
+        onCancel={handleSuccessModalOk}
+        footer={[
+          <Button 
+            key="ok" 
+            type="primary" 
+            onClick={handleSuccessModalOk}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Continue
+          </Button>,
+        ]}
+        centered
+        width={500}
+      >
+        <div className="text-center py-6">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircleOutlined className="text-green-600 text-2xl" />
+            </div>
+            <Typography.Title level={3} className="!mb-2 text-gray-900">
+              Payment Successful!
+            </Typography.Title>
+            <Typography.Text className="text-gray-600 text-lg">
+              Your bid participation has been confirmed and payment processed.
+            </Typography.Text>
+          </div>
+          
+          {paymentReference && (
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <Typography.Text className="text-blue-700 block mb-2">
+                Payment Reference Number
+              </Typography.Text>
+              <Typography.Text className="text-blue-900 font-bold text-xl">
+                {paymentReference}
+              </Typography.Text>
+            </div>
+          )}
+          
+          <div className="space-y-3 text-left">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">1</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                Your bid is now active and will be reviewed by airlines
+              </Typography.Text>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">2</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                You'll be notified of the bid result within 48 hours
+              </Typography.Text>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs font-medium">3</span>
+              </div>
+              <Typography.Text className="text-gray-700">
+                If not accepted, your deposit will be refunded automatically
+              </Typography.Text>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

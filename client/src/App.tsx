@@ -30,8 +30,8 @@ import AddServicesBundles from "./pages/add-services-bundles";
 import NewBooking from "./pages/new-booking";
 import GroupLeader from "./pages/group-leader";
 import PassengerInfo from "./pages/passenger-info";
-import PaymentOptions from "./pages/payment-options";
-import ReviewConfirmation from "./pages/review-confirmation";
+import PaymentOptions from "@/pages/payment-options";
+import ReviewConfirmation from "@/pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
 
 function Router() {
@@ -43,7 +43,7 @@ function Router() {
       <Route path="/manage-booking" component={ManageBooking} />
       <Route path="/manage-booking/:id" component={ManageBookingDetail} />
       <Route path="/payments" component={Payments} />
-      <Route path="/payment-details/:id" component={PaymentDetails} />
+      <Route path="/payment-details/:bidId" component={PaymentDetails} />
       <Route path="/bids" component={Bids} />
       <Route path="/bid-details/:id" component={BidDetails} />
       <Route path="/settings" component={Settings} />

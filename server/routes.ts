@@ -1268,21 +1268,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create bid participation
+  app.post("/api/bid-participation", async (req, res) => {
+    try {
+      const { bidId, userId, passengerCount, bidAmount, participationStatus } = req.body;
+
+      // Create a bid participation record (using bids table with participation flag)
+      const participationData = {
+        userId: userId || 1,
+        flightId: 1, // Will be updated with actual flight from bid config
+        bidAmount: bidAmount,
+        passengerCount: passengerCount,
+        bidStatus: participationStatus || "pending",
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        notes: JSON.stringify({
+          type: "bid_participation",
+          originalBidId: bidId,
+          participationDate: new Date().toISOString()
+        })
+      };
+
+      const participation = await storage.createBid(participationData);
+      res.json(participation);
+    } catch (error) {
+      console.error("Bid participation creation error:", error);
+      res.status(500).json({ message: "Failed to create bid participation" });
+    }
+  });
+
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
     try {
-      const paymentData = insertPaymentSchema.parse(req.body);
+      const { bidId, participationId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
+
+      const paymentData = {
+        bookingId: participationId || 1, // Use participation ID as booking reference
+        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
+        amount: amount,
+        currency: currency || "INR",
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus || "pending",
+        paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
+        transactionId: `txn_${nanoid(8)}`,
+        metadata: JSON.stringify({
+          bidId: bidId,
+          paymentType: paymentType || "deposit",
+          cardDetails: cardDetails || null
+        })
+      };
+
       const payment = await storage.createPayment(paymentData);
       res.json(payment);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        res
-          .status(400)
-          .json({ message: "Invalid payment data", errors: error.errors });
-      } else {
-        console.error("Payment creation error:", error);
-        res.status(500).json({ message: "Payment creation failed" });
-      }
+      console.error("Payment creation error:", error);
+      res.status(500).json({ message: "Payment creation failed" });
     }
   });
 
