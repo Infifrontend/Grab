@@ -1542,10 +1542,16 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item label="Other Notes" name="otherNotes">
+              <Form.Item 
+                label="Special Requests / Notes" 
+                name="otherNotes"
+                tooltip="Add any special requests, targeting information (weddings, students, events), fare conditions, or other relevant notes"
+              >
                 <Input.TextArea
-                  rows={3}
-                  placeholder="Add any additional notes..."
+                  rows={4}
+                  placeholder="Enter special requests, notes about targeting specific groups (weddings, students, corporate events), fare conditions, or any other relevant information..."
+                  showCount
+                  maxLength={1000}
                 />
               </Form.Item>
             </Col>
