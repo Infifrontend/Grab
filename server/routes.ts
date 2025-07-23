@@ -602,6 +602,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update bid payment status
+  app.put("/api/bids/:id/payment-status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { bidStatus, paymentStatus, passengerCount, bidAmount } = req.body;
+
+      console.log(`Updating bid ${id} payment status to ${paymentStatus}, bid status to ${bidStatus}`);
+
+      // Update the bid with payment information
+      const updateData = {
+        bidStatus: bidStatus || 'Under Review',
+        passengerCount: passengerCount,
+        bidAmount: bidAmount?.toString(),
+        updatedAt: new Date()
+      };
+
+      // Add payment status to notes
+      const existingBid = await storage.getBidById(parseInt(id));
+      let existingNotes = {};
+
+      try {
+        existingNotes = existingBid?.bid?.notes ? JSON.parse(existingBid.bid.notes) : {};
+      } catch (e) {
+        existingNotes = {};
+      }
+
+      const paymentData = {
+        ...existingNotes,
+        paymentInfo: {
+          paymentStatus: paymentStatus || 'Paid',
+          paymentDate: new Date().toISOString(),
+          depositPaid: true
+        }
+      };
+
+      updateData.notes = JSON.stringify(paymentData);
+
+      await storage.updateBidDetails(parseInt(id), updateData);
+
+      // Get the updated bid to return
+      const updatedBid = await storage.getBidById(parseInt(id));
+
+      if (!updatedBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Bid payment processed successfully`,
+        bid: updatedBid
+      });
+    } catch (error) {
+      console.error("Error updating bid payment status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update bid payment status",
+        error: error.message
+      });
+    }
+  });
+
   // Update bid status (accept/reject)
   app.put("/api/bids/:id/status", async (req, res) => {
     try {
@@ -1268,33 +1332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create bid participation
-  app.post("/api/bid-participation", async (req, res) => {
-    try {
-      const { bidId, userId, passengerCount, bidAmount, participationStatus } = req.body;
-
-      // Create a bid participation record (using bids table with participation flag)
-      const participationData = {
-        userId: userId || 1,
-        flightId: 1, // Will be updated with actual flight from bid config
-        bidAmount: bidAmount,
-        passengerCount: passengerCount,
-        bidStatus: participationStatus || "pending",
-        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        notes: JSON.stringify({
-          type: "bid_participation",
-          originalBidId: bidId,
-          participationDate: new Date().toISOString()
-        })
-      };
-
-      const participation = await storage.createBid(participationData);
-      res.json(participation);
-    } catch (error) {
-      console.error("Bid participation creation error:", error);
-      res.status(500).json({ message: "Failed to create bid participation" });
-    }
-  });
+  
 
   // Create a new payment
   app.post("/api/payments", async (req, res) => {

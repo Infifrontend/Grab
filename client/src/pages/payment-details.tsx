@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -62,51 +61,46 @@ export default function PaymentDetails() {
 
       const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // Submit bid participation
-      const participationResponse = await fetch("/api/bid-participation", {
-        method: "POST",
+      // Update existing bid status instead of creating new participation
+      const bidUpdateResponse = await fetch(`/api/bids/${bidParticipationData.bidId}/payment-status`, {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bidId: parseInt(params?.bidId || '0'),
-          userId: 1, // Default user - would come from auth in real app
+          bidStatus: 'Under Review',
+          paymentStatus: 'Paid',
           passengerCount: bidParticipationData.passengerCount,
-          bidAmount: bidParticipationData.bidAmount.toString(),
-          participationStatus: "pending",
-        }),
+          bidAmount: bidParticipationData.bidAmount
+        })
       });
 
-      if (!participationResponse.ok) {
-        throw new Error("Failed to submit bid participation");
+      if (!bidUpdateResponse.ok) {
+        throw new Error('Failed to update bid status');
       }
 
-      const participationResult = await participationResponse.json();
+      const bidUpdateResult = await bidUpdateResponse.json();
 
-      // Submit payment
-      const paymentResponse = await fetch("/api/payments", {
-        method: "POST",
+      // Create payment record for existing bid
+      const paymentResponse = await fetch('/api/payments', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bidId: parseInt(params?.bidId || '0'),
-          participationId: participationResult.id,
-          amount: bidParticipationData.depositRequired.toString(),
-          currency: "INR",
+          bidId: bidParticipationData.bidId,
+          participationId: bidParticipationData.bidId, // Use the original bid ID
+          amount: bidParticipationData.depositRequired,
+          currency: 'USD',
           paymentMethod: paymentMethod,
-          paymentStatus: "completed",
-          paymentType: "deposit",
-          cardDetails: paymentMethod === "creditCard" ? {
-            cardNumber: formValues.cardNumber?.replace(/\s/g, ''),
-            cardholderName: formValues.cardholderName,
-            expiryDate: formValues.expiryDate,
-          } : null,
-        }),
+          paymentStatus: 'completed',
+          paymentType: 'deposit',
+          cardDetails: paymentMethod === 'creditCard' ? formValues : null
+        })
       });
 
       if (!paymentResponse.ok) {
-        throw new Error("Failed to process payment");
+        throw new Error('Failed to process payment');
       }
 
       const paymentResult = await paymentResponse.json();
@@ -415,7 +409,7 @@ export default function PaymentDetails() {
               Your bid participation has been confirmed and payment processed.
             </Typography.Text>
           </div>
-          
+
           {paymentReference && (
             <div className="bg-blue-50 rounded-lg p-4 mb-6">
               <Typography.Text className="text-blue-700 block mb-2">
@@ -426,7 +420,7 @@ export default function PaymentDetails() {
               </Typography.Text>
             </div>
           )}
-          
+
           <div className="space-y-3 text-left">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -436,7 +430,7 @@ export default function PaymentDetails() {
                 Your bid is now active and will be reviewed by airlines
               </Typography.Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-blue-600 text-xs font-medium">2</span>
@@ -445,7 +439,7 @@ export default function PaymentDetails() {
                 You'll be notified of the bid result within 48 hours
               </Typography.Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-blue-600 text-xs font-medium">3</span>
