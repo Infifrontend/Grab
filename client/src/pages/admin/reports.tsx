@@ -350,7 +350,9 @@ export default function Reports() {
                   { value: "custom", label: "Custom range" },
                 ]}
               />
-              <RangePicker />
+              <RangePicker 
+                disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+              />
               <Button icon={<DownloadOutlined />}>Export All</Button>
             </Space>
           </div>

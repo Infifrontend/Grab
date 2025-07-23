@@ -924,7 +924,7 @@ export default function OfferManagement() {
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
                               High Impact
-                            </Badge>
+                                                        </Badge>
                           </div>
                           <Text className="text-gray-600 text-sm mb-3">
                             Increasing customer demand for eco-friendly travel
@@ -2922,7 +2922,7 @@ export default function OfferManagement() {
                         message: "Please enter promo code name",
                       },
                     ]}                  >
-                    <Input placeholder="Enter promo code name" size="large" />
+                                        <Input placeholder="Enter promo code name" size="large" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -3026,6 +3026,7 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </Form.Item>
                 </Col>
@@ -3041,6 +3042,7 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </Form.Item>
                 </Col>
