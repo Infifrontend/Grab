@@ -27,7 +27,6 @@ const { Title, Text } = Typography;
 
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
-  const [email, setEmail] = useState("");
   const [, setLocation] = useLocation();
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
@@ -59,15 +58,10 @@ export default function ManageBooking() {
       .slice(0, 3) || [];
 
   const handleFindBooking = async () => {
-    console.log("Finding booking:", { bookingId, email });
+    console.log("Finding booking:", { bookingId });
 
     if (!bookingId) {
       message.error("Please enter a booking ID.");
-      return;
-    }
-
-    if (!email) {
-      message.error("Please enter your email address.");
       return;
     }
 
@@ -78,7 +72,7 @@ export default function ManageBooking() {
       if (!response.ok) {
         if (response.status === 404) {
           message.error(
-            "Booking not found. Please check your booking ID and email.",
+            "Booking not found. Please check your booking ID.",
           );
         } else {
           message.error("Error fetching booking details. Please try again.");
@@ -166,26 +160,12 @@ export default function ManageBooking() {
                   />
                 </div>
 
-                <div>
-                  <Text className="block mb-2 text-gray-700 font-medium">
-                    Email Address
-                  </Text>
-                  <Input
-                    size="large"
-                    placeholder="Enter email used for booking"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
                 <Button
                   type="primary"
                   size="large"
                   icon={<SearchOutlined />}
                   onClick={handleFindBooking}
-                  disabled={!bookingId.trim() || !email.trim()}
+                  disabled={!bookingId.trim()}
                   className="w-full infiniti-btn-primary"
                 >
                   Find Booking
