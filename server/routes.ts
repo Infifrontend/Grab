@@ -1339,24 +1339,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { bidId, participationId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
 
+      const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+      const transactionId = `txn_${nanoid(8)}`;
+
       const paymentData = {
         bookingId: participationId || 1, // Use participation ID as booking reference
-        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
+        paymentReference: paymentReference,
         amount: amount,
         currency: currency || "INR",
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus || "pending",
         paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
-        transactionId: `txn_${nanoid(8)}`,
+        transactionId: transactionId,
         metadata: JSON.stringify({
           bidId: bidId,
           paymentType: paymentType || "deposit",
-          cardDetails: cardDetails || null
+          cardDetails: cardDetails || null,
+          participationId: participationId
         })
       };
 
       const payment = await storage.createPayment(paymentData);
-      res.json(payment);
+      
+      // Also create a notification for the payment
+      try {
+        await createNotification(
+          'payment_received',
+          'Payment Received',
+          `Payment of ${currency || 'INR'} ${amount} received for Bid ID: ${bidId}`,
+          'medium',
+          {
+            bidId: bidId,
+            paymentReference: paymentReference,
+            amount: amount,
+            paymentMethod: paymentMethod
+          }
+        );
+      } catch (notificationError) {
+        console.error("Error creating payment notification:", notificationError);
+      }
+
+      res.json({
+        ...payment,
+        paymentReference: paymentReference,
+        transactionId: transactionId
+      });
     } catch (error) {
       console.error("Payment creation error:", error);
       res.status(500).json({ message: "Payment creation failed" });
