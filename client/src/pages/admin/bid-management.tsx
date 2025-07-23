@@ -3436,7 +3436,11 @@ export default function BidManagement() {
                           }
                           name="travelDate"
                         >
-                          <DatePicker className="w-full" size="large" />
+                          <DatePicker 
+                            className="w-full" 
+                            size="large"
+                            disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
