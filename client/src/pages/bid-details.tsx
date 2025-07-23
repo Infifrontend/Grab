@@ -190,8 +190,16 @@ export default function BidDetails() {
   };
 
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newAmount = parseInt(e.target.value);
-    if (newAmount >= originalBidAmount) {
+    // Allow any input during typing
+    setBidAmount(e.target.value === '' ? 0 : parseInt(e.target.value) || 0);
+  };
+
+  const handleBidAmountBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const newAmount = parseInt(e.target.value) || 0;
+    // Apply validation on blur
+    if (newAmount < originalBidAmount) {
+      setBidAmount(originalBidAmount);
+    } else {
       setBidAmount(newAmount);
     }
   };
@@ -510,10 +518,9 @@ export default function BidDetails() {
                     <Input
                       value={bidAmount}
                       onChange={handleBidAmountChange}
+                      onBlur={handleBidAmountBlur}
                       placeholder="850"
                       size="large"
-                      type="number"
-                      min={originalBidAmount}
                       prefix={<span className="text-gray-400">₹</span>}
                       className="rounded-md"
                     />
