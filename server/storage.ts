@@ -610,15 +610,12 @@ export class DatabaseStorage implements IStorage {
 
   async createPayment(paymentData: any) {
     try {
-      const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
-      
       const [payment] = await db.insert(payments).values({
         ...paymentData,
-        paymentReference: paymentReference,
+        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
         createdAt: new Date()
       }).returning();
 
-      console.log('Payment created successfully:', payment);
       return payment;
     } catch (error) {
       console.error('Error creating payment:', error);

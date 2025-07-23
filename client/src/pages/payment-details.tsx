@@ -61,7 +61,27 @@ export default function PaymentDetails() {
 
       const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // Create payment record first
+      // Update existing bid status instead of creating new participation
+      const bidUpdateResponse = await fetch(`/api/bids/${bidParticipationData.bidId}/payment-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bidStatus: 'Under Review',
+          paymentStatus: 'Paid',
+          passengerCount: bidParticipationData.passengerCount,
+          bidAmount: bidParticipationData.bidAmount
+        })
+      });
+
+      if (!bidUpdateResponse.ok) {
+        throw new Error('Failed to update bid status');
+      }
+
+      const bidUpdateResult = await bidUpdateResponse.json();
+
+      // Create payment record for existing bid
       const paymentResponse = await fetch('/api/payments', {
         method: 'POST',
         headers: {
@@ -69,9 +89,9 @@ export default function PaymentDetails() {
         },
         body: JSON.stringify({
           bidId: bidParticipationData.bidId,
-          participationId: bidParticipationData.bidId,
+          participationId: bidParticipationData.bidId, // Use the original bid ID
           amount: bidParticipationData.depositRequired,
-          currency: 'INR',
+          currency: 'USD',
           paymentMethod: paymentMethod,
           paymentStatus: 'completed',
           paymentType: 'deposit',
@@ -85,25 +105,6 @@ export default function PaymentDetails() {
 
       const paymentResult = await paymentResponse.json();
       setPaymentReference(paymentResult.paymentReference);
-
-      // Update bid status to 'Under Review' and payment status to 'Paid'
-      const updateResponse = await fetch(`/api/bids/${bidParticipationData.bidId}/payment-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bidStatus: 'Under Review',
-          paymentStatus: 'Paid',
-          passengerCount: bidParticipationData.passengerCount,
-          bidAmount: bidParticipationData.bidAmount,
-          paymentReference: paymentResult.paymentReference
-        })
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update bid status');
-      }
 
       // Clear localStorage
       localStorage.removeItem('bidParticipationData');

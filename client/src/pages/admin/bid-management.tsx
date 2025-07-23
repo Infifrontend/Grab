@@ -102,15 +102,6 @@ export default function BidManagement() {
     },
   });
 
-  // Fetch payments data for admin
-  const { data: paymentsData } = useQuery({
-    queryKey: ["admin-payments"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/payments");
-      return response.json();
-    },
-  });
-
   useEffect(() => {
     // Check if admin is logged in
     const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -855,49 +846,6 @@ export default function BidManagement() {
     } catch (error) {
       console.error(`Error ${action}ing bid:`, error);
       message.error(`Failed to ${action} bid. Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleViewTransaction = (transaction) => {
-    console.log("Viewing transaction details:", transaction);
-    // You can implement a modal to show transaction details
-    message.info(`Viewing transaction details for ${transaction.transactionId}`);
-  };
-
-  const handleProcessPayment = async (transaction) => {
-    try {
-      setLoading(true);
-      console.log("Processing payment for transaction:", transaction.transactionId);
-      
-      // Here you would call an API to process the payment
-      // For now, we'll just show a success message
-      message.success(`Payment ${transaction.transactionId} processed successfully`);
-      
-      // Refresh payments data
-      queryClient.invalidateQueries(["admin-payments"]);
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      message.error("Failed to process payment");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetryPayment = async (transaction) => {
-    try {
-      setLoading(true);
-      console.log("Retrying payment for transaction:", transaction.transactionId);
-      
-      // Here you would call an API to retry the payment
-      message.success(`Payment retry initiated for ${transaction.transactionId}`);
-      
-      // Refresh payments data
-      queryClient.invalidateQueries(["admin-payments"]);
-    } catch (error) {
-      console.error("Error retrying payment:", error);
-      message.error("Failed to retry payment");
     } finally {
       setLoading(false);
     }
@@ -1962,388 +1910,251 @@ export default function BidManagement() {
     </div>
   );
 
-  const renderPaymentsContent = () => {
-    // Process payments data to match table format
-    const paymentTransactions = (paymentsData || []).map((payment, index) => {
-      let bidInfo = {};
-      let paymentMetadata = {};
-      
-      try {
-        paymentMetadata = payment.metadata ? JSON.parse(payment.metadata) : {};
-      } catch (e) {
-        paymentMetadata = {};
-      }
+  const renderPaymentsContent = () => (
+    <div>
+      {/* Payment Stats */}
+      <Row gutter={[24, 24]} className="mb-6">
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Total Transactions"
+              value={6}
+              suffix="This month"
+              valueStyle={{ color: "#1890ff" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue"
+              value={678.3}
+              prefix="$"
+              suffix="Net amount"
+              valueStyle={{ color: "#52c41a" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Pending Refunds"
+              value={1}
+              suffix="Require processing"
+              valueStyle={{ color: "#faad14" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Failed Payments"
+              value={1}
+              suffix="Need attention"
+              valueStyle={{ color: "#ff4d4f" }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-      // Find corresponding bid data
-      const relatedBid = (recentBidsData || []).find(bid => 
-        bid.id.toString() === paymentMetadata.bidId?.toString()
-      );
-
-      if (relatedBid) {
-        let bidConfigData = {};
-        try {
-          bidConfigData = relatedBid.notes ? JSON.parse(relatedBid.notes) : {};
-        } catch (e) {
-          bidConfigData = {};
-        }
-
-        bidInfo = {
-          bidId: `BID${relatedBid.id.toString().padStart(3, "0")}`,
-          route: bidConfigData.origin && bidConfigData.destination 
-            ? `${bidConfigData.origin} → ${bidConfigData.destination}`
-            : relatedBid.flight 
-            ? `${relatedBid.flight.origin} → ${relatedBid.flight.destination}`
-            : "N/A",
-          passengerName: bidConfigData.contactName || bidConfigData.groupLeaderName || `User ${relatedBid.userId}`,
-          passengerEmail: bidConfigData.email || bidConfigData.groupLeaderEmail || "N/A"
-        };
-      }
-
-      return {
-        key: payment.id.toString(),
-        transactionId: payment.paymentReference || `TXN-${payment.id.toString().padStart(6, '0')}`,
-        bidId: bidInfo.bidId || `BID${paymentMetadata.bidId || payment.id.toString().padStart(3, '0')}`,
-        passenger: {
-          name: bidInfo.passengerName || paymentMetadata.passengerName || "Unknown Passenger",
-          email: bidInfo.passengerEmail || paymentMetadata.passengerEmail || "No email provided"
-        },
-        flight: {
-          route: bidInfo.route || paymentMetadata.route || "Route not specified"
-        },
-        type: paymentMetadata.paymentType === 'deposit' ? 'Deposit' : 
-              paymentMetadata.paymentType === 'full' ? 'Full Payment' : 'Payment',
-        amount: `$${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-        method: payment.paymentMethod === 'creditCard' ? 'Credit Card' : 
-                payment.paymentMethod === 'bankTransfer' ? 'Bank Transfer' :
-                payment.paymentMethod === 'paypal' ? 'PayPal' :
-                payment.paymentMethod === 'debitCard' ? 'Debit Card' :
-                payment.paymentMethod || 'Unknown',
-        status: payment.paymentStatus === 'completed' ? 'Completed' : 
-                payment.paymentStatus === 'pending' ? 'Pending' : 
-                payment.paymentStatus === 'failed' ? 'Failed' :
-                payment.paymentStatus === 'processing' ? 'Processing' :
-                payment.paymentStatus || 'Unknown',
-        date: new Date(payment.createdAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        transactionRef: payment.transactionId || payment.paymentReference || `REF-${payment.id}`,
-        originalPayment: payment // Keep reference to original data
-      };
-    });
-
-    // Calculate statistics
-    const completedPayments = paymentTransactions.filter(p => p.status === 'Completed');
-    const pendingPayments = paymentTransactions.filter(p => p.status === 'Pending');
-    const totalRevenue = completedPayments.reduce((sum, payment) => {
-      return sum + parseFloat(payment.amount.replace('$', '').replace(',', ''));
-    }, 0);
-
-    return (
-      <div>
-        {/* Payment Stats */}
-        <Row gutter={[24, 24]} className="mb-6">
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="Total Transactions"
-                value={paymentTransactions.length}
-                suffix="All time"
-                valueStyle={{ color: "#1890ff" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="Total Revenue"
-                value={totalRevenue}
-                prefix="$"
-                suffix="Net amount"
-                valueStyle={{ color: "#52c41a" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="Pending Payments"
-                value={pendingPayments.length}
-                suffix="Require processing"
-                valueStyle={{ color: "#faad14" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="Completed Payments"
-                value={completedPayments.length}
-                suffix="Processed"
-                valueStyle={{ color: "#52c41a" }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Payment Transactions Table */}
-        <Card className="mb-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <Title level={4} className="!mb-1">
-                Bid Payment Transactions
-              </Title>
-              <Text className="text-gray-500">
-                View and manage all bid-related payment transactions
-              </Text>
-            </div>
-            <div className="flex space-x-2">
-              <Select placeholder="Filter by type" style={{ width: 120 }}>
-                <Select.Option value="deposit">Deposit</Select.Option>
-                <Select.Option value="payment">Payment</Select.Option>
-              </Select>
-              <Select placeholder="Status" style={{ width: 120 }}>
-                <Select.Option value="completed">Completed</Select.Option>
-                <Select.Option value="pending">Pending</Select.Option>
-                <Select.Option value="failed">Failed</Select.Option>
-              </Select>
-            </div>
-          </div>
-
-          <Table
-            dataSource={paymentTransactions}
-            columns={[
-              {
-                title: "Transaction ID",
-                dataIndex: "transactionId",
-                key: "transactionId",
-                render: (id, record) => (
-                  <div>
-                    <Text strong className="text-blue-600">{id}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      Bid: {record.bidId}
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Passenger Details",
-                dataIndex: "passenger",
-                key: "passenger",
-                render: (passenger) => (
-                  <div>
-                    <Text strong>{passenger.name}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      {passenger.email}
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Flight Route",
-                dataIndex: "flight",
-                key: "flight",
-                render: (flight) => (
-                  <div>
-                    <Text strong>{flight.route}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      Flight Route
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Payment Type",
-                dataIndex: "type",
-                key: "type",
-                render: (type) => (
-                  <Tag color={type === "Deposit" ? "blue" : "green"}>
-                    {type}
-                  </Tag>
-                ),
-              },
-              {
-                title: "Amount",
-                dataIndex: "amount",
-                key: "amount",
-                render: (amount) => (
-                  <Text strong className="text-green-600 text-lg">
-                    {amount}
-                  </Text>
-                ),
-              },
-              {
-                title: "Payment Method",
-                dataIndex: "method",
-                key: "method",
-                render: (method) => (
-                  <div>
-                    <Text>{method}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      Payment Gateway
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Transaction Status",
-                dataIndex: "status",
-                key: "status",
-                render: (status) => (
-                  <Tag
-                    color={
-                      status === "Completed"
-                        ? "green"
-                        : status === "Pending"
-                          ? "orange"
-                          : status === "Failed"
-                            ? "red"
-                            : "blue"
-                    }
-                  >
-                    {status.toUpperCase()}
-                  </Tag>
-                ),
-              },
-              {
-                title: "Transaction Date",
-                dataIndex: "date",
-                key: "date",
-                render: (date) => (
-                  <div>
-                    <Text>{date}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      Processing Date
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Transaction Reference",
-                dataIndex: "transactionRef",
-                key: "transactionRef",
-                render: (ref) => (
-                  <div>
-                    <Text className="font-mono text-sm">{ref}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-xs">
-                      Reference ID
-                    </Text>
-                  </div>
-                ),
-              },
-              {
-                title: "Actions",
-                key: "actions",
-                render: (_, record) => (
-                  <div className="flex flex-col space-y-1">
-                    <Button 
-                      type="link" 
-                      icon={<EyeOutlined />} 
-                      size="small"
-                      onClick={() => handleViewTransaction(record)}
-                    >
-                      View Details
-                    </Button>
-                    {record.status === 'Pending' && (
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        className="text-green-600"
-                        onClick={() => handleProcessPayment(record)}
-                      >
-                        Process Payment
-                      </Button>
-                    )}
-                    {record.status === 'Failed' && (
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        className="text-orange-600"
-                        onClick={() => handleRetryPayment(record)}
-                      >
-                        Retry Payment
-                      </Button>
-                    )}
-                  </div>
-                ),
-              },
-            ]}
-            pagination={{ pageSize: 10 }}
-            loading={!paymentsData}
-          />
-        </Card>
-
-        {/* Recent Payment Activity */}
-        <Card>
-          <div className="mb-4">
+      {/* Payment Transactions Table */}
+      <Card className="mb-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
             <Title level={4} className="!mb-1">
-              Recent Payment Activity
+              Payment & Refund Transactions
             </Title>
             <Text className="text-gray-500">
-              Latest payment transactions and status updates
+              View and manage all payment transactions and refund requests
             </Text>
           </div>
-
-          <div className="space-y-4">
-            {paymentTransactions.slice(0, 5).map((transaction, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <Text strong>{transaction.passenger.name}</Text>
-                    <br />
-                    <Text className="text-gray-500">
-                      {transaction.bidId} • {transaction.flight.route}
-                    </Text>
-                  </div>
-                  <Tag color={transaction.status === 'Completed' ? 'green' : 'orange'}>
-                    {transaction.status}
-                  </Tag>
-                </div>
-                <Row gutter={[16, 16]}>
-                  <Col span={6}>
-                    <Text className="text-gray-500 block text-sm">Amount</Text>
-                    <Text strong>{transaction.amount}</Text>
-                  </Col>
-                  <Col span={6}>
-                    <Text className="text-gray-500 block text-sm">Type</Text>
-                    <Text>{transaction.type}</Text>
-                  </Col>
-                  <Col span={6}>
-                    <Text className="text-gray-500 block text-sm">Method</Text>
-                    <Text>{transaction.method}</Text>
-                  </Col>
-                  <Col span={6}>
-                    <Text className="text-gray-500 block text-sm">Date</Text>
-                    <Text>{transaction.date}</Text>
-                  </Col>
-                </Row>
-              </div>
-            ))}
-            
-            {paymentTransactions.length === 0 && (
-              <div className="text-center py-8">
-                <Text className="text-gray-500">
-                  No payment transactions found.
-                </Text>
-              </div>
-            )}
+          <div className="flex space-x-2">
+            <Select placeholder="Filter by type" style={{ width: 120 }}>
+              <Select.Option value="payment">Payment</Select.Option>
+              <Select.Option value="refund">Refund</Select.Option>
+            </Select>
+            <Select placeholder="Status" style={{ width: 120 }}>
+              <Select.Option value="completed">Completed</Select.Option>
+              <Select.Option value="pending">Pending</Select.Option>
+              <Select.Option value="failed">Failed</Select.Option>
+            </Select>
           </div>
-        </Card>
-      </div>
-    );
-  };
+        </div>
+
+        <Table
+          dataSource={[
+            {
+              key: "1",
+              transactionId: "TXN-001234567",
+              passenger: { name: "John Smith", email: "john.smith@email.com" },
+              flight: { number: "GR-4521", route: "LAX → JFK" },
+              type: "Payment",
+              amount: "$250 USD",
+              method: "Credit Card ****4532",
+              status: "Completed",
+              date: "2024-06-23 16:30",
+            },
+            {
+              key: "2",
+              transactionId: "REF-001234566",
+              passenger: {
+                name: "Sarah Johnson",
+                email: "sarah.johnson@email.com",
+              },
+              flight: { number: "GR-7834", route: "ORD → SFO" },
+              type: "Refund",
+              amount: "$120 USD",
+              method: "Credit Card ****6876",
+              status: "Pending",
+              date: "2024-06-24 09:15",
+            },
+          ]}
+          columns={[
+            {
+              title: "Transaction ID",
+              dataIndex: "transactionId",
+              key: "transactionId",
+              render: (id, record) => (
+                <div>
+                  <Text strong>{id}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">
+                    Bid {record.flight.number}
+                  </Text>
+                </div>
+              ),
+            },
+            {
+              title: "Passenger",
+              dataIndex: "passenger",
+              key: "passenger",
+              render: (passenger) => (
+                <div>
+                  <Text>{passenger.name}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">
+                    {passenger.email}
+                  </Text>
+                </div>
+              ),
+            },
+            {
+              title: "Flight Details",
+              dataIndex: "flight",
+              key: "flight",
+              render: (flight) => (
+                <div>
+                  <Text>{flight.number}</Text>
+                  <br />
+                  <Text className="text-gray-500 text-sm">{flight.route}</Text>
+                </div>
+              ),
+            },
+            {
+              title: "Type",
+              dataIndex: "type",
+              key: "type",
+              render: (type) => (
+                <Tag color={type === "Payment" ? "blue" : "orange"}>{type}</Tag>
+              ),
+            },
+            {
+              title: "Amount",
+              dataIndex: "amount",
+              key: "amount",
+            },
+            {
+              title: "Payment Method",
+              dataIndex: "method",
+              key: "method",
+            },
+            {
+              title: "Status",
+              dataIndex: "status",
+              key: "status",
+              render: (status) => (
+                <Tag
+                  color={
+                    status === "Completed"
+                      ? "green"
+                      : status === "Pending"
+                        ? "orange"
+                        : "red"
+                  }
+                >
+                  {status}
+                </Tag>
+              ),
+            },
+            {
+              title: "Date",
+              dataIndex: "date",
+              key: "date",
+            },
+            {
+              title: "Actions",
+              key: "actions",
+              render: () => (
+                <Button type="link" icon={<EyeOutlined />} size="small">
+                  View
+                </Button>
+              ),
+            },
+          ]}
+          pagination={false}
+        />
+      </Card>
+
+      {/* Pending Refund Requests */}
+      <Card>
+        <div className="mb-4">
+          <Title level={4} className="!mb-1">
+            Pending Refund Requests
+          </Title>
+          <Text className="text-gray-500">
+            Refund requests that require manual processing
+          </Text>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <Text strong>Sarah Johnson</Text>
+                <br />
+                <Text className="text-gray-500">GR-7834 • ORD → SFO</Text>
+              </div>
+              <Tag color="orange">Pending</Tag>
+            </div>
+            <Row gutter={[16, 16]}>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Refund Amount</Text>
+                <Text strong>$120</Text>
+              </Col>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Payment Method</Text>
+                <Text>Credit Card ****6876</Text>
+              </Col>
+              <Col span={8}>
+                <Text className="text-gray-500 block">Request Date</Text>
+                <Text>2024-06-24 09:15</Text>
+              </Col>
+            </Row>
+            <div className="mt-3">
+              <Text className="text-gray-500 block mb-1">Reason</Text>
+              <Text>Refund for cancelled bid</Text>
+            </div>
+            <div className="mt-4 flex space-x-2">
+              <Button type="primary" size="small">
+                Approve Refund
+              </Button>
+              <Button size="small">Review Details</Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 
   const renderHistoryContent = () => (
     <div>
