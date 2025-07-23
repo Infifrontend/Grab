@@ -3669,6 +3669,7 @@ export default function BidManagement() {
                             placeholder="Select start time"
                             className="w-full"
                             size="large"
+                            disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                           />
                         </Form.Item>
                       </Col>
@@ -3685,6 +3686,10 @@ export default function BidManagement() {
                             showTime={{ format: "HH:mm" }}
                             format="DD/MM/YYYY HH:mm"
                             placeholder="Select end time"
+                            className="w-full"
+                            size="large"
+                            disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                          />"Select end time"
                             className="w-full"
                             size="large"
                           />

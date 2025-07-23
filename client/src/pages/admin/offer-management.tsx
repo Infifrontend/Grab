@@ -1435,7 +1435,7 @@ export default function OfferManagement() {
                 </div>
               </nav>
             </div>
-            
+
             {/* User Info Section at Bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
               <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
@@ -2768,6 +2768,7 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </Form.Item>
                 </Col>
@@ -2783,6 +2784,7 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
                     />
                   </Form.Item>
                 </Col>
@@ -2919,8 +2921,7 @@ export default function OfferManagement() {
                         required: true,
                         message: "Please enter promo code name",
                       },
-                    ]}
-                  >
+                    ]}                  >
                     <Input placeholder="Enter promo code name" size="large" />
                   </Form.Item>
                 </Col>
