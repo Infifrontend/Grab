@@ -98,8 +98,8 @@ export default function Dashboard() {
     return `${diffDays}d ago`;
   }
 
-  const handleViewBooking = (bookingReference) => {
-    setLocation(`/booking-details?ref=${bookingReference}`);
+  const handleViewBooking = (bookingId) => {
+    setLocation(`/booking-details/${bookingId}`);
   };
 
   const handleNewBooking = () => {
@@ -455,7 +455,7 @@ export default function Dashboard() {
                             <Button 
                               type="link" 
                               className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
-                              onClick={() => handleViewBooking(booking.bookingId)}
+                              onClick={() => handleViewBooking(booking.key)}
                             >
                               View Details
                             </Button>
