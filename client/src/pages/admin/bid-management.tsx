@@ -210,7 +210,7 @@ export default function BidManagement() {
         color: color,
         title: `${activityType}: ${title} (${route})`,
         time: timeAgo,
-        amount: bid.bidAmount ? `₹${bid.bidAmount}` : null,
+        amount: bid.bidAmount ? `$${bid.bidAmount}` : null,
       };
     });
 
