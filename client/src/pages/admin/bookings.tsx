@@ -266,7 +266,7 @@ export default function Bookings() {
       render: (amount) => (
         <div>
           <Text strong className="text-green-600 text-lg">
-            ₹{amount.toLocaleString()}
+            ${amount.toLocaleString()}
           </Text>
           <br />
           <Text type="secondary" className="text-xs">
@@ -605,7 +605,7 @@ export default function Bookings() {
                       prefix={<DollarOutlined />}
                       precision={0}
                       valueStyle={{ color: "#faad14" }}
-                      formatter={(value) => `₹${value.toLocaleString()}`}
+                      formatter={(value) => `$${value.toLocaleString()}`}
                     />
                   </Card>
                 </Col>
@@ -1227,7 +1227,7 @@ export default function Bookings() {
                               <div className="flex items-center gap-2 text-gray-600">
                                 <span className="text-sm">💰</span>
                                 <Text className="text-sm font-semibold text-green-600">
-                                  ₹{booking.totalAmount.toLocaleString()}
+                                  ${booking.totalAmount.toLocaleString()}
                                 </Text>
                               </div>
                             </Space>
@@ -1318,7 +1318,7 @@ export default function Bookings() {
                   {selectedBooking.passengers}
                 </Descriptions.Item>
                 <Descriptions.Item label="Total Amount">
-                  ₹{selectedBooking.totalAmount.toLocaleString()}
+                  ${selectedBooking.totalAmount.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="Airline">
                   {selectedBooking.comprehensiveData?.flightDetails?.outbound
