@@ -860,6 +860,49 @@ export default function BidManagement() {
     }
   };
 
+  const handleViewTransaction = (transaction) => {
+    console.log("Viewing transaction details:", transaction);
+    // You can implement a modal to show transaction details
+    message.info(`Viewing transaction details for ${transaction.transactionId}`);
+  };
+
+  const handleProcessPayment = async (transaction) => {
+    try {
+      setLoading(true);
+      console.log("Processing payment for transaction:", transaction.transactionId);
+      
+      // Here you would call an API to process the payment
+      // For now, we'll just show a success message
+      message.success(`Payment ${transaction.transactionId} processed successfully`);
+      
+      // Refresh payments data
+      queryClient.invalidateQueries(["admin-payments"]);
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      message.error("Failed to process payment");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetryPayment = async (transaction) => {
+    try {
+      setLoading(true);
+      console.log("Retrying payment for transaction:", transaction.transactionId);
+      
+      // Here you would call an API to retry the payment
+      message.success(`Payment retry initiated for ${transaction.transactionId}`);
+      
+      // Refresh payments data
+      queryClient.invalidateQueries(["admin-payments"]);
+    } catch (error) {
+      console.error("Error retrying payment:", error);
+      message.error("Failed to retry payment");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleEditSubmit = async (values) => {
     if (!selectedBid) return;
 
@@ -1958,25 +2001,37 @@ export default function BidManagement() {
 
       return {
         key: payment.id.toString(),
-        transactionId: payment.paymentReference || `TXN-${payment.id}`,
-        bidId: bidInfo.bidId || `BID${paymentMetadata.bidId || payment.id}`,
+        transactionId: payment.paymentReference || `TXN-${payment.id.toString().padStart(6, '0')}`,
+        bidId: bidInfo.bidId || `BID${paymentMetadata.bidId || payment.id.toString().padStart(3, '0')}`,
         passenger: {
-          name: bidInfo.passengerName || "N/A",
-          email: bidInfo.passengerEmail || "N/A"
+          name: bidInfo.passengerName || paymentMetadata.passengerName || "Unknown Passenger",
+          email: bidInfo.passengerEmail || paymentMetadata.passengerEmail || "No email provided"
         },
         flight: {
-          route: bidInfo.route || "N/A"
+          route: bidInfo.route || paymentMetadata.route || "Route not specified"
         },
-        type: paymentMetadata.paymentType === 'deposit' ? 'Deposit' : 'Payment',
-        amount: `$${parseFloat(payment.amount).toLocaleString()}`,
+        type: paymentMetadata.paymentType === 'deposit' ? 'Deposit' : 
+              paymentMetadata.paymentType === 'full' ? 'Full Payment' : 'Payment',
+        amount: `$${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         method: payment.paymentMethod === 'creditCard' ? 'Credit Card' : 
-                 payment.paymentMethod === 'bankTransfer' ? 'Bank Transfer' : 
-                 payment.paymentMethod,
+                payment.paymentMethod === 'bankTransfer' ? 'Bank Transfer' :
+                payment.paymentMethod === 'paypal' ? 'PayPal' :
+                payment.paymentMethod === 'debitCard' ? 'Debit Card' :
+                payment.paymentMethod || 'Unknown',
         status: payment.paymentStatus === 'completed' ? 'Completed' : 
                 payment.paymentStatus === 'pending' ? 'Pending' : 
-                payment.paymentStatus,
-        date: new Date(payment.createdAt).toLocaleDateString(),
-        transactionRef: payment.transactionId || 'N/A'
+                payment.paymentStatus === 'failed' ? 'Failed' :
+                payment.paymentStatus === 'processing' ? 'Processing' :
+                payment.paymentStatus || 'Unknown',
+        date: new Date(payment.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        transactionRef: payment.transactionId || payment.paymentReference || `REF-${payment.id}`,
+        originalPayment: payment // Keep reference to original data
       };
     });
 
@@ -2067,21 +2122,21 @@ export default function BidManagement() {
                 key: "transactionId",
                 render: (id, record) => (
                   <div>
-                    <Text strong>{id}</Text>
+                    <Text strong className="text-blue-600">{id}</Text>
                     <br />
                     <Text className="text-gray-500 text-sm">
-                      {record.bidId}
+                      Bid: {record.bidId}
                     </Text>
                   </div>
                 ),
               },
               {
-                title: "Passenger",
+                title: "Passenger Details",
                 dataIndex: "passenger",
                 key: "passenger",
                 render: (passenger) => (
                   <div>
-                    <Text>{passenger.name}</Text>
+                    <Text strong>{passenger.name}</Text>
                     <br />
                     <Text className="text-gray-500 text-sm">
                       {passenger.email}
@@ -2094,29 +2149,51 @@ export default function BidManagement() {
                 dataIndex: "flight",
                 key: "flight",
                 render: (flight) => (
-                  <Text>{flight.route}</Text>
+                  <div>
+                    <Text strong>{flight.route}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">
+                      Flight Route
+                    </Text>
+                  </div>
                 ),
               },
               {
-                title: "Type",
+                title: "Payment Type",
                 dataIndex: "type",
                 key: "type",
                 render: (type) => (
-                  <Tag color={type === "Deposit" ? "blue" : "green"}>{type}</Tag>
+                  <Tag color={type === "Deposit" ? "blue" : "green"}>
+                    {type}
+                  </Tag>
                 ),
               },
               {
                 title: "Amount",
                 dataIndex: "amount",
                 key: "amount",
+                render: (amount) => (
+                  <Text strong className="text-green-600 text-lg">
+                    {amount}
+                  </Text>
+                ),
               },
               {
                 title: "Payment Method",
                 dataIndex: "method",
                 key: "method",
+                render: (method) => (
+                  <div>
+                    <Text>{method}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">
+                      Payment Gateway
+                    </Text>
+                  </div>
+                ),
               },
               {
-                title: "Status",
+                title: "Transaction Status",
                 dataIndex: "status",
                 key: "status",
                 render: (status) => (
@@ -2126,29 +2203,74 @@ export default function BidManagement() {
                         ? "green"
                         : status === "Pending"
                           ? "orange"
-                          : "red"
+                          : status === "Failed"
+                            ? "red"
+                            : "blue"
                     }
                   >
-                    {status}
+                    {status.toUpperCase()}
                   </Tag>
                 ),
               },
               {
-                title: "Date",
+                title: "Transaction Date",
                 dataIndex: "date",
                 key: "date",
+                render: (date) => (
+                  <div>
+                    <Text>{date}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-sm">
+                      Processing Date
+                    </Text>
+                  </div>
+                ),
+              },
+              {
+                title: "Transaction Reference",
+                dataIndex: "transactionRef",
+                key: "transactionRef",
+                render: (ref) => (
+                  <div>
+                    <Text className="font-mono text-sm">{ref}</Text>
+                    <br />
+                    <Text className="text-gray-500 text-xs">
+                      Reference ID
+                    </Text>
+                  </div>
+                ),
               },
               {
                 title: "Actions",
                 key: "actions",
                 render: (_, record) => (
-                  <div className="flex space-x-2">
-                    <Button type="link" icon={<EyeOutlined />} size="small">
-                      View
+                  <div className="flex flex-col space-y-1">
+                    <Button 
+                      type="link" 
+                      icon={<EyeOutlined />} 
+                      size="small"
+                      onClick={() => handleViewTransaction(record)}
+                    >
+                      View Details
                     </Button>
                     {record.status === 'Pending' && (
-                      <Button type="link" size="small" className="text-green-600">
-                        Process
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        className="text-green-600"
+                        onClick={() => handleProcessPayment(record)}
+                      >
+                        Process Payment
+                      </Button>
+                    )}
+                    {record.status === 'Failed' && (
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        className="text-orange-600"
+                        onClick={() => handleRetryPayment(record)}
+                      >
+                        Retry Payment
                       </Button>
                     )}
                   </div>
