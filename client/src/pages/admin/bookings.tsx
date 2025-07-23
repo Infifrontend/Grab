@@ -867,7 +867,6 @@ export default function Bookings() {
                               format="DD MMM YYYY"
                               disabledDate={(current) =>
                                 current && current.isBefore(dayjs(), "day")
-                              }sBefore(dayjs(), "day")
                               }
                             />
                           </Form.Item>
