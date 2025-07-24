@@ -22,15 +22,10 @@ export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Check if this is an admin booking
-    const adminBooking = localStorage.getItem("isAdminBooking");
-    setIsAdminBooking(adminBooking === "true");
   }, []);
 
   const [flightData, setFlightData] = useState<any>(null);
@@ -110,26 +105,12 @@ export default function ReviewConfirmation() {
         {/* Page Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <div className="flex items-center gap-4 mb-2">
-              <Title level={2} className="!mb-0 text-gray-900">
-                Review & Confirm
-              </Title>
-              {isAdminBooking && (
-                <Badge color="blue" text="Admin Booking" />
-              )}
-            </div>
+            <Title level={2} className="!mb-2 text-gray-900">
+              Review & Confirm
+            </Title>
             <Text className="text-gray-600">
               Review your booking details and confirm to submit your request.
             </Text>
-            {isAdminBooking && (
-              <Button
-                type="text"
-                onClick={() => setLocation("/admin/bookings")}
-                className="text-gray-600 hover:text-gray-800 p-0 mt-2"
-              >
-                ← Back to Admin Panel
-              </Button>
-            )}
           </div>
           <div className="flex items-center gap-4">
             <Button type="text" className="text-gray-600">
