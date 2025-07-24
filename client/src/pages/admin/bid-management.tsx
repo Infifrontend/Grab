@@ -816,12 +816,13 @@ export default function BidManagement() {
                 render: (_, record) => (
                   <Button
                     type="link"
-                    icon={<EyeOutlined />}
                     size="small"
                     onClick={() => {
                       console.log("Review Bid clicked for record:", record);
                       handleReviewBid(record);
                     }}
+                    className="text-blue-600 hover:text-blue-800 p-0"
+                    style={{ padding: 0, height: 'auto', textDecoration: 'underline' }}
                   >
                     Review Bid
                   </Button>
