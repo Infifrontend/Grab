@@ -78,7 +78,7 @@ export default function PaymentDetails() {
             const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
             if (notes.paymentInfo?.paymentCompleted === true) {
               message.error("Payment has already been completed for this bid");
-              setLocation('/bids');
+              // setLocation('/bids');
               return;
             }
           } catch (noteError) {
