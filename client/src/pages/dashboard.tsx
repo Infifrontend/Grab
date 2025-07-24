@@ -514,91 +514,140 @@ export default function Dashboard() {
             {/* Bookings Table */}
             <Card className="border-0 shadow-sm">
               {bookingsTableData.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Booking ID
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Group Type
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Route
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Departure
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Return
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Passengers
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {bookingsTableData.map((booking) => (
-                        <tr key={booking.key} className="hover:bg-gray-50 transition-colors">
-                          <td className="py-4 px-4">
-                            <span className="font-semibold text-[var(--infiniti-primary)]">{booking.bookingId}</span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="text-gray-700 capitalize">{booking.groupType}</span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="text-gray-900 font-medium">{booking.route}</span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="text-gray-600">
-                              {booking.date !== 'N/A' ? new Date(booking.date).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              }) : '-'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="text-gray-600">
-                              {booking.returnDate ? new Date(booking.returnDate).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              }) : '-'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="text-gray-700 font-medium">{booking.passengers}</span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span 
-                              className="px-3 py-1 rounded-full text-xs font-semibold text-white capitalize"
-                              style={{ backgroundColor: getStatusColor(booking.status) }}
-                            >
-                              {booking.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <Button 
-                              type="link" 
-                              className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
-                              onClick={() => handleViewBooking(booking.key)}
-                            >
-                              View Details
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <Table
+                  dataSource={bookingsTableData}
+                  rowKey="key"
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => 
+                      `${range[0]}-${range[1]} of ${total} bookings`,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                    className: "px-6 pb-4"
+                  }}
+                  className="w-full"
+                  scroll={{ x: 'max-content' }}
+                  columns={[
+                    {
+                      title: 'Booking ID',
+                      dataIndex: 'bookingId',
+                      key: 'bookingId',
+                      fixed: 'left',
+                      width: 150,
+                      render: (text) => (
+                        <span className="font-semibold text-[var(--infiniti-primary)]">{text}</span>
+                      ),
+                      sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
+                    },
+                    {
+                      title: 'Group Type',
+                      dataIndex: 'groupType',
+                      key: 'groupType',
+                      width: 120,
+                      render: (text) => (
+                        <span className="text-gray-700 capitalize">{text}</span>
+                      ),
+                      filters: [
+                        { text: 'Group Travel', value: 'Group Travel' },
+                        { text: 'Corporate', value: 'Corporate' },
+                        { text: 'Family', value: 'Family' }
+                      ],
+                      onFilter: (value, record) => record.groupType === value,
+                    },
+                    {
+                      title: 'Route',
+                      dataIndex: 'route',
+                      key: 'route',
+                      width: 200,
+                      render: (text) => (
+                        <span className="text-gray-900 font-medium">{text}</span>
+                      ),
+                      sorter: (a, b) => a.route.localeCompare(b.route),
+                    },
+                    {
+                      title: 'Departure',
+                      dataIndex: 'date',
+                      key: 'date',
+                      width: 120,
+                      render: (date) => (
+                        <span className="text-gray-600">
+                          {date !== 'N/A' ? new Date(date).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          }) : '-'}
+                        </span>
+                      ),
+                      sorter: (a, b) => {
+                        if (a.date === 'N/A' && b.date === 'N/A') return 0;
+                        if (a.date === 'N/A') return 1;
+                        if (b.date === 'N/A') return -1;
+                        return new Date(a.date).getTime() - new Date(b.date).getTime();
+                      },
+                    },
+                    {
+                      title: 'Return',
+                      dataIndex: 'returnDate',
+                      key: 'returnDate',
+                      width: 120,
+                      render: (returnDate) => (
+                        <span className="text-gray-600">
+                          {returnDate ? new Date(returnDate).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          }) : '-'}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: 'Passengers',
+                      dataIndex: 'passengers',
+                      key: 'passengers',
+                      width: 100,
+                      render: (passengers) => (
+                        <span className="text-gray-700 font-medium">{passengers}</span>
+                      ),
+                      sorter: (a, b) => a.passengers - b.passengers,
+                    },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: 120,
+                      render: (status) => (
+                        <span 
+                          className="px-3 py-1 rounded-full text-xs font-semibold text-white capitalize"
+                          style={{ backgroundColor: getStatusColor(status) }}
+                        >
+                          {status}
+                        </span>
+                      ),
+                      filters: [
+                        { text: 'Confirmed', value: 'confirmed' },
+                        { text: 'Pending', value: 'pending' },
+                        { text: 'Cancelled', value: 'cancelled' }
+                      ],
+                      onFilter: (value, record) => record.status === value,
+                    },
+                    {
+                      title: 'Actions',
+                      key: 'actions',
+                      fixed: 'right',
+                      width: 120,
+                      render: (_, record) => (
+                        <Button 
+                          type="link" 
+                          className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
+                          onClick={() => handleViewBooking(record.key)}
+                        >
+                          View Details
+                        </Button>
+                      ),
+                    }
+                  ]}
+                />
               ) : (
                 <div className="text-center py-12">
                   <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
