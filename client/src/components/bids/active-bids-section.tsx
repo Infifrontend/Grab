@@ -38,10 +38,10 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Filter for active bids only and limit to recent ones
+      // Filter for active and completed bids, limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => bid.bidStatus === "active")
-        .slice(0, 5); // Show only the 5 most recent active bids
+        .filter((bid: ActiveBid) => bid.bidStatus === "active" || bid.bidStatus === "completed")
+        .slice(0, 5); // Show only the 5 most recent bids
     },
   });
 
@@ -72,7 +72,9 @@ export default function ActiveBidsSection() {
   const getPaymentStatus = (bid: ActiveBid) => {
     try {
       const notes = bid.notes ? JSON.parse(bid.notes) : {};
-      if (notes.paymentInfo?.paymentStatus === "Paid") {
+      if (notes.paymentInfo?.paymentCompleted) {
+        return { status: "Payment Completed", color: "green" };
+      } else if (notes.paymentInfo?.paymentStatus === "Paid") {
         return { status: "Deposit Paid", color: "green" };
       }
       return { status: "Pending", color: "orange" };

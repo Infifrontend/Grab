@@ -61,14 +61,21 @@ export default function PaymentDetails() {
 
       const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // Update existing bid status instead of creating new participation
-      const bidUpdateResponse = await fetch(`/api/bids/${bidParticipationData.bidId}/payment-status`, {
+      // Get the bid ID from the URL params instead of localStorage
+      const bidId = params?.bidId;
+      
+      if (!bidId) {
+        throw new Error('Bid ID not found');
+      }
+
+      // Update existing bid status to completed after payment
+      const bidUpdateResponse = await fetch(`/api/bids/${bidId}/payment-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bidStatus: 'Under Review',
+          bidStatus: 'completed',
           paymentStatus: 'Paid',
           passengerCount: bidParticipationData.passengerCount,
           bidAmount: bidParticipationData.bidAmount
@@ -81,15 +88,15 @@ export default function PaymentDetails() {
 
       const bidUpdateResult = await bidUpdateResponse.json();
 
-      // Create payment record for existing bid
+      // Create payment record for the existing bid
       const paymentResponse = await fetch('/api/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bidId: bidParticipationData.bidId,
-          participationId: bidParticipationData.bidId, // Use the original bid ID
+          bidId: parseInt(bidId),
+          bookingId: parseInt(bidId), // Use bid ID as booking reference
           amount: bidParticipationData.depositRequired,
           currency: 'USD',
           paymentMethod: paymentMethod,

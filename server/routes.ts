@@ -633,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the bid with payment information
       const updateData = {
-        bidStatus: bidStatus || 'Under Review',
+        bidStatus: bidStatus || 'completed',
         passengerCount: passengerCount,
         bidAmount: bidAmount?.toString(),
         updatedAt: new Date()
@@ -654,7 +654,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentInfo: {
           paymentStatus: paymentStatus || 'Paid',
           paymentDate: new Date().toISOString(),
-          depositPaid: true
+          depositPaid: true,
+          paymentCompleted: true,
+          completedAt: new Date().toISOString()
         }
       };
 
@@ -672,9 +674,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Create notification for completed payment
+      await createNotification(
+        'payment_completed',
+        'Payment Completed',
+        `Payment for bid ${existingBid.bid.id} has been completed successfully. Amount: ₹${bidAmount}`,
+        'high',
+        {
+          bidId: parseInt(id),
+          amount: bidAmount,
+          paymentStatus: paymentStatus
+        }
+      );
+
       res.json({
         success: true,
-        message: `Bid payment processed successfully`,
+        message: `Bid payment completed successfully`,
         bid: updatedBid
       });
     } catch (error) {
@@ -1358,26 +1373,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
     try {
-      const { bidId, participationId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
+      const { bidId, bookingId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
 
+      const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+      
       const paymentData = {
-        bookingId: participationId || 1, // Use participation ID as booking reference
-        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
+        bookingId: bookingId || bidId || 1, // Use booking ID or bid ID as reference
+        paymentReference: paymentReference,
         amount: amount,
         currency: currency || "INR",
         paymentMethod: paymentMethod,
-        paymentStatus: paymentStatus || "pending",
+        paymentStatus: paymentStatus || "completed",
         paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
         transactionId: `txn_${nanoid(8)}`,
         metadata: JSON.stringify({
           bidId: bidId,
           paymentType: paymentType || "deposit",
-          cardDetails: cardDetails || null
+          cardDetails: cardDetails || null,
+          completedAt: new Date().toISOString()
         })
       };
 
       const payment = await storage.createPayment(paymentData);
-      res.json(payment);
+      
+      // Return payment with reference for frontend use
+      res.json({
+        ...payment,
+        paymentReference: paymentReference
+      });
     } catch (error) {
       console.error("Payment creation error:", error);
       res.status(500).json({ message: "Payment creation failed" });
