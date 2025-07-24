@@ -372,8 +372,8 @@ export default function FlightSearchBundle() {
   // Filter and sort flights
   const filteredFlights = useMemo(() => {
     // First filter to only include actual outbound flights (origin to destination)
-    const searchOrigin = searchCriteria.origin || origin;
-    const searchDestination = searchCriteria.destination || destination;
+    const searchOrigin = searchCriteria?.origin || origin;
+    const searchDestination = searchCriteria?.destination || destination;
 
     let filtered = availableFlights.filter(
       (flight) =>
@@ -488,8 +488,8 @@ export default function FlightSearchBundle() {
     }
 
     // First filter to only include actual return flights (destination to origin)
-    const searchOrigin = searchCriteria.origin || origin;
-    const searchDestination = searchCriteria.destination || destination;
+    const searchOrigin = searchCriteria?.origin || origin;
+    const searchDestination = searchCriteria?.destination || destination;
 
     console.log(
       "Return flights filter - Looking for flights from:",
@@ -1154,8 +1154,8 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Route</Text>
                         <Text className="block font-medium">
-                          {searchCriteria.origin || origin} →{" "}
-                          {searchCriteria.destination || destination}
+                          {searchCriteria?.origin || origin} →{" "}
+                          {searchCriteria?.destination || destination}
                         </Text>
                       </div>
                     </Col>
@@ -1175,7 +1175,7 @@ export default function FlightSearchBundle() {
                       <div>
                         <Text className="text-gray-600 text-sm">Departure</Text>
                         <Text className="block font-medium">
-                          {searchCriteria.departureDate
+                          {searchCriteria?.departureDate
                             ? dayjs(searchCriteria.departureDate).format(
                                 "DD MMM YYYY",
                               )
@@ -1192,7 +1192,7 @@ export default function FlightSearchBundle() {
                           <Text className="block font-medium">
                             {tripType === "oneWay"
                               ? "N/A"
-                              : searchCriteria.returnDate
+                              : searchCriteria?.returnDate
                                 ? dayjs(searchCriteria.returnDate).format(
                                     "DD MMM YYYY",
                                   )
@@ -1658,8 +1658,8 @@ export default function FlightSearchBundle() {
                   />
                 </Title>
                 <Text className="text-gray-600">
-                  {searchCriteria.origin || "Origin"} →{" "}
-                  {searchCriteria.destination || "Destination"}
+                  {searchCriteria?.origin || origin || "Origin"} →{" "}
+                  {searchCriteria?.destination || destination || "Destination"}
                 </Text>
               </div>
 
