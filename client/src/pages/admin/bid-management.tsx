@@ -442,16 +442,14 @@ export default function BidManagement() {
   ];
 
   const renderActiveBidsContent = () => {
-    // Filter active bids from the fetched data and create stable mapped data first
-    const allActiveBids = (recentBidsData || [])
-      .filter((bid) => bid.bidStatus === "active")
-      .map((bid, index) => {
-        // Calculate time left until bid expires
-        const timeLeft = bid.validUntil
-          ? calculateTimeLeft(new Date(bid.validUntil))
-          : "No expiry";
+    // Filter active bids from the fetched data
+    let activeBids = (recentBidsData || []).filter(
+      (bid) => bid.bidStatus === "active",
+    );
 
-        // Parse configuration data if available
+    // Apply search filter
+    if (searchText) {
+      activeBids = activeBids.filter((bid) => {
         let configData = {};
         try {
           configData = bid.notes ? JSON.parse(bid.notes) : {};
@@ -459,75 +457,89 @@ export default function BidManagement() {
           configData = {};
         }
 
-        // Create stable flight number (use bid.id for consistency)
-        const flightNumber = configData.flightNumber || `GR-${(bid.id + 1000).toString()}`;
+        const passengerName =
+          configData.groupLeaderName ||
+          configData.contactName ||
+          `User ${bid.userId}`;
 
-        return {
-          key: bid.id.toString(),
-          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
-          originalBidId: bid.id, // Store original ID for reliable lookup
-          passenger: {
-            name:
-              configData.groupLeaderName ||
-              configData.contactName ||
-              `User ${bid.userId}`,
-            email:
-              configData.groupLeaderEmail ||
-              configData.email ||
-              "user@example.com",
-          },
-          flight: {
-            number: flightNumber,
-            route:
-              configData.origin && configData.destination
-                ? `${configData.origin} → ${configData.destination}`
-                : bid.flight
-                  ? `${bid.flight.origin} → ${bid.flight.destination}`
-                  : "Route not available",
-            date: configData.travelDate
-              ? new Date(configData.travelDate).toLocaleDateString()
-              : bid.flight?.departureTime
-                ? new Date(bid.flight.departureTime).toLocaleDateString()
-                : "N/A",
-          },
-          upgrade: configData.fareType
-            ? `Economy → ${configData.fareType}`
-            : "Economy → Business",
-          bidAmount: `$${bid.bidAmount}`,
-          maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
-          successRate: "75%", // This could be calculated based on historical data
-          timeLeft: timeLeft,
-          status: bid.bidStatus,
-          passengerCount: bid.passengerCount || 1,
-          createdAt: bid.createdAt,
-          originalBidData: bid,
-        };
-      });
+        const flightNumber =
+          configData.flightNumber ||
+          `GR-${Math.floor(Math.random() * 9000) + 1000}`;
 
-    // Apply search filter to the mapped data without modifying the original
-    let filteredBids = allActiveBids;
-
-    if (searchText) {
-      filteredBids = allActiveBids.filter((mappedBid) => {
         return (
-          mappedBid.passenger.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          mappedBid.flight.number.toLowerCase().includes(searchText.toLowerCase()) ||
-          mappedBid.bidId.toLowerCase().includes(searchText.toLowerCase())
+          passengerName.toLowerCase().includes(searchText.toLowerCase()) ||
+          flightNumber.toLowerCase().includes(searchText.toLowerCase())
         );
       });
     }
 
     // Apply status filter
     if (statusFilter) {
-      filteredBids = filteredBids.filter((mappedBid) => mappedBid.status === statusFilter);
+      activeBids = activeBids.filter((bid) => bid.bidStatus === statusFilter);
     }
+
+    activeBids = activeBids.map((bid, index) => {
+      // Calculate time left until bid expires
+      const timeLeft = bid.validUntil
+        ? calculateTimeLeft(new Date(bid.validUntil))
+        : "No expiry";
+
+      // Parse configuration data if available
+      let configData = {};
+      try {
+        configData = bid.notes ? JSON.parse(bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
+
+      return {
+        key: bid.id.toString(),
+        bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+        passenger: {
+          name:
+            configData.groupLeaderName ||
+            configData.contactName ||
+            `User ${bid.userId}`,
+          email:
+            configData.groupLeaderEmail ||
+            configData.email ||
+            "user@example.com",
+        },
+        flight: {
+          number:
+            configData.flightNumber ||
+            `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+          route:
+            configData.origin && configData.destination
+              ? `${configData.origin} → ${configData.destination}`
+              : bid.flight
+                ? `${bid.flight.origin} → ${bid.flight.destination}`
+                : "Route not available",
+          date: configData.travelDate
+            ? new Date(configData.travelDate).toLocaleDateString()
+            : bid.flight?.departureTime
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
+        },
+        upgrade: configData.fareType
+          ? `Economy → ${configData.fareType}`
+          : "Economy → Business",
+        bidAmount: `$${bid.bidAmount}`,
+        maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+        successRate: "75%", // This could be calculated based on historical data
+        timeLeft: timeLeft,
+        status: bid.bidStatus,
+        passengerCount: bid.passengerCount || 1,
+        createdAt: bid.createdAt,
+      };
+    });
 
     return (
       <div>
         {/* Active Bids Header */}
         <div className="mb-6">
           <Title level={4} className="!mb-1">
-            Active Bids Requiring Attention ({filteredBids.length})
+            Active Bids Requiring Attention ({activeBids.length})
           </Title>
           <Text className="text-gray-500">
             Monitor and respond to passenger upgrade bids
@@ -538,55 +550,37 @@ export default function BidManagement() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Input
-              placeholder="Search by passenger name, flight number, or bid ID..."
+              placeholder="Search by passenger name or flight number..."
               prefix={<SearchOutlined />}
-              style={{ width: 350 }}
+              style={{ width: 300 }}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              allowClear
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <Select
-              placeholder="Filter by status"
-              style={{ width: 150 }}
-              value={statusFilter}
-              onChange={(value) => setStatusFilter(value)}
-              allowClear
-            >
-              <Select.Option value="active">Active</Select.Option>
-              <Select.Option value="pending">Pending Review</Select.Option>
-            </Select>
-            {(searchText || statusFilter) && (
-              <Button 
-                onClick={() => {
-                  setSearchText("");
-                  setStatusFilter(null);
-                }}
-                type="text"
-                size="small"
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
+          <Select
+            placeholder="Filter by status"
+            style={{ width: 150 }}
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+          >
+            <Select.Option value="active">Active</Select.Option>
+            <Select.Option value="pending">Pending Review</Select.Option>
+          </Select>
         </div>
 
         {/* Active Bids Table */}
-        {filteredBids.length === 0 ? (
+        {activeBids.length === 0 ? (
           <Card>
             <div className="text-center py-8">
               <Text className="text-gray-500">
-                {searchText || statusFilter 
-                  ? "No bids match the current filter criteria."
-                  : "No active bids found. Active bids will appear here when passengers submit upgrade requests."
-                }
+                No active bids found. Active bids will appear here when
+                passengers submit upgrade requests.
               </Text>
             </div>
           </Card>
         ) : (
           <Table
-            dataSource={filteredBids}
+            dataSource={activeBids}
             columns={[
               {
                 title: "Bid Details",
@@ -690,18 +684,9 @@ export default function BidManagement() {
                     type="link"
                     icon={<EyeOutlined />}
                     size="small"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       console.log("Review Bid clicked for record:", record);
-
-                      // Use the stored original bid data directly
-                      if (record.originalBidData) {
-                        handleReviewBid(record);
-                      } else {
-                        console.error("No original bid data found for record:", record);
-                        message.error("Unable to find bid data. Please try again.");
-                      }
+                      handleReviewBid(record);
                     }}
                   >
                     Review Bid
@@ -709,13 +694,8 @@ export default function BidManagement() {
                 ),
               },
             ]}
-            pagination={{ 
-              pageSize: 10,
-              showSizeChanger: false,
-              showQuickJumper: false
-            }}
+            pagination={{ pageSize: 10 }}
             loading={!recentBidsData}
-            scroll={{ x: 'max-content' }}
           />
         )}
       </div>
@@ -745,66 +725,65 @@ export default function BidManagement() {
 
   const handleReviewBid = (bidRecord) => {
     console.log("handleReviewBid called with:", bidRecord);
+    console.log("recentBidsData:", recentBidsData);
 
-    // Use the original bid data directly from the record
-    const bidData = bidRecord.originalBidData;
+    // Find the actual bid data from recentBidsData
+    const bidData = (recentBidsData || []).find(
+      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
+    );
 
-    if (!bidData) {
-      console.error("No original bid data found in record:", bidRecord);
-      message.error("Unable to find bid data. Please try again.");
-      return;
-    }
+    console.log("Found bidData:", bidData);
 
-    console.log("Using bidData:", bidData);
+    if (bidData) {
+      // Parse configuration data from notes to get flight information
+      let configData = {};
+      try {
+        configData = bidData.notes ? JSON.parse(bidData.notes) : {};
+      } catch (e) {
+        console.error("Error parsing bid notes:", e);
+        configData = {};
+      }
 
-    // Parse configuration data from notes to get flight information
-    let configData = {};
-    try {
-      configData = bidData.notes ? JSON.parse(bidData.notes) : {};
-    } catch (e) {
-      console.error("Error parsing bid notes:", e);
-      configData = {};
-    }
+      // Create comprehensive flight information from bid configuration
+      const flightInfo = {
+        flightNumber:
+          configData.flightNumber ||
+          `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+        airline: "Group Retail Airways",
+        origin: configData.origin || bidRecord.flight?.origin || "Unknown",
+        destination:
+          configData.destination || bidRecord.flight?.destination || "Unknown",
+        departureTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
+            ).toISOString()
+          : bidData.createdAt,
+        arrivalTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
+            ).toISOString()
+          : null,
+        price: bidData.bidAmount || 0,
+        availableSeats: configData.totalSeatsAvailable || 50,
+        cabin: configData.fareType || "Economy",
+      };
 
-    // Create comprehensive flight information from bid configuration
-    const flightInfo = {
-      flightNumber: bidRecord.flight.number, // Use the stable flight number from record
-      airline: "Group Retail Airways",
-      origin: configData.origin || bidRecord.flight?.route?.split(" → ")[0] || "Unknown",
-      destination: configData.destination || bidRecord.flight?.route?.split(" → ")[1] || "Unknown",
-      departureTime: configData.travelDate
-        ? new Date(
-            `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
-          ).toISOString()
-        : bidData.createdAt,
-      arrivalTime: configData.travelDate
-        ? new Date(
-            `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
-          ).toISOString()
-        : null,
-      price: bidData.bidAmount || 0,
-      availableSeats: configData.totalSeatsAvailable || 50,
-      cabin: configData.fareType || "Economy",
-    };
+      const reviewData = {
+        ...bidData,
+        record: bidRecord,
+        flight: flightInfo,
+        configData: configData,
+      };
 
-    const reviewData = {
-      ...bidData,
-      record: bidRecord,
-      flight: flightInfo,
-      configData: configData,
-    };
+      console.log("Setting selectedBidForReview to:", reviewData);
 
-    console.log("Setting selectedBidForReview to:", reviewData);
-
-    // Clear any existing modal state first
-    setSelectedBidForReview(null);
-    reviewForm.resetFields();
-
-    // Set new data and open modal
-    setTimeout(() => {
       setSelectedBidForReview(reviewData);
       setReviewBidModalVisible(true);
-    }, 0);
+      reviewForm.resetFields();
+    } else {
+      console.error("Bid data not found for bidId:", bidRecord.bidId);
+      message.error("Unable to find bid data. Please try again.");
+    }
   };
 
   const handleEditBid = (bid) => {
@@ -1031,7 +1010,7 @@ export default function BidManagement() {
 
       {/* Bid Configuration Cards */}
       <div className="space-y-4">
-        {bidConfigurations.length === 0 ?(
+        {bidConfigurations.length === 0 ? (
           <div className="text-center py-8">
             <Text className="text-gray-500">
               No bid configurations found. Create your first bid configuration
@@ -3112,7 +3091,8 @@ export default function BidManagement() {
             <div className="p-6">
               <nav className="space-y-2">
                 <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all```text
+ duration-200"
                   onClick={() => setLocation("/admin/dashboard")}
                 >
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -3862,7 +3842,7 @@ export default function BidManagement() {
                         >
                           <Input.TextArea
                             rows={4}
-                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, corporate events), special conditions, or other relevant information..."
+                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, events), special conditions, or other relevant information..."
                             className="rounded-lg"
                           />
                         </Form.Item>
