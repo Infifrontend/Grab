@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -11,9 +12,12 @@ import {
   Row,
   Col,
   InputNumber,
+  message,
 } from "antd";
-import { ArrowLeftOutlined, EnvironmentOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useLocation } from "wouter";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 
@@ -21,18 +25,161 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
+interface SearchFormData {
+  tripType: "oneWay" | "roundTrip" | "multiCity";
+  origin: string;
+  destination: string;
+  departureDate: Date;
+  returnDate?: Date;
+  adults: number;
+  kids: number;
+  infants: number;
+  cabin: string;
+  groupType?: string;
+  specialRequests?: string;
+}
+
 export default function NewBooking() {
   const [form] = Form.useForm();
-  const [tripType, setTripType] = useState("roundTrip");
+  const [tripType, setTripType] = useState<"oneWay" | "roundTrip" | "multiCity">("roundTrip");
   const [, setLocation] = useLocation();
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
+
+  const searchMutation = useMutation({
+    mutationFn: async (searchData: SearchFormData) => {
+      const totalPassengers =
+        searchData.adults + searchData.kids + searchData.infants;
+      const apiData = {
+        origin: searchData.origin,
+        destination: searchData.destination,
+        departureDate: searchData.departureDate.toISOString(),
+        returnDate: searchData.returnDate?.toISOString(),
+        passengers: totalPassengers,
+        cabin: searchData.cabin,
+        tripType: searchData.tripType,
+      };
+      const response = await apiRequest("POST", "/api/search", apiData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log("Search results:", data);
+      // Store search results in localStorage for the results page
+      localStorage.setItem("searchResults", JSON.stringify(data.flights || []));
+      localStorage.setItem(
+        "returnFlights",
+        JSON.stringify(data.returnFlights || [])
+      );
+      message.success(`Found ${data.flights?.length || 0} flights!`);
+      setLocation("/flight-search-bundle");
+    },
+    onError: (error) => {
+      console.error("Search error:", error);
+      message.error("Search failed. Please try again.");
+    },
+  });
 
   const handleBackToHome = () => {
     setLocation("/");
   };
 
-  const handleContinueToFlightSearch = () => {
-    console.log("Continue to Flight Search");
-    setLocation("/flight-search-bundle");
+  const handleSubmit = async (values: any) => {
+    if (!values.origin || !values.destination || !values.departureDate) {
+      message.error("Please fill in origin, destination, and departure date");
+      return;
+    }
+
+    // Validate at least one adult passenger is required
+    const totalPassengers =
+      (values.adults || 0) + (values.kids || 0) + (values.infants || 0);
+    if (totalPassengers === 0 || (values.adults || 0) === 0) {
+      message.error("At least one adult passenger is required");
+      return;
+    }
+
+    // Validate return date for round trip and multi city
+    if ((tripType === "roundTrip" || tripType === "multiCity") && !values.returnDate) {
+      message.error("Return date is required for round trip and multi city bookings");
+      return;
+    }
+
+    try {
+      // First search for available flights from database
+      const searchData = {
+        origin: values.origin,
+        destination: values.destination,
+        departureDate: values.departureDate.format("YYYY-MM-DD"),
+        returnDate: values.returnDate?.format("YYYY-MM-DD") || null,
+        passengers: totalPassengers,
+        cabin: values.cabin || "economy",
+        tripType: tripType,
+      };
+
+      const searchResponse = await apiRequest("POST", "/api/search", searchData);
+      const searchResult = await searchResponse.json();
+
+      if (!searchResult.flights || searchResult.flights.length === 0) {
+        message.error("No flights found for your search criteria");
+        return;
+      }
+
+      // Store search results and criteria for the flight search bundle page
+      localStorage.setItem(
+        "searchResults",
+        JSON.stringify(searchResult?.flights)
+      );
+      localStorage.setItem(
+        "returnFlights",
+        JSON.stringify(searchResult?.returnFlights)
+      );
+      localStorage.setItem("searchCriteria", JSON.stringify(searchData));
+      localStorage.setItem("passengerCount", totalPassengers.toString());
+
+      // Store all form data for consistent booking flow
+      localStorage.setItem(
+        "bookingFormData",
+        JSON.stringify({
+          origin: values.origin,
+          destination: values.destination,
+          departureDate: values.departureDate,
+          returnDate: values.returnDate,
+          tripType: tripType,
+          adults: values.adults,
+          kids: values.kids,
+          infants: values.infants,
+          cabin: values.cabin,
+          groupType: values.groupType,
+          specialRequests: values.specialRequests,
+          totalPassengers,
+        })
+      );
+
+      message.success(
+        `Found ${searchResult.flights.length} flights! Redirecting to flight selection...`
+      );
+
+      // Navigate to flight search bundle page
+      setLocation("/flight-search-bundle");
+    } catch (error) {
+      console.error("Search and book error:", error);
+      message.error("Flight search failed. Please try again.");
+    }
   };
 
   return (
@@ -61,7 +208,18 @@ export default function NewBooking() {
             Trip Details
           </Title>
 
-          <Form form={form} layout="vertical" requiredMark={false}>
+          <Form 
+            form={form} 
+            layout="vertical" 
+            requiredMark={false}
+            onFinish={handleSubmit}
+            initialValues={{
+              adults: 1,
+              kids: 0,
+              infants: 0,
+              cabin: "economy",
+            }}
+          >
             {/* Trip Type */}
             <div className="mb-6">
               <Text className="block mb-3 text-gray-700 font-medium">
@@ -84,28 +242,54 @@ export default function NewBooking() {
                 <Form.Item
                   label="Origin *"
                   name="origin"
-                  rules={[{ required: true, message: "Please enter origin" }]}
+                  rules={[{ required: true, message: "Please select origin" }]}
                 >
-                  <Input
+                  <Select
+                    mode="combobox"
                     size="large"
-                    placeholder="City / Airport"
-                    prefix={<EnvironmentOutlined className="text-gray-400" />}
-                  />
+                    placeholder="Search city / airport"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.value ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                    notFoundContent="No locations found"
+                  >
+                    {originOptions.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
+                  </Select>
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Destination *"
                   name="destination"
-                  rules={[
-                    { required: true, message: "Please enter destination" },
-                  ]}
+                  rules={[{ required: true, message: "Please select destination" }]}
                 >
-                  <Input
+                  <Select
+                    mode="combobox"
                     size="large"
-                    placeholder="City / Airport"
-                    prefix={<EnvironmentOutlined className="text-gray-400" />}
-                  />
+                    placeholder="Search city / airport"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.value ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                    notFoundContent="No locations found"
+                  >
+                    {destinationOptions.map((location) => (
+                      <Option key={location} value={location}>
+                        {location}
+                      </Option>
+                    ))}
+                  </Select>
                 </Form.Item>
               </Col>
             </Row>
@@ -125,13 +309,16 @@ export default function NewBooking() {
                     className="w-full"
                     placeholder="DD MMM YYYY"
                     format="DD MMM YYYY"
-                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                    suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                    disabledDate={(current) =>
+                      current && current.isBefore(new Date(), "day")
+                    }
                   />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Return date *"
+                  label="Return date"
                   name="returnDate"
                   rules={
                     tripType !== "oneWay"
@@ -150,7 +337,10 @@ export default function NewBooking() {
                     placeholder="DD MMM YYYY"
                     format="DD MMM YYYY"
                     disabled={tripType === "oneWay"}
-                    disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                    suffixIcon={<CalendarOutlined className="text-gray-400" />}
+                    disabledDate={(current) =>
+                      current && current.isBefore(new Date(), "day")
+                    }
                   />
                 </Form.Item>
               </Col>
@@ -167,12 +357,25 @@ export default function NewBooking() {
                     <Text className="block mb-2 text-gray-600 text-sm">
                       Adults (12+ years)
                     </Text>
-                    <Form.Item name="adults" initialValue={0}>
+                    <Form.Item 
+                      name="adults" 
+                      rules={[
+                        { required: true, message: "At least 1 adult required" },
+                        { 
+                          validator: (_, value) => {
+                            if (value && value > 0) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(new Error("At least 1 adult is required"));
+                          }
+                        }
+                      ]}
+                    >
                       <InputNumber
                         size="large"
-                        min={0}
+                        min={1}
                         className="w-full"
-                        placeholder="0"
+                        placeholder="1"
                       />
                     </Form.Item>
                   </div>
@@ -182,7 +385,7 @@ export default function NewBooking() {
                     <Text className="block mb-2 text-gray-600 text-sm">
                       Kids (2-11 years)
                     </Text>
-                    <Form.Item name="kids" initialValue={0}>
+                    <Form.Item name="kids">
                       <InputNumber
                         size="large"
                         min={0}
@@ -197,7 +400,7 @@ export default function NewBooking() {
                     <Text className="block mb-2 text-gray-600 text-sm">
                       Infants (0-2 years)
                     </Text>
-                    <Form.Item name="infants" initialValue={0}>
+                    <Form.Item name="infants">
                       <InputNumber
                         size="large"
                         min={0}
@@ -216,7 +419,6 @@ export default function NewBooking() {
                 <Form.Item
                   label="Cabin *"
                   name="cabin"
-                  initialValue="economy"
                   rules={[
                     { required: true, message: "Please select cabin class" },
                   ]}
@@ -230,11 +432,8 @@ export default function NewBooking() {
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Group Type *"
+                  label="Group Type"
                   name="groupType"
-                  rules={[
-                    { required: true, message: "Please select group type" },
-                  ]}
                 >
                   <Select size="large" placeholder="Select group type">
                     <Option value="corporate">Corporate</Option>
@@ -273,10 +472,13 @@ export default function NewBooking() {
           <Button
             type="primary"
             size="large"
-            onClick={handleContinueToFlightSearch}
+            loading={searchMutation.isPending}
+            onClick={() => form.submit()}
             className="infiniti-btn-primary px-8"
           >
-            Continue to Flight Search
+            {searchMutation.isPending
+              ? "Searching Flights..."
+              : "Continue to Flight Search"}
           </Button>
         </div>
       </div>
