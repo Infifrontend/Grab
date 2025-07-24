@@ -3,6 +3,7 @@ import { Card, Rate, Tag, Button } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { Plane, Users, CheckCircle, Clock } from 'lucide-react';
 import { SearchOutlined } from "@ant-design/icons";
+import { useLocation } from 'wouter';
 
 interface ActiveBid {
   id: number;
@@ -22,6 +23,8 @@ interface ActiveBid {
 }
 
 export default function ActiveBidsSection() {
+  const [, setLocation] = useLocation();
+  
   const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
     queryKey: ['/api/active-bids'],
     queryFn: async () => {
@@ -162,7 +165,12 @@ export default function ActiveBidsSection() {
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <Button block size="large" className="mt-5">
+              <Button 
+                block 
+                size="large" 
+                className="mt-5"
+                onClick={() => setLocation(`/bid-details/${bid.id}`)}
+              >
                 View Bid Details
               </Button>
               <Button
