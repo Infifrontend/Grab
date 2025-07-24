@@ -142,16 +142,25 @@ export default function ManageBookingDetail() {
   }
 
   if (error || !bookingDetails) {
+    console.error("Booking error details:", error);
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="max-w-7xl mx-auto px-6 py-6">
           <Alert
             message="Booking Not Found"
-            description="The booking you're looking for could not be found."
+            description={`The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`}
             type="error"
             showIcon
           />
+          <div className="mt-4">
+            <Button 
+              onClick={() => setLocation("/manage-booking")}
+              type="primary"
+            >
+              Back to Manage Booking
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -189,7 +198,10 @@ export default function ManageBookingDetail() {
 
   const handleSaveChanges = async () => {
     try {
+      console.log("Starting to save changes for booking:", bookingId);
+      
       // Save group leader information
+      console.log("Saving group leader information...");
       const groupLeaderResponse = await fetch(
         `/api/booking-details/${bookingId}`,
         {
@@ -206,10 +218,21 @@ export default function ManageBookingDetail() {
       );
 
       if (!groupLeaderResponse.ok) {
+        const errorData = await groupLeaderResponse.text();
+        console.error("Group leader update failed:", errorData);
         throw new Error("Failed to update group leader information");
       }
 
+      console.log("Group leader information saved successfully");
+
       // Save passenger information
+      console.log("Saving passenger information...");
+      const validPassengers = passengers.filter(
+        (p) => p.firstName.trim() || p.lastName.trim(),
+      );
+      
+      console.log(`Saving ${validPassengers.length} passengers:`, validPassengers);
+      
       const passengersResponse = await fetch(
         `/api/booking-passengers/${bookingId}`,
         {
@@ -218,21 +241,25 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            passengers: passengers.filter(
-              (p) => p.firstName.trim() || p.lastName.trim(),
-            ),
+            passengers: validPassengers,
           }),
         },
       );
 
       if (!passengersResponse.ok) {
+        const errorData = await passengersResponse.text();
+        console.error("Passenger update failed:", errorData);
         throw new Error("Failed to update passenger information");
       }
+
+      console.log("Passenger information saved successfully");
 
       message.success("Changes saved successfully");
 
       // Refresh the booking details to reflect the changes
-      window.location.reload();
+      console.log("Refetching booking details...");
+      await refetch();
+      console.log("Booking details refetched successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
       message.error("Failed to save changes. Please try again.");

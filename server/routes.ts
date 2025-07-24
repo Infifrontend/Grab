@@ -303,79 +303,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/booking-details/:id", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`Fetching booking details for ID: ${id}`);
 
-      // Try to find in flight bookings first by booking reference
-      let booking = await storage.getFlightBookingByReference(id);
+      let booking = null;
       let passengers = [];
       let flightData = null;
       let comprehensiveData = null;
 
-      if (booking) {
-        // Get passengers for this booking
+      // Try to find in flight bookings first by booking reference
+      try {
+        booking = await storage.getFlightBookingByReference(id);
+        console.log("Found booking by reference:", booking ? "Yes" : "No");
+      } catch (error) {
+        console.log("Error finding booking by reference:", error.message);
+      }
+
+      // If not found by reference, try by numeric ID
+      if (!booking) {
+        try {
+          const allFlightBookings = await storage.getFlightBookings();
+          booking = allFlightBookings.find(
+            (b) => b.id.toString() === id,
+          );
+          console.log("Found booking by numeric ID:", booking ? "Yes" : "No");
+        } catch (error) {
+          console.log("Error finding booking by numeric ID:", error.message);
+        }
+      }
+
+      // If still not found, try legacy bookings
+      if (!booking) {
+        try {
+          const legacyBookings = await storage.getBookings();
+          booking = legacyBookings.find(
+            (b) => b.id.toString() === id || b.bookingId === id,
+          );
+          console.log("Found booking in legacy bookings:", booking ? "Yes" : "No");
+          
+          if (booking) {
+            return res.json({
+              booking,
+              passengers: [],
+              flightData: null,
+              comprehensiveData: null,
+            });
+          }
+        } catch (error) {
+          console.log("Error finding booking in legacy:", error.message);
+        }
+      }
+
+      if (!booking) {
+        console.log(`No booking found for ID: ${id}`);
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Get passengers for this booking
+      try {
         passengers = await storage.getPassengersByBooking(booking.id);
+        console.log(`Found ${passengers.length} passengers for booking`);
+      } catch (error) {
+        console.log("Error fetching passengers:", error.message);
+        passengers = [];
+      }
 
-        // Get flight details
-        flightData = await storage.getFlight(booking.flightId);
-
-        // Parse comprehensive booking data from specialRequests if available
-        if (booking.specialRequests) {
-          try {
-            comprehensiveData = JSON.parse(booking.specialRequests);
-          } catch (e) {
-            // If parsing fails, ignore and use basic data
-          }
+      // Get flight details
+      try {
+        if (booking.flightId) {
+          flightData = await storage.getFlight(booking.flightId);
+          console.log("Found flight data:", flightData ? "Yes" : "No");
         }
-
-        return res.json({
-          booking,
-          passengers,
-          flightData,
-          comprehensiveData,
-        });
+      } catch (error) {
+        console.log("Error fetching flight data:", error.message);
+        flightData = null;
       }
 
-      // If not found by reference, try by ID
-      const allFlightBookings = await storage.getFlightBookings();
-      const flightBookingById = allFlightBookings.find(
-        (b) => b.id.toString() === id,
-      );
-
-      if (flightBookingById) {
-        passengers = await storage.getPassengersByBooking(flightBookingById.id);
-        flightData = await storage.getFlight(flightBookingById.flightId);
-
-        if (flightBookingById.specialRequests) {
-          try {
-            comprehensiveData = JSON.parse(flightBookingById.specialRequests);
-          } catch (e) {
-            // If parsing fails, ignore and use basic data
-          }
+      // Parse comprehensive booking data from specialRequests if available
+      if (booking.specialRequests) {
+        try {
+          comprehensiveData = JSON.parse(booking.specialRequests);
+          console.log("Parsed comprehensive data successfully");
+        } catch (e) {
+          console.log("Could not parse comprehensive data:", e.message);
+          comprehensiveData = null;
         }
-
-        return res.json({
-          booking: flightBookingById,
-          passengers,
-          flightData,
-          comprehensiveData,
-        });
       }
 
-      // If not found in flight bookings, try legacy bookings
-      const legacyBookings = await storage.getBookings();
-      const legacyBooking = legacyBookings.find(
-        (b) => b.id.toString() === id || b.bookingId === id,
-      );
+      console.log("Returning booking details successfully");
+      return res.json({
+        booking,
+        passengers,
+        flightData,
+        comprehensiveData,
+      });
 
-      if (legacyBooking) {
-        return res.json({
-          booking: legacyBooking,
-          passengers: [],
-          flightData: null,
-          comprehensiveData: null,
-        });
-      }
-
-      res.status(404).json({ message: "Booking not found" });
     } catch (error) {
       console.error("Error fetching booking details:", error);
       res.status(500).json({ message: "Failed to fetch booking details" });
