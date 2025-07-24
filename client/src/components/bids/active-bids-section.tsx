@@ -41,10 +41,18 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Filter for active bids only and limit to recent ones
+      // Filter for completed, expired, or historical bids and limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => bid.bidStatus === "active")
-        .slice(0, 5); // Show only the 5 most recent active bids
+        .filter((bid: ActiveBid) => 
+          bid.bidStatus === "completed" || 
+          bid.bidStatus === "expired" || 
+          bid.bidStatus === "cancelled" ||
+          new Date(bid.validUntil) < new Date()
+        )
+        .sort((a: ActiveBid, b: ActiveBid) => 
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        )
+        .slice(0, 5); // Show only the 5 most recent previous bids
     },
   });
 
@@ -94,6 +102,11 @@ export default function ActiveBidsSection() {
       month: 'short', 
       year: 'numeric' 
     });
+    const completedDate = new Date(bid.updatedAt).toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    });
 
     return {
       key: bid.id,
@@ -104,8 +117,11 @@ export default function ActiveBidsSection() {
       bidAmount: `$${bid.bidAmount}`,
       paymentStatus: paymentStatus.status,
       paymentColor: paymentStatus.color,
-      timeLeft,
+      timeLeft: bid.bidStatus === "completed" ? "Completed" : 
+                bid.bidStatus === "expired" ? "Expired" : 
+                bid.bidStatus === "cancelled" ? "Cancelled" : timeLeft,
       createdDate,
+      completedDate,
       status: bid.bidStatus,
     };
   }) || [];
@@ -163,20 +179,31 @@ export default function ActiveBidsSection() {
       ),
     },
     {
-      title: 'Time Left',
+      title: 'Final Status',
       dataIndex: 'timeLeft',
-      key: 'timeLeft',
-      render: (timeLeft: string) => (
-        <div className="flex items-center gap-1 text-blue-600 text-sm">
-          <Clock className="w-4 h-4" />
-          <span>{timeLeft}</span>
-        </div>
-      ),
+      key: 'finalStatus',
+      render: (timeLeft: string, record: any) => {
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case "Completed": return "text-green-600";
+            case "Expired": return "text-red-600";
+            case "Cancelled": return "text-gray-600";
+            default: return "text-blue-600";
+          }
+        };
+        
+        return (
+          <div className={`flex items-center gap-1 text-sm ${getStatusColor(timeLeft)}`}>
+            <Clock className="w-4 h-4" />
+            <span>{timeLeft}</span>
+          </div>
+        );
+      },
     },
     {
-      title: 'Submitted',
-      dataIndex: 'createdDate',
-      key: 'createdDate',
+      title: 'Completed',
+      dataIndex: 'completedDate',
+      key: 'completedDate',
       render: (date: string) => (
         <Text className="text-gray-500 text-sm">{date}</Text>
       ),
@@ -217,14 +244,14 @@ export default function ActiveBidsSection() {
     return (
       <div className="deal-card">
         <div className="section-header relative">
-          <Tag className="limited-time-badge">Live Bidding</Tag>
-          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+          <Tag className="limited-time-badge">Recent History</Tag>
+          <h2 className="text-xl font-semibold mb-1">Previous Bids</h2>
           <p className="text-sm opacity-90">
-            Track your current bidding activity
+            Track your recent bidding activity
           </p>
         </div>
         <div className="p-6 text-center text-gray-500">
-          No active bids available at the moment
+          No previous bids available at the moment
         </div>
       </div>
     );
@@ -234,10 +261,10 @@ export default function ActiveBidsSection() {
     <div className="deal-card">
       {/* Header */}
       <div className="section-header relative">
-        <Tag className="limited-time-badge">Live Bidding</Tag>
-        <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+        <Tag className="limited-time-badge">Recent History</Tag>
+        <h2 className="text-xl font-semibold mb-1">Previous Bids</h2>
         <p className="text-sm opacity-90">
-          Current group travel bids awaiting acceptance
+          Recent bidding activity and completed requests
         </p>
       </div>
 
