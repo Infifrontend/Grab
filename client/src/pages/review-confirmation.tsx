@@ -230,7 +230,7 @@ export default function ReviewConfirmation() {
                       >
                         <Text className="text-gray-900">{service.name}</Text>
                         <Text className="text-gray-600">
-                          ₹{service.price} per person
+                          ${service.price} per person
                         </Text>
                       </div>
                     ))
@@ -249,7 +249,7 @@ export default function ReviewConfirmation() {
                             {bundleData.selectedSeat.name}
                           </Text>
                           <Text className="text-gray-600">
-                            ₹{bundleData.selectedSeat.price} per person
+                            ${bundleData.selectedSeat.price} per person
                           </Text>
                         </div>
                       )}
@@ -259,7 +259,7 @@ export default function ReviewConfirmation() {
                             {bundleData.selectedBaggage.name}
                           </Text>
                           <Text className="text-gray-600">
-                            ₹{bundleData.selectedBaggage.price} per person
+                            ${bundleData.selectedBaggage.price} per person
                           </Text>
                         </div>
                       )}
@@ -272,7 +272,7 @@ export default function ReviewConfirmation() {
                           >
                             <Text className="text-gray-900">{meal.name}</Text>
                             <Text className="text-gray-600">
-                              ₹{meal.price} per person
+                              ${meal.price} per person
                             </Text>
                           </div>
                         ))}
@@ -337,7 +337,7 @@ export default function ReviewConfirmation() {
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Base Flight Cost</Text>
                   <Text className="font-medium">
-                    ₹
+                    $
                     {flightData?.baseCost ||
                       (bookingSummary
                         ? bookingSummary.subtotal -
@@ -358,7 +358,7 @@ export default function ReviewConfirmation() {
                   <div className="flex justify-between items-center">
                     <Text className="text-gray-600">Selected Services</Text>
                     <Text className="font-medium">
-                      ₹
+                      $
                       {((bundleData?.bundleCost || 0) +
                         selectedServices.reduce(
                           (total, service) => total + service.price,
@@ -372,7 +372,7 @@ export default function ReviewConfirmation() {
                 <div className="flex justify-between items-center">
                   <Text className="text-gray-600">Taxes & Fees</Text>
                   <Text className="font-medium">
-                    ₹{bookingSummary?.taxes || "304"}
+                    ${bookingSummary?.taxes || "304"}
                   </Text>
                 </div>
 
@@ -380,7 +380,7 @@ export default function ReviewConfirmation() {
                   <div className="flex justify-between items-center">
                     <Text className="text-gray-600">Group Discount (15%)</Text>
                     <Text className="font-medium text-green-600">
-                      -₹{bookingSummary.groupDiscount}
+                      -${bookingSummary.groupDiscount}
                     </Text>
                   </div>
                 )}
@@ -392,7 +392,7 @@ export default function ReviewConfirmation() {
                     Total Amount
                   </Text>
                   <Text className="text-xl font-bold text-blue-600">
-                    ₹{bookingSummary?.totalAmount || "4,104"}
+                    ${bookingSummary?.totalAmount || "4,104"}
                   </Text>
                 </div>
 
