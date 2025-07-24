@@ -194,14 +194,16 @@ export default function ActiveBidsSection() {
                     <Clock className="w-4 h-4" />
                     <span>{timeLeft}</span>
                   </div>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => setLocation(`/bid-details/${bid.id}`)}
-                    className="text-blue-600 p-0 h-auto"
+                  <a
+                    href={`/bid-details/${bid.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLocation(`/bid-details/${bid.id}`);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
                   >
                     View Details
-                  </Button>
+                  </a>
                 </div>
               </div>
             </div>
