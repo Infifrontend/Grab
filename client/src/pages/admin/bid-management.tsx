@@ -62,6 +62,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
 
 export default function BidManagement() {
   const [, setLocation] = useLocation();
@@ -547,26 +548,145 @@ export default function BidManagement() {
         </div>
 
         {/* Search and Filter */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Input
-              placeholder="Search by passenger name or flight number..."
-              prefix={<SearchOutlined />}
-              style={{ width: 300 }}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
+        <Card className="mb-6">
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center justify-between">
+              <Title level={5} className="!mb-0">
+                Search & Filter Active Bids
+              </Title>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => {
+                  setSearchText("");
+                  setStatusFilter(null);
+                }}
+                disabled={!searchText && !statusFilter}
+              >
+                Clear All
+              </Button>
+            </div>
+            
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <div className="space-y-1">
+                  <Text className="text-gray-600 text-sm font-medium">Search</Text>
+                  <Input
+                    placeholder="Passenger name or flight number..."
+                    prefix={<SearchOutlined className="text-gray-400" />}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    allowClear
+                    size="large"
+                  />
+                </div>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <div className="space-y-1">
+                  <Text className="text-gray-600 text-sm font-medium">Status</Text>
+                  <Select
+                    placeholder="All statuses"
+                    value={statusFilter}
+                    onChange={(value) => setStatusFilter(value)}
+                    allowClear
+                    size="large"
+                    className="w-full"
+                  >
+                    <Select.Option value="active">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        Active
+                      </div>
+                    </Select.Option>
+                    <Select.Option value="pending">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                        Pending Review
+                      </div>
+                    </Select.Option>
+                    <Select.Option value="accepted">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                        Accepted
+                      </div>
+                    </Select.Option>
+                    <Select.Option value="rejected">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                        Rejected
+                      </div>
+                    </Select.Option>
+                  </Select>
+                </div>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <div className="space-y-1">
+                  <Text className="text-gray-600 text-sm font-medium">Date Range</Text>
+                  <RangePicker
+                    placeholder={["Start date", "End date"]}
+                    size="large"
+                    className="w-full"
+                    format="DD MMM YYYY"
+                    onChange={(dates) => {
+                      // Add date range filtering logic here if needed
+                      console.log('Date range selected:', dates);
+                    }}
+                  />
+                </div>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <div className="space-y-1">
+                  <Text className="text-gray-600 text-sm font-medium">Actions</Text>
+                  <div className="flex space-x-2">
+                    <Button
+                      type="primary"
+                      icon={<SearchOutlined />}
+                      size="large"
+                      className="flex-1"
+                      disabled={activeBids.length === 0}
+                    >
+                      Search
+                    </Button>
+                    <Button
+                      icon={<MoreOutlined />}
+                      size="large"
+                      onClick={() => {
+                        // Add export or advanced filter functionality
+                        message.info('Advanced filters coming soon');
+                      }}
+                    />
+                  </div>
+                </div>
+              </Col>
+            </Row>
+            
+            {/* Results Summary */}
+            {(searchText || statusFilter) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <Text className="text-blue-800 text-sm">
+                  <InfoCircleOutlined className="mr-1" />
+                  {activeBids.length === 0 
+                    ? "No bids match your current filters"
+                    : `Showing ${activeBids.length} bid${activeBids.length === 1 ? '' : 's'} matching your filters`
+                  }
+                  {searchText && (
+                    <span className="ml-2">
+                      • Search: "<strong>{searchText}</strong>"
+                    </span>
+                  )}
+                  {statusFilter && (
+                    <span className="ml-2">
+                      • Status: <strong>{statusFilter}</strong>
+                    </span>
+                  )}
+                </Text>
+              </div>
+            )}
           </div>
-          <Select
-            placeholder="Filter by status"
-            style={{ width: 150 }}
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
-          >
-            <Select.Option value="active">Active</Select.Option>
-            <Select.Option value="pending">Pending Review</Select.Option>
-          </Select>
-        </div>
+        </Card>
 
         {/* Active Bids Table */}
         {activeBids.length === 0 ? (
