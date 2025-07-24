@@ -531,6 +531,7 @@ export default function BidManagement() {
         status: bid.bidStatus,
         passengerCount: bid.passengerCount || 1,
         createdAt: bid.createdAt,
+        originalBidData: bid,
       };
     });
 
@@ -684,9 +685,20 @@ export default function BidManagement() {
                     type="link"
                     icon={<EyeOutlined />}
                     size="small"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       console.log("Review Bid clicked for record:", record);
-                      handleReviewBid(record);
+                      // Use original bid data to ensure modal opens correctly
+                      if (record.originalBidData) {
+                        handleReviewBid({
+                          ...record,
+                          // Pass the original bid data ID for lookup
+                          originalBidId: record.originalBidData.id
+                        });
+                      } else {
+                        message.error("Unable to find bid data. Please try again.");
+                      }
                     }}
                   >
                     Review Bid
@@ -3085,7 +3097,7 @@ export default function BidManagement() {
         {/* Sidebar */}
         <div
           className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
-          style={{ height: "calc(100vh - 73px)" }}
+          style={{ height: "calc(100vh - 73px" }}
         >
           <div className="h-full overflow-y-auto">
             <div className="p-6">
