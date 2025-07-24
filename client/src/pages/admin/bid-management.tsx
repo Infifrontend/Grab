@@ -547,209 +547,69 @@ export default function BidManagement() {
           </Text>
         </div>
 
-        {/* Enhanced Search and Filter */}
+        {/* Simple Search and Filter - Single Row */}
         <div className="mb-6">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <SearchOutlined className="text-white text-lg" />
+          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              {/* Search Fields */}
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2">
+                  <SearchOutlined className="text-gray-400" />
+                  <Text className="text-sm font-medium text-gray-700 whitespace-nowrap">Search:</Text>
                 </div>
-                <div>
-                  <Text className="text-lg font-bold text-gray-800">Search & Filter Active Bids</Text>
-                  <Text className="text-sm text-gray-600">Find specific bids using ID or flight information</Text>
-                </div>
+                
+                <Input
+                  placeholder="Bid ID (e.g., BID001)"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="w-48"
+                  allowClear
+                />
+                
+                <Input
+                  placeholder="Flight Number (e.g., GR-4521)"
+                  value={flightNumberSearch}
+                  onChange={(e) => setFlightNumberSearch(e.target.value)}
+                  className="w-48"
+                  allowClear
+                />
+                
+                <Select
+                  placeholder="Status"
+                  style={{ width: 120 }}
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  allowClear
+                >
+                  <Select.Option value="active">Active</Select.Option>
+                  <Select.Option value="pending">Pending</Select.Option>
+                </Select>
               </div>
+              
+              {/* Clear Button */}
               <Button
-                type="primary"
-                ghost
-                size="small"
                 onClick={() => {
                   setSearchText("");
                   setFlightNumberSearch("");
                   setStatusFilter(null);
                 }}
-                className="border-blue-400 text-blue-600 hover:bg-blue-50"
-                icon={<span className="text-sm">🔄</span>}
+                className="flex items-center gap-2"
+                disabled={!searchText && !flightNumberSearch && !statusFilter}
               >
-                Clear All Filters
+                Clear
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Bid ID Search */}
-              <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-                <Text className="text-sm font-semibold text-blue-700 mb-3 block flex items-center">
-                  <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center mr-2 text-xs">🎯</span>
-                  Search by Bid ID
-                </Text>
-                <Input
-                  placeholder="Enter Bid ID (e.g., BID001)"
-                  prefix={<SearchOutlined className="text-blue-400" />}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  className="rounded-lg border-blue-200 focus:border-blue-500"
-                  size="large"
-                  allowClear
-                />
-                <Text className="text-xs text-gray-500 mt-2">
-                  Search for specific bid IDs like BID001, BID002, etc.
-                </Text>
-              </div>
-
-              {/* Flight Number Search */}
-              <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-                <Text className="text-sm font-semibold text-blue-700 mb-3 block flex items-center">
-                  <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center mr-2 text-xs">✈️</span>
-                  Search by Flight Number
-                </Text>
-                <Input
-                  placeholder="Enter Flight Number (e.g., GR-4521)"
-                  prefix={<span className="text-blue-400 text-lg">✈</span>}
-                  value={flightNumberSearch}
-                  onChange={(e) => setFlightNumberSearch(e.target.value)}
-                  className="rounded-lg border-blue-200 focus:border-blue-500"
-                  size="large"
-                  allowClear
-                />
-                <Text className="text-xs text-gray-500 mt-2">
-                  Find bids by flight numbers like GR-4521, QR-729, etc.
-                </Text>
-              </div>
-
-              {/* Status Filter */}
-              <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
-                <Text className="text-sm font-semibold text-blue-700 mb-3 block flex items-center">
-                  <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center mr-2 text-xs">📊</span>
-                  Filter by Status
-                </Text>
-                <Select
-                  placeholder="All Statuses"
-                  style={{ width: "100%" }}
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value)}
-                  className="rounded-lg"
-                  size="large"
-                  allowClear
-                >
-                  <Select.Option value="active">
-                    <div className="flex items-center py-1">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                      <div>
-                        <Text className="font-medium">Active</Text>
-                        <Text className="text-xs text-gray-500 block">Currently accepting bids</Text>
-                      </div>
-                    </div>
-                  </Select.Option>
-                  <Select.Option value="pending">
-                    <div className="flex items-center py-1">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
-                      <div>
-                        <Text className="font-medium">Pending Review</Text>
-                        <Text className="text-xs text-gray-500 block">Awaiting admin action</Text>
-                      </div>
-                    </div>
-                  </Select.Option>
-                </Select>
-                <Text className="text-xs text-gray-500 mt-2">
-                  Filter bids by their current status
-                </Text>
-              </div>
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button
-                type="primary"
-                size="small"
-                icon={<EyeOutlined />}
-                onClick={() => {
-                  setSearchText("");
-                  setFlightNumberSearch("");
-                  setStatusFilter("active");
-                }}
-                className="bg-green-600 hover:bg-green-700 border-green-600"
-              >
-                Show Active Only
-              </Button>
-              <Button
-                size="small"
-                icon={<span className="text-sm">🔍</span>}
-                onClick={() => {
-                  setSearchText("");
-                  setFlightNumberSearch("");
-                  setStatusFilter(null);
-                }}
-                className="border-gray-300 hover:border-blue-400"
-              >
-                Show All Bids
-              </Button>
-              <Button
-                size="small"
-                icon={<span className="text-sm">⏱️</span>}
-                onClick={() => {
-                  setSearchText("");
-                  setFlightNumberSearch("");
-                  setStatusFilter("pending");
-                }}
-                className="border-orange-300 text-orange-600 hover:bg-orange-50"
-              >
-                Pending Review
-              </Button>
-            </div>
-
-            {/* Search Results Summary */}
+            {/* Results Summary */}
             {(searchText || flightNumberSearch || statusFilter) && (
-              <div className="mt-6 pt-6 border-t border-blue-200">
-                <div className="bg-white p-4 rounded-lg border border-blue-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-sm">{activeBids.length}</span>
-                      </div>
-                      <div>
-                        <Text className="font-medium text-gray-800">
-                          {activeBids.length} result{activeBids.length !== 1 ? 's' : ''} found
-                        </Text>
-                        <Text className="text-sm text-gray-600">
-                          {searchText && `Bid ID contains "${searchText}"`}
-                          {searchText && (flightNumberSearch || statusFilter) && " • "}
-                          {flightNumberSearch && `Flight contains "${flightNumberSearch}"`}
-                          {flightNumberSearch && statusFilter && " • "}
-                          {statusFilter && `Status: ${statusFilter}`}
-                        </Text>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {searchText && (
-                        <Tag
-                          closable
-                          onClose={() => setSearchText("")}
-                          className="bg-blue-50 border-blue-200 text-blue-700 rounded-lg px-3 py-1"
-                        >
-                          <span className="text-xs font-medium">Bid ID: {searchText}</span>
-                        </Tag>
-                      )}
-                      {flightNumberSearch && (
-                        <Tag
-                          closable
-                          onClose={() => setFlightNumberSearch("")}
-                          className="bg-green-50 border-green-200 text-green-700 rounded-lg px-3 py-1"
-                        >
-                          <span className="text-xs font-medium">Flight: {flightNumberSearch}</span>
-                        </Tag>
-                      )}
-                      {statusFilter && (
-                        <Tag
-                          closable
-                          onClose={() => setStatusFilter(null)}
-                          className="bg-orange-50 border-orange-200 text-orange-700 rounded-lg px-3 py-1"
-                        >
-                          <span className="text-xs font-medium">Status: {statusFilter}</span>
-                        </Tag>
-                      )}
-                    </div>
-                  </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <Text className="text-sm text-gray-600">
+                    {activeBids.length} result{activeBids.length !== 1 ? 's' : ''} found
+                    {searchText && ` • Bid ID: "${searchText}"`}
+                    {flightNumberSearch && ` • Flight: "${flightNumberSearch}"`}
+                    {statusFilter && ` • Status: ${statusFilter}`}
+                  </Text>
                 </div>
               </div>
             )}
