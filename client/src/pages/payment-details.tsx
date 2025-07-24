@@ -51,14 +51,39 @@ export default function PaymentDetails() {
   };
 
   const handlePaymentSubmit = async () => {
+    if (!paymentMethod) {
+      message.error("Please select a payment method");
+      return;
+    }
+
+    // Check if bid is already completed before processing payment
     try {
-      setLoading(true);
-
-      // Validate form if credit card payment
-      if (paymentMethod === "creditCard") {
-        await form.validateFields();
+      const bidResponse = await fetch(`/api/bids/${bidId}`);
+      if (bidResponse.ok) {
+        const bidData = await bidResponse.json();
+        if (bidData.bid?.bidStatus === 'completed') {
+          message.error("Payment has already been completed for this bid");
+          setLocation('/bids');
+          return;
+        }
       }
+    } catch (error) {
+      console.log("Error checking bid status:", error);
+    }
 
+    // Validate form based on payment method
+    if (paymentMethod === 'creditCard') {
+      try {
+        await form.validateFields();
+      } catch (error) {
+        message.error("Please fill in all required card details");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
       const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
       // Get the bid ID from the URL params instead of localStorage

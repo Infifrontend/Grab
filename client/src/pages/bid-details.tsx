@@ -110,6 +110,8 @@ export default function BidDetails() {
         return "Declined";
       case "expired":
         return "Expired";
+      case "completed":
+        return "Completed";
       default:
         return "Draft";
     }
@@ -228,7 +230,7 @@ export default function BidDetails() {
 
     // Store in localStorage for payment page
     localStorage.setItem('bidParticipationData', JSON.stringify(bidParticipationData));
-    
+
     // Navigate to payment page
     setLocation(`/payment-details/${transformedBidData.bidId}`);
   };
@@ -356,7 +358,7 @@ export default function BidDetails() {
                     />
                   </div>
                 </Col>
-                
+
               </Row>
             </div>
 
@@ -730,14 +732,30 @@ export default function BidDetails() {
             >
               Cancel
             </Button>
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleContinueToPayment}
-              className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
-            >
-              Continue to Payment
-            </Button>
+            {(transformedBidData.status === 'Active' || transformedBidData.status === 'active') && transformedBidData.status !== 'completed' && (
+              <div className="flex justify-end">
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={handleContinueToPayment}
+                  className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+                >
+                  Continue to Payment
+                </Button>
+              </div>
+            )}
+
+            {transformedBidData.status === 'completed' && (
+              <div className="flex justify-end">
+                <Button
+                  size="large"
+                  disabled
+                  className="px-8 py-2 h-auto font-semibold"
+                >
+                  Payment Completed
+                </Button>
+              </div>
+            )}
           </div>
         </Card>
       </div>

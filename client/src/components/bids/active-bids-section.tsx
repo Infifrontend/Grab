@@ -70,6 +70,11 @@ export default function ActiveBidsSection() {
   };
 
   const getPaymentStatus = (bid: ActiveBid) => {
+    // Check bid status first
+    if (bid.bidStatus === 'completed') {
+      return { status: "Payment Completed", color: "green" };
+    }
+    
     try {
       const notes = bid.notes ? JSON.parse(bid.notes) : {};
       if (notes.paymentInfo?.paymentCompleted) {

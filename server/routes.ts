@@ -1426,6 +1426,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Check if bid is already completed (prevent duplicate payments)
+      if (bidId) {
+        try {
+          const bidDetails = await storage.getBidById(parseInt(bidId));
+          if (bidDetails?.bid?.bidStatus === 'completed') {
+            return res.status(400).json({ 
+              success: false, 
+              message: "Payment has already been completed for this bid" 
+            });
+          }
+        } catch (error) {
+          console.log("Error checking bid status:", error.message);
+        }
+      }
+
       // Get user ID from bid if bidId is provided
       let userId = 1; // Default fallback
       if (bidId) {
