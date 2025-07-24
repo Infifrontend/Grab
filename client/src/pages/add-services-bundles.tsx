@@ -47,16 +47,17 @@ interface IndividualService {
 
 const premiumBundles: BundleOption[] = [
   {
-    id: "ultimate-comfort",
+    id: "flexpay-plus",
     name: "FlexPay Plus",
     description: "Pay your way with flexible payment options",
     originalPrice: 59,
     discountedPrice: 29,
     savings: 30,
-    popular: true,
-    icon: "✈️",
-    color: "purple",
+    popular: false,
+    icon: "💳",
+    color: "blue",
     features: [
+      "Convenience",
       "Pay 50% now, 50% later",
       "No interest charges",
       "Automatic payment reminders",
@@ -64,33 +65,35 @@ const premiumBundles: BundleOption[] = [
     ],
   },
   {
-    id: "group-explorer",
+    id: "booknow-complete-later",
     name: "BookNow Complete Later",
     description: "Secure your booking, add passenger details when ready",
-    originalPrice: 249,
-    discountedPrice: 189,
-    savings: 60,
-    icon: "🗺️",
-    color: "blue",
+    originalPrice: 39,
+    discountedPrice: 19,
+    savings: 20,
+    icon: "📅",
+    color: "green",
     features: [
+      "Flexibility",
       "Reserve seats immediately",
       "Add passenger names up to 30 days before travel",
       "Email reminders for pending details",
-      "No risk of price increases",
+      "No risk of price increases"
     ],
   },
   {
     id: "schedule-shield",
     name: "Schedule Shield",
     description: "Change your travel dates with confidence",
-    originalPrice: 269,
-    discountedPrice: 229,
-    savings: 40,
-    icon: "💼",
-    color: "gray",
+    originalPrice: 65,
+    discountedPrice: 45,
+    savings: 20,
+    icon: "🛡️",
+    color: "purple",
     features: [
+      "Peace of Mind",
       "One free date change per booking",
-     "Waived change fees",
+      "Waived change fees",
       "Subject to fare difference only",
       "Valid for 12 months"
     ],
@@ -99,12 +102,13 @@ const premiumBundles: BundleOption[] = [
     id: "worry-free-cancellation",
     name: "Worry-Free Cancellation",
     description: "Full refund protection for unexpected changes",
-    originalPrice: 55,
+    originalPrice: 85,
     discountedPrice: 65,
-    savings: 40,
-    icon: "💼",
-    color: "gray",
+    savings: 20,
+    icon: "✅",
+    color: "red",
     features: [
+      "Full Protection",
       "100% refund if cancelled 48+ hours before",
       "75% refund if cancelled 24-48 hours before",
       "No questions asked policy",
@@ -115,12 +119,13 @@ const premiumBundles: BundleOption[] = [
     id: "splitpay-pro",
     name: "SplitPay Pro",
     description: "Divide payments among group members easily",
-    originalPrice: 40,
+    originalPrice: 35,
     discountedPrice: 25,
-    savings: 40,
-    icon: "💼",
-    color: "gray",
+    savings: 10,
+    icon: "👥",
+    color: "orange",
     features: [
+      "Group Convenience",
       "Split payment among up to 10 people",
       "Individual payment links",
       "Automatic payment tracking",
@@ -131,12 +136,13 @@ const premiumBundles: BundleOption[] = [
     id: "premium-flexibility-bundle",
     name: "Premium Flexibility Bundle",
     description: "Ultimate booking flexibility and peace of mind",
-    originalPrice: 100,
+    originalPrice: 119,
     discountedPrice: 89,
-    savings: 40,
-    icon: "💼",
-    color: "gray",
+    savings: 30,
+    icon: "⭐",
+    color: "gold",
     features: [
+      "Best Value",
       "Includes FlexPay Plus",
       "Includes Schedule Shield",
       "Includes Worry-Free Cancellation",
@@ -148,9 +154,9 @@ const premiumBundles: BundleOption[] = [
 
 const standardBundles: BundleOption[] = [
   {
-    id: "comfort-plus",
+    id: "comfort-plus-bundle",
     name: "Comfort Plus Bundle",
-    description: "Extra comfort for your journey",
+    description: "Enhanced comfort for your journey",
     originalPrice: 119,
     discountedPrice: 89,
     savings: 30,
@@ -166,31 +172,31 @@ const standardBundles: BundleOption[] = [
     ],
   },
   {
-    id: "family-package",
-    name: "Family Package",
-    description: "Great value for families",
-    originalPrice: 164,
-    discountedPrice: 129,
-    savings: 35,
-    icon: "👨‍👩‍👧‍👦",
-    color: "orange",
+    id: "business-essentials",
+    name: "Business Essentials",
+    description: "Everything you need for business travel",
+    originalPrice: 200,
+    discountedPrice: 149,
+    savings: 51,
+    icon: "💼",
+    color: "blue",
     features: [
       "Lounge access",
       "Fast-track security",
       "Premium seat selection",
-     "Wi-Fi access",
+      "Wi-Fi access",
       "Flexible rebooking"
     ],
   },
   {
-    id: "travel-essentials",
-    name: "Business Essentials",
-    description: "Basic add-ons for budget-conscious travelers",
-    originalPrice: 79,
-    discountedPrice: 59,
+    id: "family-fun-package",
+    name: "Family Fun Package",
+    description: "Perfect for family travelers",
+    originalPrice: 85,
+    discountedPrice: 65,
     savings: 20,
-    icon: "✅",
-    color: "teal",
+    icon: "👨‍👩‍👧‍👦",
+    color: "orange",
     features: [
       "Kids meal",
       "Entertainment package",
@@ -461,13 +467,13 @@ export default function AddServicesBundles() {
         <div className="mb-4">
           <div className="flex items-baseline gap-2">
             <Text className="text-2xl font-bold">
-              ₹{bundle.discountedPrice}
+              ${bundle.discountedPrice}
             </Text>
-            <Text className="text-gray-500 line-through">
-              ₹{bundle.originalPrice}
+            <Text className="text-gray-500 line-through text-sm">
+              ${bundle.originalPrice}
             </Text>
             <Text className="text-green-600 font-medium text-sm">
-              Save ₹{bundle.savings}
+              Save ${bundle.savings}
             </Text>
           </div>
         </div>
@@ -566,11 +572,6 @@ export default function AddServicesBundles() {
             <Title level={3} className="!mb-0 text-gray-800">
               Special Bundles
             </Title>
-            <Badge
-              color="purple"
-              text="Best Value"
-              className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium"
-            />
           </div>
 
           <Row gutter={[24, 24]}>
@@ -589,7 +590,7 @@ export default function AddServicesBundles() {
         {/* Standard Bundles */}
         <div className="mb-8">
           <Title level={3} className="!mb-6 text-gray-800">
-            Standard Bundles
+            Popular Bundles
           </Title>
 
           <Row gutter={[24, 24]}>
