@@ -274,7 +274,6 @@ export default function BidManagement() {
           "bidTitle",
           "origin",
           "destination",
-          "bidAmount",
         ]);
       }
       setCurrentStep(currentStep + 1);
@@ -328,22 +327,6 @@ export default function BidManagement() {
         errors.push("Destination airport is required");
       }
 
-      if (!finalValues.minBidAmount || finalValues.minBidAmount < 50) {
-        errors.push("Minimum bid amount is required and must be at least $50");
-      }
-
-      if (!finalValues.bidAmount || finalValues.bidAmount < 100) {
-        errors.push("Base bid amount is required and must be at least $100");
-      }
-
-      if (
-        finalValues.minBidAmount &&
-        finalValues.bidAmount &&
-        finalValues.minBidAmount > finalValues.bidAmount
-      ) {
-        errors.push("Minimum bid amount cannot exceed base bid amount");
-      }
-
       // Show all validation errors at once
       if (errors.length > 0) {
         errors.forEach((error) => message.error(error));
@@ -359,8 +342,7 @@ export default function BidManagement() {
         destination: finalValues.destination
           ? finalValues.destination.trim()
           : "",
-        minBidAmount: finalValues.minBidAmount || 0,
-        bidAmount: finalValues.bidAmount || 0,
+        
         travelDate: finalValues.travelDate
           ? finalValues.travelDate.format("YYYY-MM-DD")
           : null,
@@ -783,9 +765,7 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-      minBidAmount:
-        configData.minBidAmount || parseFloat(bid.bidAmount) * 0.8 || 0,
-      bidAmount: parseFloat(bid.bidAmount) || 0,
+      
     });
 
     setEditBidModalVisible(true);
@@ -891,8 +871,6 @@ export default function BidManagement() {
         cancellationTerms: values.cancellationTerms,
         mealIncluded: values.mealIncluded,
         otherNotes: values.otherNotes,
-        minBidAmount: values.minBidAmount,
-        bidAmount: values.bidAmount,
       };
 
       const response = await apiRequest(
@@ -1281,26 +1259,7 @@ export default function BidManagement() {
                         </Text>
                       </div>
                     </Col>
-                    <Col span={12}>
-                      <div>
-                        <Text className="text-gray-500 block mb-1">
-                          Minimum Bid Amount:
-                        </Text>
-                        <Text className="font-medium">
-                          ${configData.minBidAmount || 0}
-                        </Text>
-                      </div>
-                    </Col>
-                    <Col span={12}>
-                      <div>
-                        <Text className="text-gray-500 block mb-1">
-                          Base Bid Amount:
-                        </Text>
-                        <Text className="font-medium">
-                          ${selectedBid.bidAmount || 0}
-                        </Text>
-                      </div>
-                    </Col>
+                    
                     <Col span={12}>
                       <div>
                         <Text className="text-gray-500 block mb-1">
@@ -1491,75 +1450,7 @@ export default function BidManagement() {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Minimum Bid Amount ($)"
-                name="minBidAmount"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter minimum bid amount",
-                  },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      const baseBidAmount = getFieldValue("bidAmount");
-                      if (!value || !baseBidAmount || value <= baseBidAmount) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(
-                        new Error(
-                          "Minimum bid amount cannot exceed base bid amount",
-                        ),
-                      );
-                    },
-                  }),
-                ]}
-              >
-                <InputNumber
-                  min={50}
-                  max={100000}
-                  className="w-full"
-                  placeholder="Enter minimum bid amount"
-                  formatter={(value) =>
-                    `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/$\s?|(,*)/g, "")}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Base Bid Amount ($)"
-                name="bidAmount"
-                rules={[
-                  { required: true, message: "Please enter bid amount" },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      const minBidAmount = getFieldValue("minBidAmount");
-                      if (!value || !minBidAmount || value >= minBidAmount) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(
-                        new Error(
-                          "Base bid amount must be greater than or equal to minimum bid amount",
-                        ),
-                      );
-                    },
-                  }),
-                ]}
-              >
-                <InputNumber
-                  min={0}
-                  max={100000}
-                  className="w-full"
-                  placeholder="Enter base bid amount"
-                  formatter={(value) =>
-                    `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/$\s?|(,*)/g, "")}
-                />
-              </Form.Item>
-            </Col>
+            
             <Col span={12}>
               <Form.Item
                 name="mealIncluded"
@@ -3564,58 +3455,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          label={
-                            <span className="font-semibold text-gray-700">
-                              Minimum Bid Amount ($) *
-                            </span>
-                          }
-                          name="minBidAmount"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter minimum bid amount",
-                            },
-                            {
-                              type: "number",
-                              min: 50,
-                              message:
-                                "Minimum bid amount should be at least $50",
-                            },
-                            ({ getFieldValue }) => ({
-                              validator(_, value) {
-                                const baseBidAmount =
-                                  getFieldValue("bidAmount");
-                                if (
-                                  !value ||
-                                  !baseBidAmount ||
-                                  value <= baseBidAmount
-                                ) {
-                                  return Promise.resolve();
-                                }
-                                return Promise.reject(
-                                  new Error(
-                                    "Minimum bid amount cannot exceed base bid amount",
-                                  ),
-                                );
-                              },
-                            }),
-                          ]}
-                        >
-                          <InputNumber
-                            min={50}
-                            max={100000}
-                            className="w-full"
-                            placeholder="Enter minimum bid amount"
-                            size="large"
-                            formatter={(value) =>
-                              `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                            }
-                            parser={(value) => value.replace(/$\s?|(,*)/g, "")}
-                          />
-                        </Form.Item>
-                      </Col>
+                      
                     </Row>
                   </div>
                 </div>
