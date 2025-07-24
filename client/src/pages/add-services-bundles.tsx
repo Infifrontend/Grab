@@ -295,6 +295,8 @@ const services: Record<string, IndividualService[]> = {
 export default function AddServicesBundles() {
   const [, setLocation] = useLocation();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedBundles, setSelectedBundles] = useState<string[]>([]);
+  const [individualServiceCounts, setIndividualServiceCounts] = useState<Record<string, number>>({});
   const [bookingData, setBookingData] = useState<any>(null);
   const [flightData, setFlightData] = useState<any>(null);
   const [passengerCount, setPassengerCount] = useState<number>(1);
@@ -1099,107 +1101,107 @@ export default function AddServicesBundles() {
                               onClick={() =>
                                 updateServiceCount(
                                   "inflight-wifi",
-                                                                   (individualServiceCounts["inflight-wifi"] ||
-                                      0) + 1,
-                                  )
-                                }
-                              />
-                            </div>
+                                  (individualServiceCounts["inflight-wifi"] ||
+                                    0) + 1,
+                                )
+                              }
+                            />
                           </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  ),
-                },
-                {
-                  key: "insurance",
-                  label: (
-                    <span className="flex items-center gap-2">
-                      <span>🛡️</span>
-                      Insurance
-                    </span>
-                  ),
-                  children: (
-                    <div className="space-y-4">
-                      <Row gutter={[24, 24]}>
-                        <Col xs={24} md={12}>
-                          <div className="flex justify-between items-center py-4">
-                            <div className="flex-1">
-                              <Title level={5} className="!mb-1">
-                                Travel Insurance
-                              </Title>
-                              <Text className="text-gray-600 text-sm">
-                                Comprehensive travel protection
-                              </Text>
-                              <Text className="font-bold text-lg">$55</Text>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                icon={<MinusOutlined />}
-                                size="small"
-                                onClick={() =>
-                                  updateServiceCount(
-                                    "travel-insurance",
-                                    (individualServiceCounts[
-                                      "travel-insurance"
-                                    ] || 0) - 1,
-                                  )
-                                }
-                                disabled={
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              },
+              {
+                key: "insurance",
+                label: (
+                  <span className="flex items-center gap-2">
+                    <span>🛡️</span>
+                    Insurance
+                  </span>
+                ),
+                children: (
+                  <div className="space-y-4">
+                    <Row gutter={[24, 24]}>
+                      <Col xs={24} md={12}>
+                        <div className="flex justify-between items-center py-4">
+                          <div className="flex-1">
+                            <Title level={5} className="!mb-1">
+                              Travel Insurance
+                            </Title>
+                            <Text className="text-gray-600 text-sm">
+                              Comprehensive travel protection
+                            </Text>
+                            <Text className="font-bold text-lg">$55</Text>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              icon={<MinusOutlined />}
+                              size="small"
+                              onClick={() =>
+                                updateServiceCount(
+                                  "travel-insurance",
                                   (individualServiceCounts[
                                     "travel-insurance"
-                                  ] || 0) === 0
-                                }
-                              />
-                              <span className="mx-3 min-w-[2rem] text-center">
-                                {individualServiceCounts["travel-insurance"] ||
-                                  0}
-                              </span>
-                              <Button
-                                icon={<PlusOutlined />}
-                                size="small"
-                                onClick={() =>
-                                  updateServiceCount(
-                                    "travel-insurance",
-                                    (individualServiceCounts[
-                                      "travel-insurance"
-                                    ] || 0) + 1,
-                                  )
-                                }
-                              />
-                            </div>
+                                  ] || 0) - 1,
+                                )
+                              }
+                              disabled={
+                                (individualServiceCounts[
+                                  "travel-insurance"
+                                ] || 0) === 0
+                              }
+                            />
+                            <span className="mx-3 min-w-[2rem] text-center">
+                              {individualServiceCounts["travel-insurance"] ||
+                                0}
+                            </span>
+                            <Button
+                              icon={<PlusOutlined />}
+                              size="small"
+                              onClick={() =>
+                                updateServiceCount(
+                                  "travel-insurance",
+                                  (individualServiceCounts[
+                                    "travel-insurance"
+                                  ] || 0) + 1,
+                                )
+                              }
+                            />
                           </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </Card>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBack}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            Back
-          </Button>
-
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleContinue}
-            className="px-8"
-          >
-            Continue
-          </Button>
-        </div>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </Card>
       </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center">
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={handleBack}
+          className="text-gray-600 hover:text-gray-800"
+        >
+          Back
+        </Button>
+
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleContinue}
+          className="px-8"
+        >
+          Continue
+        </Button>
+      </div>
+    </div>
     </div>
   );
 }
