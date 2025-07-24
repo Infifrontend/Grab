@@ -3541,6 +3541,7 @@ export default function BidManagement() {
                           <DatePicker
                             className="w-full"
                             size="large"
+                            format="DD MMM YYYY"
                             disabledDate={(current) =>
                               current && current.isBefore(new Date(), "day")
                             }
@@ -3741,7 +3742,7 @@ export default function BidManagement() {
                         >
                           <DatePicker
                             showTime={{ format: "HH:mm" }}
-                            format="DD/MM/YYYY HH:mm"
+                            format="DD MMM YYYY HH:mm"
                             placeholder="Select start time"
                             className="w-full"
                             size="large"
@@ -3762,7 +3763,7 @@ export default function BidManagement() {
                         >
                           <DatePicker
                             showTime={{ format: "HH:mm" }}
-                            format="DD/MM/YYYY HH:mm"
+                            format="DD MMM YYYY HH:mm"
                             placeholder="Select end time"
                             className="w-full"
                             size="large"
