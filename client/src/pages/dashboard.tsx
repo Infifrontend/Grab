@@ -77,6 +77,9 @@ export default function Dashboard() {
         { month: 'Dec', bookings: 71, revenue: 177500, passengers: 284 }
       ];
 
+  // Debug: Log chart data to console
+  console.log('Chart data:', chartData);
+
   // Generate recent activities from real data
   const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
     id: booking.id,
@@ -284,20 +287,27 @@ export default function Dashboard() {
                     <Title level={4} className="!mb-1 text-gray-900">Booking Overview</Title>
                     <Text className="text-gray-500">Monthly booking trends and performance</Text>
                   </div>
-                  <div className="h-80">
+                  {chartData && chartData.length > 0 ? (
+                  <div style={{ width: '100%', height: '320px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <BarChart 
+                        data={chartData} 
+                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                        barCategoryGap="20%"
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis 
                           dataKey="month" 
                           axisLine={false}
                           tickLine={false}
                           tick={{ fontSize: 12, fill: '#6b7280' }}
+                          height={40}
                         />
                         <YAxis 
                           axisLine={false}
                           tickLine={false}
                           tick={{ fontSize: 12, fill: '#6b7280' }}
+                          width={50}
                         />
                         <Tooltip 
                           cursor={{ fill: 'rgba(79, 70, 229, 0.1)' }}
@@ -305,24 +315,33 @@ export default function Dashboard() {
                             backgroundColor: 'white',
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            fontSize: '12px'
                           }}
+                          formatter={(value, name) => [value, name]}
+                          labelFormatter={(label) => `Month: ${label}`}
                         />
                         <Bar 
                           dataKey="bookings" 
                           fill="#4F46E5"
                           radius={[4, 4, 0, 0]}
                           name="Bookings"
+                          minPointSize={2}
                         />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  {bookingOverview && (
-                    <div className="mt-4 flex justify-between text-sm text-gray-600">
-                      <span>Total Revenue: ${bookingOverview.totalRevenue.toLocaleString()}</span>
-                      <span>Avg per Month: {Math.round(totalBookings / 12)} bookings</span>
+                  ) : (
+                    <div className="h-80 flex items-center justify-center bg-gray-50 rounded-lg">
+                      <div className="text-center">
+                        <Text className="text-gray-500">No chart data available</Text>
+                      </div>
                     </div>
                   )}
+                  <div className="mt-4 flex justify-between text-sm text-gray-600">
+                    <span>Total Revenue: ${chartData.reduce((sum, item) => sum + (item.revenue || 0), 0).toLocaleString()}</span>
+                    <span>Avg per Month: {Math.round(chartData.reduce((sum, item) => sum + (item.bookings || 0), 0) / 12)} bookings</span>
+                  </div>
                 </Card>
               </Col>
 
