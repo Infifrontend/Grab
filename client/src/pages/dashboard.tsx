@@ -77,8 +77,19 @@ export default function Dashboard() {
         { month: 'Dec', bookings: 71, revenue: 177500, passengers: 284 }
       ];
 
+  // Ensure chart data is valid and properly formatted
+  const validChartData = Array.isArray(chartData) && chartData.length > 0 
+    ? chartData.map(item => ({
+        month: item.month || 'Unknown',
+        bookings: Number(item.bookings) || 0,
+        revenue: Number(item.revenue) || 0,
+        passengers: Number(item.passengers) || 0
+      }))
+    : [];
+
   // Debug: Log chart data to console
-  console.log('Chart data:', chartData);
+  console.log('Chart data:', validChartData);
+  console.log('Chart data length:', validChartData.length);
 
   // Generate recent activities from real data
   const recentActivities = recentBookings.slice(0, 4).map((booking, index) => ({
@@ -287,11 +298,11 @@ export default function Dashboard() {
                     <Title level={4} className="!mb-1 text-gray-900">Booking Overview</Title>
                     <Text className="text-gray-500">Monthly booking trends and performance</Text>
                   </div>
-                  {chartData && chartData.length > 0 ? (
-                  <div style={{ width: '100%', height: '320px' }}>
+                  {validChartData.length > 0 ? (
+                  <div style={{ width: '100%', height: '320px', minHeight: '320px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart 
-                        data={chartData} 
+                        data={validChartData} 
                         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                         barCategoryGap="20%"
                       >
@@ -326,7 +337,7 @@ export default function Dashboard() {
                           fill="#4F46E5"
                           radius={[4, 4, 0, 0]}
                           name="Bookings"
-                          minPointSize={2}
+                          minPointSize={5}
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -335,12 +346,13 @@ export default function Dashboard() {
                     <div className="h-80 flex items-center justify-center bg-gray-50 rounded-lg">
                       <div className="text-center">
                         <Text className="text-gray-500">No chart data available</Text>
+                        <Text className="text-gray-400 text-xs mt-2">Chart data: {JSON.stringify(validChartData)}</Text>
                       </div>
                     </div>
                   )}
                   <div className="mt-4 flex justify-between text-sm text-gray-600">
-                    <span>Total Revenue: ${chartData.reduce((sum, item) => sum + (item.revenue || 0), 0).toLocaleString()}</span>
-                    <span>Avg per Month: {Math.round(chartData.reduce((sum, item) => sum + (item.bookings || 0), 0) / 12)} bookings</span>
+                    <span>Total Revenue: ${validChartData.reduce((sum, item) => sum + (item.revenue || 0), 0).toLocaleString()}</span>
+                    <span>Avg per Month: {validChartData.length > 0 ? Math.round(validChartData.reduce((sum, item) => sum + (item.bookings || 0), 0) / validChartData.length) : 0} bookings</span>
                   </div>
                 </Card>
               </Col>
