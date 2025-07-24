@@ -1,70 +1,86 @@
 
-import { Card, Rate, Tag, Button } from 'antd';
+import { Card, Tag, Button } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { Plane, Users, CheckCircle, Clock } from 'lucide-react';
-import { SearchOutlined } from "@ant-design/icons";
+import { Plane, Users, Clock, DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 interface ActiveBid {
   id: number;
-  title: string;
-  origin: string;
-  destination: string;
-  bidAmount: number;
-  originalPrice: number;
-  passengers: number;
-  departureDate: string;
-  returnDate?: string;
-  status: string;
-  rating: string;
-  availableSeats: number;
-  isUrgent?: boolean;
-  timeRemaining: string;
+  userId: number;
+  flightId: number;
+  bidAmount: string;
+  passengerCount: number;
+  bidStatus: string;
+  validUntil: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  flight?: {
+    id: number;
+    flightNumber: string;
+    airline: string;
+    origin: string;
+    destination: string;
+    departureTime: string;
+    arrivalTime: string;
+    price: string;
+  };
 }
 
 export default function ActiveBidsSection() {
   const [, setLocation] = useLocation();
   
   const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
-    queryKey: ['/api/active-bids'],
+    queryKey: ['/api/bids'],
     queryFn: async () => {
-      // Mock data for now - replace with actual API call when endpoint is available
-      return [
-        {
-          id: 1,
-          title: "Urgent Bid",
-          origin: "New York",
-          destination: "Los Angeles",
-          bidAmount: 299,
-          originalPrice: 450,
-          passengers: 8,
-          departureDate: "2024-02-15",
-          returnDate: "2024-02-22",
-          status: "Active",
-          rating: "4.8",
-          availableSeats: 12,
-          isUrgent: true,
-          timeRemaining: "2 days left"
-        },
-        {
-          id: 2,
-          title: "Group Bid",
-          origin: "Chicago",
-          destination: "Miami",
-          bidAmount: 189,
-          originalPrice: 320,
-          passengers: 15,
-          departureDate: "2024-03-10",
-          returnDate: "2024-03-17",
-          status: "Active",
-          rating: "4.6",
-          availableSeats: 20,
-          isUrgent: false,
-          timeRemaining: "5 days left"
-        }
-      ];
+      const response = await fetch('/api/bids');
+      if (!response.ok) {
+        throw new Error('Failed to fetch bids');
+      }
+      const bids = await response.json();
+      
+      // Filter for active bids only and limit to recent ones
+      return bids
+        .filter((bid: ActiveBid) => bid.bidStatus === 'active')
+        .slice(0, 5); // Show only the 5 most recent active bids
     },
   });
+
+  const calculateTimeLeft = (validUntil: string) => {
+    const now = new Date();
+    const expiry = new Date(validUntil);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) return "Expired";
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} left`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} left`;
+    return "Less than 1 hour left";
+  };
+
+  const getBidTitle = (bid: ActiveBid) => {
+    try {
+      const notes = bid.notes ? JSON.parse(bid.notes) : {};
+      return notes.title || notes.bidTitle || "Corporate Team Building";
+    } catch (e) {
+      return "Corporate Team Building";
+    }
+  };
+
+  const getPaymentStatus = (bid: ActiveBid) => {
+    try {
+      const notes = bid.notes ? JSON.parse(bid.notes) : {};
+      if (notes.paymentInfo?.paymentStatus === 'Paid') {
+        return { status: 'Deposit Paid', color: 'green' };
+      }
+      return { status: 'Pending', color: 'orange' };
+    } catch (e) {
+      return { status: 'Pending', color: 'orange' };
+    }
+  };
 
   if (isLoading) {
     return (
@@ -81,6 +97,21 @@ export default function ActiveBidsSection() {
     );
   }
 
+  if (!activeBids || activeBids.length === 0) {
+    return (
+      <div className="deal-card">
+        <div className="section-header relative">
+          <Tag className="limited-time-badge">Live Bidding</Tag>
+          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+          <p className="text-sm opacity-90">Current group travel bids awaiting acceptance</p>
+        </div>
+        <div className="p-6 text-center text-gray-500">
+          No active bids available at the moment
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="deal-card">
       {/* Header */}
@@ -92,99 +123,92 @@ export default function ActiveBidsSection() {
 
       {/* Active Bids Content */}
       <div className="p-6">
-        {activeBids?.map((bid, index) => (
-          <div
-            key={bid.id}
-            className={`space-y-1 p-4 bg-white rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-shadow duration-300 ${
-              activeBids?.length !== index + 1 ? "mb-6" : ""
-            }`}
-          >
-            {/* Urgent Banner */}
-            {bid.isUrgent && (
-              <div className="flash-sale-banner">{bid.title}</div>
-            )}
-
-            {/* Bid Status Badge */}
-            <div className="discount-badge">
-              🔥 ${bid.originalPrice - bid.bidAmount} SAVINGS
-            </div>
-
-            {/* Route Display */}
-            <div className="route-display">
-              <Plane className="w-5 h-5 text-[var(--infiniti-primary)]" />
-              <span>{bid.origin}</span>
-              <span className="text-[var(--infiniti-primary)]">→</span>
-              <span>{bid.destination}</span>
-            </div>
-
-            {/* Pricing and Rating */}
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <div className="original-price">${bid.originalPrice}</div>
-                <div className="discounted-price">${bid.bidAmount}</div>
-                <div className="text-xs text-gray-500">bid amount</div>
+        {activeBids.map((bid, index) => {
+          const timeLeft = calculateTimeLeft(bid.validUntil);
+          const bidTitle = getBidTitle(bid);
+          const paymentStatus = getPaymentStatus(bid);
+          const createdDate = new Date(bid.createdAt).toLocaleDateString();
+          
+          return (
+            <div
+              key={bid.id}
+              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${
+                activeBids.length !== index + 1 ? "mb-4" : ""
+              }`}
+            >
+              {/* Header Row */}
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-base">
+                    {bidTitle}
+                  </h3>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                    <Plane className="w-4 h-4" />
+                    <span>
+                      {bid.flight?.origin || 'New York'} → {bid.flight?.destination || 'Las Vegas'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                    <Users className="w-4 h-4" />
+                    <span>{bid.passengerCount} passengers</span>
+                  </div>
+                </div>
+                <Tag color={paymentStatus.color} className="text-xs">
+                  {paymentStatus.status}
+                </Tag>
               </div>
 
-              <div className="text-right">
-                <div className="flex items-center gap-2 mb-1">
-                  <Rate
-                    disabled
-                    defaultValue={parseFloat(bid.rating)}
-                    className="text-sm"
-                  />
-                  <span className="font-semibold text-gray-800">
-                    {bid.rating}
-                  </span>
+              {/* Bid Details Row */}
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Bid Amount</span>
+                  </div>
+                  <div className="font-bold text-lg text-green-600">
+                    ${bid.bidAmount}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Min: $750
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">Bid Rating</div>
-              </div>
-            </div>
-
-            {/* Bid Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="group-size-item">
-                <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-                  <Users className="w-4 h-4" />
-                  <span>Passengers</span>
-                </div>
-                <div className="font-semibold text-gray-800">
-                  {bid.passengers} pax
-                </div>
-              </div>
-
-              <div className="availability-item">
-                <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-                  <Clock className="w-4 h-4" />
-                  <span>Time Remaining</span>
-                </div>
-                <div className="font-semibold text-gray-800">
-                  {bid.timeRemaining}
+                <div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+                    <span>💳</span>
+                    <span>Payment</span>
+                  </div>
+                  <div className="font-semibold text-green-600">
+                    Deposit Paid
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    $2,125
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button 
-                block 
-                size="large" 
-                className="mt-5"
-                onClick={() => setLocation(`/bid-details/${bid.id}`)}
-              >
-                View Bid Details
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SearchOutlined />}
-                size="large"
-                className="w-full infiniti-btn-primary mt-5"
-              >
-                Accept Bid
-              </Button>
+              {/* Footer Row */}
+              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                <div className="text-sm text-gray-500">
+                  {createdDate}
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1 text-blue-600 text-sm">
+                    <Clock className="w-4 h-4" />
+                    <span>{timeLeft}</span>
+                  </div>
+                  <Button 
+                    type="link" 
+                    size="small"
+                    onClick={() => setLocation(`/bid-details/${bid.id}`)}
+                    className="text-blue-600 p-0 h-auto"
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
