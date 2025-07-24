@@ -75,6 +75,7 @@ export default function BidManagement() {
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [flightNumberSearch, setFlightNumberSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(null);
 
   // Fetch unique flight locations for autocomplete
@@ -447,8 +448,16 @@ export default function BidManagement() {
       (bid) => bid.bidStatus === "active",
     );
 
-    // Apply search filter
+    // Apply Bid ID search filter
     if (searchText) {
+      activeBids = activeBids.filter((bid) => {
+        const bidId = `BID${bid.id.toString().padStart(3, "0")}`;
+        return bidId.toLowerCase().includes(searchText.toLowerCase());
+      });
+    }
+
+    // Apply Flight Number search filter
+    if (flightNumberSearch) {
       activeBids = activeBids.filter((bid) => {
         let configData = {};
         try {
@@ -457,19 +466,11 @@ export default function BidManagement() {
           configData = {};
         }
 
-        const passengerName =
-          configData.groupLeaderName ||
-          configData.contactName ||
-          `User ${bid.userId}`;
-
         const flightNumber =
           configData.flightNumber ||
           `GR-${Math.floor(Math.random() * 9000) + 1000}`;
 
-        return (
-          passengerName.toLowerCase().includes(searchText.toLowerCase()) ||
-          flightNumber.toLowerCase().includes(searchText.toLowerCase())
-        );
+        return flightNumber.toLowerCase().includes(flightNumberSearch.toLowerCase());
       });
     }
 
@@ -546,26 +547,159 @@ export default function BidManagement() {
           </Text>
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Input
-              placeholder="Search by passenger name or flight number..."
-              prefix={<SearchOutlined />}
-              style={{ width: 300 }}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
+        {/* Enhanced Search and Filter */}
+        <div className="mb-6">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <Text className="font-semibold text-gray-700">Search & Filter Active Bids</Text>
+              <Button
+                type="text"
+                size="small"
+                onClick={() => {
+                  setSearchText("");
+                  setStatusFilter(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Clear Filters
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Bid ID Search */}
+              <div>
+                <Text className="text-sm font-medium text-gray-600 mb-2 block">
+                  Search by Bid ID
+                </Text>
+                <Input
+                  placeholder="Enter Bid ID (e.g., BID001)"
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="rounded-md"
+                  allowClear
+                />
+              </div>
+
+              {/* Flight Number Search */}
+              <div>
+                <Text className="text-sm font-medium text-gray-600 mb-2 block">
+                  Search by Flight Number
+                </Text>
+                <Input
+                  placeholder="Enter Flight Number (e.g., GR-4521)"
+                  prefix={<span className="text-gray-400">✈</span>}
+                  value={flightNumberSearch}
+                  onChange={(e) => setFlightNumberSearch(e.target.value)}
+                  className="rounded-md"
+                  allowClear
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <Text className="text-sm font-medium text-gray-600 mb-2 block">
+                  Filter by Status
+                </Text>
+                <Select
+                  placeholder="All Statuses"
+                  style={{ width: "100%" }}
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  className="rounded-md"
+                  allowClear
+                >
+                  <Select.Option value="active">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Active
+                    </div>
+                  </Select.Option>
+                  <Select.Option value="pending">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                      Pending Review
+                    </div>
+                  </Select.Option>
+                </Select>
+              </div>
+
+              {/* Quick Actions */}
+              <div>
+                <Text className="text-sm font-medium text-gray-600 mb-2 block">
+                  Quick Actions
+                </Text>
+                <div className="flex space-x-2">
+                  <Button
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => {
+                      setSearchText("");
+                      setFlightNumberSearch("");
+                      setStatusFilter("active");
+                    }}
+                    className="flex-1"
+                  >
+                    Active Only
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setSearchText("");
+                      setFlightNumberSearch("");
+                      setStatusFilter(null);
+                    }}
+                    className="flex-1"
+                  >
+                    Show All
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Results Summary */}
+            {(searchText || flightNumberSearch || statusFilter) && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <Text className="text-sm text-gray-600">
+                    {activeBids.length} result{activeBids.length !== 1 ? 's' : ''} found
+                    {searchText && ` for Bid ID "${searchText}"`}
+                    {flightNumberSearch && ` for Flight "${flightNumberSearch}"`}
+                    {statusFilter && ` with status "${statusFilter}"`}
+                  </Text>
+                  <div className="flex items-center space-x-2">
+                    {searchText && (
+                      <Tag
+                        closable
+                        onClose={() => setSearchText("")}
+                        className="text-xs"
+                      >
+                        Bid ID: {searchText}
+                      </Tag>
+                    )}
+                    {flightNumberSearch && (
+                      <Tag
+                        closable
+                        onClose={() => setFlightNumberSearch("")}
+                        className="text-xs"
+                      >
+                        Flight: {flightNumberSearch}
+                      </Tag>
+                    )}
+                    {statusFilter && (
+                      <Tag
+                        closable
+                        onClose={() => setStatusFilter(null)}
+                        className="text-xs"
+                      >
+                        Status: {statusFilter}
+                      </Tag>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <Select
-            placeholder="Filter by status"
-            style={{ width: 150 }}
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
-          >
-            <Select.Option value="active">Active</Select.Option>
-            <Select.Option value="pending">Pending Review</Select.Option>
-          </Select>
         </div>
 
         {/* Active Bids Table */}
