@@ -98,7 +98,7 @@ export default function DownloadItinerary() {
             </div>
             <div class="detail-row">
               <span class="detail-label">Total Amount:</span>
-              <span class="detail-value">₹${parseFloat(booking.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span class="detail-value">$${parseFloat(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Booking Date:</span>
@@ -425,7 +425,7 @@ Group Airline Booking Team`;
                   <div className="flex justify-between">
                     <Text className="text-gray-600 font-medium">Total Amount:</Text>
                     <Text className="text-gray-900 font-semibold">
-                      ₹{parseFloat(booking.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      ${parseFloat(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </Text>
                   </div>
 
