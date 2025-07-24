@@ -1430,11 +1430,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bidId) {
         try {
           const bidDetails = await storage.getBidById(parseInt(bidId));
+          console.log(`Checking bid ${bidId} status:`, bidDetails?.bid?.bidStatus);
+          
           if (bidDetails?.bid?.bidStatus === 'completed') {
             return res.status(400).json({ 
               success: false, 
               message: "Payment has already been completed for this bid" 
             });
+          }
+          
+          // Also check payment completion in notes
+          try {
+            const notes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+            if (notes.paymentInfo?.paymentCompleted === true) {
+              return res.status(400).json({ 
+                success: false, 
+                message: "Payment has already been completed for this bid" 
+              });
+            }
+          } catch (noteError) {
+            console.log("Could not parse bid notes for payment check:", noteError.message);
           }
         } catch (error) {
           console.log("Error checking bid status:", error.message);
@@ -1567,6 +1582,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ success: false, error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Reset bid payment status (for testing/admin purposes)
+  app.put("/api/bids/:id/reset-payment", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`Resetting payment status for bid ${id}`);
+
+      // Get existing bid
+      const existingBid = await storage.getBidById(parseInt(id));
+      if (!existingBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      // Parse existing notes and remove payment info
+      let existingNotes = {};
+      try {
+        existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+      } catch (e) {
+        existingNotes = {};
+      }
+
+      // Remove payment info and reset status
+      delete existingNotes.paymentInfo;
+      
+      const updateData = {
+        bidStatus: 'accepted', // or 'active' depending on your flow
+        notes: JSON.stringify(existingNotes),
+        updatedAt: new Date()
+      };
+
+      await storage.updateBidDetails(parseInt(id), updateData);
+
+      res.json({
+        success: true,
+        message: "Bid payment status reset successfully"
+      });
+    } catch (error) {
+      console.error("Error resetting bid payment status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to reset bid payment status",
+        error: error.message
+      });
     }
   });
 

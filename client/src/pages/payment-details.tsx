@@ -61,7 +61,20 @@ export default function PaymentDetails() {
       const bidResponse = await fetch(`/api/bids/${bidId}`);
       if (bidResponse.ok) {
         const bidData = await bidResponse.json();
-        if (bidData.bid?.bidStatus === 'completed') {
+        console.log("Bid data for payment check:", bidData);
+        
+        // Check both bid status and payment completion in notes
+        const bidStatus = bidData.bid?.bidStatus;
+        let paymentCompleted = false;
+        
+        try {
+          const notes = bidData.bid?.notes ? JSON.parse(bidData.bid.notes) : {};
+          paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
+        } catch (e) {
+          console.log("Could not parse bid notes:", e);
+        }
+        
+        if (bidStatus === 'completed' || paymentCompleted) {
           message.error("Payment has already been completed for this bid");
           setLocation('/bids');
           return;
