@@ -321,20 +321,6 @@ export default function ReviewConfirmation() {
                     </Text>
                   </div>
                 </Col>
-                <Col xs={24} md={12}>
-                  <div>
-                    <Text className="text-gray-500 text-sm block mb-1">
-                      {groupLeaderData?.groupType === "corporate"
-                        ? "Company"
-                        : "Organization"}
-                    </Text>
-                    <Text className="text-gray-900 font-medium">
-                      {groupLeaderData?.companyName ||
-                        groupLeaderData?.organizationName ||
-                        "Not provided"}
-                    </Text>
-                  </div>
-                </Col>
               </Row>
             </Card>
           </Col>
