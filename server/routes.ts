@@ -1375,12 +1375,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { bidId, bookingId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
 
+      // Validate required fields
+      if (!amount || parseFloat(amount) <= 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid payment amount" 
+        });
+      }
+
+      if (!paymentMethod) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Payment method is required" 
+        });
+      }
+
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
       
       const paymentData = {
         bookingId: bookingId || bidId || 1, // Use booking ID or bid ID as reference
         paymentReference: paymentReference,
-        amount: amount,
+        amount: amount.toString(),
         currency: currency || "INR",
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus || "completed",
@@ -1391,19 +1406,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentType: paymentType || "deposit",
           cardDetails: cardDetails || null,
           completedAt: new Date().toISOString()
-        })
+        }),
+        createdAt: new Date()
       };
+
+      console.log("Creating payment with data:", paymentData);
 
       const payment = await storage.createPayment(paymentData);
       
+      console.log("Payment created successfully:", payment);
+      
       // Return payment with reference for frontend use
       res.json({
+        success: true,
         ...payment,
         paymentReference: paymentReference
       });
     } catch (error) {
       console.error("Payment creation error:", error);
-      res.status(500).json({ message: "Payment creation failed" });
+      
+      let errorMessage = "Payment creation failed";
+      if (error.message) {
+        if (error.message.includes("UNIQUE constraint")) {
+          errorMessage = "Duplicate payment detected";
+        } else if (error.message.includes("NOT NULL constraint")) {
+          errorMessage = "Missing required payment information";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: errorMessage 
+      });
     }
   });
 

@@ -63,7 +63,7 @@ export default function PaymentDetails() {
 
       // Get the bid ID from the URL params instead of localStorage
       const bidId = params?.bidId;
-      
+
       if (!bidId) {
         throw new Error('Bid ID not found');
       }
@@ -97,8 +97,8 @@ export default function PaymentDetails() {
         body: JSON.stringify({
           bidId: parseInt(bidId),
           bookingId: parseInt(bidId), // Use bid ID as booking reference
-          amount: bidParticipationData.depositRequired,
-          currency: 'USD',
+          amount: bidParticipationData.depositRequired.toString(),
+          currency: 'INR',
           paymentMethod: paymentMethod,
           paymentStatus: 'completed',
           paymentType: 'deposit',
@@ -107,7 +107,8 @@ export default function PaymentDetails() {
       });
 
       if (!paymentResponse.ok) {
-        throw new Error('Failed to process payment');
+        const errorData = await paymentResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || `Payment failed with status: ${paymentResponse.status}`);
       }
 
       const paymentResult = await paymentResponse.json();
@@ -270,7 +271,7 @@ export default function PaymentDetails() {
                                 </Form.Item>
                               </Col>
                             </Row>
-                          </Form>
+                          </Form.
                         )}
                       </div>
                     </Radio>
