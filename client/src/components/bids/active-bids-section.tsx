@@ -1,10 +1,7 @@
-
-import { Card, Tag, Button, Table, Typography } from "antd";
+import { Card, Tag, Button } from "antd";
 import { useQuery } from "@tanstack/react-query";
-import { Plane, Users, Clock, DollarSign, Eye } from "lucide-react";
+import { Plane, Users, Clock, DollarSign } from "lucide-react";
 import { useLocation } from "wouter";
-
-const { Text } = Typography;
 
 interface ActiveBid {
   id: number;
@@ -41,18 +38,10 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Filter for completed, expired, or historical bids and limit to recent ones
+      // Filter for active bids only and limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => 
-          bid.bidStatus === "completed" || 
-          bid.bidStatus === "expired" || 
-          bid.bidStatus === "cancelled" ||
-          new Date(bid.validUntil) < new Date()
-        )
-        .sort((a: ActiveBid, b: ActiveBid) => 
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        )
-        .slice(0, 5); // Show only the 5 most recent previous bids
+        .filter((bid: ActiveBid) => bid.bidStatus === "active")
+        .slice(0, 5); // Show only the 5 most recent active bids
     },
   });
 
@@ -66,9 +55,9 @@ export default function ActiveBidsSection() {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h`;
-    return "<1h";
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} left`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} left`;
+    return "Less than 1 hour left";
   };
 
   const getBidTitle = (bid: ActiveBid) => {
@@ -92,139 +81,6 @@ export default function ActiveBidsSection() {
     }
   };
 
-  // Transform data for Ant Design Table
-  const tableData = activeBids?.map((bid) => {
-    const timeLeft = calculateTimeLeft(bid.validUntil);
-    const bidTitle = getBidTitle(bid);
-    const paymentStatus = getPaymentStatus(bid);
-    const createdDate = new Date(bid.createdAt).toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    });
-    const completedDate = new Date(bid.updatedAt).toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    });
-
-    return {
-      key: bid.id,
-      id: bid.id,
-      bidTitle,
-      route: `${bid.flight?.origin || "NYC"} → ${bid.flight?.destination || "LAS"}`,
-      passengers: bid.passengerCount,
-      bidAmount: `$${bid.bidAmount}`,
-      paymentStatus: paymentStatus.status,
-      paymentColor: paymentStatus.color,
-      timeLeft: bid.bidStatus === "completed" ? "Completed" : 
-                bid.bidStatus === "expired" ? "Expired" : 
-                bid.bidStatus === "cancelled" ? "Cancelled" : timeLeft,
-      createdDate,
-      completedDate,
-      status: bid.bidStatus,
-    };
-  }) || [];
-
-  const columns = [
-    {
-      title: 'Bid Details',
-      dataIndex: 'bidTitle',
-      key: 'bidTitle',
-      render: (title: string, record: any) => (
-        <div>
-          <Text strong className="text-gray-900">{title}</Text>
-          <br />
-          <div className="flex items-center gap-1 text-gray-600 text-xs mt-1">
-            <Plane className="w-3 h-3" />
-            <span>{record.route}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Passengers',
-      dataIndex: 'passengers',
-      key: 'passengers',
-      render: (passengers: number) => (
-        <div className="flex items-center gap-1">
-          <Users className="w-4 h-4 text-gray-600" />
-          <span>{passengers}</span>
-        </div>
-      ),
-    },
-    {
-      title: 'Bid Amount',
-      dataIndex: 'bidAmount',
-      key: 'bidAmount',
-      render: (amount: string) => (
-        <div>
-          <div className="font-bold text-green-600">{amount}</div>
-          <div className="text-xs text-gray-500">Min: $750</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Payment',
-      dataIndex: 'paymentStatus',
-      key: 'paymentStatus',
-      render: (status: string, record: any) => (
-        <div>
-          <Tag color={record.paymentColor} className="text-xs mb-1">
-            {status}
-          </Tag>
-          <br />
-          <div className="text-xs text-gray-500">$2,125</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Final Status',
-      dataIndex: 'timeLeft',
-      key: 'finalStatus',
-      render: (timeLeft: string, record: any) => {
-        const getStatusColor = (status: string) => {
-          switch (status) {
-            case "Completed": return "text-green-600";
-            case "Expired": return "text-red-600";
-            case "Cancelled": return "text-gray-600";
-            default: return "text-blue-600";
-          }
-        };
-        
-        return (
-          <div className={`flex items-center gap-1 text-sm ${getStatusColor(timeLeft)}`}>
-            <Clock className="w-4 h-4" />
-            <span>{timeLeft}</span>
-          </div>
-        );
-      },
-    },
-    {
-      title: 'Completed',
-      dataIndex: 'completedDate',
-      key: 'completedDate',
-      render: (date: string) => (
-        <Text className="text-gray-500 text-sm">{date}</Text>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: any) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<Eye className="w-4 h-4" />}
-          onClick={() => setLocation(`/bid-details/${record.id}`)}
-          className="text-blue-600 hover:text-blue-800"
-        >
-          View Details
-        </Button>
-      ),
-    },
-  ];
-
   if (isLoading) {
     return (
       <Card className="h-fit">
@@ -244,14 +100,14 @@ export default function ActiveBidsSection() {
     return (
       <div className="deal-card">
         <div className="section-header relative">
-          <Tag className="limited-time-badge">Recent History</Tag>
-          <h2 className="text-xl font-semibold mb-1">Previous Bids</h2>
+          <Tag className="limited-time-badge">Live Bidding</Tag>
+          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
           <p className="text-sm opacity-90">
-            Track your recent bidding activity
+            Track your current bidding activity
           </p>
         </div>
         <div className="p-6 text-center text-gray-500">
-          No previous bids available at the moment
+          No active bids available at the moment
         </div>
       </div>
     );
@@ -261,52 +117,99 @@ export default function ActiveBidsSection() {
     <div className="deal-card">
       {/* Header */}
       <div className="section-header relative">
-        <Tag className="limited-time-badge">Recent History</Tag>
-        <h2 className="text-xl font-semibold mb-1">Previous Bids</h2>
+        <Tag className="limited-time-badge">Live Bidding</Tag>
+        <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
         <p className="text-sm opacity-90">
-          Recent bidding activity and completed requests
+          Current group travel bids awaiting acceptance
         </p>
       </div>
 
-      {/* Active Bids Table */}
+      {/* Active Bids Content */}
       <div className="p-6">
-        <Table
-          columns={columns}
-          dataSource={tableData}
-          pagination={false}
-          size="small"
-          className="custom-active-bids-table"
-          scroll={{ x: 800 }}
-        />
-      </div>
+        {activeBids.map((bid, index) => {
+          const timeLeft = calculateTimeLeft(bid.validUntil);
+          const bidTitle = getBidTitle(bid);
+          const paymentStatus = getPaymentStatus(bid);
+          const createdDate = new Date(bid.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-      <style jsx>{`
-        .custom-active-bids-table .ant-table {
-          border-radius: 8px;
-          overflow: hidden;
-        }
-        
-        .custom-active-bids-table .ant-table-thead > tr > th {
-          background-color: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-          font-weight: 600;
-          color: #374151;
-          padding: 12px 16px;
-        }
-        
-        .custom-active-bids-table .ant-table-tbody > tr > td {
-          padding: 16px;
-          border-bottom: 1px solid #f1f5f9;
-        }
-        
-        .custom-active-bids-table .ant-table-tbody > tr:hover > td {
-          background-color: #f8fafc;
-        }
-        
-        .custom-active-bids-table .ant-table-tbody > tr:last-child > td {
-          border-bottom: none;
-        }
-      `}</style>
+          return (
+            <div
+              key={bid.id}
+              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${
+                activeBids.length !== index + 1 ? "mb-4" : ""
+              }`}
+            >
+              {/* Header Row */}
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-base">
+                    {bidTitle}
+                  </h3>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                    <Plane className="w-4 h-4" />
+                    <span>
+                      {bid.flight?.origin || "New York"} →{" "}
+                      {bid.flight?.destination || "Las Vegas"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                    <Users className="w-4 h-4" />
+                    <span>{bid.passengerCount} passengers</span>
+                  </div>
+                </div>
+                <Tag color={paymentStatus.color} className="text-xs">
+                  {paymentStatus.status}
+                </Tag>
+              </div>
+
+              {/* Bid Details Row */}
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Bid Amount</span>
+                  </div>
+                  <div className="font-bold text-lg text-green-600">
+                    ${bid.bidAmount}
+                  </div>
+                  <div className="text-xs text-gray-500">Min: $750</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+                    <span>💳</span>
+                    <span>Payment</span>
+                  </div>
+                  <div className="font-semibold text-green-600">
+                    Deposit Paid
+                  </div>
+                  <div className="text-xs text-gray-500">$2,125</div>
+                </div>
+              </div>
+
+              {/* Footer Row */}
+              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                <div className="text-sm text-gray-500">{createdDate}</div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1 text-blue-600 text-sm">
+                    <Clock className="w-4 h-4" />
+                    <span>{timeLeft}</span>
+                  </div>
+                  <a
+                    href={`/bid-details/${bid.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLocation(`/bid-details/${bid.id}`);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
+                  >
+                    View Details
+                  </a>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

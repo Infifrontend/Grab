@@ -74,7 +74,6 @@ export default function BidManagement() {
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
-  const [searchText, setSearchText] = useState("");
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
@@ -343,7 +342,7 @@ export default function BidManagement() {
         destination: finalValues.destination
           ? finalValues.destination.trim()
           : "",
-
+        
         travelDate: finalValues.travelDate
           ? finalValues.travelDate.format("YYYY-MM-DD")
           : null,
@@ -442,75 +441,63 @@ export default function BidManagement() {
 
   const renderActiveBidsContent = () => {
     // Filter active bids from the fetched data
-    let activeBids = (recentBidsData || []).filter(
-      (bid) => bid.bidStatus === "active",
-    );
+    const activeBids = (recentBidsData || [])
+      .filter((bid) => bid.bidStatus === "active")
+      .map((bid, index) => {
+        // Calculate time left until bid expires
+        const timeLeft = bid.validUntil
+          ? calculateTimeLeft(new Date(bid.validUntil))
+          : "No expiry";
 
-    // Apply Bid ID search filter
-    if (searchText) {
-      activeBids = activeBids.filter((bid) => {
-        const bidId = `BID${bid.id.toString().padStart(3, "0")}`;
-        return bidId.toLowerCase().includes(searchText.toLowerCase());
+        // Parse configuration data if available
+        let configData = {};
+        try {
+          configData = bid.notes ? JSON.parse(bid.notes) : {};
+        } catch (e) {
+          configData = {};
+        }
+
+        return {
+          key: bid.id.toString(),
+          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+          passenger: {
+            name:
+              configData.groupLeaderName ||
+              configData.contactName ||
+              `User ${bid.userId}`,
+            email:
+              configData.groupLeaderEmail ||
+              configData.email ||
+              "user@example.com",
+          },
+          flight: {
+            number:
+              configData.flightNumber ||
+              `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+            route:
+              configData.origin && configData.destination
+                ? `${configData.origin} → ${configData.destination}`
+                : bid.flight
+                  ? `${bid.flight.origin} → ${bid.flight.destination}`
+                  : "Route not available",
+            date: configData.travelDate
+              ? new Date(configData.travelDate).toLocaleDateString()
+              : bid.flight?.departureTime
+                ? new Date(bid.flight.departureTime).toLocaleDateString()
+                : "N/A",
+          },
+          upgrade: configData.fareType
+            ? `Economy → ${configData.fareType}`
+            : "Economy → Business",
+          bidAmount: `$${bid.bidAmount}`,
+          maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+          successRate: "75%", // This could be calculated based on historical data
+          timeLeft: timeLeft,
+          status: bid.bidStatus,
+          passengerCount: bid.passengerCount || 1,
+          createdAt: bid.createdAt,
+        };
       });
-    }
-
-    
-
-    activeBids = activeBids.map((bid, index) => {
-      // Calculate time left until bid expires
-      const timeLeft = bid.validUntil
-        ? calculateTimeLeft(new Date(bid.validUntil))
-        : "No expiry";
-
-      // Parse configuration data if available
-      let configData = {};
-      try {
-        configData = bid.notes ? JSON.parse(bid.notes) : {};
-      } catch (e) {
-        configData = {};
-      }
-
-      return {
-        key: bid.id.toString(),
-        bidId: `BID${bid.id.toString().padStart(3, "0")}`,
-        passenger: {
-          name:
-            configData.groupLeaderName ||
-            configData.contactName ||
-            `User ${bid.userId}`,
-          email:
-            configData.groupLeaderEmail ||
-            configData.email ||
-            "user@example.com",
-        },
-        flight: {
-          number:
-            configData.flightNumber ||
-            `GR-${Math.floor(Math.random() * 9000) + 1000}`,
-          route:
-            configData.origin && configData.destination
-              ? `${configData.origin} → ${configData.destination}`
-              : bid.flight
-                ? `${bid.flight.origin} → ${bid.flight.destination}`
-                : "Route not available",
-          date: configData.travelDate
-            ? new Date(configData.travelDate).toLocaleDateString()
-            : bid.flight?.departureTime
-              ? new Date(bid.flight.departureTime).toLocaleDateString()
-              : "N/A",
-        },
-        upgrade: configData.fareType
-          ? `Economy → ${configData.fareType}`
-          : "Economy → Business",
-        bidAmount: `$${bid.bidAmount}`,
-        maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
-        successRate: "75%", // This could be calculated based on historical data
-        timeLeft: timeLeft,
-        status: bid.bidStatus,
-        passengerCount: bid.passengerCount || 1,
-        createdAt: bid.createdAt,
-      };
-    });
 
     return (
       <div>
@@ -524,50 +511,19 @@ export default function BidManagement() {
           </Text>
         </div>
 
-        {/* Simple Search - Single Row */}
-        <div className="mb-6">
-          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              {/* Search Field */}
-              <div className="flex items-center gap-4 flex-1">
-                <div className="flex items-center gap-2">
-                  <SearchOutlined className="text-gray-400" />
-                  <Text className="text-sm font-medium text-gray-700 whitespace-nowrap">Search:</Text>
-                </div>
-                
-                <Input
-                  placeholder="Bid ID (e.g., BID001)"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  className="w-48"
-                  allowClear
-                />
-              </div>
-              
-              {/* Clear Button */}
-              <Button
-                onClick={() => {
-                  setSearchText("");
-                }}
-                className="flex items-center gap-2"
-                disabled={!searchText}
-              >
-                Clear
-              </Button>
-            </div>
-            
-            {/* Results Summary */}
-            {searchText && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <Text className="text-sm text-gray-600">
-                    {activeBids.length} result{activeBids.length !== 1 ? 's' : ''} found
-                    {searchText && ` • Bid ID: "${searchText}"`}
-                  </Text>
-                </div>
-              </div>
-            )}
+        {/* Search and Filter */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Input
+              placeholder="Search by passenger name or flight number..."
+              prefix={<SearchOutlined />}
+              style={{ width: 300 }}
+            />
           </div>
+          <Select placeholder="Filter by status" style={{ width: 150 }}>
+            <Select.Option value="active">Active</Select.Option>
+            <Select.Option value="pending">Pending Review</Select.Option>
+          </Select>
         </div>
 
         {/* Active Bids Table */}
@@ -686,10 +642,7 @@ export default function BidManagement() {
                     type="link"
                     icon={<EyeOutlined />}
                     size="small"
-                    onClick={() => {
-                      console.log("Review Bid clicked for record:", record);
-                      handleReviewBid(record);
-                    }}
+                    onClick={() => handleReviewBid(record)}
                   >
                     Review Bid
                   </Button>
@@ -729,87 +682,63 @@ export default function BidManagement() {
     console.log("handleReviewBid called with:", bidRecord);
     console.log("recentBidsData:", recentBidsData);
 
-    // Always open the modal first to ensure it shows
-    setReviewBidModalVisible(true);
-    reviewForm.resetFields();
+    // Find the actual bid data from recentBidsData
+    const bidData = (recentBidsData || []).find(
+      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
+    );
 
-    // Find the actual bid data from recentBidsData or create fallback data
-    let bidData = null;
-    if (recentBidsData && recentBidsData.length > 0) {
-      bidData = recentBidsData.find(
-        (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
-      );
-    }
+    console.log("Found bidData:", bidData);
 
-    // If no bid data found, create fallback data from bidRecord
-    if (!bidData) {
-      console.log("No bid data found, creating fallback data from bidRecord");
-      bidData = {
-        id: parseInt(bidRecord.bidId.replace('BID', '')),
-        bidAmount: bidRecord.bidAmount ? bidRecord.bidAmount.replace('$', '') : '650',
-        passengerCount: bidRecord.passengerCount || 1,
-        bidStatus: bidRecord.status || 'active',
-        validUntil: null,
-        notes: JSON.stringify({
-          flightNumber: bidRecord.flight?.number || 'GR-4521',
-          origin: bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
-          destination: bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
-          travelDate: bidRecord.flight?.date || '2024-06-28',
-          fareType: bidRecord.upgrade?.split(' → ')[1] || 'Business',
-          groupLeaderName: bidRecord.passenger?.name || 'John Smith',
-          groupLeaderEmail: bidRecord.passenger?.email || 'john.smith@email.com',
-          otherNotes: 'We are five top executives, for $200 each.'
-        }),
-        createdAt: new Date().toISOString()
+    if (bidData) {
+      // Parse configuration data from notes to get flight information
+      let configData = {};
+      try {
+        configData = bidData.notes ? JSON.parse(bidData.notes) : {};
+      } catch (e) {
+        console.error("Error parsing bid notes:", e);
+        configData = {};
+      }
+
+      // Create comprehensive flight information from bid configuration
+      const flightInfo = {
+        flightNumber:
+          configData.flightNumber ||
+          `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+        airline: "Group Retail Airways",
+        origin: configData.origin || bidRecord.flight?.origin || "Unknown",
+        destination:
+          configData.destination || bidRecord.flight?.destination || "Unknown",
+        departureTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
+            ).toISOString()
+          : bidData.createdAt,
+        arrivalTime: configData.travelDate
+          ? new Date(
+              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
+            ).toISOString()
+          : null,
+        price: bidData.bidAmount || 0,
+        availableSeats: configData.totalSeatsAvailable || 50,
+        cabin: configData.fareType || "Economy",
       };
-    }
 
-    console.log("Using bidData:", bidData);
-
-    // Parse configuration data from notes
-    let configData = {};
-    try {
-      configData = bidData.notes ? JSON.parse(bidData.notes) : {};
-    } catch (e) {
-      console.error("Error parsing bid notes:", e);
-      configData = {
-        flightNumber: bidRecord.flight?.number || 'GR-4521',
-        origin: bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
-        destination: bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
-        travelDate: bidRecord.flight?.date || '2024-06-28',
-        fareType: bidRecord.upgrade?.split(' → ')[1] || 'Business',
-        groupLeaderName: bidRecord.passenger?.name || 'John Smith',
-        groupLeaderEmail: bidRecord.passenger?.email || 'john.smith@email.com',
-        otherNotes: 'We are five top executives, for $200 each.'
+      const reviewData = {
+        ...bidData,
+        record: bidRecord,
+        flight: flightInfo,
+        configData: configData,
       };
+
+      console.log("Setting selectedBidForReview to:", reviewData);
+
+      setSelectedBidForReview(reviewData);
+      setReviewBidModalVisible(true);
+      reviewForm.resetFields();
+    } else {
+      console.error("Bid data not found for bidId:", bidRecord.bidId);
+      message.error("Unable to find bid data. Please try again.");
     }
-
-    // Create comprehensive flight information
-    const flightInfo = {
-      flightNumber: configData.flightNumber || bidRecord.flight?.number || 'GR-4521',
-      airline: "Group Retail Airways",
-      origin: configData.origin || bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
-      destination: configData.destination || bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
-      departureTime: configData.travelDate
-        ? new Date(`${configData.travelDate}T09:00`).toISOString()
-        : bidData.createdAt,
-      arrivalTime: configData.travelDate
-        ? new Date(`${configData.travelDate}T12:00`).toISOString()
-        : null,
-      price: bidData.bidAmount || 650,
-      availableSeats: configData.totalSeatsAvailable || 50,
-      cabin: configData.fareType || "Business",
-    };
-
-    const reviewData = {
-      ...bidData,
-      record: bidRecord,
-      flight: flightInfo,
-      configData: configData,
-    };
-
-    console.log("Setting selectedBidForReview to:", reviewData);
-    setSelectedBidForReview(reviewData);
   };
 
   const handleEditBid = (bid) => {
@@ -836,7 +765,7 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-
+      
     });
 
     setEditBidModalVisible(true);
@@ -1330,7 +1259,7 @@ export default function BidManagement() {
                         </Text>
                       </div>
                     </Col>
-
+                    
                     <Col span={12}>
                       <div>
                         <Text className="text-gray-500 block mb-1">
@@ -1521,7 +1450,7 @@ export default function BidManagement() {
                 </Select>
               </Form.Item>
             </Col>
-
+            
             <Col span={12}>
               <Form.Item
                 name="mealIncluded"
@@ -1566,21 +1495,7 @@ export default function BidManagement() {
 
       {/* Review Bid Modal */}
       <Modal
-        title={
-          <div className="flex items-center justify-between w-full pr-8">
-            <div className="flex items-center space-x-3">
-              <div>
-                <Text className="text-lg font-semibold text-gray-800">
-                  Bid Details - {selectedBidForReview ? `BID${selectedBidForReview.id.toString().padStart(3, "0")}` : "BID001"}
-                </Text>
-                <br />
-                <Text className="text-sm text-gray-500">
-                  Review bid information and passenger information
-                </Text>
-              </div>
-            </div>
-          </div>
-        }
+        title="Review Bid Request"
         visible={reviewBidModalVisible}
         onCancel={() => {
           setReviewBidModalVisible(false);
@@ -1588,181 +1503,400 @@ export default function BidManagement() {
           reviewForm.resetFields();
         }}
         footer={null}
-        width={480}
-        destroyOnClose={false}
-        maskClosable={true}
-        className="review-bid-modal"
+        width={900}
+        destroyOnClose={true}
+        maskClosable={false}
       >
-        {reviewBidModalVisible ? (
-          <div className="space-y-4">
-            {/* Passenger Information */}
-            <div>
-              <Title level={5} className="!mb-3 text-gray-800 border-b border-gray-200 pb-2">
-                Passenger Information
-              </Title>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Name:</Text>
-                  <Text className="font-medium">
-                    {selectedBidForReview?.configData?.groupLeaderName || 
-                     selectedBidForReview?.configData?.contactName || 
-                     "John Smith"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Email:</Text>
-                  <Text className="font-medium">
-                    {selectedBidForReview?.configData?.groupLeaderEmail || 
-                     selectedBidForReview?.configData?.email || 
-                     "john.smith@email.com"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Flight:</Text>
-                  <Text className="font-medium">
-                    {selectedBidForReview?.configData?.flightNumber || 
-                     selectedBidForReview?.flight?.flightNumber || 
-                     "GR-4521"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Date:</Text>
-                  <Text className="font-medium">
-                    {selectedBidForReview?.configData?.travelDate ? 
-                      new Date(selectedBidForReview.configData.travelDate).toLocaleDateString('en-GB') : 
-                      "28/06/2024"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Seats:</Text>
-                  <Tag color="red" className="ml-2">
-                    {selectedBidForReview?.passengerCount || 1}
-                  </Tag>
-                </div>
+        {selectedBidForReview && selectedBidForReview.id ? (
+          <div className="space-y-6">
+            {/* Bid Overview */}
+            <Card className="bg-blue-50 border-blue-200">
+              <div className="flex items-center justify-between mb-4">
+                <Title level={5} className="!mb-0 text-blue-800">
+                  Bid Overview
+                </Title>
+                <Tag
+                  color={
+                    selectedBidForReview.bidStatus === "active"
+                      ? "green"
+                      : "blue"
+                  }
+                  className="text-sm"
+                >
+                  {selectedBidForReview.bidStatus
+                    ? selectedBidForReview.bidStatus.toUpperCase()
+                    : "UNKNOWN"}
+                </Tag>
               </div>
-            </div>
 
-            {/* Bid Information */}
-            <div>
-              <Title level={5} className="!mb-3 text-gray-800 border-b border-gray-200 pb-2">
-                Bid Information
-              </Title>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Upgrade:</Text>
-                  <Text className="font-medium">
-                    Economy → {selectedBidForReview?.configData?.fareType || 
-                               selectedBidForReview?.flight?.cabin || 
-                               "Business"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Bid Amount:</Text>
-                  <Text className="font-medium">
-                    ${selectedBidForReview?.bidAmount || "650"}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Min Acceptable:</Text>
-                  <Text className="font-medium">
-                    ${Math.floor(parseFloat(selectedBidForReview?.bidAmount || "650") * 0.8)}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Max Acceptable:</Text>
-                  <Text className="font-medium">
-                    ${Math.floor(parseFloat(selectedBidForReview?.bidAmount || "650") * 1.2)}
-                  </Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Success Probability:</Text>
-                  <Text className="font-medium">High</Text>
-                </div>
-                <div className="flex justify-between">
-                  <Text className="text-gray-600">Time Left:</Text>
-                  <Text className="font-medium">
-                    {selectedBidForReview?.validUntil
-                      ? calculateTimeLeft(new Date(selectedBidForReview.validUntil))
-                      : "18h 45m"}
-                  </Text>
-                </div>
-              </div>
-            </div>
-
-            {/* Bid Communication */}
-            <div>
-              <Title level={5} className="!mb-3 text-gray-800 border-b border-gray-200 pb-2">
-                Bid Communication
-              </Title>
-              <div className="space-y-3">
-                <div>
-                  <Text className="text-gray-600 block mb-1">Customer Note - $650:</Text>
-                  <div className="bg-blue-50 p-3 rounded-md border-l-4 border-blue-400">
-                    <Text className="text-sm">
-                      {selectedBidForReview?.configData?.otherNotes || 
-                       "We are five top executives, for $200 each."}
+              <Row gutter={[24, 16]}>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Bid ID</Text>
+                    <Text className="font-semibold">
+                      BID{selectedBidForReview.id.toString().padStart(3, "0")}
                     </Text>
                   </div>
-                </div>
-                <div>
-                  <Text className="text-gray-600 block mb-1">Response Probability - $650:</Text>
-                  <div className="bg-green-50 p-3 rounded-md border-l-4 border-green-400">
-                    <Text className="text-sm">Good fit due to high revenue per pax</Text>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Bid Amount
+                    </Text>
+                    <Text className="font-semibold text-green-600 text-lg">
+                      ${selectedBidForReview.bidAmount}
+                    </Text>
                   </div>
-                </div>
-                <div>
-                  <Text className="text-gray-600 block mb-1">Counter Offer Note - $650:</Text>
-                  <div className="bg-orange-50 p-3 rounded-md border-l-4 border-orange-400">
-                    <Text className="text-sm">Can we meet at $800?</Text>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Passengers
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.passengerCount} passenger
+                      {selectedBidForReview.passengerCount > 1 ? "s" : ""}
+                    </Text>
                   </div>
-                </div>
-              </div>
-            </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Submitted
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.createdAt
+                        ? new Date(
+                            selectedBidForReview.createdAt,
+                          ).toLocaleDateString()
+                        : "Unknown"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Valid Until
+                    </Text>
+                    <Text className="font-semibold text-orange-600">
+                      {selectedBidForReview.validUntil
+                        ? new Date(
+                            selectedBidForReview.validUntil,
+                          ).toLocaleDateString()
+                        : "No expiry"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={8}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Total Value
+                    </Text>
+                    <Text className="font-semibold text-blue-600 text-lg">
+                      $
+                      {(
+                        parseFloat(selectedBidForReview.bidAmount) *
+                        selectedBidForReview.passengerCount
+                      ).toLocaleString()}
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
 
-            {/* Take Action */}
-            <div>
-              <Title level={5} className="!mb-3 text-gray-800 border-b border-gray-200 pb-2">
-                Take Action
+            {/* Flight Information */}
+            <Card>
+              <Title level={5} className="!mb-4">
+                Flight Information
               </Title>
-              <div className="flex space-x-2">
-                <Button 
-                  type="primary" 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => {
-                    handleBidAction("accept", {});
-                  }}
+              <Row gutter={[24, 16]}>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Flight Number
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.flightNumber || "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Airline</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.airline || "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">Route</Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight
+                        ? `${selectedBidForReview.flight.origin} → ${selectedBidForReview.flight.destination}`
+                        : "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Travel Date
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.configData?.travelDate
+                        ? new Date(
+                            selectedBidForReview.configData.travelDate,
+                          ).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Departure Time Range
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.configData?.departureTimeRange ||
+                        "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Flight Type
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.configData?.flightType || "N/A"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Cabin Class
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.cabin ||
+                        selectedBidForReview.configData?.fareType ||
+                        "Economy"}
+                    </Text>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <Text className="text-gray-600 block text-sm">
+                      Available Seats
+                    </Text>
+                    <Text className="font-semibold">
+                      {selectedBidForReview.flight?.availableSeats ||
+                        selectedBidForReview.configData?.totalSeatsAvailable ||
+                        0}{" "}
+                      seats
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Bid Configuration Information */}
+            {selectedBidForReview.configData && (
+              <Card>
+                <Title level={5} className="!mb-4">
+                  Bid Configuration Details
+                </Title>
+                <Row gutter={[24, 16]}>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Configuration Title
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.title ||
+                          selectedBidForReview.configData.bidTitle ||
+                          "N/A"}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Baggage Allowance
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.baggageAllowance ||
+                          "N/A"}{" "}
+                        kg
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Meal Included
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.mealIncluded
+                          ? "Yes"
+                          : "No"}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Cancellation Terms
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.cancellationTerms ||
+                          "Standard"}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Min Seats per Bid
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.minSeatsPerBid ||
+                          "N/A"}
+                      </Text>
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div>
+                      <Text className="text-gray-600 block text-sm">
+                        Max Seats per Bid
+                      </Text>
+                      <Text className="font-semibold">
+                        {selectedBidForReview.configData.maxSeatsPerBid ||
+                          "N/A"}
+                      </Text>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            )}
+
+            {/* Additional Notes */}
+            {selectedBidForReview.notes && (
+              <Card>
+                <Title level={5} className="!mb-4">
+                  Additional Information
+                </Title>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <Text>{selectedBidForReview.notes}</Text>
+                </div>
+              </Card>
+            )}
+
+            {/* Action Form */}
+            <Card>
+              <Title level={5} className="!mb-4">
+                Review & Decision
+              </Title>
+              <Form form={reviewForm} layout="vertical">
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Form.Item label="Admin Notes" name="adminNotes">
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Add notes about your decision (optional)"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Counter Offer Amount ($)"
+                      name="counterOffer"
+                    >
+                      <InputNumber
+                        min={0}
+                        className="w-full"
+                        placeholder="Optional counter offer"
+                        formatter={(value) =>
+                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/$\s?|(,*)/g, "")}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Rejection Reason" name="rejectionReason">
+                      <Select placeholder="Select reason (if rejecting)">
+                        <Select.Option value="insufficient_bid">
+                          Bid amount too low
+                        </Select.Option>
+                        <Select.Option value="no_availability">
+                          No seats available
+                        </Select.Option>
+                        <Select.Option value="policy_violation">
+                          Policy violation
+                        </Select.Option>
+                        <Select.Option value="operational_reasons">
+                          Operational reasons
+                        </Select.Option>
+                        <Select.Option value="other">Other</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                onClick={() => {
+                  setReviewBidModalVisible(false);
+                  setSelectedBidForReview(null);
+                  reviewForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+
+              <div className="flex space-x-3">
+                <Button
+                  danger
                   loading={loading}
-                >
-                  Accept ($650)
-                </Button>
-                <Button 
-                  className="flex-1 border-orange-400 text-orange-600 hover:bg-orange-50"
                   onClick={() => {
-                    // Handle counter offer
-                    const counterOffer = prompt("Enter counter offer amount:");
-                    if (counterOffer) {
-                      handleBidAction("counter", { counterOffer: parseFloat(counterOffer) });
-                    }
+                    reviewForm.validateFields().then((values) => {
+                      if (!values.rejectionReason) {
+                        message.warning("Please select a rejection reason");
+                        return;
+                      }
+                      handleBidAction("reject", values);
+                    });
                   }}
                 >
-                  Counter
+                  Reject Bid
                 </Button>
-                <Button 
-                  danger 
-                  className="flex-1"
-                  onClick={() => {
-                    handleBidAction("reject", { rejectionReason: "insufficient_bid" });
-                  }}
+                <Button
+                  type="primary"
                   loading={loading}
+                  onClick={() => {
+                    reviewForm.validateFields().then((values) => {
+                      handleBidAction("accept", values);
+                    });
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  Reject
+                  Accept Bid
                 </Button>
               </div>
             </div>
           </div>
         ) : (
           <div className="text-center py-8">
-            <Text className="text-gray-500">Loading bid data...</Text>
+            <Text className="text-gray-500">
+              {reviewBidModalVisible
+                ? "Loading bid data..."
+                : "No bid data available"}
+            </Text>
           </div>
         )}
       </Modal>
@@ -1914,7 +2048,7 @@ export default function BidManagement() {
               dataIndex: "type",
               key: "type",
               render: (type) => (
-                <Tag color={type== "Payment" ? "blue" : "orange"}>{type}</Tag>
+                <Tag color={type === "Payment" ? "blue" : "orange"}>{type}</Tag>
               ),
             },
             {
@@ -2912,8 +3046,7 @@ export default function BidManagement() {
             <div className="p-6">
               <nav className="space-y-2">
                 <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all```text
- duration-200"
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
                   onClick={() => setLocation("/admin/dashboard")}
                 >
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -3322,7 +3455,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-
+                      
                     </Row>
                   </div>
                 </div>
@@ -3399,7 +3532,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-
+                     
                     </Row>
                   </div>
                 </div>
@@ -3858,32 +3991,6 @@ export default function BidManagement() {
         .ant-input-focused {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-        }
-
-        .review-bid-modal .ant-modal-content {
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .review-bid-modal .ant-modal-header {
-          padding: 16px 24px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .review-bid-modal .ant-modal-body {
-          padding: 20px 24px;
-          max-height: 70vh;
-          overflow-y: auto;
-        }
-
-        .review-bid-modal .ant-tag {
-          margin: 0;
-          font-size: 12px;
-          padding: 2px 8px;
-        }
-
-        .review-bid-modal .ant-typography {
-          font-size: 14px;
         }
       `}</style>
     </div>
