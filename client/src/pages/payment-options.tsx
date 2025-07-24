@@ -38,21 +38,18 @@ export default function PaymentOptions() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [bookingReference, setBookingReference] = useState("");
   const [isAdminBooking, setIsAdminBooking] = useState(false);
-
-  // Scroll to top on page load
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [flightData, setFlightData] = useState<any>(null);
   const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [passengerCount, setPassengerCount] = useState(1);
   const [tripType, setTripType] = useState<'oneWay' | 'roundTrip' | 'multiCity'>('roundTrip');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [bookingReference, setBookingReference] = useState('');
+  const [bookingData, setBookingData] = useState<any>(null);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Load booking data on component mount
   useEffect(() => {
