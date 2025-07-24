@@ -3692,23 +3692,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          label={
-                            <span className="font-semibold text-gray-700">
-                              Max Seats per User
-                            </span>
-                          }
-                          name="maxSeatsPerUser"
-                        >
-                          <InputNumber
-                            min={1}
-                            className="w-full"
-                            placeholder="10"
-                            size="large"
-                          />
-                        </Form.Item>
-                      </Col>
+                     
                     </Row>
                   </div>
                 </div>
