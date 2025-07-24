@@ -3562,15 +3562,18 @@ export default function BidManagement() {
                           name="bidAmount"
                         >
                           <InputNumber
-                            min={100}
+                            min={1}
+                            max={999999}
                             className="w-full"
                             placeholder="100"
                             size="large"
+                            controls={true}
+                            keyboard={true}
                             formatter={(value) =>
-                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
                             }
                             parser={(value) =>
-                              value?.replace(/₹\s?|(,*)/g, "") as any
+                              value?.replace(/\$\s?|(,*)/g, "") || ""
                             }
                           />
                         </Form.Item>
@@ -3585,15 +3588,18 @@ export default function BidManagement() {
                           name="suggestedMarketValue"
                         >
                           <InputNumber
-                            min={100}
+                            min={1}
+                            max={999999}
                             className="w-full"
                             placeholder="200"
                             size="large"
+                            controls={true}
+                            keyboard={true}
                             formatter={(value) =>
-                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
                             }
                             parser={(value) =>
-                              value?.replace(/₹\s?|(,*)/g, "") as any
+                              value?.replace(/\$\s?|(,*)/g, "") || ""
                             }
                           />
                         </Form.Item>
@@ -3631,14 +3637,17 @@ export default function BidManagement() {
                         >
                           <InputNumber
                             min={1}
+                            max={10000}
                             className="w-full"
                             placeholder="5"
                             size="large"
+                            controls={true}
+                            keyboard={true}
                             formatter={(value) =>
-                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
                             }
                             parser={(value) =>
-                              value?.replace(/₹\s?|(,*)/g, "") as any
+                              value?.replace(/\$\s?|(,*)/g, "") || ""
                             }
                           />
                         </Form.Item>
