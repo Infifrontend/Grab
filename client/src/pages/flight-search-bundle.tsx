@@ -171,6 +171,7 @@ export default function FlightSearchBundle() {
   const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
   const [selectedReturnFlight, setSelectedReturnFlight] = useState<Flight | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
   const [searchCriteria, setSearchCriteria] = useState<any>(null);
   const [passengerCount, setPassengerCount] = useState<number>(1);
@@ -200,6 +201,11 @@ export default function FlightSearchBundle() {
   const [selectedMeals, setSelectedMeals] = useState<string[]>([
     "standard-meal",
   ]);
+  
+  // Additional state variables
+  const [isAdminBooking, setIsAdminBooking] = useState(false);
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
   // Modify search form state - initialize from bookingFormData (from QuickBooking form)
   const [origin, setOrigin] = useState<string>("");
@@ -894,6 +900,10 @@ export default function FlightSearchBundle() {
     return "✈";
   };
 
+  // Get selected options
+  const selectedSeatOption = seatOptions.find(option => option.id === selectedSeat);
+  const selectedBaggageOption = baggageOptions.find(option => option.id === selectedBaggage);
+  
   const baseCost =
     (typeof selectedOutboundFlight?.price === "string"
       ? parseFloat(selectedOutboundFlight.price)
