@@ -32,10 +32,12 @@ const { Title, Text } = Typography;
 export default function PaymentOptions() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
+  const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
-  const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [bookingReference, setBookingReference] = useState("");
+  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -108,6 +110,12 @@ export default function PaymentOptions() {
       const storedServices = localStorage.getItem("selectedServices");
       if (storedServices) {
         setSelectedServices(JSON.parse(storedServices));
+      }
+
+      // Load admin booking context
+      const adminBooking = localStorage.getItem("isAdminBooking");
+      if (adminBooking) {
+        setIsAdminBooking(JSON.parse(adminBooking) === true);
       }
     };
 
@@ -235,8 +243,8 @@ export default function PaymentOptions() {
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
-    if (bookingReference) {
-      setLocation(`/booking-details/${bookingReference}`);
+    if (isAdminBooking) {
+      setLocation('/admin/bookings');
     } else {
       setLocation("/dashboard");
     }
@@ -244,7 +252,11 @@ export default function PaymentOptions() {
 
   const handleSuccessModalCancel = () => {
     setShowSuccessModal(false);
-    setLocation("/dashboard");
+    if (isAdminBooking) {
+      setLocation('/admin/bookings');
+    } else {
+      setLocation("/dashboard");
+    }
   };
 
   const handleSubmitBooking = async () => {
@@ -369,6 +381,7 @@ export default function PaymentOptions() {
         paymentData: cleanPaymentData,
         passengerData: parsedPassengerData,
         bookingSummary: parsedBookingSummary,
+        isAdminBooking: isAdminBooking,
       };
 
       console.log("Submitting clean booking data:", comprehensiveBookingData);
@@ -413,6 +426,10 @@ export default function PaymentOptions() {
           "currentServiceSelections",
         ];
         keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+        if (isAdminBooking) {
+          localStorage.removeItem("isAdminBooking");
+        }
       } else {
         let errorMessage = "Failed to submit booking. Please try again.";
         try {

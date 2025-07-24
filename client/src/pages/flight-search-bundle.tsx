@@ -179,6 +179,7 @@ export default function FlightSearchBundle() {
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [selectedBundleType, setSelectedBundleType] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {

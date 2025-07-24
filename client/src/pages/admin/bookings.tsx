@@ -39,6 +39,8 @@ import dayjs from "dayjs";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
+import BookingSteps from "@/components/booking/booking-steps";
+import { apiRequest } from "@/lib/queryClient";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -407,6 +409,764 @@ export default function Bookings() {
     },
   ];
 
+  // AdminBookingFlow component that implements the complete booking process within admin layout
+function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [flightData, setFlightData] = useState<any>(null);
+  const [bundleData, setBundleData] = useState<any>(null);
+  const [servicesData, setServicesData] = useState<any[]>([]);
+  const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
+  const [passengerData, setPassengerData] = useState<any[]>([]);
+  const [paymentData, setPaymentData] = useState<any>(null);
+
+  // Step 1: Trip Details
+  const TripDetailsStep = () => {
+    const [form] = Form.useForm();
+    const [tripType, setTripType] = useState("roundTrip");
+
+    const handleNext = (values: any) => {
+      const totalPassengers = values.adults + values.kids + values.infants;
+      const tripData = {
+        ...values,
+        tripType,
+        totalPassengers,
+        isAdminBooking: true,
+      };
+      setBookingData(tripData);
+      localStorage.setItem("bookingFormData", JSON.stringify(tripData));
+      localStorage.setItem("isAdminBooking", "true");
+      setCurrentStep(1);
+    };
+
+    return (
+      <div className="max-w-4xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Trip Details
+          </Title>
+          <Text className="text-gray-600">
+            Start by gathering basic information about the group trip
+          </Text>
+        </div>
+
+        <Card>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleNext}
+            initialValues={{
+              tripType: "roundTrip",
+              adults: 1,
+              kids: 0,
+              infants: 0,
+              cabin: "economy",
+            }}
+          >
+            <div className="mb-4">
+              <Text className="text-gray-700 font-medium block mb-2">Trip Type</Text>
+              <Radio.Group value={tripType} onChange={(e) => setTripType(e.target.value)}>
+                <Radio value="oneWay">One way</Radio>
+                <Radio value="roundTrip">Round trip</Radio>
+                <Radio value="multiCity">Multi city</Radio>
+              </Radio.Group>
+            </div>
+
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Origin *"
+                  name="origin"
+                  rules={[{ required: true, message: "Please select origin" }]}
+                >
+                  <Select placeholder="Select origin" showSearch>
+                    <Option value="New York">New York</Option>
+                    <Option value="Los Angeles">Los Angeles</Option>
+                    <Option value="London">London</Option>
+                    <Option value="Paris">Paris</Option>
+                    <Option value="Tokyo">Tokyo</Option>
+                    <Option value="Dubai">Dubai</Option>
+                    <Option value="Mumbai">Mumbai</Option>
+                    <Option value="Delhi">Delhi</Option>
+                    <Option value="Chennai">Chennai</Option>
+                    <Option value="Bangalore">Bangalore</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Destination *"
+                  name="destination"
+                  rules={[{ required: true, message: "Please select destination" }]}
+                >
+                  <Select placeholder="Select destination" showSearch>
+                    <Option value="New York">New York</Option>
+                    <Option value="Los Angeles">Los Angeles</Option>
+                    <Option value="London">London</Option>
+                    <Option value="Paris">Paris</Option>
+                    <Option value="Tokyo">Tokyo</Option>
+                    <Option value="Dubai">Dubai</Option>
+                    <Option value="Mumbai">Mumbai</Option>
+                    <Option value="Delhi">Delhi</Option>
+                    <Option value="Chennai">Chennai</Option>
+                    <Option value="Bangalore">Bangalore</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Departure Date *"
+                  name="departureDate"
+                  rules={[{ required: true, message: "Please select departure date" }]}
+                >
+                  <DatePicker
+                    className="w-full"
+                    format="DD MMM YYYY"
+                    disabledDate={(current) => current && current.isBefore(dayjs(), "day")}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item label="Return Date" name="returnDate">
+                  <DatePicker
+                    className="w-full"
+                    format="DD MMM YYYY"
+                    disabled={tripType === "oneWay"}
+                    disabledDate={(current) => current && current.isBefore(dayjs(), "day")}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col xs={24} md={8}>
+                <Form.Item
+                  label="Adults *"
+                  name="adults"
+                  rules={[{ required: true, message: "At least 1 adult required" }]}
+                >
+                  <InputNumber min={1} max={50} className="w-full" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="Kids (2-11)" name="kids">
+                  <InputNumber min={0} max={50} className="w-full" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="Infants (0-2)" name="infants">
+                  <InputNumber min={0} max={50} className="w-full" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item label="Cabin *" name="cabin">
+              <Select placeholder="Select cabin class">
+                <Option value="economy">Economy</Option>
+                <Option value="business">Business</Option>
+                <Option value="first">First Class</Option>
+              </Select>
+            </Form.Item>
+
+            <div className="flex justify-end">
+              <Button type="primary" htmlType="submit" size="large">
+                Continue to Flight Search
+              </Button>
+            </div>
+          </Form>
+        </Card>
+      </div>
+    );
+  };
+
+  // Step 2: Flight Search & Bundles (Simplified for admin)
+  const FlightSearchStep = () => {
+    const [selectedFlight, setSelectedFlight] = useState<any>(null);
+    const [flights, setFlights] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+      searchFlights();
+    }, []);
+
+    const searchFlights = async () => {
+      if (!bookingData) return;
+      
+      setLoading(true);
+      try {
+        const response = await apiRequest("POST", "/api/search", {
+          origin: bookingData.origin,
+          destination: bookingData.destination,
+          departureDate: bookingData.departureDate.format("YYYY-MM-DD"),
+          returnDate: bookingData.returnDate?.format("YYYY-MM-DD"),
+          passengers: bookingData.totalPassengers,
+          cabin: bookingData.cabin,
+          tripType: bookingData.tripType,
+        });
+        const result = await response.json();
+        setFlights(result.flights || []);
+        if (result.flights && result.flights.length > 0) {
+          setSelectedFlight(result.flights[0]);
+        }
+      } catch (error) {
+        console.error("Flight search error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleNext = () => {
+      if (selectedFlight) {
+        const flightInfo = {
+          outbound: selectedFlight,
+          baseCost: selectedFlight.price * bookingData.totalPassengers,
+          totalCost: selectedFlight.price * bookingData.totalPassengers,
+        };
+        setFlightData(flightInfo);
+        localStorage.setItem("selectedFlightData", JSON.stringify(flightInfo));
+        setCurrentStep(2);
+      }
+    };
+
+    return (
+      <div className="max-w-6xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Flight Search & Selection
+          </Title>
+          <Text className="text-gray-600">
+            {bookingData?.origin} → {bookingData?.destination} • {bookingData?.totalPassengers} passengers
+          </Text>
+        </div>
+
+        <Row gutter={24}>
+          <Col xs={24} lg={16}>
+            <Card title="Available Flights" loading={loading}>
+              <div className="space-y-4">
+                {flights.map((flight) => (
+                  <div
+                    key={flight.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      selectedFlight?.id === flight.id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    onClick={() => setSelectedFlight(flight)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <Text className="font-medium">{flight.airline} {flight.flightNumber}</Text>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {flight.origin} → {flight.destination}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Departure: {new Date(flight.departureTime).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Text className="text-xl font-bold text-blue-600">
+                          ${flight.price}
+                        </Text>
+                        <div className="text-sm text-gray-500">per person</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} lg={8}>
+            <Card title="Selection Summary">
+              {selectedFlight && (
+                <div className="space-y-3">
+                  <div>
+                    <Text className="text-gray-600">Selected Flight:</Text>
+                    <div className="font-medium">{selectedFlight.airline} {selectedFlight.flightNumber}</div>
+                  </div>
+                  <div>
+                    <Text className="text-gray-600">Total Cost:</Text>
+                    <div className="text-xl font-bold text-blue-600">
+                      ${(selectedFlight.price * bookingData.totalPassengers).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </Col>
+        </Row>
+
+        <div className="flex justify-between mt-6">
+          <Button onClick={() => setCurrentStep(0)}>Back</Button>
+          <Button 
+            type="primary" 
+            onClick={handleNext} 
+            disabled={!selectedFlight}
+            size="large"
+          >
+            Continue to Services
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Step 3: Add Services (Simplified)
+  const AddServicesStep = () => {
+    const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
+    const services = [
+      { id: 'insurance', name: 'Travel Insurance', price: 25 },
+      { id: 'priority-boarding', name: 'Priority Boarding', price: 15 },
+      { id: 'extra-baggage', name: 'Extra Baggage', price: 45 },
+      { id: 'seat-selection', name: 'Seat Selection', price: 20 },
+      { id: 'meal-upgrade', name: 'Meal Upgrades', price: 30 },
+    ];
+
+    const handleNext = () => {
+      const selected = services.filter(s => selectedServices.includes(s.id));
+      setServicesData(selected);
+      localStorage.setItem("selectedServices", JSON.stringify(selected));
+      setCurrentStep(3);
+    };
+
+    return (
+      <div className="max-w-4xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Additional Services
+          </Title>
+          <Text className="text-gray-600">
+            Select additional services for your group booking
+          </Text>
+        </div>
+
+        <Card>
+          <div className="space-y-4">
+            {services.map((service) => (
+              <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedServices.includes(service.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedServices([...selectedServices, service.id]);
+                      } else {
+                        setSelectedServices(selectedServices.filter(id => id !== service.id));
+                      }
+                    }}
+                  />
+                  <div>
+                    <Text className="font-medium">{service.name}</Text>
+                  </div>
+                </div>
+                <Text className="font-bold text-blue-600">${service.price} per person</Text>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex justify-between">
+            <Button onClick={() => setCurrentStep(1)}>Back</Button>
+            <Button type="primary" onClick={handleNext} size="large">
+              Continue to Group Leader Info
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
+  // Step 4: Group Leader Info
+  const GroupLeaderStep = () => {
+    const [form] = Form.useForm();
+
+    const handleNext = (values: any) => {
+      setGroupLeaderData(values);
+      localStorage.setItem("groupLeaderData", JSON.stringify(values));
+      setCurrentStep(4);
+    };
+
+    return (
+      <div className="max-w-4xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Group Leader Information
+          </Title>
+          <Text className="text-gray-600">
+            Provide details of the group leader who will be the main contact
+          </Text>
+        </div>
+
+        <Card>
+          <Form form={form} layout="vertical" onFinish={handleNext}>
+            <Row gutter={16}>
+              <Col xs={24} md={8}>
+                <Form.Item label="Title" name="title" rules={[{ required: true }]}>
+                  <Select placeholder="Select title">
+                    <Option value="mr">Mr.</Option>
+                    <Option value="mrs">Mrs.</Option>
+                    <Option value="ms">Ms.</Option>
+                    <Option value="dr">Dr.</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="First Name" name="firstName" rules={[{ required: true }]}>
+                  <Input placeholder="First name" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="Last Name" name="lastName" rules={[{ required: true }]}>
+                  <Input placeholder="Last name" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
+                  <Input placeholder="Email address" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item label="Phone" name="phoneNumber" rules={[{ required: true }]}>
+                  <Input placeholder="Phone number" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item label="Date of Birth" name="dateOfBirth">
+                  <DatePicker className="w-full" format="DD MMM YYYY" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item label="Nationality" name="nationality">
+                  <Select placeholder="Select nationality">
+                    <Option value="us">United States</Option>
+                    <Option value="uk">United Kingdom</Option>
+                    <Option value="ca">Canada</Option>
+                    <Option value="in">India</Option>
+                    <Option value="other">Other</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <div className="flex justify-between mt-6">
+              <Button onClick={() => setCurrentStep(2)}>Back</Button>
+              <Button type="primary" htmlType="submit" size="large">
+                Continue to Passenger Info
+              </Button>
+            </div>
+          </Form>
+        </Card>
+      </div>
+    );
+  };
+
+  // Step 5: Passenger Info (Simplified for admin)
+  const PassengerInfoStep = () => {
+    const handleNext = () => {
+      // For admin, we can skip detailed passenger info or collect it later
+      setCurrentStep(5);
+    };
+
+    return (
+      <div className="max-w-4xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Passenger Information
+          </Title>
+          <Text className="text-gray-600">
+            Passenger details can be added later. For now, we'll proceed with the group leader information.
+          </Text>
+        </div>
+
+        <Card>
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <UserOutlined className="text-4xl text-gray-400" />
+            </div>
+            <Title level={4} className="text-gray-600">
+              {bookingData?.totalPassengers} Passengers Required
+            </Title>
+            <Text className="text-gray-500">
+              Detailed passenger information can be collected after booking confirmation
+            </Text>
+          </div>
+
+          <div className="flex justify-between mt-6">
+            <Button onClick={() => setCurrentStep(3)}>Back</Button>
+            <Button type="primary" onClick={handleNext} size="large">
+              Continue to Review
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
+  // Step 6: Review & Confirmation
+  const ReviewStep = () => {
+    const totalCost = (flightData?.baseCost || 0) + 
+                     (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1));
+
+    const handleNext = () => {
+      setCurrentStep(6);
+    };
+
+    return (
+      <div className="max-w-6xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Review & Confirmation
+          </Title>
+          <Text className="text-gray-600">
+            Review all booking details before proceeding to payment
+          </Text>
+        </div>
+
+        <Row gutter={24}>
+          <Col xs={24} lg={16}>
+            <Card title="Booking Summary" className="mb-6">
+              <Descriptions column={2} bordered>
+                <Descriptions.Item label="Route">
+                  {bookingData?.origin} → {bookingData?.destination}
+                </Descriptions.Item>
+                <Descriptions.Item label="Trip Type">
+                  {bookingData?.tripType === 'oneWay' ? 'One Way' : 'Round Trip'}
+                </Descriptions.Item>
+                <Descriptions.Item label="Departure">
+                  {bookingData?.departureDate?.format('DD MMM YYYY')}
+                </Descriptions.Item>
+                <Descriptions.Item label="Passengers">
+                  {bookingData?.totalPassengers}
+                </Descriptions.Item>
+                <Descriptions.Item label="Cabin">
+                  {bookingData?.cabin}
+                </Descriptions.Item>
+                <Descriptions.Item label="Selected Flight">
+                  {flightData?.outbound?.airline} {flightData?.outbound?.flightNumber}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {groupLeaderData && (
+              <Card title="Group Leader Information">
+                <Descriptions column={2} bordered>
+                  <Descriptions.Item label="Name">
+                    {groupLeaderData.firstName} {groupLeaderData.lastName}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Email">
+                    {groupLeaderData.email}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Phone">
+                    {groupLeaderData.phoneNumber}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            )}
+          </Col>
+
+          <Col xs={24} lg={8}>
+            <Card title="Pricing Summary">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <Text>Flight Cost:</Text>
+                  <Text className="font-medium">${flightData?.baseCost || 0}</Text>
+                </div>
+                {servicesData.length > 0 && (
+                  <div className="flex justify-between">
+                    <Text>Services:</Text>
+                    <Text className="font-medium">
+                      ${servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1)}
+                    </Text>
+                  </div>
+                )}
+                <Divider />
+                <div className="flex justify-between text-lg font-bold">
+                  <Text>Total:</Text>
+                  <Text className="text-blue-600">${totalCost}</Text>
+                </div>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        <div className="flex justify-between mt-6">
+          <Button onClick={() => setCurrentStep(4)}>Back</Button>
+          <Button type="primary" onClick={handleNext} size="large">
+            Continue to Payment
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Step 7: Payment
+  const PaymentStep = () => {
+    const [form] = Form.useForm();
+    const [paymentMethod, setPaymentMethod] = useState('card');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (values: any) => {
+      setLoading(true);
+      try {
+        const comprehensiveBookingData = {
+          bookingData,
+          flightData,
+          bundleData: null,
+          selectedServices: servicesData,
+          groupLeaderData,
+          paymentData: { ...values, paymentMethod },
+          passengerData: [],
+          bookingSummary: {
+            totalAmount: (flightData?.baseCost || 0) + 
+                        (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1))
+          }
+        };
+
+        const response = await fetch("/api/group-bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(comprehensiveBookingData),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          message.success("Booking created successfully!");
+          
+          // Clear localStorage
+          localStorage.removeItem("bookingFormData");
+          localStorage.removeItem("selectedFlightData");
+          localStorage.removeItem("selectedServices");
+          localStorage.removeItem("groupLeaderData");
+          localStorage.removeItem("isAdminBooking");
+          
+          // Reset to tab view
+          setCurrentStep(0);
+          setLocation("/admin/bookings");
+        } else {
+          throw new Error("Failed to create booking");
+        }
+      } catch (error) {
+        console.error("Booking error:", error);
+        message.error("Failed to create booking");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="max-w-4xl">
+        <div className="mb-6">
+          <Title level={3} className="!mb-2 text-gray-900">
+            Payment Information
+          </Title>
+          <Text className="text-gray-600">
+            Complete the booking by providing payment details
+          </Text>
+        </div>
+
+        <Card>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <div className="mb-6">
+              <Text className="font-medium block mb-3">Payment Method</Text>
+              <Radio.Group value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                <Space direction="vertical">
+                  <Radio value="card">Credit/Debit Card</Radio>
+                  <Radio value="bank">Bank Transfer</Radio>
+                  <Radio value="corporate">Corporate Account</Radio>
+                </Space>
+              </Radio.Group>
+            </div>
+
+            {paymentMethod === 'card' && (
+              <>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Card Number" name="cardNumber" rules={[{ required: true }]}>
+                      <Input placeholder="1234 5678 9012 3456" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Cardholder Name" name="cardholderName" rules={[{ required: true }]}>
+                      <Input placeholder="John Doe" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Expiry Date" name="expiryDate" rules={[{ required: true }]}>
+                      <Input placeholder="MM/YY" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="CVV" name="cvv" rules={[{ required: true }]}>
+                      <Input placeholder="123" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </>
+            )}
+
+            <div className="flex justify-between mt-6">
+              <Button onClick={() => setCurrentStep(5)}>Back</Button>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading}
+                size="large"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Complete Booking - ${((flightData?.baseCost || 0) + 
+                  (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1))).toLocaleString()}
+              </Button>
+            </div>
+          </Form>
+        </Card>
+      </div>
+    );
+  };
+
+  const steps = [
+    "Trip Details",
+    "Flight Search",
+    "Add Services", 
+    "Group Leader",
+    "Passenger Info",
+    "Review",
+    "Payment"
+  ];
+
+  const stepComponents = [
+    <TripDetailsStep key="trip" />,
+    <FlightSearchStep key="flight" />,
+    <AddServicesStep key="services" />,
+    <GroupLeaderStep key="leader" />,
+    <PassengerInfoStep key="passenger" />,
+    <ReviewStep key="review" />,
+    <PaymentStep key="payment" />
+  ];
+
+  return (
+    <div>
+      {/* Progress Steps */}
+      <div className="mb-8">
+        <BookingSteps currentStep={currentStep} size="small" className="mb-6" />
+      </div>
+
+      {/* Current Step Content */}
+      {stepComponents[currentStep]}
+    </div>
+  );
+}
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -687,314 +1447,7 @@ export default function Bookings() {
 
           {/* Create Group Booking Tab Content */}
           {activeTab === "create-booking" && (
-            <div className="max-w-4xl">
-              <div className="mb-6">
-                <Title level={3} className="!mb-2 text-gray-900">
-                  Create New Group Booking
-                </Title>
-                <Text className="text-gray-600">
-                  Start a new group travel booking for your organization
-                </Text>
-              </div>
-
-              <Row gutter={24}>
-                <Col xs={24} lg={14}>
-                  <Card className="h-fit">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                        Admin Quick Booking
-                      </h2>
-                      <p className="text-sm text-gray-600">
-                        Create a new group booking and navigate through the
-                        complete booking flow
-                      </p>
-                    </div>
-
-                    <Form
-                      layout="vertical"
-                      onFinish={(values) => {
-                        // Store booking data and navigate to flight search flow
-                        const totalPassengers =
-                          values.adults + values.kids + values.infants;
-
-                        const bookingData = {
-                          origin: values.origin,
-                          destination: values.destination,
-                          departureDate: values.departureDate,
-                          returnDate: values.returnDate,
-                          tripType: values.tripType || "oneWay",
-                          adults: values.adults,
-                          kids: values.kids,
-                          infants: values.infants,
-                          cabin: values.cabin,
-                          totalPassengers,
-                          isAdminBooking: true,
-                        };
-
-                        localStorage.setItem(
-                          "bookingFormData",
-                          JSON.stringify(bookingData),
-                        );
-                        localStorage.setItem("isAdminBooking", "true");
-
-                        // Navigate to flight search bundle page to start the complete flow
-                        setLocation("/flight-search-bundle");
-                      }}
-                      initialValues={{
-                        tripType: "oneWay",
-                        adults: 1,
-                        kids: 0,
-                        infants: 0,
-                        cabin: "economy",
-                      }}
-                    >
-                      {/* Trip Type */}
-                      <Form.Item
-                        label="Trip Type"
-                        name="tripType"
-                        className="mb-4"
-                      >
-                        <Radio.Group>
-                          <Radio value="oneWay">One way</Radio>
-                          <Radio value="roundTrip">Round trip</Radio>
-                          <Radio value="multiCity">Multi city</Radio>
-                        </Radio.Group>
-                      </Form.Item>
-
-                      {/* Origin and Destination */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Origin *"
-                            name="origin"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select origin",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <Select
-                              placeholder="Select origin"
-                              showSearch
-                              filterOption={(input, option) =>
-                                (option?.children ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              <Option value="New York">New York</Option>
-                              <Option value="Los Angeles">Los Angeles</Option>
-                              <Option value="London">London</Option>
-                              <Option value="Paris">Paris</Option>
-                              <Option value="Tokyo">Tokyo</Option>
-                              <Option value="Dubai">Dubai</Option>
-                              <Option value="Mumbai">Mumbai</Option>
-                              <Option value="Delhi">Delhi</Option>
-                              <Option value="Chennai">Chennai</Option>
-                              <Option value="Bangalore">Bangalore</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Destination *"
-                            name="destination"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select destination",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <Select
-                              placeholder="Select destination"
-                              showSearch
-                              filterOption={(input, option) =>
-                                (option?.children ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              <Option value="New York">New York</Option>
-                              <Option value="Los Angeles">Los Angeles</Option>
-                              <Option value="London">London</Option>
-                              <Option value="Paris">Paris</Option>
-                              <Option value="Tokyo">Tokyo</Option>
-                              <Option value="Dubai">Dubai</Option>
-                              <Option value="Mumbai">Mumbai</Option>
-                              <Option value="Delhi">Delhi</Option>
-                              <Option value="Chennai">Chennai</Option>
-                              <Option value="Bangalore">Bangalore</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Dates */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Departure Date *"
-                            name="departureDate"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select departure date",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <DatePicker
-                              className="w-full"
-                              format="DD MMM YYYY"
-                              disabledDate={(current) =>
-                                current && current.isBefore(dayjs(), "day")
-                              }
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Return Date"
-                            name="returnDate"
-                            className="mb-4"
-                          >
-                            <DatePicker
-                              className="w-full"
-                              format="DD MMM YYYY"
-                              disabledDate={(current) =>
-                                current && current.isBefore(dayjs(), "day")
-                              }
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Passengers */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Adults *"
-                            name="adults"
-                            rules={[
-                              {
-                                required: true,
-                                message: "At least 1 adult required",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <InputNumber min={1} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Kids (2-11)"
-                            name="kids"
-                            className="mb-4"
-                          >
-                            <InputNumber min={0} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Infants (0-2)"
-                            name="infants"
-                            className="mb-4"
-                          >
-                            <InputNumber min={0} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Cabin */}
-                      <Form.Item label="Cabin *" name="cabin" className="mb-6">
-                        <Select placeholder="Select cabin class">
-                          <Option value="economy">Economy</Option>
-                          <Option value="business">Business</Option>
-                          <Option value="first">First Class</Option>
-                        </Select>
-                      </Form.Item>
-
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        size="large"
-                        className="w-full infiniti-btn-primary"
-                      >
-                        Search Flight & Start Booking Flow
-                      </Button>
-                    </Form>
-                  </Card>
-                </Col>
-                <Col xs={24} lg={10}>
-                  <Card>
-                    <div className="mb-4">
-                      <Title level={4} className="!mb-2 text-gray-900">
-                        Admin Booking Tools
-                      </Title>
-                      <Text className="text-gray-600">
-                        Additional tools for managing group bookings
-                      </Text>
-                    </div>
-
-                    <Space
-                      direction="vertical"
-                      size="middle"
-                      className="w-full"
-                    >
-                      <Button
-                        size="large"
-                        className="w-full text-left flex items-center justify-start"
-                        style={{ height: "auto", padding: "12px 16px" }}
-                      >
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            Bulk Passenger Import
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Upload CSV file with passenger details
-                          </div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        size="large"
-                        className="w-full text-left flex items-center justify-start"
-                        style={{ height: "auto", padding: "12px 16px" }}
-                      >
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            Corporate Discount
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Apply special pricing for corporate clients
-                          </div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        size="large"
-                        className="w-full text-left flex items-center justify-start"
-                        style={{ height: "auto", padding: "12px 16px" }}
-                      >
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            Payment Options
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Configure payment schedules and methods
-                          </div>
-                        </div>
-                      </Button>
-                    </Space>
-                  </Card>
-                </Col>
-              </Row>
-            </div>
+            <AdminBookingFlow setLocation={setLocation} />
           )}
 
           {/* Manage Bookings Tab Content */}

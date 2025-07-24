@@ -44,10 +44,15 @@ export default function PassengerInfo() {
   const [totalPassengers, setTotalPassengers] = useState(32);
   const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Check if this is an admin booking
+    const adminBooking = localStorage.getItem("isAdminBooking");
+    setIsAdminBooking(adminBooking === "true");
   }, []);
 
   // Initialize passenger data from localStorage
@@ -242,13 +247,27 @@ export default function PassengerInfo() {
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <Title level={2} className="!mb-2 text-gray-900">
-                Passenger Information
-              </Title>
+              <div className="flex items-center gap-4 mb-2">
+                <Title level={2} className="!mb-0 text-gray-900">
+                  Passenger Information
+                </Title>
+                {isAdminBooking && (
+                  <Badge color="blue" text="Admin Booking" />
+                )}
+              </div>
               <Text className="text-gray-600">
                 Please provide details for all passengers. You need{" "}
                 {totalPassengers} passengers for this group booking.
               </Text>
+              {isAdminBooking && (
+                <Button
+                  type="text"
+                  onClick={() => setLocation("/admin/bookings")}
+                  className="text-gray-600 hover:text-gray-800 p-0 mt-2"
+                >
+                  ← Back to Admin Panel
+                </Button>
+              )}
             </div>
             <Button
               type="default"
