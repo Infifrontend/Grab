@@ -1209,6 +1209,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Migrate payments table to add user_id column
+  app.post("/api/migrate-payments-user-id", async (_req, res) => {
+    try {
+      const { migratePaymentsUserId } = await import("./migrate-payments-user-id");
+      await migratePaymentsUserId();
+      res.json({
+        success: true,
+        message: "Payments table migrated successfully",
+      });
+    } catch (error) {
+      console.error("Payments migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to migrate payments table",
+      });
+    }
+  });
+
   // Update booking details (group leader info)
   app.put("/api/booking-details/:id", async (req, res) => {
     try {
