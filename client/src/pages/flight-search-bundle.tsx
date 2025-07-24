@@ -894,17 +894,6 @@ export default function FlightSearchBundle() {
     return "✈";
   };
 
-  const selectedOutboundFlight = availableFlights.find(
-    (f) => f.id.toString() === selectedOutbound,
-  );
-  const selectedReturnFlight = returnFlights.find(
-    (f) => f.id.toString() === selectedReturn,
-  );
-  const selectedSeatOption = seatOptions.find((s) => s.id === selectedSeat);
-  const selectedBaggageOption = baggageOptions.find(
-    (b) => b.id === selectedBaggage,
-  );
-
   const baseCost =
     (typeof selectedOutboundFlight?.price === "string"
       ? parseFloat(selectedOutboundFlight.price)
