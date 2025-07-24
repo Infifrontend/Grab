@@ -237,7 +237,10 @@ export default function ReviewConfirmation() {
                       >
                         <Text className="text-gray-900">{service.name}</Text>
                         <Text className="text-gray-600">
-                          ${service.price} per person
+                          ${service.price.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })} per person
                         </Text>
                       </div>
                     ))
