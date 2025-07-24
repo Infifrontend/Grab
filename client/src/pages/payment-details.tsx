@@ -65,32 +65,26 @@ export default function PaymentDetails() {
       return;
     }
 
-    // Check if bid is already completed before processing payment
+    // Check if payment has already been made for this bid
     try {
-      const bidResponse = await fetch(`/api/bids/${bidId}`);
-      if (bidResponse.ok) {
-        const bidData = await bidResponse.json();
-        console.log("Bid data for payment check:", bidData);
+      const paymentsResponse = await fetch(`/api/payments?bidId=${bidId}`);
+      if (paymentsResponse.ok) {
+        const paymentsData = await paymentsResponse.json();
+        console.log("Payments data for bid:", paymentsData);
         
-        // Check both bid status and payment completion in notes
-        const bidStatus = bidData.bid?.bidStatus;
-        let paymentCompleted = false;
+        // Check if there's already a completed payment for this bid
+        const existingPayment = paymentsData.find(payment => 
+          payment.bidId === parseInt(bidId) && payment.paymentStatus === 'completed'
+        );
         
-        try {
-          const notes = bidData.bid?.notes ? JSON.parse(bidData.bid.notes) : {};
-          paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
-        } catch (e) {
-          console.log("Could not parse bid notes:", e);
-        }
-        
-        if (bidStatus === 'completed' || paymentCompleted) {
+        if (existingPayment) {
           message.error("Payment has already been completed for this bid");
           setLocation('/bids');
           return;
         }
       }
     } catch (error) {
-      console.log("Error checking bid status:", error);
+      console.log("Error checking payment status:", error);
     }
 
     // Validate form based on payment method

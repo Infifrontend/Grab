@@ -78,7 +78,17 @@ export default function ActiveBidsSection() {
     // Check bid status first for different states
     switch (bid.bidStatus) {
       case 'completed':
-        return { status: "Payment Completed", color: "green" };
+        // For completed bids, check if payment is actually completed
+        try {
+          const notes = bid.notes ? JSON.parse(bid.notes) : {};
+          if (notes.paymentInfo?.paymentCompleted === true) {
+            return { status: "Payment Completed", color: "green" };
+          } else {
+            return { status: "Awaiting Payment", color: "orange" };
+          }
+        } catch (e) {
+          return { status: "Awaiting Payment", color: "orange" };
+        }
       case 'accepted':
         return { status: "Accepted", color: "green" };
       case 'rejected':
@@ -91,7 +101,7 @@ export default function ActiveBidsSection() {
         // For active bids, check payment status
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
-          if (notes.paymentInfo?.paymentCompleted) {
+          if (notes.paymentInfo?.paymentCompleted === true) {
             return { status: "Payment Completed", color: "green" };
           } else if (notes.paymentInfo?.paymentStatus === "Paid") {
             return { status: "Deposit Paid", color: "blue" };

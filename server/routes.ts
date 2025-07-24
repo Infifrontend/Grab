@@ -339,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (b) => b.id.toString() === id || b.bookingId === id,
           );
           console.log("Found booking in legacy bookings:", booking ? "Yes" : "No");
-          
+
           if (booking) {
             return res.json({
               booking,
@@ -974,6 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create bid configuration
   app.post("/api/bid-configurations", async (req: Request, res: Response) => {
     try {
+```text
       console.log("Received bid configuration data:", req.body);
 
       const {
@@ -1378,11 +1379,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all payments
   app.get("/api/payments", async (req, res) => {
     try {
-      const { userId, status } = req.query;
-      const payments = await storage.getPayments(
-        userId ? parseInt(userId as string) : undefined,
-        status as string,
-      );
+      const { userId, bidId } = req.query;
+      let payments;
+
+      if (bidId) {
+        // Fetch payments by bid ID
+        payments = await storage.getPaymentsByBidId(parseInt(bidId as string));
+      } else if (userId) {
+        payments = await storage.getPayments(
+          userId ? parseInt(userId as string) : undefined,
+        );
+      } else {
+        payments = await storage.getPayments();
+      }
       res.json(payments);
     } catch (error) {
       console.error("Error fetching payments:", error);
@@ -1404,7 +1413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  
+
 
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
@@ -1431,14 +1440,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const bidDetails = await storage.getBidById(parseInt(bidId));
           console.log(`Checking bid ${bidId} status:`, bidDetails?.bid?.bidStatus);
-          
+
           if (bidDetails?.bid?.bidStatus === 'completed') {
             return res.status(400).json({ 
               success: false, 
               message: "Payment has already been completed for this bid" 
             });
           }
-          
+
           // Also check payment completion in notes
           try {
             const notes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
@@ -1470,7 +1479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
-      
+
       const paymentData = {
         bookingId: bookingId || null, // Only use actual booking ID if provided
         userId: userId, // Add user_id field
@@ -1487,7 +1496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating payment with data:", paymentData);
 
       const payment = await storage.createPayment(paymentData);
-      
+
       console.log("Payment created successfully:", payment);
 
       // If this payment is for a bid, update the bid status
@@ -1502,7 +1511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Could not update bid status:", error.message);
         }
       }
-      
+
       // Return payment with reference for frontend use
       res.json({
         success: true,
@@ -1512,7 +1521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Payment creation error:", error);
-      
+
       let errorMessage = "Payment creation failed";
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
@@ -1525,7 +1534,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = error.message;
         }
       }
-      
+
       res.status(500).json({ 
         success: false, 
         message: errorMessage 
@@ -1610,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Remove payment info and reset status
       delete existingNotes.paymentInfo;
-      
+
       const updateData = {
         bidStatus: 'accepted', // or 'active' depending on your flow
         notes: JSON.stringify(existingNotes),

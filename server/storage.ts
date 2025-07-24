@@ -103,6 +103,7 @@ export interface IStorage {
   createPayment(paymentData: any): Promise<Payment>;
 
   updateBidDetails(bidId: number, updateData: any): Promise<any>;
+  getPaymentsByBidId(bidId: number): Promise<Payment[]>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -612,7 +613,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Generate payment reference if not provided
       const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
-      
+
       const [payment] = await db.insert(payments).values({
         bookingId: paymentData.bookingId || null,
         userId: paymentData.userId || 1,
@@ -900,6 +901,38 @@ export class DatabaseStorage implements IStorage {
       return updatedBid;
     } catch (error) {
       console.error("Error updating bid details:", error);
+      throw error;
+    }
+  }
+
+  async getPaymentsByUserId(userId: number) {
+    try {
+      const userPayments = await db
+        .select()
+        .from(payments)
+        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
+        .where(eq(flightBookings.userId, userId));
+
+      return userPayments.map(payment => ({
+        ...payment.payments,
+        booking: payment.flight_bookings
+      }));
+    } catch (error) {
+      console.error("Error getting payments by user ID:", error);
+      throw error;
+    }
+  }
+
+  async getPaymentsByBidId(bidId: number) {
+    try {
+      const bidPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.bidId, bidId));
+
+      return bidPayments;
+    } catch (error) {
+      console.error("Error getting payments by bid ID:", error);
       throw error;
     }
   }
