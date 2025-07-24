@@ -623,6 +623,16 @@ export default function FlightSearchBundle() {
   };
 
   const handleContinue = () => {
+    if (!selectedOutboundFlight) {
+      message.error("Please select an outbound flight");
+      return;
+    }
+
+    if (tripType === "roundTrip" && !selectedReturnFlight) {
+      message.error("Please select a return flight");
+      return;
+    }
+
     // Store selected flight data
     const selectedFlightData = {
       outbound: selectedOutboundFlight,
@@ -652,7 +662,7 @@ export default function FlightSearchBundle() {
       localStorage.setItem("isAdminBooking", "true");
     }
 
-    console.log("Continue to Add Services & Bundles");
+    console.log("Continue to Add Services & Bundles with flight data:", selectedFlightData);
     setLocation("/add-services-bundles");
   };
 
@@ -900,23 +910,50 @@ export default function FlightSearchBundle() {
     return "✈";
   };
 
+  // Get selected flight objects
+  const selectedOutboundFlight = useMemo(() => {
+    if (!selectedOutbound) return null;
+    return filteredFlights.find(flight => flight.id.toString() === selectedOutbound) || null;
+  }, [selectedOutbound, filteredFlights]);
+
+  const selectedReturnFlight = useMemo(() => {
+    if (!selectedReturn) return null;
+    return filteredReturnFlights.find(flight => flight.id.toString() === selectedReturn) || null;
+  }, [selectedReturn, filteredReturnFlights]);
+
   // Get selected options
   const selectedSeatOption = seatOptions.find(option => option.id === selectedSeat);
   const selectedBaggageOption = baggageOptions.find(option => option.id === selectedBaggage);
   
-  const baseCost =
-    (typeof selectedOutboundFlight?.price === "string"
-      ? parseFloat(selectedOutboundFlight.price)
-      : selectedOutboundFlight?.price || 0) *
-      passengerCount +
-    (tripType === "roundTrip" && selectedReturnFlight
-      ? (typeof selectedReturnFlight?.price === "string"
-          ? parseFloat(selectedReturnFlight.price)
-          : selectedReturnFlight?.price || 0) * passengerCount
-      : 0);
-  const bundleCost =
-    (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
-  const totalCost = baseCost + bundleCost;
+  const baseCost = useMemo(() => {
+    let cost = 0;
+    
+    // Add outbound flight cost
+    if (selectedOutboundFlight) {
+      const outboundPrice = typeof selectedOutboundFlight.price === "string"
+        ? parseFloat(selectedOutboundFlight.price)
+        : selectedOutboundFlight.price || 0;
+      cost += outboundPrice * passengerCount;
+    }
+    
+    // Add return flight cost for round trip
+    if (tripType === "roundTrip" && selectedReturnFlight) {
+      const returnPrice = typeof selectedReturnFlight.price === "string"
+        ? parseFloat(selectedReturnFlight.price)
+        : selectedReturnFlight.price || 0;
+      cost += returnPrice * passengerCount;
+    }
+    
+    return cost;
+  }, [selectedOutboundFlight, selectedReturnFlight, tripType, passengerCount]);
+
+  const bundleCost = useMemo(() => {
+    return (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
+  }, [selectedSeatOption, selectedBaggageOption]);
+
+  const totalCost = useMemo(() => {
+    return baseCost + bundleCost;
+  }, [baseCost, bundleCost]);
 
   // Clear all filters
   const handleClearFilters = () => {
@@ -1785,7 +1822,7 @@ export default function FlightSearchBundle() {
             </Card>
 
             {/* Booking Summary */}
-            {selectedOutbound && (
+            {selectedOutboundFlight && (
               <Card className="mt-6">
                 <Title level={4} className="!mb-4 text-gray-800">
                   Booking Summary
@@ -1834,6 +1871,7 @@ export default function FlightSearchBundle() {
             type="primary"
             size="large"
             onClick={handleContinue}
+            disabled={!selectedOutboundFlight || (tripType === "roundTrip" && !selectedReturnFlight)}
             className="infiniti-btn-primary px-8"
           >
             Continue to Services
