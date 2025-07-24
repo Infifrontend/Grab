@@ -441,6 +441,123 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
   const [passengerData, setPassengerData] = useState<any[]>([]);
   const [paymentData, setPaymentData] = useState<any>(null);
 
+  // Additional state for flight search functionality
+  const [availableFlights, setAvailableFlights] = useState<any[]>([]);
+  const [returnFlights, setReturnFlights] = useState<any[]>([]);
+  const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<any>(null);
+  const [selectedReturnFlight, setSelectedReturnFlight] = useState<any>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Bundle selections
+  const [selectedSeat, setSelectedSeat] = useState<string>("");
+  const [selectedBaggage, setSelectedBaggage] = useState<string>("");
+  const [selectedMeals, setSelectedMeals] = useState<string[]>(["standard-meal"]);
+
+  // Bundle options (matching retail flow)
+  const seatOptions = [
+    {
+      id: "standard-economy",
+      name: "Standard Economy",
+      price: 25,
+      features: [
+        "Assigned seat",
+        "Shared legroom",
+        "Carry-on included",
+        "Overhead storage",
+      ],
+    },
+    {
+      id: "economy-plus",
+      name: "Economy Plus",
+      price: 89,
+      features: [
+        "Premium seat priority",
+        "Extra legroom (5+ inches)",
+        "Carry-on included",
+        "Complimentary drinks",
+      ],
+    },
+    {
+      id: "premium-economy",
+      name: "Premium Economy",
+      price: 299,
+      features: [
+        "Premium comfort and service",
+        "Premium seat",
+        "Enhanced meal",
+        "Priority check-in",
+        "Extra baggage",
+      ],
+    },
+  ];
+
+  const baggageOptions = [
+    {
+      id: "basic-baggage",
+      name: "Basic Baggage",
+      price: 35,
+      features: ["1 x 23kg checked bag", "Standard handling"],
+    },
+    {
+      id: "baggage-plus",
+      name: "Baggage Plus",
+      price: 65,
+      features: [
+        "2 checked bags 15-23kg each",
+        "Priority baggage",
+        "Priority handling",
+      ],
+    },
+    {
+      id: "premium-baggage",
+      name: "Premium Baggage",
+      price: 125,
+      features: [
+        "2 checked bags 15-32kg each",
+        "2 x 32kg checked bags",
+        "Fragile item protection",
+      ],
+    },
+  ];
+
+  const mealOptions = [
+    {
+      id: "standard-meal",
+      name: "Standard Meal",
+      price: 0,
+      included: true,
+      features: [
+        "Complimentary meal service",
+        "Hot meal",
+        "Soft drinks",
+        "Tea/Coffee",
+      ],
+    },
+    {
+      id: "premium-meal",
+      name: "Premium Meal",
+      price: 45,
+      features: [
+        "Enhanced dining experience",
+        "Chef-curated meal",
+        "Wine selection",
+        "Premium beverages",
+        "Dessert",
+      ],
+    },
+    {
+      id: "special-dietary",
+      name: "Special Dietary",
+      price: 25,
+      features: [
+        "Special dietary meal options",
+        "Vegetarian/vegan options",
+        "Kosher/Halal/Hindu meals",
+        "Gluten-free options",
+      ],
+    },
+  ];
+
   // Step 1: Trip Details
   const TripDetailsStep = () => {
     const [form] = Form.useForm();
@@ -614,20 +731,18 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
     );
   };
 
-  // Step 2: Flight Search & Bundles (Simplified for admin)
+  // Step 2: Flight Search & Bundles (Full retail functionality)
   const FlightSearchStep = () => {
-    const [selectedFlight, setSelectedFlight] = useState<any>(null);
-    const [flights, setFlights] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-
     useEffect(() => {
-      searchFlights();
-    }, []);
+      if (bookingData) {
+        searchFlights();
+      }
+    }, [bookingData]);
 
     const searchFlights = async () => {
       if (!bookingData) return;
       
-      setLoading(true);
+      setSearchLoading(true);
       try {
         const response = await apiRequest("POST", "/api/search", {
           origin: bookingData.origin,
@@ -639,23 +754,35 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
           tripType: bookingData.tripType,
         });
         const result = await response.json();
-        setFlights(result.flights || []);
+        
+        setAvailableFlights(result.flights || []);
+        setReturnFlights(result.returnFlights || []);
+        
         if (result.flights && result.flights.length > 0) {
-          setSelectedFlight(result.flights[0]);
+          setSelectedOutboundFlight(result.flights[0]);
+        }
+        if (result.returnFlights && result.returnFlights.length > 0) {
+          setSelectedReturnFlight(result.returnFlights[0]);
         }
       } catch (error) {
         console.error("Flight search error:", error);
+        message.error("Failed to search flights");
       } finally {
-        setLoading(false);
+        setSearchLoading(false);
       }
     };
 
     const handleNext = () => {
-      if (selectedFlight) {
+      if (selectedOutboundFlight) {
+        const baseCost = (selectedOutboundFlight.price * bookingData.totalPassengers) + 
+                        (bookingData.tripType === "roundTrip" && selectedReturnFlight ? 
+                         (selectedReturnFlight.price * bookingData.totalPassengers) : 0);
+        
         const flightInfo = {
-          outbound: selectedFlight,
-          baseCost: selectedFlight.price * bookingData.totalPassengers,
-          totalCost: selectedFlight.price * bookingData.totalPassengers,
+          outbound: selectedOutboundFlight,
+          return: selectedReturnFlight,
+          baseCost,
+          totalCost: baseCost,
         };
         setFlightData(flightInfo);
         localStorage.setItem("selectedFlightData", JSON.stringify(flightInfo));
@@ -663,11 +790,88 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
       }
     };
 
+    const FlightCard = ({ flight, isSelected, onSelect }: { flight: any; isSelected: boolean; onSelect: () => void }) => (
+      <div
+        className={`p-4 border rounded-lg cursor-pointer transition-all mb-3 ${
+          isSelected
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-gray-300"
+        }`}
+        onClick={onSelect}
+      >
+        <Row align="middle" justify="space-between">
+          <Col span={16}>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-lg">✈</span>
+              <div>
+                <Text className="font-medium text-gray-900">
+                  {flight.airline}
+                </Text>
+                <Text className="text-gray-600 text-sm ml-2">
+                  {flight.flightNumber}
+                </Text>
+                {flight.stops === 0 ? (
+                  <Badge color="blue" text="Non-stop" className="ml-2" />
+                ) : (
+                  <Badge
+                    color="orange"
+                    text={`${flight.stops} stop${flight.stops > 1 ? "s" : ""}`}
+                    className="ml-2"
+                  />
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <Text className="font-medium text-xs">
+                  {new Date(flight.departureTime).toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                  })}
+                </Text>
+                <Text className="text-xs text-gray-500">{flight.origin}</Text>
+              </div>
+              <div className="flex items-center mx-4">
+                <div className="w-12 h-px bg-gray-300"></div>
+                <span className="mx-2 text-gray-400">✈</span>
+                <div className="w-12 h-px bg-gray-300"></div>
+              </div>
+              <div className="text-center">
+                <Text className="font-medium text-xs">
+                  {new Date(flight.arrivalTime).toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                  })}
+                </Text>
+                <Text className="text-xs text-gray-500">{flight.destination}</Text>
+              </div>
+              <div className="ml-4">
+                <Text className="text-gray-600 text-sm">({flight.duration})</Text>
+                <br />
+                <Text className="text-gray-500 text-xs">{flight.aircraft}</Text>
+              </div>
+            </div>
+          </Col>
+          <Col span={8} className="text-right">
+            <Text className="text-xl font-bold text-gray-900">
+              ${flight.price}
+            </Text>
+            <Text className="text-gray-600 text-sm block">per person</Text>
+            <Text className="text-xs text-green-600">
+              {flight.availableSeats} seats left
+            </Text>
+          </Col>
+        </Row>
+      </div>
+    );
+
     return (
       <div className="max-w-6xl">
         <div className="mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
-            Flight Search & Selection
+            Flight Search & Bundle Selection
           </Title>
           <Text className="text-gray-600">
             {bookingData?.origin} → {bookingData?.destination} • {bookingData?.totalPassengers} passengers
@@ -676,52 +880,229 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
 
         <Row gutter={24}>
           <Col xs={24} lg={16}>
-            <Card title="Available Flights" loading={loading}>
-              <div className="space-y-4">
-                {flights.map((flight) => (
-                  <div
-                    key={flight.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                      selectedFlight?.id === flight.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    onClick={() => setSelectedFlight(flight)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <Text className="font-medium">{flight.airline} {flight.flightNumber}</Text>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {flight.origin} → {flight.destination}
+            <Card title="Available Flights" loading={searchLoading}>
+              {bookingData?.tripType === "roundTrip" ? (
+                <Tabs
+                  defaultActiveKey="outbound"
+                  items={[
+                    {
+                      key: "outbound",
+                      label: "Outbound Flight",
+                      children: (
+                        <div className="space-y-4">
+                          {availableFlights.map((flight) => (
+                            <FlightCard
+                              key={flight.id}
+                              flight={flight}
+                              isSelected={selectedOutboundFlight?.id === flight.id}
+                              onSelect={() => setSelectedOutboundFlight(flight)}
+                            />
+                          ))}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          Departure: {new Date(flight.departureTime).toLocaleString()}
+                      ),
+                    },
+                    {
+                      key: "return",
+                      label: "Return Flight",
+                      children: (
+                        <div className="space-y-4">
+                          {returnFlights.map((flight) => (
+                            <FlightCard
+                              key={flight.id}
+                              flight={flight}
+                              isSelected={selectedReturnFlight?.id === flight.id}
+                              onSelect={() => setSelectedReturnFlight(flight)}
+                            />
+                          ))}
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <Text className="text-xl font-bold text-blue-600">
-                          ${flight.price}
-                        </Text>
-                        <div className="text-sm text-gray-500">per person</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      ),
+                    },
+                  ]}
+                />
+              ) : (
+                <div className="space-y-4">
+                  {availableFlights.map((flight) => (
+                    <FlightCard
+                      key={flight.id}
+                      flight={flight}
+                      isSelected={selectedOutboundFlight?.id === flight.id}
+                      onSelect={() => setSelectedOutboundFlight(flight)}
+                    />
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Bundle Selection */}
+            <Card title="Bundle Selection" className="mt-6">
+              <Tabs
+                items={[
+                  {
+                    key: "seats",
+                    label: "Seat Selection",
+                    children: (
+                      <Row gutter={[16, 16]}>
+                        {seatOptions.map((option) => (
+                          <Col xs={24} md={8} key={option.id}>
+                            <div
+                              className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
+                                selectedSeat === option.id
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => setSelectedSeat(option.id)}
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox checked={selectedSeat === option.id} />
+                                  <Text className="font-medium">{option.name}</Text>
+                                </div>
+                                <Text className="font-bold text-blue-600">${option.price}</Text>
+                              </div>
+                              <Space direction="vertical" size="small" className="w-full">
+                                {option.features.map((feature, index) => (
+                                  <Text key={index} className="text-gray-600 text-sm flex items-center gap-1">
+                                    <span className="text-green-500">•</span>
+                                    {feature}
+                                  </Text>
+                                ))}
+                              </Space>
+                            </div>
+                          </Col>
+                        ))}
+                      </Row>
+                    ),
+                  },
+                  {
+                    key: "baggage",
+                    label: "Baggage",
+                    children: (
+                      <Row gutter={[16, 16]}>
+                        {baggageOptions.map((option) => (
+                          <Col xs={24} md={8} key={option.id}>
+                            <div
+                              className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
+                                selectedBaggage === option.id
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => setSelectedBaggage(option.id)}
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox checked={selectedBaggage === option.id} />
+                                  <Text className="font-medium">{option.name}</Text>
+                                </div>
+                                <Text className="font-bold text-blue-600">${option.price}</Text>
+                              </div>
+                              <Space direction="vertical" size="small" className="w-full">
+                                {option.features.map((feature, index) => (
+                                  <Text key={index} className="text-gray-600 text-sm flex items-center gap-1">
+                                    <span className="text-green-500">•</span>
+                                    {feature}
+                                  </Text>
+                                ))}
+                              </Space>
+                            </div>
+                          </Col>
+                        ))}
+                      </Row>
+                    ),
+                  },
+                  {
+                    key: "meals",
+                    label: "Meals",
+                    children: (
+                      <Row gutter={[16, 16]}>
+                        {mealOptions.map((option) => (
+                          <Col xs={24} md={8} key={option.id}>
+                            <div
+                              className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
+                                selectedMeals.includes(option.id)
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => {
+                                if (selectedMeals.includes(option.id)) {
+                                  setSelectedMeals(selectedMeals.filter(id => id !== option.id));
+                                } else {
+                                  setSelectedMeals([...selectedMeals, option.id]);
+                                }
+                              }}
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox checked={selectedMeals.includes(option.id)} />
+                                  <Text className="font-medium">{option.name}</Text>
+                                </div>
+                                <div className="text-right">
+                                  {option.included ? (
+                                    <Badge color="green" text="Included" />
+                                  ) : (
+                                    <Text className="font-bold text-blue-600">${option.price}</Text>
+                                  )}
+                                </div>
+                              </div>
+                              <Space direction="vertical" size="small" className="w-full">
+                                {option.features.map((feature, index) => (
+                                  <Text key={index} className="text-gray-600 text-sm flex items-center gap-1">
+                                    <span className="text-green-500">•</span>
+                                    {feature}
+                                  </Text>
+                                ))}
+                              </Space>
+                            </div>
+                          </Col>
+                        ))}
+                      </Row>
+                    ),
+                  },
+                ]}
+              />
             </Card>
           </Col>
+
           <Col xs={24} lg={8}>
-            <Card title="Selection Summary">
-              {selectedFlight && (
+            <Card title="Selection Summary" className="sticky top-6">
+              {selectedOutboundFlight && (
                 <div className="space-y-3">
                   <div>
-                    <Text className="text-gray-600">Selected Flight:</Text>
-                    <div className="font-medium">{selectedFlight.airline} {selectedFlight.flightNumber}</div>
+                    <Text className="text-gray-600">Outbound Flight:</Text>
+                    <div className="font-medium">{selectedOutboundFlight.airline} {selectedOutboundFlight.flightNumber}</div>
                   </div>
+                  {bookingData?.tripType === "roundTrip" && selectedReturnFlight && (
+                    <div>
+                      <Text className="text-gray-600">Return Flight:</Text>
+                      <div className="font-medium">{selectedReturnFlight.airline} {selectedReturnFlight.flightNumber}</div>
+                    </div>
+                  )}
+                  <Divider />
                   <div>
-                    <Text className="text-gray-600">Total Cost:</Text>
+                    <Text className="text-gray-600">Flight Cost:</Text>
+                    <div className="text-lg font-bold text-blue-600">
+                      ${((selectedOutboundFlight.price * bookingData.totalPassengers) + 
+                          (bookingData?.tripType === "roundTrip" && selectedReturnFlight ? 
+                           (selectedReturnFlight.price * bookingData.totalPassengers) : 0)).toLocaleString()}
+                    </div>
+                  </div>
+                  {(selectedSeat || selectedBaggage) && (
+                    <div>
+                      <Text className="text-gray-600">Bundle Cost:</Text>
+                      <div className="font-medium">
+                        ${((seatOptions.find(s => s.id === selectedSeat)?.price || 0) + 
+                           (baggageOptions.find(b => b.id === selectedBaggage)?.price || 0)).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                  <Divider />
+                  <div>
+                    <Text className="text-gray-600">Total:</Text>
                     <div className="text-xl font-bold text-blue-600">
-                      ${(selectedFlight.price * bookingData.totalPassengers).toLocaleString()}
+                      ${((selectedOutboundFlight.price * bookingData.totalPassengers) + 
+                          (bookingData?.tripType === "roundTrip" && selectedReturnFlight ? 
+                           (selectedReturnFlight.price * bookingData.totalPassengers) : 0) +
+                          (seatOptions.find(s => s.id === selectedSeat)?.price || 0) + 
+                          (baggageOptions.find(b => b.id === selectedBaggage)?.price || 0)).toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -735,7 +1116,7 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
           <Button 
             type="primary" 
             onClick={handleNext} 
-            disabled={!selectedFlight}
+            disabled={!selectedOutboundFlight}
             size="large"
           >
             Continue to Services
@@ -745,16 +1126,17 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
     );
   };
 
-  // Step 3: Add Services (Simplified)
+  // Step 3: Add Services
   const AddServicesStep = () => {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
     const services = [
-      { id: 'insurance', name: 'Travel Insurance', price: 25 },
-      { id: 'priority-boarding', name: 'Priority Boarding', price: 15 },
-      { id: 'extra-baggage', name: 'Extra Baggage', price: 45 },
-      { id: 'seat-selection', name: 'Seat Selection', price: 20 },
-      { id: 'meal-upgrade', name: 'Meal Upgrades', price: 30 },
+      { id: 'insurance', name: 'Travel Insurance', price: 25, description: 'Comprehensive travel coverage' },
+      { id: 'priority-boarding', name: 'Priority Boarding', price: 15, description: 'Board the plane first' },
+      { id: 'extra-baggage', name: 'Extra Baggage', price: 45, description: 'Additional baggage allowance' },
+      { id: 'seat-selection', name: 'Advanced Seat Selection', price: 20, description: 'Choose your preferred seats' },
+      { id: 'meal-upgrade', name: 'Meal Upgrades', price: 30, description: 'Premium dining experience' },
+      { id: 'lounge-access', name: 'Airport Lounge Access', price: 55, description: 'Relax in premium lounges' },
     ];
 
     const handleNext = () => {
@@ -765,47 +1147,99 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
     };
 
     return (
-      <div className="max-w-4xl">
+      <div className="max-w-6xl">
         <div className="mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
             Additional Services
           </Title>
           <Text className="text-gray-600">
-            Select additional services for your group booking
+            Enhance your group travel experience with these optional services
           </Text>
         </div>
 
-        <Card>
-          <div className="space-y-4">
-            {services.map((service) => (
-              <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={selectedServices.includes(service.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedServices([...selectedServices, service.id]);
-                      } else {
-                        setSelectedServices(selectedServices.filter(id => id !== service.id));
-                      }
-                    }}
-                  />
-                  <div>
-                    <Text className="font-medium">{service.name}</Text>
+        <Row gutter={[24, 24]}>
+          <Col xs={24} lg={16}>
+            <Card title="Available Services">
+              <Row gutter={[16, 16]}>
+                {services.map((service) => (
+                  <Col xs={24} md={12} key={service.id}>
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
+                        selectedServices.includes(service.id)
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => {
+                        if (selectedServices.includes(service.id)) {
+                          setSelectedServices(selectedServices.filter(id => id !== service.id));
+                        } else {
+                          setSelectedServices([...selectedServices, service.id]);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Checkbox checked={selectedServices.includes(service.id)} />
+                          <div>
+                            <Text className="font-medium">{service.name}</Text>
+                            <div className="text-sm text-gray-600">{service.description}</div>
+                          </div>
+                        </div>
+                        <Text className="font-bold text-blue-600">${service.price} per person</Text>
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            </Card>
+          </Col>
+
+          <Col xs={24} lg={8}>
+            <Card title="Services Summary" className="sticky top-6">
+              <div className="space-y-3">
+                <div>
+                  <Text className="text-gray-600">Selected Services:</Text>
+                  <div className="mt-2">
+                    {selectedServices.length === 0 ? (
+                      <Text className="text-gray-500">No services selected</Text>
+                    ) : (
+                      selectedServices.map(serviceId => {
+                        const service = services.find(s => s.id === serviceId);
+                        return (
+                          <div key={serviceId} className="flex justify-between items-center py-1">
+                            <Text className="text-sm">{service?.name}</Text>
+                            <Text className="text-sm font-medium">${service?.price}</Text>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
-                <Text className="font-bold text-blue-600">${service.price} per person</Text>
+                {selectedServices.length > 0 && (
+                  <>
+                    <Divider />
+                    <div>
+                      <Text className="text-gray-600">Services Total:</Text>
+                      <div className="text-lg font-bold text-blue-600">
+                        ${selectedServices.reduce((total, serviceId) => {
+                          const service = services.find(s => s.id === serviceId);
+                          return total + (service?.price || 0);
+                        }, 0) * (bookingData?.totalPassengers || 1)}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            ))}
-          </div>
+            </Card>
+          </Col>
+        </Row>
 
-          <div className="mt-6 flex justify-between">
-            <Button onClick={() => setCurrentStep(1)}>Back</Button>
-            <Button type="primary" onClick={handleNext} size="large">
-              Continue to Group Leader Info
-            </Button>
-          </div>
-        </Card>
+        <div className="flex justify-between mt-6">
+          <Button onClick={() => setCurrentStep(1)}>Back</Button>
+          <Button type="primary" onClick={handleNext} size="large">
+            Continue to Group Leader Info
+          </Button>
+        </div>
       </div>
     );
   };
@@ -900,35 +1334,117 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
     );
   };
 
-  // Step 5: Passenger Info (Simplified for admin)
+  // Step 5: Passenger Info
   const PassengerInfoStep = () => {
+    const [passengers, setPassengers] = useState<any[]>([]);
+
+    useEffect(() => {
+      if (bookingData?.totalPassengers) {
+        const passengerList = Array.from({ length: bookingData.totalPassengers }, (_, index) => ({
+          id: index + 1,
+          firstName: '',
+          lastName: '',
+          dateOfBirth: null,
+          nationality: '',
+          passportNumber: '',
+          passengerType: index < bookingData.adults ? 'adult' : 
+                        index < (bookingData.adults + bookingData.kids) ? 'child' : 'infant'
+        }));
+        setPassengers(passengerList);
+      }
+    }, [bookingData]);
+
     const handleNext = () => {
-      // For admin, we can skip detailed passenger info or collect it later
+      setPassengerData(passengers);
+      localStorage.setItem("passengerData", JSON.stringify(passengers));
       setCurrentStep(5);
     };
 
+    const updatePassenger = (index: number, field: string, value: any) => {
+      const updatedPassengers = [...passengers];
+      updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+      setPassengers(updatedPassengers);
+    };
+
     return (
-      <div className="max-w-4xl">
+      <div className="max-w-6xl">
         <div className="mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
             Passenger Information
           </Title>
           <Text className="text-gray-600">
-            Passenger details can be added later. For now, we'll proceed with the group leader information.
+            Provide details for all passengers ({bookingData?.totalPassengers} total)
           </Text>
         </div>
 
         <Card>
-          <div className="text-center py-8">
-            <div className="mb-4">
-              <UserOutlined className="text-4xl text-gray-400" />
-            </div>
-            <Title level={4} className="text-gray-600">
-              {bookingData?.totalPassengers} Passengers Required
-            </Title>
-            <Text className="text-gray-500">
-              Detailed passenger information can be collected after booking confirmation
-            </Text>
+          <div className="space-y-6">
+            {passengers.map((passenger, index) => (
+              <Card key={passenger.id} type="inner" title={`Passenger ${index + 1} (${passenger.passengerType})`}>
+                <Row gutter={16}>
+                  <Col xs={24} md={8}>
+                    <div className="mb-4">
+                      <Text className="block mb-1">First Name *</Text>
+                      <Input
+                        placeholder="First name"
+                        value={passenger.firstName}
+                        onChange={(e) => updatePassenger(index, 'firstName', e.target.value)}
+                      />
+                    </div>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <div className="mb-4">
+                      <Text className="block mb-1">Last Name *</Text>
+                      <Input
+                        placeholder="Last name"
+                        value={passenger.lastName}
+                        onChange={(e) => updatePassenger(index, 'lastName', e.target.value)}
+                      />
+                    </div>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <div className="mb-4">
+                      <Text className="block mb-1">Date of Birth</Text>
+                      <DatePicker
+                        className="w-full"
+                        format="DD MMM YYYY"
+                        value={passenger.dateOfBirth}
+                        onChange={(date) => updatePassenger(index, 'dateOfBirth', date)}
+                      />
+                    </div>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <div className="mb-4">
+                      <Text className="block mb-1">Nationality</Text>
+                      <Select
+                        className="w-full"
+                        placeholder="Select nationality"
+                        value={passenger.nationality}
+                        onChange={(value) => updatePassenger(index, 'nationality', value)}
+                      >
+                        <Option value="us">United States</Option>
+                        <Option value="uk">United Kingdom</Option>
+                        <Option value="ca">Canada</Option>
+                        <Option value="in">India</Option>
+                        <Option value="other">Other</Option>
+                      </Select>
+                    </div>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <div className="mb-4">
+                      <Text className="block mb-1">Passport Number</Text>
+                      <Input
+                        placeholder="Passport number"
+                        value={passenger.passportNumber}
+                        onChange={(e) => updatePassenger(index, 'passportNumber', e.target.value)}
+                      />
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            ))}
           </div>
 
           <div className="flex justify-between mt-6">
@@ -944,8 +1460,11 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
 
   // Step 6: Review & Confirmation
   const ReviewStep = () => {
-    const totalCost = (flightData?.baseCost || 0) + 
-                     (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1));
+    const flightCost = flightData?.baseCost || 0;
+    const bundleCost = (seatOptions.find(s => s.id === selectedSeat)?.price || 0) + 
+                      (baggageOptions.find(b => b.id === selectedBaggage)?.price || 0);
+    const servicesCost = servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1);
+    const totalCost = flightCost + bundleCost + servicesCost;
 
     const handleNext = () => {
       setCurrentStep(6);
@@ -964,7 +1483,7 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
 
         <Row gutter={24}>
           <Col xs={24} lg={16}>
-            <Card title="Booking Summary" className="mb-6">
+            <Card title="Trip Summary" className="mb-6">
               <Descriptions column={2} bordered>
                 <Descriptions.Item label="Route">
                   {bookingData?.origin} → {bookingData?.destination}
@@ -975,23 +1494,36 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
                 <Descriptions.Item label="Departure">
                   {bookingData?.departureDate?.format('DD MMM YYYY')}
                 </Descriptions.Item>
+                <Descriptions.Item label="Return">
+                  {bookingData?.tripType === 'oneWay' ? 'N/A' : bookingData?.returnDate?.format('DD MMM YYYY')}
+                </Descriptions.Item>
                 <Descriptions.Item label="Passengers">
-                  {bookingData?.totalPassengers}
+                  {bookingData?.totalPassengers} ({bookingData?.adults} adults, {bookingData?.kids} kids, {bookingData?.infants} infants)
                 </Descriptions.Item>
                 <Descriptions.Item label="Cabin">
                   {bookingData?.cabin}
                 </Descriptions.Item>
-                <Descriptions.Item label="Selected Flight">
-                  {flightData?.outbound?.airline} {flightData?.outbound?.flightNumber}
+              </Descriptions>
+            </Card>
+
+            <Card title="Flight Details" className="mb-6">
+              <Descriptions column={1} bordered>
+                <Descriptions.Item label="Outbound Flight">
+                  {flightData?.outbound?.airline} {flightData?.outbound?.flightNumber} - ${flightData?.outbound?.price} per person
                 </Descriptions.Item>
+                {bookingData?.tripType === 'roundTrip' && flightData?.return && (
+                  <Descriptions.Item label="Return Flight">
+                    {flightData.return.airline} {flightData.return.flightNumber} - ${flightData.return.price} per person
+                  </Descriptions.Item>
+                )}
               </Descriptions>
             </Card>
 
             {groupLeaderData && (
-              <Card title="Group Leader Information">
+              <Card title="Group Leader Information" className="mb-6">
                 <Descriptions column={2} bordered>
                   <Descriptions.Item label="Name">
-                    {groupLeaderData.firstName} {groupLeaderData.lastName}
+                    {groupLeaderData.title} {groupLeaderData.firstName} {groupLeaderData.lastName}
                   </Descriptions.Item>
                   <Descriptions.Item label="Email">
                     {groupLeaderData.email}
@@ -999,30 +1531,50 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
                   <Descriptions.Item label="Phone">
                     {groupLeaderData.phoneNumber}
                   </Descriptions.Item>
+                  <Descriptions.Item label="Nationality">
+                    {groupLeaderData.nationality}
+                  </Descriptions.Item>
                 </Descriptions>
+              </Card>
+            )}
+
+            {servicesData.length > 0 && (
+              <Card title="Additional Services">
+                <Space direction="vertical" className="w-full">
+                  {servicesData.map((service) => (
+                    <div key={service.id} className="flex justify-between items-center">
+                      <Text>{service.name}</Text>
+                      <Text className="font-medium">${service.price} per person</Text>
+                    </div>
+                  ))}
+                </Space>
               </Card>
             )}
           </Col>
 
           <Col xs={24} lg={8}>
-            <Card title="Pricing Summary">
+            <Card title="Pricing Summary" className="sticky top-6">
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <Text>Flight Cost:</Text>
-                  <Text className="font-medium">${flightData?.baseCost || 0}</Text>
+                  <Text className="font-medium">${flightCost}</Text>
                 </div>
-                {servicesData.length > 0 && (
+                {bundleCost > 0 && (
                   <div className="flex justify-between">
-                    <Text>Services:</Text>
-                    <Text className="font-medium">
-                      ${servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1)}
-                    </Text>
+                    <Text>Bundle Cost:</Text>
+                    <Text className="font-medium">${bundleCost}</Text>
+                  </div>
+                )}
+                {servicesCost > 0 && (
+                  <div className="flex justify-between">
+                    <Text>Services Cost:</Text>
+                    <Text className="font-medium">${servicesCost}</Text>
                   </div>
                 )}
                 <Divider />
                 <div className="flex justify-between text-lg font-bold">
                   <Text>Total:</Text>
-                  <Text className="text-blue-600">${totalCost}</Text>
+                  <Text className="text-blue-600">${totalCost.toLocaleString()}</Text>
                 </div>
               </div>
             </Card>
@@ -1048,17 +1600,26 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
     const handleSubmit = async (values: any) => {
       setLoading(true);
       try {
+        const flightCost = flightData?.baseCost || 0;
+        const bundleCost = (seatOptions.find(s => s.id === selectedSeat)?.price || 0) + 
+                          (baggageOptions.find(b => b.id === selectedBaggage)?.price || 0);
+        const servicesCost = servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1);
+        const totalAmount = flightCost + bundleCost + servicesCost;
+
         const comprehensiveBookingData = {
           bookingData,
           flightData,
-          bundleData: null,
+          bundleData: {
+            selectedSeat: seatOptions.find(s => s.id === selectedSeat),
+            selectedBaggage: baggageOptions.find(b => b.id === selectedBaggage),
+            selectedMeals: selectedMeals.map(mealId => mealOptions.find(m => m.id === mealId)).filter(Boolean),
+          },
           selectedServices: servicesData,
           groupLeaderData,
           paymentData: { ...values, paymentMethod },
-          passengerData: [],
+          passengerData: passengerData,
           bookingSummary: {
-            totalAmount: (flightData?.baseCost || 0) + 
-                        (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1))
+            totalAmount
           }
         };
 
@@ -1070,18 +1631,19 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
 
         if (response.ok) {
           const result = await response.json();
-          message.success("Booking created successfully!");
+          message.success("Group booking created successfully!");
           
           // Clear localStorage
           localStorage.removeItem("bookingFormData");
           localStorage.removeItem("selectedFlightData");
           localStorage.removeItem("selectedServices");
           localStorage.removeItem("groupLeaderData");
+          localStorage.removeItem("passengerData");
           localStorage.removeItem("isAdminBooking");
           
-          // Reset to tab view
+          // Reset to dashboard tab
+          setActiveTab("dashboard");
           setCurrentStep(0);
-          setLocation("/admin/bookings");
         } else {
           throw new Error("Failed to create booking");
         }
@@ -1111,8 +1673,9 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
               <Radio.Group value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
                 <Space direction="vertical">
                   <Radio value="card">Credit/Debit Card</Radio>
-                  <Radio value="bank">Bank Transfer</Radio>
+                  <Radio value="bankTransfer">Bank Transfer</Radio>
                   <Radio value="corporate">Corporate Account</Radio>
+                  <Radio value="invoice">Invoice (Pay Later)</Radio>
                 </Space>
               </Radio.Group>
             </div>
@@ -1147,6 +1710,21 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
               </>
             )}
 
+            {paymentMethod === 'corporate' && (
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item label="Company Name" name="companyName" rules={[{ required: true }]}>
+                    <Input placeholder="Company name" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item label="Corporate Account ID" name="corporateAccountId" rules={[{ required: true }]}>
+                    <Input placeholder="Account ID" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
+
             <div className="flex justify-between mt-6">
               <Button onClick={() => setCurrentStep(5)}>Back</Button>
               <Button 
@@ -1157,6 +1735,8 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
                 className="bg-green-600 hover:bg-green-700"
               >
                 Complete Booking - ${((flightData?.baseCost || 0) + 
+                  (seatOptions.find(s => s.id === selectedSeat)?.price || 0) + 
+                  (baggageOptions.find(b => b.id === selectedBaggage)?.price || 0) +
                   (servicesData.reduce((sum, service) => sum + service.price, 0) * (bookingData?.totalPassengers || 1))).toLocaleString()}
               </Button>
             </div>
@@ -1168,11 +1748,11 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
 
   const steps = [
     "Trip Details",
-    "Flight Search",
+    "Flight Search & Bundles",
     "Add Services", 
-    "Group Leader",
+    "Group Leader Info",
     "Passenger Info",
-    "Review",
+    "Review & Confirmation",
     "Payment"
   ];
 
