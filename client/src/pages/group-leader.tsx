@@ -37,16 +37,19 @@ export default function GroupLeader() {
   }, [form]);
 
   const handleBack = () => {
-    // Save current form data before navigating back
-    form.validateFields({ validateOnly: true }).then((values) => {
-      localStorage.setItem("tempGroupLeaderData", JSON.stringify(values));
-    }).catch(() => {
-      // Save whatever data is available even if validation fails
+    // Save current form data before navigating back (without validation)
+    try {
       const currentValues = form.getFieldsValue();
-      localStorage.setItem("tempGroupLeaderData", JSON.stringify(currentValues));
-    }).finally(() => {
-      setLocation("/add-services-bundles");
-    });
+      // Filter out empty values to avoid storing unnecessary data
+      const filteredValues = Object.fromEntries(
+        Object.entries(currentValues).filter(([_, value]) => value !== undefined && value !== "")
+      );
+      localStorage.setItem("tempGroupLeaderData", JSON.stringify(filteredValues));
+      console.log("Saved group leader data:", filteredValues);
+    } catch (error) {
+      console.warn("Could not save group leader data:", error);
+    }
+    setLocation("/add-services-bundles");
   };
 
   const handleContinue = () => {

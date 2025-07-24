@@ -65,6 +65,7 @@ export default function PaymentOptions() {
       if (tempPaymentData) {
         try {
           const savedPaymentData = JSON.parse(tempPaymentData);
+          console.log("Restored payment data:", savedPaymentData);
           if (savedPaymentData.paymentSchedule) setPaymentSchedule(savedPaymentData.paymentSchedule);
           if (savedPaymentData.paymentMethod) setPaymentMethod(savedPaymentData.paymentMethod);
           if (savedPaymentData.creditCardData && savedPaymentData.paymentMethod === "creditCard") {

@@ -334,3 +334,42 @@ export function formatDate(date: string | Date | null): string {
     return '';
   }
 }
+
+// Utility function to safely save data to localStorage
+export function safeSetLocalStorage(key: string, data: any): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`Saved ${key} to localStorage:`, data);
+  } catch (error) {
+    console.error(`Failed to save ${key} to localStorage:`, error);
+  }
+}
+
+// Utility function to safely retrieve data from localStorage
+export function safeGetLocalStorage<T>(key: string, defaultValue: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      console.log(`Retrieved ${key} from localStorage:`, parsed);
+      return parsed;
+    }
+  } catch (error) {
+    console.error(`Failed to retrieve ${key} from localStorage:`, error);
+  }
+  return defaultValue;
+}
+
+// Function to restore form data consistently
+export function restoreFormData(keys: string[]): Record<string, any> {
+  const restoredData: Record<string, any> = {};
+  
+  keys.forEach(key => {
+    const data = safeGetLocalStorage(key, null);
+    if (data) {
+      restoredData[key] = data;
+    }
+  });
+  
+  return restoredData;
+}

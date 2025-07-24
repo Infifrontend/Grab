@@ -118,7 +118,7 @@ export default function FlightSearchResults() {
   // Modify search toggle state
   const [showModifySearch, setShowModifySearch] = useState(false);
 
-  // Modify search form state
+  // Modify search form state - load from localStorage
   const [tripType, setTripType] = useState<
     "oneWay" | "roundTrip" | "multiCity"
   >("oneWay");
@@ -130,6 +130,27 @@ export default function FlightSearchResults() {
   const [kids, setKids] = useState(12);
   const [infants, setInfants] = useState(0);
   const [cabin, setCabin] = useState("Economy");
+
+  // Load saved data on component mount
+  useEffect(() => {
+    const savedBookingData = localStorage.getItem("bookingFormData");
+    if (savedBookingData) {
+      try {
+        const data = JSON.parse(savedBookingData);
+        setTripType(data.tripType || "oneWay");
+        setOrigin(data.origin || "Chennai");
+        setDestination(data.destination || "Mumbai");
+        setDepartureDate(data.departureDate || "17 / 07 / 2025");
+        setReturnDate(data.returnDate || "");
+        setAdults(data.adults || 12);
+        setKids(data.kids || 12);
+        setInfants(data.infants || 0);
+        setCabin(data.cabin || "Economy");
+      } catch (error) {
+        console.warn("Could not restore flight search data:", error);
+      }
+    }
+  }, []);
 
   const handleSelectFlight = (flightId: number) => {
     console.log("Selected flight:", flightId);
@@ -147,9 +168,10 @@ export default function FlightSearchResults() {
       kids,
       infants,
       cabin,
-      tripType
+      tripType,
+      totalPassengers: adults + kids + infants
     };
-    localStorage.setItem("searchCriteria", JSON.stringify(searchCriteria));
+    localStorage.setItem("bookingFormData", JSON.stringify(searchCriteria));
     setLocation("/");
   };
 

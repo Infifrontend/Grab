@@ -71,6 +71,7 @@ export default function ReviewConfirmation() {
       bookingSummary
     };
     localStorage.setItem("tempReviewData", JSON.stringify(reviewData));
+    console.log("Saved review data before going back");
     setLocation("/passenger-info");
   };
 

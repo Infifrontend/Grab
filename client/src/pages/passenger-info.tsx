@@ -61,25 +61,54 @@ export default function PassengerInfo() {
       if (tempPassengerData) {
         try {
           const savedPassengers = JSON.parse(tempPassengerData);
-          // Ensure we have the correct number of passengers
-          const passengerArray = Array.from({ length: count }, (_, index) => {
-            return savedPassengers[index] || {
-              title: "",
-              firstName: "",
-              lastName: "",
-              dateOfBirth: "",
-              nationality: "",
-              passportNumber: "",
-              passportExpiry: "",
-              specialRequests: "",
-            };
-          });
-          setPassengers(passengerArray);
+          console.log("Restored passenger data:", savedPassengers);
+          if (Array.isArray(savedPassengers) && savedPassengers.length > 0) {
+            // Ensure we have the correct number of passengers
+            const passengerArray = Array.from({ length: count }, (_, index) => {
+              if (savedPassengers[index]) {
+                return {
+                  title: savedPassengers[index].title || "",
+                  firstName: savedPassengers[index].firstName || "",
+                  lastName: savedPassengers[index].lastName || "",
+                  dateOfBirth: savedPassengers[index].dateOfBirth || "",
+                  nationality: savedPassengers[index].nationality || "",
+                  passportNumber: savedPassengers[index].passportNumber || "",
+                  passportExpiry: savedPassengers[index].passportExpiry || "",
+                  specialRequests: savedPassengers[index].specialRequests || "",
+                };
+              }
+              return {
+                title: "",
+                firstName: "",
+                lastName: "",
+                dateOfBirth: "",
+                nationality: "",
+                passportNumber: "",
+                passportExpiry: "",
+                specialRequests: "",
+              };
+            });
+            setPassengers(passengerArray);
+          } else {
+            // Initialize with empty passengers if no valid saved data
+            setPassengers(
+              Array.from({ length: count }, () => ({
+                title: "",
+                firstName: "",
+                lastName: "",
+                dateOfBirth: "",
+                nationality: "",
+                passportNumber: "",
+                passportExpiry: "",
+                specialRequests: "",
+              }))
+            );
+          }
         } catch (error) {
           console.warn("Could not restore passenger data:", error);
           // Fallback to empty passengers
           setPassengers(
-            Array.from({ length: count }, (_, index) => ({
+            Array.from({ length: count }, () => ({
               title: "",
               firstName: "",
               lastName: "",
@@ -94,7 +123,7 @@ export default function PassengerInfo() {
       } else {
         // Initialize passenger array based on actual passenger count
         setPassengers(
-          Array.from({ length: count }, (_, index) => ({
+          Array.from({ length: count }, () => ({
             title: "",
             firstName: "",
             lastName: "",
@@ -122,10 +151,18 @@ export default function PassengerInfo() {
 
   const handleBack = () => {
     // Save current passenger data before navigating back
-    const currentPassengerData = passengers.filter(p => 
-      p.firstName || p.lastName || p.dateOfBirth || p.nationality
-    );
+    const currentPassengerData = passengers.map(p => ({
+      title: p.title || "",
+      firstName: p.firstName || "",
+      lastName: p.lastName || "",
+      dateOfBirth: p.dateOfBirth || "",
+      nationality: p.nationality || "",
+      passportNumber: p.passportNumber || "",
+      passportExpiry: p.passportExpiry || "",
+      specialRequests: p.specialRequests || ""
+    }));
     localStorage.setItem("tempPassengerData", JSON.stringify(currentPassengerData));
+    console.log("Saved passenger data:", currentPassengerData);
     setLocation("/group-leader");
   };
 

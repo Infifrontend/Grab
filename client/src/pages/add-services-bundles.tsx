@@ -328,7 +328,8 @@ export default function AddServicesBundles() {
       individualServiceCounts,
       selectedServices
     };
-    localStorage.setItem("currentServiceSelections", JSON.stringify(currentSelections));
+    localStorage.setItem("selectedServices", JSON.stringify(currentSelections.selectedServices));
+    localStorage.setItem("tempServiceSelections", JSON.stringify(currentSelections));
 
     if (isAdminBooking) {
       setLocation("/flight-search-bundle?admin=true");
