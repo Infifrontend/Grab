@@ -258,16 +258,69 @@ export default function Dashboard() {
       const dateB = new Date(b.createdAt || b.bookedAt || 0);
       return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
     })
-    .map((booking, index) => ({
-      key: booking.id,
-      bookingId: booking.bookingReference,
-      groupType: 'Group Travel', // Default since we don't have this field
-      route: booking.flight ? `${booking.flight.origin} to ${booking.flight.destination}` : 'N/A',
-      date: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : 'N/A',
-      returnDate: booking.flight ? new Date(booking.flight.arrivalTime).toISOString().split('T')[0] : null,
-      passengers: booking.passengerCount,
-      status: booking.bookingStatus,
-    }));
+    .map((booking, index) => {
+      // Extract route information from flight data or comprehensive data
+      let route = 'Route not available';
+      let departureDate = 'Date not available';
+      let returnDate = null;
+
+      if (booking.flight) {
+        // Use flight data if available
+        route = `${booking.flight.origin} → ${booking.flight.destination}`;
+        departureDate = new Date(booking.flight.departureTime).toISOString().split('T')[0];
+        returnDate = booking.flight.arrivalTime ? new Date(booking.flight.arrivalTime).toISOString().split('T')[0] : null;
+      } else if (booking.specialRequests) {
+        // Try to parse comprehensive data from specialRequests
+        try {
+          const comprehensiveData = JSON.parse(booking.specialRequests);
+          
+          // Check for trip details
+          if (comprehensiveData.tripDetails) {
+            const tripDetails = comprehensiveData.tripDetails;
+            if (tripDetails.origin && tripDetails.destination) {
+              route = `${tripDetails.origin} → ${tripDetails.destination}`;
+            }
+            if (tripDetails.departureDate) {
+              departureDate = new Date(tripDetails.departureDate).toISOString().split('T')[0];
+            }
+            if (tripDetails.returnDate) {
+              returnDate = new Date(tripDetails.returnDate).toISOString().split('T')[0];
+            }
+          }
+          
+          // Check for flight details
+          if (comprehensiveData.flightDetails) {
+            const flightDetails = comprehensiveData.flightDetails;
+            if (flightDetails.outbound) {
+              if (flightDetails.outbound.origin && flightDetails.outbound.destination) {
+                route = `${flightDetails.outbound.origin} → ${flightDetails.outbound.destination}`;
+              }
+              if (flightDetails.outbound.departureTime) {
+                departureDate = new Date(flightDetails.outbound.departureTime).toISOString().split('T')[0];
+              }
+            }
+            if (flightDetails.return && flightDetails.return.arrivalTime) {
+              returnDate = new Date(flightDetails.return.arrivalTime).toISOString().split('T')[0];
+            }
+          }
+        } catch (e) {
+          // If parsing fails, keep default values
+          console.warn('Could not parse comprehensive booking data:', e);
+        }
+      }
+
+      return {
+        key: booking.id,
+        bookingId: booking.bookingReference,
+        groupType: 'Group Travel', // Default since we don't have this field
+        route: route,
+        date: departureDate,
+        returnDate: returnDate,
+        passengers: booking.passengerCount,
+        status: booking.bookingStatus,
+        booking: booking // Keep reference to original booking for debugging
+      };
+    });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -576,22 +629,30 @@ export default function Dashboard() {
                       key: 'date',
                       width: 120,
                       render: (date) => {
-                        if (!date || date === 'N/A') return <span className="text-gray-500">N/A</span>;
-                        return (
-                          <span className="text-gray-600">
-                            {new Date(date).toLocaleDateString('en-GB', { 
-                              day: '2-digit',
-                              month: 'short', 
-                              year: 'numeric' 
-                            })}
-                          </span>
-                        );
+                        if (!date || date === 'Date not available') return <span className="text-gray-500">Not available</span>;
+                        try {
+                          return (
+                            <span className="text-gray-600">
+                              {new Date(date).toLocaleDateString('en-GB', { 
+                                day: '2-digit',
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                            </span>
+                          );
+                        } catch (e) {
+                          return <span className="text-gray-500">Invalid date</span>;
+                        }
                       },
                       sorter: (a, b) => {
-                        if (a.date === 'N/A' && b.date === 'N/A') return 0;
-                        if (a.date === 'N/A') return 1;
-                        if (b.date === 'N/A') return -1;
-                        return new Date(a.date).getTime() - new Date(b.date).getTime();
+                        if (a.date === 'Date not available' && b.date === 'Date not available') return 0;
+                        if (a.date === 'Date not available') return 1;
+                        if (b.date === 'Date not available') return -1;
+                        try {
+                          return new Date(a.date).getTime() - new Date(b.date).getTime();
+                        } catch (e) {
+                          return 0;
+                        }
                       },
                     },
                     {
@@ -600,16 +661,20 @@ export default function Dashboard() {
                       key: 'returnDate',
                       width: 120,
                       render: (returnDate) => {
-                        if (!returnDate || returnDate === 'N/A') return <span className="text-gray-500">N/A</span>;
-                        return (
-                          <span className="text-gray-600">
-                            {new Date(returnDate).toLocaleDateString('en-GB', { 
-                              day: '2-digit',
-                              month: 'short', 
-                              year: 'numeric' 
-                            })}
-                          </span>
-                        );
+                        if (!returnDate) return <span className="text-gray-500">One-way</span>;
+                        try {
+                          return (
+                            <span className="text-gray-600">
+                              {new Date(returnDate).toLocaleDateString('en-GB', { 
+                                day: '2-digit',
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                            </span>
+                          );
+                        } catch (e) {
+                          return <span className="text-gray-500">Invalid date</span>;
+                        }
                       },
                     },
                     {
