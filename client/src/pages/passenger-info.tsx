@@ -84,7 +84,7 @@ export default function PassengerInfo() {
   ).length;
 
   const handleBack = () => {
-    setLocation("/payment-options");
+    setLocation("/group-leader");
   };
 
   const handleContinue = () => {
