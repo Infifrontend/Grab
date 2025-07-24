@@ -59,22 +59,22 @@ export default function Dashboard() {
     new Date(b.flight.departureTime) > new Date()
   ).length;
 
-  // Use chart data from API with enhanced information, provide fallback data
+  // Use chart data from API with enhanced information, provide comprehensive fallback data
   const chartData = bookingOverview?.monthlyData && bookingOverview.monthlyData.length > 0 
     ? bookingOverview.monthlyData 
     : [
-        { month: 'Jan', bookings: 45, revenue: 112500, passengers: 180 },
-        { month: 'Feb', bookings: 52, revenue: 130000, passengers: 208 },
-        { month: 'Mar', bookings: 48, revenue: 120000, passengers: 192 },
-        { month: 'Apr', bookings: 61, revenue: 152500, passengers: 244 },
-        { month: 'May', bookings: 58, revenue: 145000, passengers: 232 },
-        { month: 'Jun', bookings: 68, revenue: 170000, passengers: 272 },
-        { month: 'Jul', bookings: 74, revenue: 185000, passengers: 296 },
-        { month: 'Aug', bookings: 71, revenue: 177500, passengers: 284 },
-        { month: 'Sep', bookings: 76, revenue: 190000, passengers: 304 },
-        { month: 'Oct', bookings: 73, revenue: 182500, passengers: 292 },
-        { month: 'Nov', bookings: 68, revenue: 170000, passengers: 272 },
-        { month: 'Dec', bookings: 71, revenue: 177500, passengers: 284 }
+        { month: 'Jan', bookings: 85, revenue: 215000, passengers: 340, growth: 12.5 },
+        { month: 'Feb', bookings: 92, revenue: 235000, passengers: 368, growth: 8.2 },
+        { month: 'Mar', bookings: 78, revenue: 198000, passengers: 312, growth: -15.2 },
+        { month: 'Apr', bookings: 105, revenue: 267500, passengers: 420, growth: 34.6 },
+        { month: 'May', bookings: 118, revenue: 295000, passengers: 472, growth: 12.4 },
+        { month: 'Jun', bookings: 134, revenue: 342000, passengers: 536, growth: 13.6 },
+        { month: 'Jul', bookings: 156, revenue: 398000, passengers: 624, growth: 16.4 },
+        { month: 'Aug', bookings: 148, revenue: 378000, passengers: 592, growth: -5.1 },
+        { month: 'Sep', bookings: 142, revenue: 362000, passengers: 568, growth: -4.1 },
+        { month: 'Oct', bookings: 128, revenue: 326000, passengers: 512, growth: -9.9 },
+        { month: 'Nov', bookings: 115, revenue: 293000, passengers: 460, growth: -10.2 },
+        { month: 'Dec', bookings: 138, revenue: 351000, passengers: 552, growth: 20.0 }
       ];
 
   // Ensure chart data is valid and properly formatted
@@ -327,10 +327,41 @@ export default function Dashboard() {
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            padding: '12px'
                           }}
-                          formatter={(value, name) => [value, name]}
-                          labelFormatter={(label) => `Month: ${label}`}
+                          formatter={(value, name) => {
+                            if (name === 'Bookings') {
+                              return [value, 'Total Bookings'];
+                            }
+                            return [value, name];
+                          }}
+                          labelFormatter={(label) => `${label} 2024`}
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                                  <p className="font-semibold text-gray-900 mb-2">{`${label} 2024`}</p>
+                                  <p className="text-sm text-gray-700">
+                                    <span className="font-medium">Bookings:</span> {data.bookings}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    <span className="font-medium">Revenue:</span> ${data.revenue?.toLocaleString()}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    <span className="font-medium">Passengers:</span> {data.passengers}
+                                  </p>
+                                  {data.growth && (
+                                    <p className={`text-sm font-medium ${data.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      Growth: {data.growth > 0 ? '+' : ''}{data.growth}%
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
                         />
                         <Bar 
                           dataKey="bookings" 
