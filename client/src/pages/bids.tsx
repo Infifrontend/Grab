@@ -118,15 +118,21 @@ export default function Bids() {
                   ? "Accepted"
                   : bid.bidStatus === "rejected"
                     ? "Declined"
-                    : bid.bidStatus === "expired"
-                      ? "Expired"
+                  : bid.bidStatus === "expired"
+                    ? "Expired"
+                  : bid.bidStatus === "completed"
+                    ? "Completed"
+                    : bid.bidStatus === "pending"
+                      ? "Under Review"
                       : "Under Review",
             payment:
-              bid.bidStatus === "accepted"
-                ? "Converted to Booking"
-                : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
-                  ? "Refunded"
-                  : "Paid",
+              bid.bidStatus === "completed"
+                ? "Payment Completed"
+                : bid.bidStatus === "accepted"
+                  ? "Converted to Booking"
+                  : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
+                    ? "Refunded"
+                    : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
@@ -269,6 +275,8 @@ export default function Bids() {
     switch (payment) {
       case "Paid":
         return "blue";
+      case "Payment Completed":
+        return "green";
       case "Converted to Booking":
         return "green";
       case "Refunded":

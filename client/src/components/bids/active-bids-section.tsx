@@ -38,9 +38,14 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Filter for active and completed bids, limit to recent ones
+      // Show active, completed, accepted, and pending bids, limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => bid.bidStatus === "active" || bid.bidStatus === "completed")
+        .filter((bid: ActiveBid) => 
+          bid.bidStatus === "active" || 
+          bid.bidStatus === "completed" || 
+          bid.bidStatus === "accepted" ||
+          bid.bidStatus === "pending"
+        )
         .slice(0, 5); // Show only the 5 most recent bids
     },
   });
@@ -69,22 +74,34 @@ export default function ActiveBidsSection() {
     }
   };
 
-  const getPaymentStatus = (bid: ActiveBid) => {
-    // Check bid status first
-    if (bid.bidStatus === 'completed') {
-      return { status: "Payment Completed", color: "green" };
-    }
-    
-    try {
-      const notes = bid.notes ? JSON.parse(bid.notes) : {};
-      if (notes.paymentInfo?.paymentCompleted) {
+  const getBidStatusInfo = (bid: ActiveBid) => {
+    // Check bid status first for different states
+    switch (bid.bidStatus) {
+      case 'completed':
         return { status: "Payment Completed", color: "green" };
-      } else if (notes.paymentInfo?.paymentStatus === "Paid") {
-        return { status: "Deposit Paid", color: "green" };
-      }
-      return { status: "Pending", color: "orange" };
-    } catch (e) {
-      return { status: "Pending", color: "orange" };
+      case 'accepted':
+        return { status: "Accepted", color: "green" };
+      case 'rejected':
+        return { status: "Declined", color: "red" };
+      case 'expired':
+        return { status: "Expired", color: "default" };
+      case 'pending':
+        return { status: "Under Review", color: "blue" };
+      case 'active':
+        // For active bids, check payment status
+        try {
+          const notes = bid.notes ? JSON.parse(bid.notes) : {};
+          if (notes.paymentInfo?.paymentCompleted) {
+            return { status: "Payment Completed", color: "green" };
+          } else if (notes.paymentInfo?.paymentStatus === "Paid") {
+            return { status: "Deposit Paid", color: "blue" };
+          }
+          return { status: "Active", color: "orange" };
+        } catch (e) {
+          return { status: "Active", color: "orange" };
+        }
+      default:
+        return { status: "Pending", color: "orange" };
     }
   };
 
@@ -136,7 +153,7 @@ export default function ActiveBidsSection() {
         {activeBids.map((bid, index) => {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);
-          const paymentStatus = getPaymentStatus(bid);
+          const statusInfo = getBidStatusInfo(bid);
           const createdDate = new Date(bid.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
           return (
@@ -164,8 +181,8 @@ export default function ActiveBidsSection() {
                     <span>{bid.passengerCount} passengers</span>
                   </div>
                 </div>
-                <Tag color={paymentStatus.color} className="text-xs">
-                  {paymentStatus.status}
+                <Tag color={statusInfo.color} className="text-xs">
+                  {statusInfo.status}
                 </Tag>
               </div>
 
