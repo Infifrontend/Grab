@@ -3103,10 +3103,10 @@ export default function BidManagement() {
       </div>
 
       <div className="flex">
-        {/* Sidebar */
+        {/* Sidebar */}
         <div
           className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
-          style={{ height: "calc(100vh - 73px" }}
+          style={{ height: "calc(100vh - 73px)" }}
         >
           <div className="h-full overflow-y-auto">
             <div className="p-6">
