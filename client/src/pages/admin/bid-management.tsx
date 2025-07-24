@@ -270,11 +270,7 @@ export default function BidManagement() {
     try {
       if (currentStep === 0) {
         // Validate step 1 fields
-        await form.validateFields([
-          "bidTitle",
-          "origin",
-          "destination",
-        ]);
+        await form.validateFields(["bidTitle", "origin", "destination"]);
       }
       setCurrentStep(currentStep + 1);
     } catch (error) {
@@ -769,7 +765,6 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-
     });
 
     setEditBidModalVisible(true);
@@ -3459,7 +3454,6 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-
                     </Row>
                   </div>
                 </div>
@@ -3536,7 +3530,6 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-
                     </Row>
                   </div>
                 </div>
@@ -3574,7 +3567,7 @@ export default function BidManagement() {
                             placeholder="100"
                             size="large"
                             formatter={(value) =>
-                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                             }
                             parser={(value) =>
                               value?.replace(/₹\s?|(,*)/g, "") as any
@@ -3597,7 +3590,7 @@ export default function BidManagement() {
                             placeholder="200"
                             size="large"
                             formatter={(value) =>
-                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                             }
                             parser={(value) =>
                               value?.replace(/₹\s?|(,*)/g, "") as any
@@ -3642,7 +3635,7 @@ export default function BidManagement() {
                             placeholder="5"
                             size="large"
                             formatter={(value) =>
-                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                              `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                             }
                             parser={(value) =>
                               value?.replace(/₹\s?|(,*)/g, "") as any
@@ -3822,7 +3815,10 @@ export default function BidManagement() {
                             size="large"
                             options={[
                               { value: "Economy", label: "Economy" },
-                              { value: "Premium Economy", label: "Premium Economy" },
+                              {
+                                value: "Premium Economy",
+                                label: "Premium Economy",
+                              },
                               { value: "Business", label: "Business" },
                               { value: "First Class", label: "First Class" },
                             ]}
@@ -3863,7 +3859,10 @@ export default function BidManagement() {
                               { value: "Flexible", label: "Flexible" },
                               { value: "Standard", label: "Standard" },
                               { value: "Restrictive", label: "Restrictive" },
-                              { value: "Non-refundable", label: "Non-refundable" },
+                              {
+                                value: "Non-refundable",
+                                label: "Non-refundable",
+                              },
                             ]}
                           />
                         </Form.Item>
