@@ -973,9 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create bid configuration
   app.post("/api/bid-configurations", async (req: Request, res: Response) => {
-    try {
-```text
-      console.log("Received bid configuration data:", req.body);
+    try {      console.log("Received bid configuration data:", req.body);
 
       const {
         bidTitle,
