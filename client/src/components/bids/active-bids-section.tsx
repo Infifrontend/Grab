@@ -1,8 +1,7 @@
-
-import { Card, Tag, Button } from 'antd';
-import { useQuery } from '@tanstack/react-query';
-import { Plane, Users, Clock, DollarSign } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { Card, Tag, Button } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { Plane, Users, Clock, DollarSign } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface ActiveBid {
   id: number;
@@ -29,19 +28,19 @@ interface ActiveBid {
 
 export default function ActiveBidsSection() {
   const [, setLocation] = useLocation();
-  
+
   const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
-    queryKey: ['/api/bids'],
+    queryKey: ["/api/bids"],
     queryFn: async () => {
-      const response = await fetch('/api/bids');
+      const response = await fetch("/api/bids");
       if (!response.ok) {
-        throw new Error('Failed to fetch bids');
+        throw new Error("Failed to fetch bids");
       }
       const bids = await response.json();
-      
+
       // Filter for active bids only and limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => bid.bidStatus === 'active')
+        .filter((bid: ActiveBid) => bid.bidStatus === "active")
         .slice(0, 5); // Show only the 5 most recent active bids
     },
   });
@@ -50,14 +49,14 @@ export default function ActiveBidsSection() {
     const now = new Date();
     const expiry = new Date(validUntil);
     const diff = expiry.getTime() - now.getTime();
-    
+
     if (diff <= 0) return "Expired";
-    
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} left`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} left`;
+
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} left`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} left`;
     return "Less than 1 hour left";
   };
 
@@ -73,12 +72,12 @@ export default function ActiveBidsSection() {
   const getPaymentStatus = (bid: ActiveBid) => {
     try {
       const notes = bid.notes ? JSON.parse(bid.notes) : {};
-      if (notes.paymentInfo?.paymentStatus === 'Paid') {
-        return { status: 'Deposit Paid', color: 'green' };
+      if (notes.paymentInfo?.paymentStatus === "Paid") {
+        return { status: "Deposit Paid", color: "green" };
       }
-      return { status: 'Pending', color: 'orange' };
+      return { status: "Pending", color: "orange" };
     } catch (e) {
-      return { status: 'Pending', color: 'orange' };
+      return { status: "Pending", color: "orange" };
     }
   };
 
@@ -103,7 +102,9 @@ export default function ActiveBidsSection() {
         <div className="section-header relative">
           <Tag className="limited-time-badge">Live Bidding</Tag>
           <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
-          <p className="text-sm opacity-90">Current group travel bids awaiting acceptance</p>
+          <p className="text-sm opacity-90">
+            Track your current bidding activity
+          </p>
         </div>
         <div className="p-6 text-center text-gray-500">
           No active bids available at the moment
@@ -118,7 +119,9 @@ export default function ActiveBidsSection() {
       <div className="section-header relative">
         <Tag className="limited-time-badge">Live Bidding</Tag>
         <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
-        <p className="text-sm opacity-90">Current group travel bids awaiting acceptance</p>
+        <p className="text-sm opacity-90">
+          Current group travel bids awaiting acceptance
+        </p>
       </div>
 
       {/* Active Bids Content */}
@@ -128,7 +131,7 @@ export default function ActiveBidsSection() {
           const bidTitle = getBidTitle(bid);
           const paymentStatus = getPaymentStatus(bid);
           const createdDate = new Date(bid.createdAt).toLocaleDateString();
-          
+
           return (
             <div
               key={bid.id}
@@ -145,7 +148,8 @@ export default function ActiveBidsSection() {
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                     <Plane className="w-4 h-4" />
                     <span>
-                      {bid.flight?.origin || 'New York'} → {bid.flight?.destination || 'Las Vegas'}
+                      {bid.flight?.origin || "New York"} →{" "}
+                      {bid.flight?.destination || "Las Vegas"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
@@ -168,9 +172,7 @@ export default function ActiveBidsSection() {
                   <div className="font-bold text-lg text-green-600">
                     ${bid.bidAmount}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Min: $750
-                  </div>
+                  <div className="text-xs text-gray-500">Min: $750</div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
@@ -180,24 +182,20 @@ export default function ActiveBidsSection() {
                   <div className="font-semibold text-green-600">
                     Deposit Paid
                   </div>
-                  <div className="text-xs text-gray-500">
-                    $2,125
-                  </div>
+                  <div className="text-xs text-gray-500">$2,125</div>
                 </div>
               </div>
 
               {/* Footer Row */}
               <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                <div className="text-sm text-gray-500">
-                  {createdDate}
-                </div>
+                <div className="text-sm text-gray-500">{createdDate}</div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1 text-blue-600 text-sm">
                     <Clock className="w-4 h-4" />
                     <span>{timeLeft}</span>
                   </div>
-                  <Button 
-                    type="link" 
+                  <Button
+                    type="link"
                     size="small"
                     onClick={() => setLocation(`/bid-details/${bid.id}`)}
                     className="text-blue-600 p-0 h-auto"
