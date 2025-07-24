@@ -75,8 +75,6 @@ export default function BidManagement() {
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [flightNumberSearch, setFlightNumberSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState(null);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
@@ -456,28 +454,7 @@ export default function BidManagement() {
       });
     }
 
-    // Apply Flight Number search filter
-    if (flightNumberSearch) {
-      activeBids = activeBids.filter((bid) => {
-        let configData = {};
-        try {
-          configData = bid.notes ? JSON.parse(bid.notes) : {};
-        } catch (e) {
-          configData = {};
-        }
-
-        const flightNumber =
-          configData.flightNumber ||
-          `GR-${Math.floor(Math.random() * 9000) + 1000}`;
-
-        return flightNumber.toLowerCase().includes(flightNumberSearch.toLowerCase());
-      });
-    }
-
-    // Apply status filter
-    if (statusFilter) {
-      activeBids = activeBids.filter((bid) => bid.bidStatus === statusFilter);
-    }
+    
 
     activeBids = activeBids.map((bid, index) => {
       // Calculate time left until bid expires
@@ -547,11 +524,11 @@ export default function BidManagement() {
           </Text>
         </div>
 
-        {/* Simple Search and Filter - Single Row */}
+        {/* Simple Search - Single Row */}
         <div className="mb-6">
           <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between gap-4">
-              {/* Search Fields */}
+              {/* Search Field */}
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex items-center gap-2">
                   <SearchOutlined className="text-gray-400" />
@@ -565,50 +542,27 @@ export default function BidManagement() {
                   className="w-48"
                   allowClear
                 />
-                
-                <Input
-                  placeholder="Flight Number (e.g., GR-4521)"
-                  value={flightNumberSearch}
-                  onChange={(e) => setFlightNumberSearch(e.target.value)}
-                  className="w-48"
-                  allowClear
-                />
-                
-                <Select
-                  placeholder="Status"
-                  style={{ width: 120 }}
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value)}
-                  allowClear
-                >
-                  <Select.Option value="active">Active</Select.Option>
-                  <Select.Option value="pending">Pending</Select.Option>
-                </Select>
               </div>
               
               {/* Clear Button */}
               <Button
                 onClick={() => {
                   setSearchText("");
-                  setFlightNumberSearch("");
-                  setStatusFilter(null);
                 }}
                 className="flex items-center gap-2"
-                disabled={!searchText && !flightNumberSearch && !statusFilter}
+                disabled={!searchText}
               >
                 Clear
               </Button>
             </div>
             
             {/* Results Summary */}
-            {(searchText || flightNumberSearch || statusFilter) && (
+            {searchText && (
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <Text className="text-sm text-gray-600">
                     {activeBids.length} result{activeBids.length !== 1 ? 's' : ''} found
                     {searchText && ` • Bid ID: "${searchText}"`}
-                    {flightNumberSearch && ` • Flight: "${flightNumberSearch}"`}
-                    {statusFilter && ` • Status: ${statusFilter}`}
                   </Text>
                 </div>
               </div>
