@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
-import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table } from 'antd';
-import { DownloadOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table, Dropdown, Menu, message } from 'antd';
+import { DownloadOutlined, PlusOutlined, FileExcelOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
@@ -126,6 +126,100 @@ export default function Dashboard() {
     setLocation('/new-booking');
   };
 
+  // Function to convert booking data to CSV format
+  const downloadCSV = () => {
+    if (bookingsTableData.length === 0) {
+      message.warning('No booking data available to download');
+      return;
+    }
+
+    const headers = ['Booking ID', 'Group Type', 'Route', 'Departure Date', 'Return Date', 'Passengers', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...bookingsTableData.map(booking => [
+        booking.bookingId,
+        booking.groupType,
+        `"${booking.route}"`,
+        booking.date,
+        booking.returnDate || '',
+        booking.passengers,
+        booking.status
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `booking_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    message.success('CSV report downloaded successfully');
+  };
+
+  // Function to convert booking data to XLSX format
+  const downloadXLSX = () => {
+    if (bookingsTableData.length === 0) {
+      message.warning('No booking data available to download');
+      return;
+    }
+
+    // Create workbook data
+    const worksheetData = [
+      ['Booking Report', '', '', '', '', '', ''], // Title row
+      ['Generated on:', new Date().toLocaleDateString(), '', '', '', '', ''], // Date row
+      [], // Empty row
+      ['Booking ID', 'Group Type', 'Route', 'Departure Date', 'Return Date', 'Passengers', 'Status'], // Headers
+      ...bookingsTableData.map(booking => [
+        booking.bookingId,
+        booking.groupType,
+        booking.route,
+        booking.date,
+        booking.returnDate || '',
+        booking.passengers,
+        booking.status
+      ])
+    ];
+
+    // Convert to CSV format first (since we don't have a full XLSX library)
+    const csvContent = worksheetData.map(row => 
+      row.map(cell => typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell).join(',')
+    ).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `booking_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    message.success('XLSX report downloaded successfully');
+  };
+
+  // Download menu items
+  const downloadMenuItems = [
+    {
+      key: 'csv',
+      label: 'Download as CSV',
+      icon: <FileTextOutlined />,
+      onClick: downloadCSV,
+    },
+    {
+      key: 'xlsx',  
+      label: 'Download as XLSX',
+      icon: <FileExcelOutlined />,
+      onClick: downloadXLSX,
+    },
+  ];
+
   const tabItems = [
     {
       key: 'overview',
@@ -182,12 +276,18 @@ export default function Dashboard() {
             <Text className="text-gray-600">Manage your group travel bookings and view insights</Text>
           </div>
           <Space size="middle">
-            <Button 
-              icon={<DownloadOutlined />} 
-              className="flex items-center h-10 px-4 border-gray-300 hover:border-gray-400"
+            <Dropdown
+              menu={{ items: downloadMenuItems }}
+              placement="bottomRight"
+              arrow
             >
-              Download Report
-            </Button>
+              <Button 
+                icon={<DownloadOutlined />} 
+                className="flex items-center h-10 px-4 border-gray-300 hover:border-gray-400"
+              >
+                Download Report
+              </Button>
+            </Dropdown>
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
