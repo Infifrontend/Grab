@@ -604,11 +604,7 @@ export default function FlightSearchBundle() {
   ]);
 
   const handleBackToTripDetails = () => {
-    if (isAdminBooking) {
-      setLocation("/admin/bookings");
-    } else {
-      setLocation("/new-booking");
-    }
+    setLocation("/");
   };
 
   const handleContinue = () => {
