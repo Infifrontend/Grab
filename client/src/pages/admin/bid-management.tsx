@@ -74,6 +74,8 @@ export default function BidManagement() {
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState(null);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
@@ -342,7 +344,7 @@ export default function BidManagement() {
         destination: finalValues.destination
           ? finalValues.destination.trim()
           : "",
-        
+
         travelDate: finalValues.travelDate
           ? finalValues.travelDate.format("YYYY-MM-DD")
           : null,
@@ -441,15 +443,13 @@ export default function BidManagement() {
 
   const renderActiveBidsContent = () => {
     // Filter active bids from the fetched data
-    const activeBids = (recentBidsData || [])
-      .filter((bid) => bid.bidStatus === "active")
-      .map((bid, index) => {
-        // Calculate time left until bid expires
-        const timeLeft = bid.validUntil
-          ? calculateTimeLeft(new Date(bid.validUntil))
-          : "No expiry";
+    let activeBids = (recentBidsData || []).filter(
+      (bid) => bid.bidStatus === "active",
+    );
 
-        // Parse configuration data if available
+    // Apply search filter
+    if (searchText) {
+      activeBids = activeBids.filter((bid) => {
         let configData = {};
         try {
           configData = bid.notes ? JSON.parse(bid.notes) : {};
@@ -457,47 +457,82 @@ export default function BidManagement() {
           configData = {};
         }
 
-        return {
-          key: bid.id.toString(),
-          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
-          passenger: {
-            name:
-              configData.groupLeaderName ||
-              configData.contactName ||
-              `User ${bid.userId}`,
-            email:
-              configData.groupLeaderEmail ||
-              configData.email ||
-              "user@example.com",
-          },
-          flight: {
-            number:
-              configData.flightNumber ||
-              `GR-${Math.floor(Math.random() * 9000) + 1000}`,
-            route:
-              configData.origin && configData.destination
-                ? `${configData.origin} → ${configData.destination}`
-                : bid.flight
-                  ? `${bid.flight.origin} → ${bid.flight.destination}`
-                  : "Route not available",
-            date: configData.travelDate
-              ? new Date(configData.travelDate).toLocaleDateString()
-              : bid.flight?.departureTime
-                ? new Date(bid.flight.departureTime).toLocaleDateString()
-                : "N/A",
-          },
-          upgrade: configData.fareType
-            ? `Economy → ${configData.fareType}`
-            : "Economy → Business",
-          bidAmount: `$${bid.bidAmount}`,
-          maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
-          successRate: "75%", // This could be calculated based on historical data
-          timeLeft: timeLeft,
-          status: bid.bidStatus,
-          passengerCount: bid.passengerCount || 1,
-          createdAt: bid.createdAt,
-        };
+        const passengerName =
+          configData.groupLeaderName ||
+          configData.contactName ||
+          `User ${bid.userId}`;
+
+        const flightNumber =
+          configData.flightNumber ||
+          `GR-${Math.floor(Math.random() * 9000) + 1000}`;
+
+        return (
+          passengerName.toLowerCase().includes(searchText.toLowerCase()) ||
+          flightNumber.toLowerCase().includes(searchText.toLowerCase())
+        );
       });
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      activeBids = activeBids.filter((bid) => bid.bidStatus === statusFilter);
+    }
+
+    activeBids = activeBids.map((bid, index) => {
+      // Calculate time left until bid expires
+      const timeLeft = bid.validUntil
+        ? calculateTimeLeft(new Date(bid.validUntil))
+        : "No expiry";
+
+      // Parse configuration data if available
+      let configData = {};
+      try {
+        configData = bid.notes ? JSON.parse(bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
+
+      return {
+        key: bid.id.toString(),
+        bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+        passenger: {
+          name:
+            configData.groupLeaderName ||
+            configData.contactName ||
+            `User ${bid.userId}`,
+          email:
+            configData.groupLeaderEmail ||
+            configData.email ||
+            "user@example.com",
+        },
+        flight: {
+          number:
+            configData.flightNumber ||
+            `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+          route:
+            configData.origin && configData.destination
+              ? `${configData.origin} → ${configData.destination}`
+              : bid.flight
+                ? `${bid.flight.origin} → ${bid.flight.destination}`
+                : "Route not available",
+          date: configData.travelDate
+            ? new Date(configData.travelDate).toLocaleDateString()
+            : bid.flight?.departureTime
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
+        },
+        upgrade: configData.fareType
+          ? `Economy → ${configData.fareType}`
+          : "Economy → Business",
+        bidAmount: `$${bid.bidAmount}`,
+        maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+        successRate: "75%", // This could be calculated based on historical data
+        timeLeft: timeLeft,
+        status: bid.bidStatus,
+        passengerCount: bid.passengerCount || 1,
+        createdAt: bid.createdAt,
+      };
+    });
 
     return (
       <div>
@@ -518,9 +553,16 @@ export default function BidManagement() {
               placeholder="Search by passenger name or flight number..."
               prefix={<SearchOutlined />}
               style={{ width: 300 }}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
-          <Select placeholder="Filter by status" style={{ width: 150 }}>
+          <Select
+            placeholder="Filter by status"
+            style={{ width: 150 }}
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+          >
             <Select.Option value="active">Active</Select.Option>
             <Select.Option value="pending">Pending Review</Select.Option>
           </Select>
@@ -642,7 +684,10 @@ export default function BidManagement() {
                     type="link"
                     icon={<EyeOutlined />}
                     size="small"
-                    onClick={() => handleReviewBid(record)}
+                    onClick={() => {
+                      console.log("Review Bid clicked for record:", record);
+                      handleReviewBid(record);
+                    }}
                   >
                     Review Bid
                   </Button>
@@ -765,7 +810,7 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-      
+
     });
 
     setEditBidModalVisible(true);
@@ -1259,7 +1304,7 @@ export default function BidManagement() {
                         </Text>
                       </div>
                     </Col>
-                    
+
                     <Col span={12}>
                       <div>
                         <Text className="text-gray-500 block mb-1">
@@ -1450,7 +1495,7 @@ export default function BidManagement() {
                 </Select>
               </Form.Item>
             </Col>
-            
+
             <Col span={12}>
               <Form.Item
                 name="mealIncluded"
@@ -2048,7 +2093,7 @@ export default function BidManagement() {
               dataIndex: "type",
               key: "type",
               render: (type) => (
-                <Tag color={type === "Payment" ? "blue" : "orange"}>{type}</Tag>
+                <Tag color={type== "Payment" ? "blue" : "orange"}>{type}</Tag>
               ),
             },
             {
@@ -3046,7 +3091,8 @@ export default function BidManagement() {
             <div className="p-6">
               <nav className="space-y-2">
                 <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all```text
+ duration-200"
                   onClick={() => setLocation("/admin/dashboard")}
                 >
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -3455,7 +3501,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      
+
                     </Row>
                   </div>
                 </div>
@@ -3532,7 +3578,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                     
+
                     </Row>
                   </div>
                 </div>
