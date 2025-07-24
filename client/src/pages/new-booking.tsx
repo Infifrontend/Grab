@@ -26,7 +26,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 interface SearchFormData {
-  tripType: "oneWay" | "roundTrip" | "multiCity";
+  tripType: "oneWay" | "roundTrip";
   origin: string;
   destination: string;
   departureDate: Date;
@@ -35,13 +35,12 @@ interface SearchFormData {
   kids: number;
   infants: number;
   cabin: string;
-  groupType?: string;
   specialRequests?: string;
 }
 
 export default function NewBooking() {
   const [form] = Form.useForm();
-  const [tripType, setTripType] = useState<"oneWay" | "roundTrip" | "multiCity">("roundTrip");
+  const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("roundTrip");
   const [, setLocation] = useLocation();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
@@ -113,9 +112,9 @@ export default function NewBooking() {
       return;
     }
 
-    // Validate return date for round trip and multi city
-    if ((tripType === "roundTrip" || tripType === "multiCity") && !values.returnDate) {
-      message.error("Return date is required for round trip and multi city bookings");
+    // Validate return date for round trip
+    if (tripType === "roundTrip" && !values.returnDate) {
+      message.error("Return date is required for round trip bookings");
       return;
     }
 
@@ -164,7 +163,6 @@ export default function NewBooking() {
           kids: values.kids,
           infants: values.infants,
           cabin: values.cabin,
-          groupType: values.groupType,
           specialRequests: values.specialRequests,
           totalPassengers,
         })
@@ -232,7 +230,6 @@ export default function NewBooking() {
               >
                 <Radio value="oneWay">One way</Radio>
                 <Radio value="roundTrip">Round trip</Radio>
-                <Radio value="multiCity">Multi city</Radio>
               </Radio.Group>
             </div>
 
@@ -413,7 +410,7 @@ export default function NewBooking() {
               </Row>
             </div>
 
-            {/* Cabin and Group Type */}
+            {/* Cabin */}
             <Row gutter={24} className="mb-6">
               <Col xs={24} md={12}>
                 <Form.Item
@@ -427,21 +424,6 @@ export default function NewBooking() {
                     <Option value="economy">Economy</Option>
                     <Option value="business">Business</Option>
                     <Option value="first">First Class</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Group Type"
-                  name="groupType"
-                >
-                  <Select size="large" placeholder="Select group type">
-                    <Option value="corporate">Corporate</Option>
-                    <Option value="leisure">Leisure</Option>
-                    <Option value="educational">Educational</Option>
-                    <Option value="religious">Religious</Option>
-                    <Option value="sports">Sports</Option>
-                    <Option value="other">Other</Option>
                   </Select>
                 </Form.Item>
               </Col>
