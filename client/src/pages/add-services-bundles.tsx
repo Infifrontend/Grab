@@ -1182,25 +1182,24 @@ export default function AddServicesBundles() {
       </div>
 
       {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBack}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            Back
-          </Button>
+      <div className="flex justify-between items-center">
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={handleBack}
+          className="text-gray-600 hover:text-gray-800"
+        >
+          Back
+        </Button>
 
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleContinue}
-            className="px-8"
-          >
-            Continue
-          </Button>
-        </div>
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleContinue}
+          className="px-8"
+        >
+          Continue
+        </Button>
       </div>
     </div>
   );
