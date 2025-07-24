@@ -126,6 +126,14 @@ export default function BidManagement() {
     }
   }, [bidsData]);
 
+  // Reset review modal state when recentBidsData changes
+  useEffect(() => {
+    if (!recentBidsData && reviewBidModalVisible) {
+      setReviewBidModalVisible(false);
+      setSelectedBidForReview(null);
+    }
+  }, [recentBidsData, reviewBidModalVisible]);
+
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
     localStorage.removeItem("adminUsername");
@@ -945,14 +953,6 @@ export default function BidManagement() {
   const [selectedBidForReview, setSelectedBidForReview] = useState(null);
   const [editForm] = Form.useForm();
   const [reviewForm] = Form.useForm();
-
-  // Reset review modal state when recentBidsData changes
-  useEffect(() => {
-    if (!recentBidsData && reviewBidModalVisible) {
-      setReviewBidModalVisible(false);
-      setSelectedBidForReview(null);
-    }
-  }, [recentBidsData, reviewBidModalVisible]);
 
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
