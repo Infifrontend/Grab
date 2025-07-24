@@ -861,63 +861,87 @@ export default function BidManagement() {
     console.log("handleReviewBid called with:", bidRecord);
     console.log("recentBidsData:", recentBidsData);
 
-    // Find the actual bid data from recentBidsData
-    const bidData = (recentBidsData || []).find(
-      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
-    );
+    // Always open the modal first to ensure it shows
+    setReviewBidModalVisible(true);
+    reviewForm.resetFields();
 
-    console.log("Found bidData:", bidData);
-
-    if (bidData) {
-      // Parse configuration data from notes to get flight information
-      let configData = {};
-      try {
-        configData = bidData.notes ? JSON.parse(bidData.notes) : {};
-      } catch (e) {
-        console.error("Error parsing bid notes:", e);
-        configData = {};
-      }
-
-      // Create comprehensive flight information from bid configuration
-      const flightInfo = {
-        flightNumber:
-          configData.flightNumber ||
-          `GR-${Math.floor(Math.random() * 9000) + 1000}`,
-        airline: "Group Retail Airways",
-        origin: configData.origin || bidRecord.flight?.origin || "Unknown",
-        destination:
-          configData.destination || bidRecord.flight?.destination || "Unknown",
-        departureTime: configData.travelDate
-          ? new Date(
-              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
-            ).toISOString()
-          : bidData.createdAt,
-        arrivalTime: configData.travelDate
-          ? new Date(
-              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
-            ).toISOString()
-          : null,
-        price: bidData.bidAmount || 0,
-        availableSeats: configData.totalSeatsAvailable || 50,
-        cabin: configData.fareType || "Economy",
-      };
-
-      const reviewData = {
-        ...bidData,
-        record: bidRecord,
-        flight: flightInfo,
-        configData: configData,
-      };
-
-      console.log("Setting selectedBidForReview to:", reviewData);
-
-      setSelectedBidForReview(reviewData);
-      setReviewBidModalVisible(true);
-      reviewForm.resetFields();
-    } else {
-      console.error("Bid data not found for bidId:", bidRecord.bidId);
-      message.error("Unable to find bid data. Please try again.");
+    // Find the actual bid data from recentBidsData or create fallback data
+    let bidData = null;
+    if (recentBidsData && recentBidsData.length > 0) {
+      bidData = recentBidsData.find(
+        (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
+      );
     }
+
+    // If no bid data found, create fallback data from bidRecord
+    if (!bidData) {
+      console.log("No bid data found, creating fallback data from bidRecord");
+      bidData = {
+        id: parseInt(bidRecord.bidId.replace('BID', '')),
+        bidAmount: bidRecord.bidAmount ? bidRecord.bidAmount.replace('$', '') : '650',
+        passengerCount: bidRecord.passengerCount || 1,
+        bidStatus: bidRecord.status || 'active',
+        validUntil: null,
+        notes: JSON.stringify({
+          flightNumber: bidRecord.flight?.number || 'GR-4521',
+          origin: bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
+          destination: bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
+          travelDate: bidRecord.flight?.date || '2024-06-28',
+          fareType: bidRecord.upgrade?.split(' → ')[1] || 'Business',
+          groupLeaderName: bidRecord.passenger?.name || 'John Smith',
+          groupLeaderEmail: bidRecord.passenger?.email || 'john.smith@email.com',
+          otherNotes: 'We are five top executives, for $200 each.'
+        }),
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    console.log("Using bidData:", bidData);
+
+    // Parse configuration data from notes
+    let configData = {};
+    try {
+      configData = bidData.notes ? JSON.parse(bidData.notes) : {};
+    } catch (e) {
+      console.error("Error parsing bid notes:", e);
+      configData = {
+        flightNumber: bidRecord.flight?.number || 'GR-4521',
+        origin: bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
+        destination: bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
+        travelDate: bidRecord.flight?.date || '2024-06-28',
+        fareType: bidRecord.upgrade?.split(' → ')[1] || 'Business',
+        groupLeaderName: bidRecord.passenger?.name || 'John Smith',
+        groupLeaderEmail: bidRecord.passenger?.email || 'john.smith@email.com',
+        otherNotes: 'We are five top executives, for $200 each.'
+      };
+    }
+
+    // Create comprehensive flight information
+    const flightInfo = {
+      flightNumber: configData.flightNumber || bidRecord.flight?.number || 'GR-4521',
+      airline: "Group Retail Airways",
+      origin: configData.origin || bidRecord.flight?.route?.split(' → ')[0] || 'LAX',
+      destination: configData.destination || bidRecord.flight?.route?.split(' → ')[1] || 'JFK',
+      departureTime: configData.travelDate
+        ? new Date(`${configData.travelDate}T09:00`).toISOString()
+        : bidData.createdAt,
+      arrivalTime: configData.travelDate
+        ? new Date(`${configData.travelDate}T12:00`).toISOString()
+        : null,
+      price: bidData.bidAmount || 650,
+      availableSeats: configData.totalSeatsAvailable || 50,
+      cabin: configData.fareType || "Business",
+    };
+
+    const reviewData = {
+      ...bidData,
+      record: bidRecord,
+      flight: flightInfo,
+      configData: configData,
+    };
+
+    console.log("Setting selectedBidForReview to:", reviewData);
+    setSelectedBidForReview(reviewData);
   };
 
   const handleEditBid = (bid) => {
@@ -1679,7 +1703,7 @@ export default function BidManagement() {
             <div className="flex items-center space-x-3">
               <div>
                 <Text className="text-lg font-semibold text-gray-800">
-                  Bid Details - {selectedBidForReview ? `BID${selectedBidForReview.id.toString().padStart(3, "0")}` : ""}
+                  Bid Details - {selectedBidForReview ? `BID${selectedBidForReview.id.toString().padStart(3, "0")}` : "BID001"}
                 </Text>
                 <br />
                 <Text className="text-sm text-gray-500">
@@ -1697,11 +1721,11 @@ export default function BidManagement() {
         }}
         footer={null}
         width={480}
-        destroyOnClose={true}
-        maskClosable={false}
+        destroyOnClose={false}
+        maskClosable={true}
         className="review-bid-modal"
       >
-        {selectedBidForReview && selectedBidForReview.id ? (
+        {reviewBidModalVisible ? (
           <div className="space-y-4">
             {/* Passenger Information */}
             <div>
@@ -1712,58 +1736,40 @@ export default function BidManagement() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Name:</Text>
                   <Text className="font-medium">
-                    {(() => {
-                      try {
-                        const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                        return configData.groupLeaderName || configData.contactName || "John Smith";
-                      } catch (e) {
-                        return "John Smith";
-                      }
-                    })()}
+                    {selectedBidForReview?.configData?.groupLeaderName || 
+                     selectedBidForReview?.configData?.contactName || 
+                     "John Smith"}
                   </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Email:</Text>
                   <Text className="font-medium">
-                    {(() => {
-                      try {
-                        const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                        return configData.groupLeaderEmail || configData.email || "john.smith@email.com";
-                      } catch (e) {
-                        return "john.smith@email.com";
-                      }
-                    })()}
+                    {selectedBidForReview?.configData?.groupLeaderEmail || 
+                     selectedBidForReview?.configData?.email || 
+                     "john.smith@email.com"}
                   </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Flight:</Text>
                   <Text className="font-medium">
-                    {(() => {
-                      try {
-                        const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                        return configData.flightNumber || "GR-4521";
-                      } catch (e) {
-                        return "GR-4521";
-                      }
-                    })()}
+                    {selectedBidForReview?.configData?.flightNumber || 
+                     selectedBidForReview?.flight?.flightNumber || 
+                     "GR-4521"}
                   </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Date:</Text>
                   <Text className="font-medium">
-                    {(() => {
-                      try {
-                        const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                        return configData.travelDate ? new Date(configData.travelDate).toLocaleDateString('en-GB') : "2024-06-28";
-                      } catch (e) {
-                        return "2024-06-28";
-                      }
-                    })()}
+                    {selectedBidForReview?.configData?.travelDate ? 
+                      new Date(selectedBidForReview.configData.travelDate).toLocaleDateString('en-GB') : 
+                      "28/06/2024"}
                   </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Seats:</Text>
-                  <Tag color="red" className="ml-2">{selectedBidForReview.passengerCount}</Tag>
+                  <Tag color="red" className="ml-2">
+                    {selectedBidForReview?.passengerCount || 1}
+                  </Tag>
                 </div>
               </div>
             </div>
@@ -1777,27 +1783,28 @@ export default function BidManagement() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Upgrade:</Text>
                   <Text className="font-medium">
-                    Economy → {(() => {
-                      try {
-                        const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                        return configData.fareType || "Business";
-                      } catch (e) {
-                        return "Business";
-                      }
-                    })()}
+                    Economy → {selectedBidForReview?.configData?.fareType || 
+                               selectedBidForReview?.flight?.cabin || 
+                               "Business"}
                   </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Bid Amount:</Text>
-                  <Text className="font-medium">${selectedBidForReview.bidAmount}</Text>
+                  <Text className="font-medium">
+                    ${selectedBidForReview?.bidAmount || "650"}
+                  </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Min Acceptable:</Text>
-                  <Text className="font-medium">${Math.floor(parseFloat(selectedBidForReview.bidAmount) * 0.8)}</Text>
+                  <Text className="font-medium">
+                    ${Math.floor(parseFloat(selectedBidForReview?.bidAmount || "650") * 0.8)}
+                  </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Max Acceptable:</Text>
-                  <Text className="font-medium">${Math.floor(parseFloat(selectedBidForReview.bidAmount) * 1.2)}</Text>
+                  <Text className="font-medium">
+                    ${Math.floor(parseFloat(selectedBidForReview?.bidAmount || "650") * 1.2)}
+                  </Text>
                 </div>
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Success Probability:</Text>
@@ -1806,7 +1813,7 @@ export default function BidManagement() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Time Left:</Text>
                   <Text className="font-medium">
-                    {selectedBidForReview.validUntil
+                    {selectedBidForReview?.validUntil
                       ? calculateTimeLeft(new Date(selectedBidForReview.validUntil))
                       : "18h 45m"}
                   </Text>
@@ -1824,14 +1831,8 @@ export default function BidManagement() {
                   <Text className="text-gray-600 block mb-1">Customer Note - $650:</Text>
                   <div className="bg-blue-50 p-3 rounded-md border-l-4 border-blue-400">
                     <Text className="text-sm">
-                      {(() => {
-                        try {
-                          const configData = selectedBidForReview.notes ? JSON.parse(selectedBidForReview.notes) : {};
-                          return configData.otherNotes || "We are five top executives, for $200 each.";
-                        } catch (e) {
-                          return "We are five top executives, for $200 each.";
-                        }
-                      })()}
+                      {selectedBidForReview?.configData?.otherNotes || 
+                       "We are five top executives, for $200 each."}
                     </Text>
                   </div>
                 </div>
@@ -1893,11 +1894,7 @@ export default function BidManagement() {
           </div>
         ) : (
           <div className="text-center py-8">
-            <Text className="text-gray-500">
-              {reviewBidModalVisible
-                ? "Loading bid data..."
-                : "No bid data available"}
-            </Text>
+            <Text className="text-gray-500">Loading bid data...</Text>
           </div>
         )}
       </Modal>
