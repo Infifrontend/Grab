@@ -306,14 +306,35 @@ export default function AddServicesBundles() {
     if (storedBookingData) {
       setBookingData(JSON.parse(storedBookingData));
     }
+
+    // Load previously saved selections if available
+    const tempSelections = localStorage.getItem("currentServiceSelections");
+    if (tempSelections) {
+      try {
+        const selections = JSON.parse(tempSelections);
+        if (selections.selectedBundles) setSelectedBundles(selections.selectedBundles);
+        if (selections.individualServiceCounts) setIndividualServiceCounts(selections.individualServiceCounts);
+        if (selections.selectedServices) setSelectedServices(selections.selectedServices);
+      } catch (error) {
+        console.warn("Could not restore service selections:", error);
+      }
+    }
   }, []);
 
   const handleBack = () => {
-      if (isAdminBooking) {
-          setLocation("/flight-search-bundle?admin=true");
-      } else {
-          setLocation("/flight-search-bundle");
-      }
+    // Save current selections before navigating back
+    const currentSelections = {
+      selectedBundles,
+      individualServiceCounts,
+      selectedServices
+    };
+    localStorage.setItem("currentServiceSelections", JSON.stringify(currentSelections));
+
+    if (isAdminBooking) {
+      setLocation("/flight-search-bundle?admin=true");
+    } else {
+      setLocation("/flight-search-bundle");
+    }
   };
 
   const handleContinue = () => {

@@ -137,6 +137,19 @@ export default function FlightSearchResults() {
   };
 
   const handleModifySearch = () => {
+    // Save current search criteria before navigating back
+    const searchCriteria = {
+      origin,
+      destination,
+      departureDate,
+      returnDate,
+      adults,
+      kids,
+      infants,
+      cabin,
+      tripType
+    };
+    localStorage.setItem("searchCriteria", JSON.stringify(searchCriteria));
     setLocation("/");
   };
 

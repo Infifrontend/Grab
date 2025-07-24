@@ -60,6 +60,21 @@ export default function PaymentOptions() {
         setTripType(savedTripType as 'oneWay' | 'roundTrip' | 'multiCity' || 'roundTrip');
       }
 
+      // Load previously saved payment data if available
+      const tempPaymentData = localStorage.getItem("tempPaymentData");
+      if (tempPaymentData) {
+        try {
+          const savedPaymentData = JSON.parse(tempPaymentData);
+          if (savedPaymentData.paymentSchedule) setPaymentSchedule(savedPaymentData.paymentSchedule);
+          if (savedPaymentData.paymentMethod) setPaymentMethod(savedPaymentData.paymentMethod);
+          if (savedPaymentData.creditCardData && savedPaymentData.paymentMethod === "creditCard") {
+            form.setFieldsValue(savedPaymentData.creditCardData);
+          }
+        } catch (error) {
+          console.warn("Could not restore payment data:", error);
+        }
+      }
+
       // Load booking form data
       const storedBookingData = localStorage.getItem("bookingFormData");
       if (storedBookingData) {
@@ -184,6 +199,28 @@ export default function PaymentOptions() {
   const availablePaymentOptions = getAvailablePaymentOptions();
 
   const handleBack = () => {
+    // Save current payment selections before navigating back
+    let creditCardData = null;
+    if (paymentMethod === "creditCard") {
+      try {
+        const formValues = form.getFieldsValue();
+        creditCardData = {
+          cardNumber: formValues.cardNumber || '',
+          cardholderName: formValues.cardholderName || '',
+          expiryDate: formValues.expiryDate || '',
+          cvv: formValues.cvv || '',
+        };
+      } catch (formError) {
+        console.warn("Could not save form data:", formError);
+      }
+    }
+
+    const tempPaymentData = {
+      paymentSchedule,
+      paymentMethod,
+      creditCardData
+    };
+    localStorage.setItem("tempPaymentData", JSON.stringify(tempPaymentData));
     setLocation("/review-confirmation");
   };
 
@@ -359,6 +396,12 @@ export default function PaymentOptions() {
           "groupLeaderData",
           "bookingSummary",
           "passengerData",
+          // Clear temporary navigation data
+          "tempGroupLeaderData",
+          "tempPassengerData",
+          "tempReviewData",
+          "tempPaymentData",
+          "currentServiceSelections",
         ];
         keysToRemove.forEach((key) => localStorage.removeItem(key));
       } else {

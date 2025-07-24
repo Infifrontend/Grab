@@ -61,6 +61,16 @@ export default function ReviewConfirmation() {
   }, []);
 
   const handleBack = () => {
+    // Save current review state before navigating back
+    const reviewData = {
+      bookingData,
+      flightData,
+      groupLeaderData,
+      selectedServices,
+      bundleData,
+      bookingSummary
+    };
+    localStorage.setItem("tempReviewData", JSON.stringify(reviewData));
     setLocation("/passenger-info");
   };
 

@@ -56,19 +56,56 @@ export default function PassengerInfo() {
       const count = data.totalPassengers || parseInt(storedPassengerCount || '32');
       setTotalPassengers(count);
 
-      // Initialize passenger array based on actual passenger count
-      setPassengers(
-        Array.from({ length: count }, (_, index) => ({
-          title: "",
-          firstName: "",
-          lastName: "",
-          dateOfBirth: "",
-          nationality: "",
-          passportNumber: "",
-          passportExpiry: "",
-          specialRequests: "",
-        }))
-      );
+      // Check for previously saved passenger data
+      const tempPassengerData = localStorage.getItem("tempPassengerData");
+      if (tempPassengerData) {
+        try {
+          const savedPassengers = JSON.parse(tempPassengerData);
+          // Ensure we have the correct number of passengers
+          const passengerArray = Array.from({ length: count }, (_, index) => {
+            return savedPassengers[index] || {
+              title: "",
+              firstName: "",
+              lastName: "",
+              dateOfBirth: "",
+              nationality: "",
+              passportNumber: "",
+              passportExpiry: "",
+              specialRequests: "",
+            };
+          });
+          setPassengers(passengerArray);
+        } catch (error) {
+          console.warn("Could not restore passenger data:", error);
+          // Fallback to empty passengers
+          setPassengers(
+            Array.from({ length: count }, (_, index) => ({
+              title: "",
+              firstName: "",
+              lastName: "",
+              dateOfBirth: "",
+              nationality: "",
+              passportNumber: "",
+              passportExpiry: "",
+              specialRequests: "",
+            }))
+          );
+        }
+      } else {
+        // Initialize passenger array based on actual passenger count
+        setPassengers(
+          Array.from({ length: count }, (_, index) => ({
+            title: "",
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+            nationality: "",
+            passportNumber: "",
+            passportExpiry: "",
+            specialRequests: "",
+          }))
+        );
+      }
     }
   }, []);
 
@@ -84,6 +121,11 @@ export default function PassengerInfo() {
   ).length;
 
   const handleBack = () => {
+    // Save current passenger data before navigating back
+    const currentPassengerData = passengers.filter(p => 
+      p.firstName || p.lastName || p.dateOfBirth || p.nationality
+    );
+    localStorage.setItem("tempPassengerData", JSON.stringify(currentPassengerData));
     setLocation("/group-leader");
   };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -23,8 +23,30 @@ export default function GroupLeader() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
 
+  // Load previously saved form data if available
+  useEffect(() => {
+    const tempData = localStorage.getItem("tempGroupLeaderData");
+    if (tempData) {
+      try {
+        const savedData = JSON.parse(tempData);
+        form.setFieldsValue(savedData);
+      } catch (error) {
+        console.warn("Could not restore group leader data:", error);
+      }
+    }
+  }, [form]);
+
   const handleBack = () => {
-    setLocation("/add-services-bundles");
+    // Save current form data before navigating back
+    form.validateFields({ validateOnly: true }).then((values) => {
+      localStorage.setItem("tempGroupLeaderData", JSON.stringify(values));
+    }).catch(() => {
+      // Save whatever data is available even if validation fails
+      const currentValues = form.getFieldsValue();
+      localStorage.setItem("tempGroupLeaderData", JSON.stringify(currentValues));
+    }).finally(() => {
+      setLocation("/add-services-bundles");
+    });
   };
 
   const handleContinue = () => {
