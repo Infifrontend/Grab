@@ -102,7 +102,7 @@ export default function DownloadItinerary() {
             </div>
             <div class="detail-row">
               <span class="detail-label">Booking Date:</span>
-              <span class="detail-value">${new Date(booking.bookedAt).toLocaleDateString('en-IN')}</span>
+              <span class="detail-value">${new Date(booking.bookedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
             </div>
           </div>
 
@@ -128,11 +128,11 @@ export default function DownloadItinerary() {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Departure:</span>
-                <span class="detail-value">${new Date(flightData.departureTime).toLocaleString('en-IN')}</span>
+                <span class="detail-value">${new Date(flightData.departureTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date(flightData.departureTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Arrival:</span>
-                <span class="detail-value">${new Date(flightData.arrivalTime).toLocaleString('en-IN')}</span>
+                <span class="detail-value">${new Date(flightData.arrivalTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date(flightData.arrivalTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Duration:</span>
@@ -165,7 +165,7 @@ export default function DownloadItinerary() {
                   ${passenger.dateOfBirth ? `
                   <div class="detail-row">
                     <span class="detail-label">Date of Birth:</span>
-                    <span class="detail-value">${new Date(passenger.dateOfBirth).toLocaleDateString('en-IN')}</span>
+                    <span class="detail-value">${new Date(passenger.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                   </div>
                   ` : ''}
                 </div>
@@ -198,7 +198,7 @@ export default function DownloadItinerary() {
 
           <div class="footer">
             <p>This is a computer-generated itinerary. Please contact us for any queries.</p>
-            <p>Generated on: ${new Date().toLocaleString('en-IN')}</p>
+            <p>Generated on: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
           </div>
         </body>
         </html>
@@ -390,14 +390,14 @@ Group Airline Booking Team`;
                           Departure:
                         </Text>
                         <Text className="text-gray-900 font-semibold">
-                          {new Date(flightData.departureTime).toLocaleDateString('en-IN')} at {new Date(flightData.departureTime).toLocaleTimeString('en-IN')}
+                          {new Date(flightData.departureTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(flightData.departureTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                       </div>
 
                       <div className="flex justify-between">
                         <Text className="text-gray-600 font-medium">Arrival:</Text>
                         <Text className="text-gray-900 font-semibold">
-                          {new Date(flightData.arrivalTime).toLocaleDateString('en-IN')} at {new Date(flightData.arrivalTime).toLocaleTimeString('en-IN')}
+                          {new Date(flightData.arrivalTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(flightData.arrivalTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                       </div>
 

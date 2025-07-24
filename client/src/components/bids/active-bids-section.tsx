@@ -130,7 +130,7 @@ export default function ActiveBidsSection() {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);
           const paymentStatus = getPaymentStatus(bid);
-          const createdDate = new Date(bid.createdAt).toLocaleDateString();
+          const createdDate = new Date(bid.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
           return (
             <div

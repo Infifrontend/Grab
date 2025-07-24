@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table, Dropdown, Menu, message } from 'antd';
 import { DownloadOutlined, PlusOutlined, FileExcelOutlined, FileTextOutlined } from '@ant-design/icons';
@@ -157,7 +156,7 @@ export default function Dashboard() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     message.success('CSV report downloaded successfully');
   };
 
@@ -200,7 +199,7 @@ export default function Dashboard() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     message.success('XLSX report downloaded successfully');
   };
 
@@ -267,7 +266,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Dashboard Header */}
         <div className="flex justify-between items-center mb-8">
@@ -334,7 +333,7 @@ export default function Dashboard() {
                   </div>
                 </Card>
               </Col>
-              
+
               <Col xs={24} sm={12} lg={6}>
                 <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
@@ -354,7 +353,7 @@ export default function Dashboard() {
                   </div>
                 </Card>
               </Col>
-              
+
               <Col xs={24} sm={12} lg={6}>
                 <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
@@ -374,7 +373,7 @@ export default function Dashboard() {
                   </div>
                 </Card>
               </Col>
-              
+
               <Col xs={24} sm={12} lg={6}>
                 <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
@@ -467,7 +466,7 @@ export default function Dashboard() {
                     <Title level={4} className="!mb-1 text-gray-900">Recent Activity</Title>
                     <Text className="text-gray-500">Your latest booking updates</Text>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {recentActivities.length > 0 ? recentActivities.map((activity) => (
                       <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
@@ -570,15 +569,18 @@ export default function Dashboard() {
                       dataIndex: 'date',
                       key: 'date',
                       width: 120,
-                      render: (date) => (
-                        <span className="text-gray-600">
-                          {date !== 'N/A' ? new Date(date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          }) : '-'}
-                        </span>
-                      ),
+                      render: (date) => {
+                        if (!date || date === 'N/A') return <span className="text-gray-500">N/A</span>;
+                        return (
+                          <span className="text-gray-600">
+                            {new Date(date).toLocaleDateString('en-GB', { 
+                              day: '2-digit',
+                              month: 'short', 
+                              year: 'numeric' 
+                            })}
+                          </span>
+                        );
+                      },
                       sorter: (a, b) => {
                         if (a.date === 'N/A' && b.date === 'N/A') return 0;
                         if (a.date === 'N/A') return 1;
@@ -591,15 +593,18 @@ export default function Dashboard() {
                       dataIndex: 'returnDate',
                       key: 'returnDate',
                       width: 120,
-                      render: (returnDate) => (
-                        <span className="text-gray-600">
-                          {returnDate ? new Date(returnDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          }) : '-'}
-                        </span>
-                      ),
+                      render: (returnDate) => {
+                        if (!returnDate || returnDate === 'N/A') return <span className="text-gray-500">N/A</span>;
+                        return (
+                          <span className="text-gray-600">
+                            {new Date(returnDate).toLocaleDateString('en-GB', { 
+                              day: '2-digit',
+                              month: 'short', 
+                              year: 'numeric' 
+                            })}
+                          </span>
+                        );
+                      },
                     },
                     {
                       title: 'Passengers',
@@ -792,7 +797,7 @@ export default function Dashboard() {
                   <Text className="text-gray-500 text-sm">Personalized suggestions based on your booking patterns</Text>
                 </div>
               </div>
-              
+
               <Row gutter={[24, 24]}>
                 <Col xs={24} lg={12}>
                   <div className="border border-gray-100 rounded-lg p-6 hover:shadow-sm transition-shadow">
@@ -813,7 +818,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </Col>
-                
+
                 <Col xs={24} lg={12}>
                   <div className="border border-gray-100 rounded-lg p-6 hover:shadow-sm transition-shadow">
                     <div className="flex justify-between items-start mb-4">
