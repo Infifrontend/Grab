@@ -22,6 +22,12 @@ const { Option } = Select;
 export default function GroupLeader() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Load previously saved form data if available
   useEffect(() => {

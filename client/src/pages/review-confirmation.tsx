@@ -21,6 +21,13 @@ const { Title, Text } = Typography;
 export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [bookingData, setBookingData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const [flightData, setFlightData] = useState<any>(null);
   const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
@@ -75,9 +82,9 @@ export default function ReviewConfirmation() {
     setLocation("/passenger-info");
   };
 
-  
 
-  
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -409,7 +416,7 @@ export default function ReviewConfirmation() {
               </Space>
             </Card>
 
-            
+
           </Col>
         </Row>
 
@@ -440,7 +447,7 @@ export default function ReviewConfirmation() {
         </div>
       </div>
 
-      
+
 
       <style jsx>{`
         .ant-card {
@@ -457,7 +464,7 @@ export default function ReviewConfirmation() {
           margin: 16px 0;
         }
 
-        
+
       `}</style>
     </div>
   );

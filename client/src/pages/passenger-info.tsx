@@ -45,6 +45,11 @@ export default function PassengerInfo() {
   const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
   const [bookingData, setBookingData] = useState<any>(null);
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Initialize passenger data from localStorage
   useEffect(() => {
     const storedBookingData = localStorage.getItem('bookingFormData');

@@ -302,6 +302,11 @@ export default function AddServicesBundles() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [isAdminBooking, setIsAdminBooking] = useState<boolean>(false);
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Load booking data from localStorage on component mount
   useEffect(() => {
     // Check if this is an admin booking

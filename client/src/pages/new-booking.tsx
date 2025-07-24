@@ -61,6 +61,11 @@ export default function NewBooking() {
     }
   }, [locationsData]);
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const searchMutation = useMutation({
     mutationFn: async (searchData: SearchFormData) => {
       const totalPassengers =

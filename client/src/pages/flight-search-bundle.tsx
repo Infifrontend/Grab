@@ -168,8 +168,23 @@ const mealOptions: BundleOption[] = [
 
 export default function FlightSearchBundle() {
   const [, setLocation] = useLocation();
-  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
+  const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
+  const [selectedReturnFlight, setSelectedReturnFlight] = useState<Flight | null>(null);
+  const [flights, setFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
+  const [searchCriteria, setSearchCriteria] = useState<any>(null);
+  const [passengerCount, setPassengerCount] = useState<number>(1);
+  const [showReturnFlights, setShowReturnFlights] = useState(false);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
+  const [selectedBundleType, setSelectedBundleType] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [searchCriteria, setSearchCriteria] = useState<any>({});
   const [passengerCount, setPassengerCount] = useState<number>(1);
   const [originOptions, setOriginOptions] = useState<string[]>([]);

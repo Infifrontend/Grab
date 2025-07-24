@@ -32,9 +32,17 @@ const { Title, Text } = Typography;
 export default function PaymentOptions() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
-  const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bookingData, setBookingData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const [paymentSchedule, setPaymentSchedule] = useState("full");
   const [flightData, setFlightData] = useState<any>(null);
   const [groupLeaderData, setGroupLeaderData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
@@ -377,17 +385,17 @@ export default function PaymentOptions() {
       if (response.ok) {
         const result = await response.json();
         console.log("Comprehensive booking created successfully:", result);
-        
+
         // Save payment data to localStorage after successful submission
         localStorage.setItem("paymentData", JSON.stringify(cleanPaymentData));
-        
+
         // Set booking reference for the modal
         const refNumber = result.booking?.bookingReference || result.bookingReference || 'GB-' + Date.now();
         setBookingReference(refNumber);
-        
+
         // Show success modal
         setShowSuccessModal(true);
-        
+
         // Clear other localStorage items after successful submission
         const keysToRemove = [
           "bookingFormData",
@@ -971,7 +979,7 @@ export default function PaymentOptions() {
               Your group booking request has been received and is being processed.
             </Typography.Text>
           </div>
-          
+
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <Typography.Text className="text-blue-700 block mb-2">
               Booking Reference Number
@@ -980,7 +988,7 @@ export default function PaymentOptions() {
               {bookingReference}
             </Typography.Text>
           </div>
-          
+
           <div className="space-y-3 text-left">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -990,7 +998,7 @@ export default function PaymentOptions() {
                 We'll search for the best available flights for your group
               </Typography.Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-blue-600 text-xs font-medium">2</span>
@@ -999,7 +1007,7 @@ export default function PaymentOptions() {
                 You'll receive a detailed quote within 24 hours
               </Typography.Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-blue-600 text-xs font-medium">3</span>
