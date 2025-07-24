@@ -171,6 +171,7 @@ export default function FlightSearchBundle() {
   const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
   const [selectedReturnFlight, setSelectedReturnFlight] = useState<Flight | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
   const [searchCriteria, setSearchCriteria] = useState<any>(null);
   const [passengerCount, setPassengerCount] = useState<number>(1);
@@ -202,6 +203,10 @@ export default function FlightSearchBundle() {
     "standard-meal",
   ]);
 
+  // Bundle option selections
+  const selectedSeatOption = seatOptions.find(option => option.id === selectedSeat);
+  const selectedBaggageOption = baggageOptions.find(option => option.id === selectedBaggage);
+
   // Modify search form state - initialize from bookingFormData (from QuickBooking form)
   const [origin, setOrigin] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
@@ -211,6 +216,10 @@ export default function FlightSearchBundle() {
   const [kids, setKids] = useState(0);
   const [infants, setInfants] = useState(0);
   const [cabin, setCabin] = useState("economy");
+
+  // Location options for autocomplete
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
   // Get trip type from bookingFormData (from QuickBooking form)
   const [tripType, setTripType] = useState<string>("roundTrip");
@@ -239,6 +248,7 @@ export default function FlightSearchBundle() {
         const flights = JSON.parse(searchResults);
         console.log("Loaded search results:", flights);
         setAvailableFlights(flights);
+        setFlights(flights);
       }
 
       // Load return flights if available
