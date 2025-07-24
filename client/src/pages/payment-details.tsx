@@ -271,7 +271,7 @@ export default function PaymentDetails() {
                                 </Form.Item>
                               </Col>
                             </Row>
-                          </Form.
+                          </Form>
                         )}
                       </div>
                     </Radio>
