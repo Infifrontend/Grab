@@ -168,8 +168,6 @@ const mealOptions: BundleOption[] = [
 
 export default function FlightSearchBundle() {
   const [, setLocation] = useLocation();
-  const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
-  const [selectedReturnFlight, setSelectedReturnFlight] = useState<Flight | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
