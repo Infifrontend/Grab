@@ -342,7 +342,7 @@ export default function BidManagement() {
         destination: finalValues.destination
           ? finalValues.destination.trim()
           : "",
-        
+
         travelDate: finalValues.travelDate
           ? finalValues.travelDate.format("YYYY-MM-DD")
           : null,
@@ -432,6 +432,10 @@ export default function BidManagement() {
     {
       title: "Bid Pricing & Currency",
       content: "pricing",
+    },
+    {
+      title: "Bidding Schedule & Rules",
+      content: "schedule-rules",
     },
     {
       title: "Fare Terms & Ancillaries",
@@ -765,7 +769,7 @@ export default function BidManagement() {
       cancellationTerms: configData.cancellationTerms || "Standard",
       mealIncluded: configData.mealIncluded || false,
       otherNotes: configData.otherNotes || "",
-      
+
     });
 
     setEditBidModalVisible(true);
@@ -1259,7 +1263,7 @@ export default function BidManagement() {
                         </Text>
                       </div>
                     </Col>
-                    
+
                     <Col span={12}>
                       <div>
                         <Text className="text-gray-500 block mb-1">
@@ -1450,7 +1454,7 @@ export default function BidManagement() {
                 </Select>
               </Form.Item>
             </Col>
-            
+
             <Col span={12}>
               <Form.Item
                 name="mealIncluded"
@@ -2101,7 +2105,7 @@ export default function BidManagement() {
       {/* Pending Refund Requests */}
       <Card>
         <div className="mb-4">
-          <Title level={4} className="!mb-1">
+          <Title level={4} className<!mb-1">
             Pending Refund Requests
           </Title>
           <Text className="text-gray-500">
@@ -3455,7 +3459,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                      
+
                     </Row>
                   </div>
                 </div>
@@ -3532,7 +3536,7 @@ export default function BidManagement() {
                           />
                         </Form.Item>
                       </Col>
-                     
+
                     </Row>
                   </div>
                 </div>
@@ -3546,6 +3550,119 @@ export default function BidManagement() {
                       <div className="w-1 h-5 bg-purple-500 rounded"></div>
                       <Title level={5} className="!mb-0 text-purple-600">
                         Bid Pricing & Currency
+                      </Title>
+                    </div>
+                    <Text className="text-gray-500 text-sm">
+                      Configure pricing parameters and currency settings
+                    </Text>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <Row gutter={[16, 16]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Minimum Bid Price (per seat)
+                            </span>
+                          }
+                          name="bidAmount"
+                        >
+                          <InputNumber
+                            min={100}
+                            className="w-full"
+                            placeholder="100"
+                            size="large"
+                            formatter={(value) =>
+                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }
+                            parser={(value) =>
+                              value?.replace(/₹\s?|(,*)/g, "") as any
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Suggested Market Value
+                            </span>
+                          }
+                          name="suggestedMarketValue"
+                        >
+                          <InputNumber
+                            min={100}
+                            className="w-full"
+                            placeholder="200"
+                            size="large"
+                            formatter={(value) =>
+                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }
+                            parser={(value) =>
+                              value?.replace(/₹\s?|(,*)/g, "") as any
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={[16, 16]}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Currency
+                            </span>
+                          }
+                          name="currency"
+                        >
+                          <Select
+                            placeholder="Select currency"
+                            size="large"
+                            options={[
+                              { value: "INR", label: "INR - Indian Rupee" },
+                              { value: "USD", label: "USD - US Dollar" },
+                              { value: "EUR", label: "EUR - Euro" },
+                            ]}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={
+                            <span className="font-semibold text-gray-700">
+                              Bid Increment
+                            </span>
+                          }
+                          name="bidIncrement"
+                        >
+                          <InputNumber
+                            min={1}
+                            className="w-full"
+                            placeholder="5"
+                            size="large"
+                            formatter={(value) =>
+                              `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }
+                            parser={(value) =>
+                              value?.replace(/₹\s?|(,*)/g, "") as any
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Bidding Schedule & Rules */}
+              {currentStep === 3 && (
+                <div>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-blue-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-blue-600">
+                        Bidding Schedule & Rules
                       </Title>
                     </div>
                     <Text className="text-gray-500 text-sm">
@@ -3674,25 +3791,24 @@ export default function BidManagement() {
                 </div>
               )}
 
-              {/* Step 4: Fare Terms & Ancillaries */}
-              {currentStep === 3 && (
+              {/* Step 5: Fare Terms & Ancillaries */}
+              {currentStep === 4 && (
                 <div>
                   <div className="mb-4">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="w-1 h-5 bg-orange-500 rounded"></div>
-                      <Title level={5} className="!mb-0 text-orange-600">
+                      <div className="w-1 h-5 bg-teal-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-teal-600">
                         Fare Terms & Ancillaries
                       </Title>
                     </div>
                     <Text className="text-gray-500 text-sm">
-                      Configure fare type, baggage allowance, and additional
-                      services
+                      Configure fare conditions and additional services
                     </Text>
                   </div>
 
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <Row gutter={[16, 16]}>
-                      <Col span={12}>
+                      <Col span={8}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
@@ -3701,29 +3817,19 @@ export default function BidManagement() {
                           }
                           name="fareType"
                         >
-                          <Select placeholder="Select fare type" size="large">
-                            <Select.Option value="Economy">
-                              Economy
-                            </Select.Option>
-                            <Select.Option value="Premium Economy">
-                              Premium Economy
-                            </Select.Option>
-                            <Select.Option value="Business Class">
-                              Business Class
-                            </Select.Option>
-                            <Select.Option value="First Class">
-                              First Class
-                            </Select.Option>
-                            <Select.Option value="Flexible Fare">
-                              Flexible Fare
-                            </Select.Option>
-                            <Select.Option value="Restricted Fare">
-                              Restricted Fare
-                            </Select.Option>
-                          </Select>
+                          <Select
+                            placeholder="Select fare type"
+                            size="large"
+                            options={[
+                              { value: "Economy", label: "Economy" },
+                              { value: "Premium Economy", label: "Premium Economy" },
+                              { value: "Business", label: "Business" },
+                              { value: "First Class", label: "First Class" },
+                            ]}
+                          />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
+                      <Col span={8}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
@@ -3734,14 +3840,14 @@ export default function BidManagement() {
                         >
                           <InputNumber
                             min={0}
-                            max={100}
+                            max={50}
                             className="w-full"
-                            placeholder="20"
+                            placeholder="15"
                             size="large"
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
+                      <Col span={8}>
                         <Form.Item
                           label={
                             <span className="font-semibold text-gray-700">
@@ -3751,40 +3857,34 @@ export default function BidManagement() {
                           name="cancellationTerms"
                         >
                           <Select
-                            placeholder="Select cancellation terms"
+                            placeholder="Select terms"
                             size="large"
-                          >
-                            <Select.Option value="Flexible - Free cancellation">
-                              Flexible - Free cancellation
-                            </Select.Option>
-                            <Select.Option value="Standard - 24h free cancellation">
-                              Standard - 24h free cancellation
-                            </Select.Option>
-                            <Select.Option value="Restricted - Cancellation fee applies">
-                              Restricted - Cancellation fee applies
-                            </Select.Option>
-                            <Select.Option value="Non-refundable">
-                              Non-refundable
-                            </Select.Option>
-                          </Select>
+                            options={[
+                              { value: "Flexible", label: "Flexible" },
+                              { value: "Standard", label: "Standard" },
+                              { value: "Restrictive", label: "Restrictive" },
+                              { value: "Non-refundable", label: "Non-refundable" },
+                            ]}
+                          />
                         </Form.Item>
                       </Col>
-                      <Col span={12}>
-                        <div className="pt-8">
-                          <Form.Item
-                            name="mealIncluded"
-                            valuePropName="checked"
-                            className="!mb-2"
-                          >
-                            <Checkbox className="text-base font-semibold text-gray-700">
-                              Meal Included
-                            </Checkbox>
-                          </Form.Item>
-                          <Text className="text-gray-500 text-sm">
-                            Check if meal service is included with this fare
-                          </Text>
-                        </div>
+                    </Row>
+
+                    <Row gutter={[16, 16]} className="mt-4">
+                      <Col span={24}>
+                        <Form.Item
+                          name="mealIncluded"
+                          valuePropName="checked"
+                          className="!mb-4"
+                        >
+                          <Checkbox className="text-gray-700 font-semibold">
+                            Meal Included
+                          </Checkbox>
+                        </Form.Item>
                       </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
                       <Col span={24}>
                         <Form.Item
                           label={
@@ -3795,9 +3895,9 @@ export default function BidManagement() {
                           name="otherNotes"
                         >
                           <Input.TextArea
-                            rows={4}
-                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, events), special conditions, or other relevant information..."
-                            className="rounded-lg"
+                            rows={3}
+                            placeholder="Optional: targeting weddings, students, events, etc."
+                            size="large"
                           />
                         </Form.Item>
                       </Col>
