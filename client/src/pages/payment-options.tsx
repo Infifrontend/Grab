@@ -490,7 +490,7 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          ₹{(() => {
+                          ${(() => {
                             const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                             const discount = selectedOption?.discount || 0;
                             return (totalAmount * (1 - discount)).toFixed(2);
@@ -512,7 +512,7 @@ export default function PaymentOptions() {
                         </Text>
                         <div className="flex justify-between mt-2">
                           <Text className="text-sm text-gray-600">Deposit (30%):</Text>
-                          <Text className="font-semibold">₹{(() => {
+                          <Text className="font-semibold">${(() => {
                             const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                             const discount = selectedOption?.discount || 0;
                             const discountedTotal = totalAmount * (1 - discount);
@@ -521,7 +521,7 @@ export default function PaymentOptions() {
                         </div>
                         <div className="flex justify-between">
                           <Text className="text-sm text-gray-600">Remaining:</Text>
-                          <Text className="font-semibold">₹{(() => {
+                          <Text className="font-semibold">${(() => {
                             const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                             const discount = selectedOption?.discount || 0;
                             const discountedTotal = totalAmount * (1 - discount);
@@ -544,7 +544,7 @@ export default function PaymentOptions() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">Today:</Text>
-                            <Text className="font-semibold">₹{(() => {
+                            <Text className="font-semibold">${(() => {
                               const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                               const discount = selectedOption?.discount || 0;
                               const discountedTotal = totalAmount * (1 - discount);
@@ -553,7 +553,7 @@ export default function PaymentOptions() {
                           </div>
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">In 30 days:</Text>
-                            <Text className="font-semibold">₹{(() => {
+                            <Text className="font-semibold">${(() => {
                               const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                               const discount = selectedOption?.discount || 0;
                               const discountedTotal = totalAmount * (1 - discount);
@@ -562,7 +562,7 @@ export default function PaymentOptions() {
                           </div>
                           <div className="flex justify-between">
                             <Text className="text-sm text-gray-600">In 60 days:</Text>
-                            <Text className="font-semibold">₹{(() => {
+                            <Text className="font-semibold">${(() => {
                               const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                               const discount = selectedOption?.discount || 0;
                               const discountedTotal = totalAmount * (1 - discount);
@@ -610,7 +610,7 @@ export default function PaymentOptions() {
                           </Text>
                           {option.discount > 0 && (
                             <Text className="text-green-600 text-sm font-medium">
-                              Save ₹{(totalAmount * option.discount).toFixed(2)} with this method
+                              Save ${(totalAmount * option.discount).toFixed(2)} with this method
                             </Text>
                           )}
 
@@ -742,7 +742,7 @@ export default function PaymentOptions() {
                   <div className="flex justify-between">
                     <Text className="text-gray-600">Base Flight Cost</Text>
                     <Text className="text-gray-900">
-                      ₹{(() => {
+                      ${(() => {
                         let baseCost = 0;
                         if (flightData.outbound) {
                           baseCost += (typeof flightData.outbound.price === 'string' ? parseFloat(flightData.outbound.price) : flightData.outbound.price || 0) * passengerCount;
@@ -760,7 +760,7 @@ export default function PaymentOptions() {
                   <div className="flex justify-between">
                     <Text className="text-gray-600">Additional Services</Text>
                     <Text className="text-gray-900">
-                      ₹{(selectedServices.reduce((total, service) => {
+                      ${(selectedServices.reduce((total, service) => {
                         const servicePrice = typeof service.price === 'string' ? parseFloat(service.price) : service.price || 0;
                         return total + servicePrice * passengerCount;
                       }, 0)).toFixed(2)}
@@ -784,7 +784,7 @@ export default function PaymentOptions() {
                       return (
                         <div className="flex justify-between">
                           <Text className="text-gray-600">Bundle Services</Text>
-                          <Text className="text-gray-900">₹{bundleCost.toFixed(2)}</Text>
+                          <Text className="text-gray-900">${bundleCost.toFixed(2)}</Text>
                         </div>
                       );
                     }
@@ -794,7 +794,7 @@ export default function PaymentOptions() {
 
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Taxes & Fees (8%)</Text>
-                  <Text className="text-gray-900">₹{(() => {
+                  <Text className="text-gray-900">${(() => {
                     const subtotal = totalAmount / 1.08;
                     const taxesOnly = subtotal * 0.08;
                     return taxesOnly.toFixed(2);
@@ -804,7 +804,7 @@ export default function PaymentOptions() {
                 {passengerCount >= 10 && (
                   <div className="flex justify-between">
                     <Text className="text-green-600">Group Discount (15%)</Text>
-                    <Text className="text-green-600">-₹{(() => {
+                    <Text className="text-green-600">-${(() => {
                       const subtotal = totalAmount / 1.08;
                       const discount = subtotal * 0.15;
                       return discount.toFixed(2);
@@ -819,7 +819,7 @@ export default function PaymentOptions() {
                     return (
                       <div className="flex justify-between">
                         <Text className="text-green-600">Payment Method Discount ({(discount * 100).toFixed(0)}%)</Text>
-                        <Text className="text-green-600">-₹{(totalAmount * discount).toFixed(2)}</Text>
+                        <Text className="text-green-600">-${(totalAmount * discount).toFixed(2)}</Text>
                       </div>
                     );
                   }
@@ -833,7 +833,7 @@ export default function PaymentOptions() {
                     Total Amount
                   </Text>
                   <Text className="font-bold text-xl text-gray-900">
-                    ₹{(() => {
+                    ${(() => {
                       const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                       const discount = selectedOption?.discount || 0;
                       return (totalAmount * (1 - discount)).toFixed(2);
@@ -850,7 +850,7 @@ export default function PaymentOptions() {
                   <div className="flex justify-between items-center mt-1">
                     <Text className="text-blue-600">Due now:</Text>
                     <Text className="font-semibold text-blue-700">
-                      ₹{(() => {
+                      ${(() => {
                         const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                         const discount = selectedOption?.discount || 0;
                         const discountedTotal = totalAmount * (1 - discount);
@@ -866,7 +866,7 @@ export default function PaymentOptions() {
                     <div className="flex justify-between items-center mt-1">
                       <Text className="text-blue-600">Remaining (due in 30 days):</Text>
                       <Text className="font-semibold text-blue-700">
-                        ₹{(() => {
+                        ${(() => {
                           const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                           const discount = selectedOption?.discount || 0;
                           const discountedTotal = totalAmount * (1 - discount);
@@ -880,7 +880,7 @@ export default function PaymentOptions() {
                       <div className="flex justify-between items-center">
                         <Text className="text-blue-600">Next payment (30 days):</Text>
                         <Text className="font-semibold text-blue-700">
-                          ₹{(() => {
+                          ${(() => {
                             const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                             const discount = selectedOption?.discount || 0;
                             const discountedTotal = totalAmount * (1 - discount);
@@ -891,7 +891,7 @@ export default function PaymentOptions() {
                       <div className="flex justify-between items-center">
                         <Text className="text-blue-600">Final payment (60 days):</Text>
                         <Text className="font-semibold text-blue-700">
-                          ₹{(() => {
+                          ${(() => {
                             const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
                             const discount = selectedOption?.discount || 0;
                             const discountedTotal = totalAmount * (1 - discount);
