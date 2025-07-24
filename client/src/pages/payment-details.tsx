@@ -56,6 +56,15 @@ export default function PaymentDetails() {
       return;
     }
 
+    // Get the bid ID from the URL params
+    const bidId = params?.bidId;
+
+    if (!bidId) {
+      message.error('Bid ID not found');
+      setLocation('/bids');
+      return;
+    }
+
     // Check if bid is already completed before processing payment
     try {
       const bidResponse = await fetch(`/api/bids/${bidId}`);
@@ -99,9 +108,7 @@ export default function PaymentDetails() {
     try {
       const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // Get the bid ID from the URL params instead of localStorage
-      const bidId = params?.bidId;
-
+      // bidId is already defined above, so we can use it directly
       if (!bidId) {
         throw new Error('Bid ID not found');
       }
