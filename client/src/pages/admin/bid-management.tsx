@@ -2105,7 +2105,7 @@ export default function BidManagement() {
       {/* Pending Refund Requests */}
       <Card>
         <div className="mb-4">
-          <Title level={4} className<!mb-1">
+          <Title level={4} className="!mb-1">
             Pending Refund Requests
           </Title>
           <Text className="text-gray-500">
