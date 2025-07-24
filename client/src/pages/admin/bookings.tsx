@@ -19,6 +19,8 @@ import {
   Badge,
   message,
   Tabs,
+  Divider,
+  Checkbox,
 } from "antd";
 import {
   SearchOutlined,
@@ -33,6 +35,7 @@ import {
   LogoutOutlined,
   BellOutlined,
   PlusOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 import { Form, Radio, InputNumber } from "antd";
 import dayjs from "dayjs";
@@ -53,6 +56,24 @@ export default function Bookings() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [originOptions, setOriginOptions] = useState<string[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
+
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
 
   useEffect(() => {
     // Check if admin is logged in
@@ -468,7 +489,6 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
               <Radio.Group value={tripType} onChange={(e) => setTripType(e.target.value)}>
                 <Radio value="oneWay">One way</Radio>
                 <Radio value="roundTrip">Round trip</Radio>
-                <Radio value="multiCity">Multi city</Radio>
               </Radio.Group>
             </div>
 
@@ -479,17 +499,23 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
                   name="origin"
                   rules={[{ required: true, message: "Please select origin" }]}
                 >
-                  <Select placeholder="Select origin" showSearch>
-                    <Option value="New York">New York</Option>
-                    <Option value="Los Angeles">Los Angeles</Option>
-                    <Option value="London">London</Option>
-                    <Option value="Paris">Paris</Option>
-                    <Option value="Tokyo">Tokyo</Option>
-                    <Option value="Dubai">Dubai</Option>
-                    <Option value="Mumbai">Mumbai</Option>
-                    <Option value="Delhi">Delhi</Option>
-                    <Option value="Chennai">Chennai</Option>
-                    <Option value="Bangalore">Bangalore</Option>
+                  <Select
+                    mode="combobox"
+                    placeholder="Search city / airport"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.value ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                    notFoundContent="No locations found"
+                  >
+                    {originOptions.map((location) => (
+                      <Select.Option key={location} value={location}>
+                        {location}
+                      </Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
@@ -499,17 +525,23 @@ function AdminBookingFlow({ setLocation }: { setLocation: (path: string) => void
                   name="destination"
                   rules={[{ required: true, message: "Please select destination" }]}
                 >
-                  <Select placeholder="Select destination" showSearch>
-                    <Option value="New York">New York</Option>
-                    <Option value="Los Angeles">Los Angeles</Option>
-                    <Option value="London">London</Option>
-                    <Option value="Paris">Paris</Option>
-                    <Option value="Tokyo">Tokyo</Option>
-                    <Option value="Dubai">Dubai</Option>
-                    <Option value="Mumbai">Mumbai</Option>
-                    <Option value="Delhi">Delhi</Option>
-                    <Option value="Chennai">Chennai</Option>
-                    <Option value="Bangalore">Bangalore</Option>
+                  <Select
+                    mode="combobox"
+                    placeholder="Search city / airport"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.value ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                    notFoundContent="No locations found"
+                  >
+                    {destinationOptions.map((location) => (
+                      <Select.Option key={location} value={location}>
+                        {location}
+                      </Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
