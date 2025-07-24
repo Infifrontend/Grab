@@ -115,19 +115,20 @@ export default function ManageBookingDetail() {
   }, [bookingDetails]);
 
   // Get group size from booking data
-  const groupSize = bookingDetails?.booking?.passengerCount || 1;
-  const [currentGroupSize, setCurrentGroupSize] = useState(1);
+  const groupSize = bookingDetails?.booking?.passengerCount || 0;
 
   // Calculate confirmed passengers (those with both first and last names filled)
   const confirmedPassengersCount = passengers.filter(
     (p) => p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim(),
   ).length;
 
+  // Set current group size to match confirmed passengers count
+  const [currentGroupSize, setCurrentGroupSize] = useState(confirmedPassengersCount);
+
   React.useEffect(() => {
-    if (bookingDetails?.booking?.passengerCount) {
-      setCurrentGroupSize(bookingDetails.booking.passengerCount);
-    }
-  }, [bookingDetails]);
+    // Update current group size to match confirmed passengers count
+    setCurrentGroupSize(confirmedPassengersCount);
+  }, [confirmedPassengersCount]);
 
   if (isLoading) {
     return (
@@ -455,16 +456,17 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     <div className="flex items-center gap-3">
                       <Button
                         onClick={() =>
-                          setCurrentGroupSize(Math.max(1, currentGroupSize - 1))
+                          setCurrentGroupSize(Math.max(0, currentGroupSize - 1))
                         }
                         className="w-10 h-10 flex items-center justify-center"
+                        disabled={currentGroupSize <= 0}
                       >
                         -
                       </Button>
                       <InputNumber
                         value={currentGroupSize}
-                        onChange={(value) => setCurrentGroupSize(value || 1)}
-                        min={1}
+                        onChange={(value) => setCurrentGroupSize(value || 0)}
+                        min={0}
                         className="text-center"
                         style={{ width: "80px" }}
                       />
