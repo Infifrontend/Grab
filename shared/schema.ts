@@ -130,6 +130,7 @@ export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
   bookingId: integer("booking_id").references(() => bookings.id),
   userId: integer("user_id").references(() => users.id),
+  paymentReference: text("payment_reference").notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: text("currency").notNull().default("USD"),
   paymentMethod: text("payment_method").notNull(), // credit_card, debit_card, paypal, bank_transfer

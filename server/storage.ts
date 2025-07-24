@@ -610,9 +610,13 @@ export class DatabaseStorage implements IStorage {
 
   async createPayment(paymentData: any) {
     try {
+      // Generate payment reference if not provided
+      const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+      
       const [payment] = await db.insert(payments).values({
         bookingId: paymentData.bookingId || null,
         userId: paymentData.userId || 1,
+        paymentReference: paymentReference,
         amount: paymentData.amount,
         currency: paymentData.currency || 'USD',
         paymentMethod: paymentData.paymentMethod,

@@ -1227,6 +1227,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Migrate payments table to add payment_reference column
+  app.post("/api/migrate-payment-reference", async (_req, res) => {
+    try {
+      const { migratePaymentReference } = await import("./migrate-payment-reference");
+      await migratePaymentReference();
+      res.json({
+        success: true,
+        message: "Payment reference column added successfully",
+      });
+    } catch (error) {
+      console.error("Payment reference migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to migrate payment reference column",
+      });
+    }
+  });
+
   // Update booking details (group leader info)
   app.put("/api/booking-details/:id", async (req, res) => {
     try {
