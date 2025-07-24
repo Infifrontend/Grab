@@ -184,12 +184,6 @@ export default function FlightSearchBundle() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
-  const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
-  const [searchCriteria, setSearchCriteria] = useState<any>({});
-  const [passengerCount, setPassengerCount] = useState<number>(1);
-  const [originOptions, setOriginOptions] = useState<string[]>([]);
-  const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
-  const [isAdminBooking, setIsAdminBooking] = useState<boolean>(false);
 
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
