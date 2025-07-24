@@ -356,24 +356,7 @@ export default function BidDetails() {
                     />
                   </div>
                 </Col>
-                <Col xs={24} md={24}>
-                  <div>
-                    <Text className="text-gray-700 font-medium block mb-2">
-                      Special Requests / Notes
-                    </Text>
-                    <TextArea
-                      value={transformedBidData.specialRequests}
-                      placeholder="No special requests"
-                      rows={3}
-                      className="rounded-md"
-                      readOnly
-                      style={{
-                        backgroundColor: "#f5f5f5",
-                        cursor: "not-allowed",
-                      }}
-                    />
-                  </div>
-                </Col>
+                
               </Row>
             </div>
 
