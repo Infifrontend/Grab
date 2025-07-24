@@ -506,7 +506,7 @@ export default function BidManagement() {
 
     // Apply search filter to the mapped data without modifying the original
     let filteredBids = allActiveBids;
-    
+
     if (searchText) {
       filteredBids = allActiveBids.filter((mappedBid) => {
         return (
@@ -527,7 +527,7 @@ export default function BidManagement() {
         {/* Active Bids Header */}
         <div className="mb-6">
           <Title level={4} className="!mb-1">
-            Active Bids Requiring Attention ({activeBids.length})
+            Active Bids Requiring Attention ({filteredBids.length})
           </Title>
           <Text className="text-gray-500">
             Monitor and respond to passenger upgrade bids
@@ -694,7 +694,7 @@ export default function BidManagement() {
                       e.preventDefault();
                       e.stopPropagation();
                       console.log("Review Bid clicked for record:", record);
-                      
+
                       // Use the stored original bid data directly
                       if (record.originalBidData) {
                         handleReviewBid(record);
@@ -745,10 +745,10 @@ export default function BidManagement() {
 
   const handleReviewBid = (bidRecord) => {
     console.log("handleReviewBid called with:", bidRecord);
-    
+
     // Use the original bid data directly from the record
     const bidData = bidRecord.originalBidData;
-    
+
     if (!bidData) {
       console.error("No original bid data found in record:", bidRecord);
       message.error("Unable to find bid data. Please try again.");
@@ -799,7 +799,7 @@ export default function BidManagement() {
     // Clear any existing modal state first
     setSelectedBidForReview(null);
     reviewForm.resetFields();
-    
+
     // Set new data and open modal
     setTimeout(() => {
       setSelectedBidForReview(reviewData);
@@ -1031,7 +1031,7 @@ export default function BidManagement() {
 
       {/* Bid Configuration Cards */}
       <div className="space-y-4">
-        {bidConfigurations.length === 0 ? (
+        {bidConfigurations.length === 0 ?(
           <div className="text-center py-8">
             <Text className="text-gray-500">
               No bid configurations found. Create your first bid configuration
@@ -3103,7 +3103,7 @@ export default function BidManagement() {
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar */
         <div
           className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
           style={{ height: "calc(100vh - 73px" }}
@@ -3112,8 +3112,7 @@ export default function BidManagement() {
             <div className="p-6">
               <nav className="space-y-2">
                 <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all```text
- duration-200"
+                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
                   onClick={() => setLocation("/admin/dashboard")}
                 >
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -3863,7 +3862,7 @@ export default function BidManagement() {
                         >
                           <Input.TextArea
                             rows={4}
-                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, events), special conditions, or other relevant information..."
+                            placeholder="Optional: Add any additional notes about fare terms, targeting specific groups (weddings, students, corporate events), special conditions, or other relevant information..."
                             className="rounded-lg"
                           />
                         </Form.Item>
