@@ -251,17 +251,23 @@ export default function Dashboard() {
     }
   };
 
-  // Transform real booking data for table
-  const bookingsTableData = flightBookings.map((booking, index) => ({
-    key: booking.id,
-    bookingId: booking.bookingReference,
-    groupType: 'Group Travel', // Default since we don't have this field
-    route: booking.flight ? `${booking.flight.origin} to ${booking.flight.destination}` : 'N/A',
-    date: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : 'N/A',
-    returnDate: booking.flight ? new Date(booking.flight.arrivalTime).toISOString().split('T')[0] : null,
-    passengers: booking.passengerCount,
-    status: booking.bookingStatus,
-  }));
+  // Transform real booking data for table and sort by creation date (latest first)
+  const bookingsTableData = flightBookings
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.bookedAt || 0);
+      const dateB = new Date(b.createdAt || b.bookedAt || 0);
+      return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
+    })
+    .map((booking, index) => ({
+      key: booking.id,
+      bookingId: booking.bookingReference,
+      groupType: 'Group Travel', // Default since we don't have this field
+      route: booking.flight ? `${booking.flight.origin} to ${booking.flight.destination}` : 'N/A',
+      date: booking.flight ? new Date(booking.flight.departureTime).toISOString().split('T')[0] : 'N/A',
+      returnDate: booking.flight ? new Date(booking.flight.arrivalTime).toISOString().split('T')[0] : null,
+      passengers: booking.passengerCount,
+      status: booking.bookingStatus,
+    }));
 
   return (
     <div className="min-h-screen bg-gray-50">
