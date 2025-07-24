@@ -65,31 +65,6 @@ export default function PaymentDetails() {
       return;
     }
 
-    // Check if bid payment has already been completed by checking bid status
-    try {
-      const bidResponse = await fetch(`/api/bids/${bidId}`);
-      if (bidResponse.ok) {
-        const bidData = await bidResponse.json();
-        console.log("Bid data for payment check:", bidData);
-        
-        // Check if bid is already completed or if payment info indicates completion
-        if (bidData.bid?.bidStatus === 'completed') {
-          try {
-            const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
-            if (notes.paymentInfo?.paymentCompleted === true) {
-              message.error("Payment has already been completed for this bid");
-              // setLocation('/bids');
-              return;
-            }
-          } catch (noteError) {
-            console.log("Could not parse bid notes for payment check:", noteError);
-          }
-        }
-      }
-    } catch (error) {
-      console.log("Error checking bid payment status:", error);
-    }
-
     // Validate form based on payment method
     if (paymentMethod === 'creditCard') {
       try {
@@ -103,14 +78,60 @@ export default function PaymentDetails() {
     setLoading(true);
 
     try {
-      const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
+      console.log(`Processing payment for bid ID: ${bidId}`);
 
-      // bidId is already defined above, so we can use it directly
-      if (!bidId) {
-        throw new Error('Bid ID not found');
+      // First, verify the bid exists and is in a valid state for payment
+      const bidCheckResponse = await fetch(`/api/bids/${bidId}`);
+      if (!bidCheckResponse.ok) {
+        throw new Error('Bid not found');
       }
 
-      // Update existing bid status to completed after payment
+      const bidData = await bidCheckResponse.json();
+      console.log("Bid data:", bidData);
+
+      // Check if payment has already been completed
+      if (bidData.bid?.bidStatus === 'completed') {
+        try {
+          const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
+          if (notes.paymentInfo?.paymentCompleted === true) {
+            message.error("Payment has already been completed for this bid");
+            setLocation('/bids');
+            return;
+          }
+        } catch (noteError) {
+          console.log("Could not parse bid notes:", noteError);
+        }
+      }
+
+      const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
+
+      // Create payment record using bid ID
+      const paymentResponse = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bidId: parseInt(bidId),
+          bookingId: parseInt(bidId), // Use bid ID as booking reference for now
+          amount: bidParticipationData.depositRequired.toString(),
+          currency: 'INR',
+          paymentMethod: paymentMethod,
+          paymentStatus: 'completed',
+          paymentType: 'deposit',
+          cardDetails: paymentMethod === 'creditCard' ? formValues : null
+        })
+      });
+
+      if (!paymentResponse.ok) {
+        const errorData = await paymentResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || `Payment processing failed: ${paymentResponse.status}`);
+      }
+
+      const paymentResult = await paymentResponse.json();
+      console.log("Payment created successfully:", paymentResult);
+
+      // Update bid status to completed after successful payment
       const bidUpdateResponse = await fetch(`/api/bids/${bidId}/payment-status`, {
         method: 'PUT',
         headers: {
@@ -125,44 +146,23 @@ export default function PaymentDetails() {
       });
 
       if (!bidUpdateResponse.ok) {
-        throw new Error('Failed to update bid status');
+        console.warn('Payment succeeded but bid status update failed');
+        // Don't throw error here as payment was successful
       }
 
-      const bidUpdateResult = await bidUpdateResponse.json();
-
-      // Create payment record for the existing bid
-      const paymentResponse = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bidId: parseInt(bidId),
-          bookingId: parseInt(bidId), // Use bid ID as booking reference
-          amount: bidParticipationData.depositRequired.toString(),
-          currency: 'INR',
-          paymentMethod: paymentMethod,
-          paymentStatus: 'completed',
-          paymentType: 'deposit',
-          cardDetails: paymentMethod === 'creditCard' ? formValues : null
-        })
-      });
-
-      if (!paymentResponse.ok) {
-        const errorData = await paymentResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || `Payment failed with status: ${paymentResponse.status}`);
-      }
-
-      const paymentResult = await paymentResponse.json();
-      setPaymentReference(paymentResult.paymentReference);
+      // Store payment reference for display
+      setPaymentReference(paymentResult.paymentReference || `PAY-${bidId}-${Date.now()}`);
 
       // Clear localStorage
       localStorage.removeItem('bidParticipationData');
 
+      message.success('Payment processed successfully!');
+
       // Show success modal
       setShowSuccessModal(true);
+
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("Payment processing error:", error);
       message.error(error.message || "Payment failed. Please try again.");
     } finally {
       setLoading(false);
