@@ -38,15 +38,10 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Show active, completed, accepted, and pending bids, limit to recent ones
+      // Show only active bids, limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => 
-          bid.bidStatus === "active" || 
-          bid.bidStatus === "completed" || 
-          bid.bidStatus === "accepted" ||
-          bid.bidStatus === "pending"
-        )
-        .slice(0, 5); // Show only the 5 most recent bids
+        .filter((bid: ActiveBid) => bid.bidStatus === "active")
+        .slice(0, 5); // Show only the 5 most recent active bids
     },
   });
 
