@@ -1,6 +1,6 @@
 import Header from "@/components/layout/header";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
-import ActiveBidsSection from "@/components/bids/active-bids-section";
+import HotDealsSection from "@/components/deals/hot-deals-section";
 import MarketplaceSection from "@/components/marketplace/marketplace-section";
 import RecentBookingsSection from "@/components/bookings/recent-bookings-section";
 import { Alert, Button } from "antd";
@@ -67,8 +67,7 @@ export default function Home() {
             <QuickBookingForm />
           </div>
           <div className="lg:col-span-7">
-            {/* Active Bids Section */}
-            <ActiveBidsSection />
+            <HotDealsSection />
           </div>
         </div>
 
