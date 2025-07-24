@@ -611,9 +611,16 @@ export class DatabaseStorage implements IStorage {
   async createPayment(paymentData: any) {
     try {
       const [payment] = await db.insert(payments).values({
-        ...paymentData,
-        paymentReference: `PAY-${new Date().getFullYear()}-${nanoid(6)}`,
-        createdAt: new Date()
+        bookingId: paymentData.bookingId || null,
+        userId: paymentData.userId || 1,
+        amount: paymentData.amount,
+        currency: paymentData.currency || 'USD',
+        paymentMethod: paymentData.paymentMethod,
+        paymentStatus: paymentData.paymentStatus || 'pending',
+        transactionId: paymentData.transactionId,
+        paymentGateway: paymentData.paymentGateway,
+        processedAt: paymentData.processedAt || new Date(),
+        createdAt: paymentData.createdAt || new Date()
       }).returning();
 
       return payment;

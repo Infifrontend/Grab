@@ -1408,23 +1408,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get user ID from bid if bidId is provided
+      let userId = 1; // Default fallback
+      if (bidId) {
+        try {
+          const bidDetails = await storage.getBidById(parseInt(bidId));
+          if (bidDetails?.bid?.userId) {
+            userId = bidDetails.bid.userId;
+          }
+        } catch (error) {
+          console.log("Could not get user ID from bid, using default:", error.message);
+        }
+      }
+
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
       
       const paymentData = {
-        bookingId: bookingId || bidId || 1, // Use booking ID or bid ID as reference
-        paymentReference: paymentReference,
+        bookingId: bookingId || null, // Only use actual booking ID if provided
+        userId: userId, // Add user_id field
         amount: amount.toString(),
         currency: currency || "INR",
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus || "completed",
         paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
         transactionId: `txn_${nanoid(8)}`,
-        metadata: JSON.stringify({
-          bidId: bidId,
-          paymentType: paymentType || "deposit",
-          cardDetails: cardDetails || null,
-          completedAt: new Date().toISOString()
-        }),
+        processedAt: new Date(),
         createdAt: new Date()
       };
 
@@ -1433,12 +1441,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payment = await storage.createPayment(paymentData);
       
       console.log("Payment created successfully:", payment);
+
+      // If this payment is for a bid, update the bid status
+      if (bidId) {
+        try {
+          await storage.updateBidDetails(parseInt(bidId), {
+            bidStatus: 'completed',
+            updatedAt: new Date()
+          });
+          console.log(`Updated bid ${bidId} status to completed`);
+        } catch (error) {
+          console.log("Could not update bid status:", error.message);
+        }
+      }
       
       // Return payment with reference for frontend use
       res.json({
         success: true,
-        ...payment,
-        paymentReference: paymentReference
+        payment,
+        paymentReference: paymentReference,
+        bidId: bidId || null
       });
     } catch (error) {
       console.error("Payment creation error:", error);
@@ -1449,6 +1471,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = "Duplicate payment detected";
         } else if (error.message.includes("NOT NULL constraint")) {
           errorMessage = "Missing required payment information";
+        } else if (error.message.includes("user_id")) {
+          errorMessage = "User information required for payment";
         } else {
           errorMessage = error.message;
         }
