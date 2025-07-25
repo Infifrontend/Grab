@@ -1390,7 +1390,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         payments = await storage.getPayments();
       }
-      res.json(payments);
+
+      // Enhance payment data with bid information
+      const enhancedPayments = await Promise.all(payments.map(async (payment: any) => {
+        try {
+          // Try to find related bid information
+          const allBids = await storage.getBids();
+          const relatedBid = allBids.find(bid => {
+            // Check if payment is related to this bid through booking or notes
+            return bid.id.toString() === payment.bidId || 
+                   payment.key === bid.id.toString() ||
+                   (payment.bookingId && payment.bookingId.includes(bid.id.toString()));
+          });
+
+          if (relatedBid) {
+            // Parse bid configuration to get route information
+            let configData = {};
+            try {
+              configData = relatedBid.notes ? JSON.parse(relatedBid.notes) : {};
+            } catch (e) {
+              configData = {};
+            }
+
+            const origin = configData.origin || relatedBid.flight?.origin || "Unknown";
+            const destination = configData.destination || relatedBid.flight?.destination || "Unknown";
+            const route = `${origin} → ${destination}`;
+
+            return {
+              ...payment,
+              bidId: `BID-${relatedBid.id}`,
+              route: route
+            };
+          }
+
+          return payment;
+        } catch (error) {
+          console.log("Could not enhance payment data:", error.message);
+          return payment;
+        }
+      }));
+
+      res.json(enhancedPayments);
     } catch (error) {
       console.error("Error fetching payments:", error);
       res.status(500).json({ message: "Failed to fetch payments" });

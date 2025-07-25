@@ -43,6 +43,13 @@ export default function Bids() {
   });
   const [bidsData, setBidsData] = useState([]);
   const [paymentHistoryData, setPaymentHistoryData] = useState([]);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentSummary, setPaymentSummary] = useState({
+    totalDeposits: 0,
+    totalRefunds: 0,
+    netAmount: 0,
+    pendingPayments: 0
+  });
   const [searchParams, setSearchParams] = useState({
     bidId: "",
     route: "",
@@ -141,8 +148,55 @@ export default function Bids() {
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);
 
-        // For now, use empty payment history until we have actual payment data
-        setPaymentHistoryData([]);
+        // Fetch payment history data
+        setPaymentLoading(true);
+        try {
+          const paymentsResponse = await fetch("/api/payments");
+          const payments = await paymentsResponse.json();
+
+          // Transform payments data for the payment history table
+          const transformedPayments = payments.map((payment: any) => {
+            return {
+              paymentId: payment.paymentId || `PAY-${payment.key}`,
+              bidId: payment.bookingId || 'N/A',
+              route: 'N/A', // Will be populated from bid data if available
+              amount: payment.amount || '₹0',
+              type: payment.type || 'Payment',
+              status: payment.status || 'Pending',
+              paymentMethod: payment.method || 'N/A',
+              transactionId: payment.transactionId || 'N/A',
+              date: payment.date || new Date().toISOString().split('T')[0]
+            };
+          });
+
+          setPaymentHistoryData(transformedPayments);
+
+          // Calculate payment summary
+          const totalDeposits = transformedPayments
+            .filter(p => p.type === 'Deposit' && p.status === 'Completed')
+            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+
+          const totalRefunds = transformedPayments
+            .filter(p => p.type === 'Refund' && p.status === 'Completed')
+            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+
+          const pendingPayments = transformedPayments
+            .filter(p => p.status === 'Pending')
+            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+
+          setPaymentSummary({
+            totalDeposits,
+            totalRefunds,
+            netAmount: totalDeposits - totalRefunds,
+            pendingPayments
+          });
+
+        } catch (error) {
+          console.error("Error fetching payment history:", error);
+          setPaymentHistoryData([]);
+        } finally {
+          setPaymentLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -785,7 +839,7 @@ export default function Bids() {
                 rowKey="paymentId"
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: 1200 }}
-                loading={loading}
+                loading={paymentLoading}
               />
             </Card>
 
@@ -796,9 +850,13 @@ export default function Bids() {
                   <Text className="text-green-600 text-sm block mb-1">
                     Total Deposits
                   </Text>
-                  <Title level={3} className="!mb-0 text-green-600">
-                    $7,165.00
-                  </Title>
+                  {paymentLoading ? (
+                    <Spin size="small" />
+                  ) : (
+                    <Title level={3} className="!mb-0 text-green-600">
+                      ₹{paymentSummary.totalDeposits.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </Title>
+                  )}
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
@@ -806,9 +864,13 @@ export default function Bids() {
                   <Text className="text-purple-600 text-sm block mb-1">
                     Total Refunds
                   </Text>
-                  <Title level={3} className="!mb-0 text-purple-600">
-                    $5,438.00
-                  </Title>
+                  {paymentLoading ? (
+                    <Spin size="small" />
+                  ) : (
+                    <Title level={3} className="!mb-0 text-purple-600">
+                      ₹{paymentSummary.totalRefunds.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </Title>
+                  )}
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
@@ -816,9 +878,13 @@ export default function Bids() {
                   <Text className="text-blue-600 text-sm block mb-1">
                     Net Amount
                   </Text>
-                  <Title level={3} className="!mb-0 text-blue-600">
-                    $1,727.00
-                  </Title>
+                  {paymentLoading ? (
+                    <Spin size="small" />
+                  ) : (
+                    <Title level={3} className="!mb-0 text-blue-600">
+                      ₹{paymentSummary.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </Title>
+                  )}
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
@@ -826,9 +892,13 @@ export default function Bids() {
                   <Text className="text-orange-600 text-sm block mb-1">
                     Pending Payments
                   </Text>
-                  <Title level={3} className="!mb-0 text-orange-600">
-                    $1,840.00
-                  </Title>
+                  {paymentLoading ? (
+                    <Spin size="small" />
+                  ) : (
+                    <Title level={3} className="!mb-0 text-orange-600">
+                      ₹{paymentSummary.pendingPayments.toLocaleString('en-IN', { minimimFractionDigits: 2 })}
+                    </Title>
+                  )}
                 </Card>
               </Col>
             </Row>

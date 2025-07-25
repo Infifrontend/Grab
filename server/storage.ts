@@ -457,11 +457,11 @@ export class DatabaseStorage implements IStorage {
       // Calculate totals
       const totalPayments = allPayments
         .filter(p => p.status === 'completed')
-        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
 
       const pendingPayments = allPayments
         .filter(p => p.status === 'pending')
-        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
 
       // Calculate upcoming payments (next 30 days)
       const thirtyDaysFromNow = new Date();
@@ -469,7 +469,7 @@ export class DatabaseStorage implements IStorage {
 
       const upcomingPayments = allPayments
         .filter(p => p.status === 'pending' && new Date(p.createdAt) <= thirtyDaysFromNow)
-        .reduce((sum, payment) => sum + parseFloat(p.amount.toString()), 0);
+        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
 
       // Get refunds
       const allRefunds = await db
