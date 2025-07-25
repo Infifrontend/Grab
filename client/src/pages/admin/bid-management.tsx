@@ -553,6 +553,8 @@ export default function BidManagement() {
                   (bid) => `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
                 );
 
+                const baseBidAmount = parseFloat(record.bidAmount.replace('$', ''));
+
                 let retailUsers = [];
                 if (bidData) {
                   try {
@@ -564,7 +566,7 @@ export default function BidManagement() {
                         email: "john.smith@email.com",
                         bookingRef: "GR001234",
                         seatNumber: "12A",
-                        bidAmount: 185,
+                        bidAmount: baseBidAmount + 35,
                         status: "pending_approval"
                       },
                       {
@@ -573,7 +575,7 @@ export default function BidManagement() {
                         email: "sarah.johnson@email.com", 
                         bookingRef: "GR001235",
                         seatNumber: "12B",
-                        bidAmount: 220,
+                        bidAmount: baseBidAmount + 70,
                         status: "pending_approval"
                       },
                       {
@@ -582,12 +584,21 @@ export default function BidManagement() {
                         email: "mike.wilson@email.com",
                         bookingRef: "GR001236", 
                         seatNumber: "12C",
-                        bidAmount: 195,
-                        status: "approved"
+                        bidAmount: baseBidAmount + 45,
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 4,
+                        name: "Emma Davis",
+                        email: "emma.davis@email.com",
+                        bookingRef: "GR001237", 
+                        seatNumber: "12D",
+                        bidAmount: baseBidAmount + 60,
+                        status: "pending_approval"
                       }
                     ];
                   } catch (e) {
-                    // Default retail users if parsing fails
+                    // Default retail users if parsing fails with amounts greater than base bid
                     retailUsers = [
                       {
                         id: 1,
@@ -595,6 +606,7 @@ export default function BidManagement() {
                         email: "john.smith@email.com",
                         bookingRef: "GR001234",
                         seatNumber: "12A",
+                        bidAmount: baseBidAmount + 35,
                         status: "pending_approval"
                       },
                       {
@@ -603,6 +615,7 @@ export default function BidManagement() {
                         email: "sarah.johnson@email.com", 
                         bookingRef: "GR001235",
                         seatNumber: "12B",
+                        bidAmount: baseBidAmount + 70,
                         status: "pending_approval"
                       },
                       {
@@ -611,72 +624,102 @@ export default function BidManagement() {
                         email: "mike.wilson@email.com",
                         bookingRef: "GR001236", 
                         seatNumber: "12C",
-                        status: "approved"
+                        bidAmount: baseBidAmount + 45,
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 4,
+                        name: "Emma Davis",
+                        email: "emma.davis@email.com",
+                        bookingRef: "GR001237", 
+                        seatNumber: "12D",
+                        bidAmount: baseBidAmount + 60,
+                        status: "pending_approval"
                       }
                     ];
                   }
                 }
 
+                // Filter retail users to only show those with bid amounts greater than base bid amount
+                const filteredRetailUsers = retailUsers.filter(user => 
+                  user.bidAmount && parseFloat(user.bidAmount) > baseBidAmount
+                );
+
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
-                      Retail Users
+                      Retail Users for {record.bidId}
                     </Title>
+                    <div className="mb-3">
+                      <Text className="text-gray-600 text-sm">
+                        Base Bid Amount: <span className="font-semibold">${baseBidAmount}</span> | 
+                        Showing users with bids above base amount
+                      </Text>
+                    </div>
                     <div className="space-y-3">
-                      {retailUsers.map((user) => (
-                        <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-4">
-                              <div>
-                                <Text strong className="block">{user.name}</Text>
-                                <Text className="text-gray-500 text-sm">{user.email}</Text>
-                              </div>
-                              <div>
-                                <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
-                                <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
-                              </div>
-                              <div>
-                                <Text className="text-green-600 font-semibold text-sm block">
-                                  Bid: ${user.bidAmount || (Math.floor(Math.random() * 200) + 150)}
-                                </Text>
-                                <Text className="text-gray-500 text-xs">Per seat</Text>
-                              </div>
-                              <div>
-                                <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
-                                  {user.status.replace('_', ' ').toUpperCase()}
-                                </Tag>
-                              </div>
-                            </div>
-                          </div>
-                          {user.status === 'pending_approval' && (
-                            <div className="flex space-x-2">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
-                                loading={loading}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                danger
-                                size="small"
-                                onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
-                                loading={loading}
-                              >
-                                Reject
-                              </Button>
-                            </div>
-                          )}
+                      {filteredRetailUsers.length === 0 ? (
+                        <div className="text-center py-4">
+                          <Text className="text-gray-500">
+                            No retail users with bids above the base amount of ${baseBidAmount}
+                          </Text>
                         </div>
-                      ))}
+                      ) : (
+                        filteredRetailUsers.map((user) => (
+                          <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4">
+                                <div>
+                                  <Text strong className="block">{user.name}</Text>
+                                  <Text className="text-gray-500 text-sm">{user.email}</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
+                                  <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-green-600 font-semibold text-sm block">
+                                    Bid: ${user.bidAmount}
+                                  </Text>
+                                  <Text className="text-gray-500 text-xs">
+                                    +${(user.bidAmount - baseBidAmount).toFixed(0)} above base
+                                  </Text>
+                                </div>
+                                <div>
+                                  <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
+                                    {user.status.replace('_', ' ').toUpperCase()}
+                                  </Tag>
+                                </div>
+                              </div>
+                            </div>
+                            {user.status === 'pending_approval' && (
+                              <div className="flex space-x-2">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
+                                  loading={loading}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  danger
+                                  size="small"
+                                  onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
+                                  loading={loading}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {retailUsers.length} | 
-                        Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
-                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
+                        Retail users above base bid: {filteredRetailUsers.length} | 
+                        Pending approval: {filteredRetailUsers.filter(u => u.status === 'pending_approval').length}
                       </Text>
                     </div>
                   </div>
