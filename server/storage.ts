@@ -349,8 +349,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPassenger(passenger: InsertPassenger): Promise<Passenger> {
-    const [newPassenger] = await db.insert(passengers).values(passenger).returning();
-    return newPassenger;
+    try {
+      const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+      return newPassenger;
+    } catch (error) {
+      // If we get a duplicate key error, try to fix the sequence
+      if (error.code === '23505' && error.constraint === 'passengers_pkey') {
+        console.log('Fixing passengers sequence...');
+        
+        // Reset the sequence to the maximum ID + 1
+        await db.execute(`
+          SELECT setval('passengers_id_seq', COALESCE((SELECT MAX(id) FROM passengers), 0) + 1, false)
+        `);
+        
+        // Try the insert again
+        const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+        return newPassenger;
+      } else {
+        throw error;
+      }
+    }
   }
 
   async updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void> {
@@ -1037,6 +1055,10 @@ export class DatabaseStorage implements IStorage {
       
       await db.execute(`
         SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false)
+      `);
+      
+      await db.execute(`
+        SELECT setval('passengers_id_seq', COALESCE((SELECT MAX(id) FROM passengers), 0) + 1, false)
       `);
       
       console.log('Database sequences fixed successfully');
