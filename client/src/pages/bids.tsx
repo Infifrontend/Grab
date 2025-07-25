@@ -123,13 +123,15 @@ export default function Bids() {
                 ? "Pending"
                 : bid.bidStatus === "accepted"
                   ? "Accepted"
+                  : bid.bidStatus === "approved"
+                    ? "Approved"
                   : bid.bidStatus === "rejected"
                     ? "Declined"
                   : bid.bidStatus === "expired"
                     ? "Expired"
                   : bid.bidStatus === "completed"
                     ? "Completed"
-                    : bid.bidStatus === "pending"
+                  : bid.bidStatus === "pending"
                       ? "Under Review"
                       : "Under Review",
             payment:
@@ -137,6 +139,8 @@ export default function Bids() {
                 ? "Payment Completed"
                 : bid.bidStatus === "accepted"
                   ? "Converted to Booking"
+                  : bid.bidStatus === "approved"
+                    ? "Approved for Booking"
                   : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
                     ? "Refunded"
                     : "Paid",
@@ -335,6 +339,8 @@ export default function Bids() {
         return "blue";
       case "Accepted":
         return "green";
+      case "Approved":
+        return "cyan";
       case "Declined":
         return "red";
       case "Expired":
@@ -673,6 +679,7 @@ export default function Bids() {
                       { value: "all", label: "All Status" },
                       { value: "pending", label: "Pending" },
                       { value: "accepted", label: "Accepted" },
+                      { value: "approved", label: "Approved" },
                       { value: "declined", label: "Declined" },
                       { value: "expired", label: "Expired" },
                       { value: "under review", label: "Under Review" },
