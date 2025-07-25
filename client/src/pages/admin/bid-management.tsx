@@ -798,20 +798,6 @@ export default function BidManagement() {
                   </Tag>
                 ),
               },
-              {
-                title: "Actions",
-                key: "actions",
-                render: (_, record) => (
-                  <Button
-                    type="link"
-                    icon={<EyeOutlined />}
-                    size="small"
-                    onClick={() => handleReviewBid(record)}
-                  >
-                    Review Bid
-                  </Button>
-                ),
-              },
             ]}
             pagination={{ pageSize: 10 }}
             loading={!recentBidsData}
