@@ -29,7 +29,6 @@ export default function RetailLogin() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Store user session
         localStorage.setItem('userLoggedIn', 'true');
         localStorage.setItem('userEmail', values.email);
         localStorage.setItem('userId', result.userId);
@@ -54,196 +53,205 @@ export default function RetailLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-500 to-orange-500 flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Volaris-inspired background elements */}
       <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-      <div className="absolute top-20 left-20 w-72 h-72 bg-white bg-opacity-10 rounded-full blur-xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-400 bg-opacity-20 rounded-full blur-2xl animate-pulse delay-1000"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-400 bg-opacity-10 rounded-full blur-xl animate-pulse delay-500"></div>
+      <div className="absolute top-10 left-10 w-64 h-64 bg-white bg-opacity-10 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-yellow-400 bg-opacity-20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-orange-400 bg-opacity-15 rounded-full blur-2xl animate-pulse delay-500"></div>
       
-      {/* Left side content */}
-      <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 pr-16">
+      {/* Left side branding */}
+      <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 pr-20">
         <div className="text-white max-w-lg">
-          <div className="mb-12">
-            <div className="flex items-center space-x-4 mb-8">
-              <div className="w-14 h-14 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl">✈️</span>
+          <div className="mb-10">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-12">
+                <span className="text-white font-bold text-3xl transform -rotate-12">V</span>
               </div>
-              <Title level={2} className="!text-white !mb-0 !text-3xl font-bold">
-                GroupRM
-              </Title>
+              <div>
+                <Title level={1} className="!text-white !mb-0 !text-4xl font-black tracking-wide">
+                  VOLARIS
+                </Title>
+                <Text className="text-orange-200 text-lg font-semibold uppercase tracking-widest">
+                  GROUP BOOKING
+                </Text>
+              </div>
             </div>
           </div>
           
-          <Title level={1} className="!text-white !mb-8 !text-5xl font-extrabold leading-tight">
-            Enjoy 😊 the benefits of group bookings
+          <Title level={2} className="!text-white !mb-6 !text-3xl font-bold leading-tight">
+            ¡Vuela más, paga menos! ✈️
           </Title>
           
-          <Text className="text-white text-xl opacity-90 mb-12 block leading-relaxed">
-            Transform your travel experience with our innovative group booking platform
+          <Text className="text-white text-lg opacity-90 mb-10 block leading-relaxed">
+            Experience ultra-low cost flights with Volaris group booking platform. 
+            Book together, save together!
           </Text>
           
-          <div className="grid grid-cols-3 gap-8 mt-16">
+          <div className="grid grid-cols-3 gap-6 mt-12">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
-                <span className="text-white text-2xl">⚡</span>
+              <div className="w-14 h-14 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mb-3 mx-auto shadow-lg transform hover:scale-110 transition-transform">
+                <span className="text-white text-xl">⚡</span>
               </div>
-              <Text className="text-white font-semibold text-sm">Quick Response</Text>
+              <Text className="text-white font-medium text-sm">Ultra Fast</Text>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
-                <span className="text-white text-2xl">🤖</span>
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center mb-3 mx-auto shadow-lg transform hover:scale-110 transition-transform">
+                <span className="text-white text-xl">💰</span>
               </div>
-              <Text className="text-white font-semibold text-sm">E2E Automation</Text>
+              <Text className="text-white font-medium text-sm">Low Cost</Text>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
-                <span className="text-white text-2xl">📊</span>
+              <div className="w-14 h-14 bg-gradient-to-r from-yellow-500 to-red-500 rounded-xl flex items-center justify-center mb-3 mx-auto shadow-lg transform hover:scale-110 transition-transform">
+                <span className="text-white text-xl">👥</span>
               </div>
-              <Text className="text-white font-semibold text-sm">Analytics</Text>
+              <Text className="text-white font-medium text-sm">Group Deals</Text>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right side login form */}
-      <div className="w-full max-w-md relative z-10">
+      {/* Compact login form */}
+      <div className="w-full max-w-sm relative z-10">
         <Card 
-          className="shadow-2xl border-0 backdrop-blur-sm bg-white/95"
+          className="shadow-2xl border-0 backdrop-blur-md bg-white/95 transform hover:scale-105 transition-transform duration-300"
           style={{ 
-            borderRadius: '20px',
-            padding: '8px'
+            borderRadius: '24px',
+            padding: '4px'
           }}
         >
           <div className="mb-6 text-center">
-            <Title level={3} className="!mb-2 !text-gray-800 font-bold">
-              Welcome Back
+            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <span className="text-white font-bold text-xl">V</span>
+            </div>
+            <Title level={3} className="!mb-1 !text-gray-800 font-bold">
+              Iniciar Sesión
             </Title>
-            <Text className="text-gray-500">Sign in to your account</Text>
+            <Text className="text-gray-500 text-sm">Accede a tu cuenta Volaris</Text>
           </div>
 
           <Form
             form={form}
-            name="retail-login"
+            name="volaris-login"
             onFinish={handleLogin}
             layout="vertical"
             size="large"
             className="space-y-1"
           >
             <Form.Item
-              label={<Text className="text-gray-700 font-medium">Email Address</Text>}
+              label={<Text className="text-gray-700 font-medium text-sm">Correo Electrónico</Text>}
               name="email"
               rules={[
-                { required: true, message: 'Please enter your email!' },
-                { type: 'email', message: 'Please enter a valid email address!' }
+                { required: true, message: '¡Por favor ingresa tu correo!' },
+                { type: 'email', message: '¡Por favor ingresa un correo válido!' }
               ]}
-              className="mb-4"
+              className="mb-3"
             >
               <Input
-                prefix={<UserOutlined className="text-gray-400" />}
-                placeholder="Enter your email"
-                className="h-12 rounded-xl border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-colors"
+                prefix={<UserOutlined className="text-red-400" />}
+                placeholder="tu@email.com"
+                className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
                 style={{ 
-                  fontSize: '15px',
+                  fontSize: '14px',
                   boxShadow: 'none'
                 }}
               />
             </Form.Item>
 
             <Form.Item
-              label={<Text className="text-gray-700 font-medium">Password</Text>}
+              label={<Text className="text-gray-700 font-medium text-sm">Contraseña</Text>}
               name="password"
               rules={[
-                { required: true, message: 'Please enter your password!' },
-                { min: 6, message: 'Password must be at least 6 characters!' }
+                { required: true, message: '¡Por favor ingresa tu contraseña!' },
+                { min: 6, message: '¡La contraseña debe tener al menos 6 caracteres!' }
               ]}
-              className="mb-4"
+              className="mb-3"
             >
               <Input.Password
-                prefix={<LockOutlined className="text-gray-400" />}
-                placeholder="Enter your password"
+                prefix={<LockOutlined className="text-red-400" />}
+                placeholder="••••••••"
                 iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                className="h-12 rounded-xl border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-colors"
+                className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
                 style={{ 
-                  fontSize: '15px',
+                  fontSize: '14px',
                   boxShadow: 'none'
                 }}
               />
             </Form.Item>
 
-            <div className="text-right mb-5">
+            <div className="text-right mb-4">
               <Link 
-                className="text-blue-500 hover:text-blue-600 text-sm font-medium"
-                onClick={() => message.info('Password reset functionality coming soon!')}
+                className="text-red-500 hover:text-red-600 text-xs font-medium"
+                onClick={() => message.info('Función de recuperación de contraseña próximamente!')}
               >
-                Forgot password?
+                ¿Olvidaste tu contraseña?
               </Link>
             </div>
 
-            <Form.Item className="!mb-5">
+            <Form.Item className="!mb-4">
               <Button
                 type="primary"
                 htmlType="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 border-0 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                className="w-full h-11 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 rounded-lg font-semibold text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
                 loading={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </Button>
             </Form.Item>
           </Form>
 
-          <div className="text-center mb-5">
-            <Text className="text-gray-500 text-sm">
-              Don't have an account? {' '}
+          <div className="text-center mb-4">
+            <Text className="text-gray-500 text-xs">
+              ¿No tienes cuenta? {' '}
               <Link 
-                className="text-blue-500 hover:text-blue-600 font-medium"
-                onClick={() => message.info('Registration coming soon!')}
+                className="text-red-500 hover:text-red-600 font-medium"
+                onClick={() => message.info('¡Registro próximamente!')}
               >
-                Sign up
+                Regístrate
               </Link>
-              {' '} or {' '}
+              {' '} o {' '}
               <Link 
-                className="text-purple-500 hover:text-purple-600 font-medium"
-                onClick={() => message.info('OTP login coming soon!')}
+                className="text-orange-500 hover:text-orange-600 font-medium"
+                onClick={() => message.info('¡Inicio con OTP próximamente!')}
               >
-                Login with OTP
+                Código SMS
               </Link>
             </Text>
           </div>
 
-          <Divider className="!my-5">
-            <Text className="text-gray-400 text-sm">or continue with</Text>
+          <Divider className="!my-4">
+            <Text className="text-gray-400 text-xs">o continúa con</Text>
           </Divider>
 
-          <Space className="w-full justify-center" size="large">
+          <Space className="w-full justify-center" size="middle">
             <Button
               icon={<GoogleOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-200 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md"
+              size="middle"
+              className="w-10 h-10 border-gray-200 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
               onClick={() => handleSocialLogin('Google')}
             />
             <Button
               icon={<FacebookOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-200 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
+              size="middle"
+              className="w-10 h-10 border-gray-200 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
               onClick={() => handleSocialLogin('Facebook')}
             />
             <Button
               icon={<LinkedinOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-200 hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
+              size="middle"
+              className="w-10 h-10 border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
               onClick={() => handleSocialLogin('LinkedIn')}
             />
           </Space>
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-6">
+        <div className="text-center mt-4">
           <Text className="text-white text-xs opacity-75">
-            © 2024 GroupRM. All rights reserved | Privacy Policy | Terms of Service
+            © 2024 Volaris. Todos los derechos reservados | Política de Privacidad
           </Text>
         </div>
       </div>
@@ -251,12 +259,12 @@ export default function RetailLogin() {
       <style jsx global>{`
         .ant-input:focus,
         .ant-input-password:focus {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+          border-color: #ef4444 !important;
         }
         
         .ant-btn-primary:hover {
-          transform: translateY(-2px) !important;
+          transform: scale(1.05) !important;
         }
         
         .ant-card {
@@ -269,16 +277,21 @@ export default function RetailLogin() {
         
         .ant-input-affix-wrapper:hover,
         .ant-input-affix-wrapper:focus {
-          border-color: #3b82f6 !important;
+          border-color: #ef4444 !important;
+        }
+        
+        .ant-divider-horizontal.ant-divider-with-text::before,
+        .ant-divider-horizontal.ant-divider-with-text::after {
+          border-top-color: #e5e7eb !important;
         }
         
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(5deg); }
         }
         
         .animate-float {
-          animation: float 6s ease-in-out infinite;
+          animation: float 8s ease-in-out infinite;
         }
       `}</style>
     </div>
