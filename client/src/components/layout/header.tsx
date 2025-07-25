@@ -391,20 +391,6 @@ export default function Header() {
                     icon={<LogoutOutlined />}
                     className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
                     style={{ border: "none" }}
-                    onClick={() => {
-                      // Clear user session
-                      localStorage.removeItem('userLoggedIn');
-                      localStorage.removeItem('userEmail');
-                      localStorage.removeItem('userId');
-                      
-                      // Show success message
-                      message.success('Successfully signed out!');
-                      
-                      // Redirect to login page
-                      setTimeout(() => {
-                        window.location.href = '/login';
-                      }, 1000);
-                    }}
                   >
                     Sign Out
                   </Button>

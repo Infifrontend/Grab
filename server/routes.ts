@@ -1637,55 +1637,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification endpoints
-  app.get('/api/notifications', async (req, res) => {
-  try {
-    const notifications = await storage.getNotifications();
-    res.json({ notifications });
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    res.status(500).json({ error: 'Failed to fetch notifications' });
-  }
-});
+  app.get("/api/notifications", async (req: Request, res: Response) => {
+    try {
+      const notificationsList = await db
+        .select()
+        .from(notifications)
+        .orderBy(desc(notifications.createdAt))
+        .limit(50); // Limit to recent 50 notifications
 
-// Authentication endpoints
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Email and password are required' 
-      });
+      res.json({ notifications: notificationsList });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.json({ notifications: [] });
     }
-
-    // Simple validation - in production, you'd hash passwords and check against database
-    // For demo purposes, we'll use a hardcoded user
-    if (email === 'demo@travelagency.com' && password === 'demo123') {
-      res.json({
-        success: true,
-        message: 'Login successful',
-        userId: 1,
-        user: {
-          id: 1,
-          email: email,
-          name: 'Demo User'
-        }
-      });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Internal server error' 
-    });
-  }
-});
+  });
 
   app.put("/api/notifications/:id/read", async (req: Request, res: Response) => {
     try {

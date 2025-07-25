@@ -10,15 +10,14 @@ import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
-import AdminLogin from "./pages/admin/admin-login";
-import AdminDashboard from "./pages/admin/admin-dashboard";
-import AdminSettings from "./pages/admin/admin-settings";
-import BidManagement from "./pages/admin/bid-management";
-import OfferManagement from "./pages/admin/offer-management";
-import AdminBookings from "./pages/admin/bookings";
-import AdminCMS from "./pages/admin/cms";
-import AdminReports from "./pages/admin/reports";
-import RetailLogin from "./pages/retail-login";
+import AdminLogin from "@/pages/admin/admin-login";
+import AdminDashboard from "@/pages/admin/admin-dashboard";
+import BidManagement from "@/pages/admin/bid-management";
+import OfferManagement from "@/pages/admin/offer-management";
+import Bookings from "@/pages/admin/bookings";
+import CMS from "@/pages/admin/cms";
+import AdminSettings from "@/pages/admin/admin-settings";
+import Reports from "@/pages/admin/reports";
 import ManageBooking from "@/pages/manage-booking";
 import ManageBookingDetail from "@/pages/manage-booking-detail";
 import Payments from "@/pages/payments";
@@ -39,7 +38,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/login" component={RetailLogin} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/booking-details/:id" component={BookingDetails} />
       <Route path="/manage-booking" component={ManageBooking} />
@@ -53,10 +51,10 @@ function Router() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/bid-management" component={BidManagement} />
       <Route path="/admin/offer-management" component={OfferManagement} />
-      <Route path="/admin/bookings" component={AdminBookings} />
-      <Route path="/admin/cms" component={AdminCMS} />
+      <Route path="/admin/bookings" component={Bookings} />
+      <Route path="/admin/cms" component={CMS} />
       <Route path="/admin/admin-settings" component={AdminSettings} />
-      <Route path="/admin/reports" component={AdminReports} />
+      <Route path="/admin/reports" component={Reports} />
       <Route path="/new-booking" component={NewBooking} />
       <Route path="/flight-search-results" component={FlightSearchResults} />
       <Route path="/flight-search-bundle" component={FlightSearchBundle} />
