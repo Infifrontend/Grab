@@ -100,16 +100,16 @@ export default function RetailLogin() {
       </div>
 
       {/* Right side login form */}
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-sm relative z-10">
         <Card 
           className="shadow-2xl border-0"
           style={{ 
-            borderRadius: '16px',
-            padding: '24px'
+            borderRadius: '12px',
+            padding: '16px'
           }}
         >
-          <div className="mb-8">
-            <Title level={3} className="!mb-2 !text-gray-900">
+          <div className="mb-6">
+            <Title level={4} className="!mb-1 !text-gray-900">
               Group login
             </Title>
           </div>
@@ -132,8 +132,8 @@ export default function RetailLogin() {
               <Input
                 prefix={<UserOutlined className="text-gray-400" />}
                 placeholder="username_travelagency@gmail.com"
-                className="h-12 rounded-lg border-gray-300 hover:border-orange-400 focus:border-orange-500"
-                style={{ fontSize: '16px' }}
+                className="h-10 rounded-lg border-gray-300 hover:border-orange-400 focus:border-orange-500"
+                style={{ fontSize: '14px' }}
               />
             </Form.Item>
 
@@ -148,12 +148,12 @@ export default function RetailLogin() {
               <Input.Password
                 prefix={<LockOutlined className="text-gray-400" />}
                 placeholder="••••••••"
-                className="h-12 rounded-lg border-gray-300 hover:border-orange-400 focus:border-orange-500"
-                style={{ fontSize: '16px' }}
+                className="h-10 rounded-lg border-gray-300 hover:border-orange-400 focus:border-orange-500"
+                style={{ fontSize: '14px' }}
               />
             </Form.Item>
 
-            <div className="text-right mb-6">
+            <div className="text-right mb-4">
               <Link 
                 className="text-blue-500 hover:text-blue-600 text-sm"
                 onClick={() => message.info('Password reset functionality coming soon!')}
@@ -162,11 +162,11 @@ export default function RetailLogin() {
               </Link>
             </div>
 
-            <Form.Item className="!mb-6">
+            <Form.Item className="!mb-4">
               <Button
                 type="primary"
                 htmlType="submit"
-                className="w-full h-12 bg-orange-500 hover:bg-orange-600 border-0 rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full h-10 bg-orange-500 hover:bg-orange-600 border-0 rounded-lg font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300"
                 loading={loading}
                 style={{ backgroundColor: '#ff7849' }}
               >
@@ -175,8 +175,8 @@ export default function RetailLogin() {
             </Form.Item>
           </Form>
 
-          <div className="text-center mb-6">
-            <Text className="text-gray-500 text-sm">
+          <div className="text-center mb-4">
+            <Text className="text-gray-500 text-xs">
               Not yet registered? {' '}
               <Link 
                 className="text-blue-500 hover:text-blue-600"
@@ -194,38 +194,38 @@ export default function RetailLogin() {
             </Text>
           </div>
 
-          <Divider className="!my-6">
-            <Text className="text-gray-500 text-sm">or login with</Text>
+          <Divider className="!my-4">
+            <Text className="text-gray-500 text-xs">or login with</Text>
           </Divider>
 
-          <Space className="w-full justify-center" size="large">
+          <Space className="w-full justify-center" size="medium">
             <Button
               icon={<GoogleOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-300 hover:border-red-400 hover:text-red-500 transition-colors duration-200"
+              size="default"
+              className="w-10 h-10 border-gray-300 hover:border-red-400 hover:text-red-500 transition-colors duration-200"
               onClick={() => handleSocialLogin('Google')}
             />
             <Button
               icon={<FacebookOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-300 hover:border-blue-400 hover:text-blue-500 transition-colors duration-200"
+              size="default"
+              className="w-10 h-10 border-gray-300 hover:border-blue-400 hover:text-blue-500 transition-colors duration-200"
               onClick={() => handleSocialLogin('Facebook')}
             />
             <Button
               icon={<LinkedinOutlined />}
               shape="circle"
-              size="large"
-              className="w-12 h-12 border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200"
+              size="default"
+              className="w-10 h-10 border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200"
               onClick={() => handleSocialLogin('LinkedIn')}
             />
           </Space>
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <Text className="text-white text-sm opacity-75">
+        <div className="text-center mt-4">
+          <Text className="text-white text-xs opacity-75">
             © 2024, GroupRM all rights reserved | Privacy policy | Feedback | Copyright and trademark
           </Text>
         </div>
