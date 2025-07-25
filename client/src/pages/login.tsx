@@ -64,7 +64,7 @@ export default function Login() {
       >
         <div className="text-center mb-10">
           {/* Enhanced Airline Logo */}
-          <div className="relative inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full mb-6 shadow-xl">
+          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 shadow-xl" style={{ background: `linear-gradient(135deg, var(--infiniti-primary) 0%, ${getComputedStyle(document.documentElement).getPropertyValue('--infiniti-secondary')} 100%)` }}>
             <RocketOutlined className="text-white text-4xl" />
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
               <span className="text-xs">✨</span>
@@ -74,19 +74,19 @@ export default function Login() {
           {/* Enhanced Branding */}
           <Title 
             level={1} 
-            className="!mb-3 text-gray-900 font-black tracking-wide cursor-pointer hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
+            className="!mb-3 text-gray-900 font-black tracking-wide cursor-pointer transition-all duration-300 transform hover:scale-105"
             onClick={() => setLocation('/')}
-            style={{ fontSize: '2.2rem' }}
+            style={{ fontSize: '2.2rem', color: 'var(--infiniti-primary)' }}
           >
             INFINITI AIRWAYS
           </Title>
-          <Text className="text-blue-600 text-lg font-bold uppercase tracking-widest">
+          <Text className="text-lg font-bold uppercase tracking-widest" style={{ color: 'var(--infiniti-primary)' }}>
             Passenger Portal
           </Text>
           <div className="mt-4 flex items-center justify-center space-x-2">
-            <div className="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div className="w-8 h-0.5" style={{ background: `linear-gradient(to right, var(--infiniti-primary), var(--infiniti-secondary))` }}></div>
             <span className="text-gray-400 text-sm">✈️ Ready for Takeoff ✈️</span>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+            <div className="w-8 h-0.5" style={{ background: `linear-gradient(to right, var(--infiniti-secondary), var(--infiniti-primary))` }}></div>
           </div>
         </div>
 
@@ -105,9 +105,9 @@ export default function Login() {
             className="mb-6"
           >
             <Input
-              prefix={<UserOutlined className="text-blue-500" />}
+              prefix={<UserOutlined style={{ color: 'var(--infiniti-primary)' }} />}
               placeholder="Enter your username"
-              className="h-14 rounded-xl border-2 border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-all duration-300"
+              className="h-14 rounded-xl border-2 border-gray-200 transition-all duration-300"
               style={{
                 fontSize: '16px',
                 backgroundColor: '#f8faff'
@@ -123,10 +123,10 @@ export default function Login() {
             className="mb-8"
           >
             <Input.Password
-              prefix={<LockOutlined className="text-blue-500" />}
+              prefix={<LockOutlined style={{ color: 'var(--infiniti-primary)' }} />}
               placeholder="Enter your password"
               iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-              className="h-14 rounded-xl border-2 border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-all duration-300"
+              className="h-14 rounded-xl border-2 border-gray-200 transition-all duration-300"
               style={{
                 fontSize: '16px',
                 backgroundColor: '#f8faff'
@@ -138,7 +138,11 @@ export default function Login() {
             <Button
               type="primary"
               htmlType="submit"
-              className="w-full h-14 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 border-0 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+              className="w-full h-14 border-0 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+              style={{
+                background: `linear-gradient(135deg, var(--infiniti-primary) 0%, var(--infiniti-secondary) 100%)`,
+                color: 'white'
+              }}
               loading={loading}
             >
               {loading ? (
@@ -166,12 +170,12 @@ export default function Login() {
             </span>
             <span>•</span>
             <span className="flex items-center">
-              <span className="text-blue-500 mr-1">🌍</span>
+              <span className="mr-1" style={{ color: 'var(--infiniti-primary)' }}>🌍</span>
               Global Access
             </span>
             <span>•</span>
             <span className="flex items-center">
-              <span className="text-yellow-500 mr-1">⭐</span>
+              <span className="mr-1" style={{ color: 'var(--infiniti-secondary)' }}>⭐</span>
               Premium Service
             </span>
           </div>
@@ -182,7 +186,7 @@ export default function Login() {
             </Text>
           </Divider>
           
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3">
+          <div className="rounded-lg p-3" style={{ background: 'linear-gradient(to right, rgba(42, 10, 34, 0.05), rgba(161, 40, 133, 0.05))' }}>
             <Text className="text-gray-600 text-sm block font-medium">
               🎯 Demo Credentials
             </Text>
@@ -216,13 +220,13 @@ export default function Login() {
         
         .ant-input:focus,
         .ant-input-password:focus {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(42, 10, 34, 0.1);
+          border-color: var(--infiniti-primary) !important;
         }
         
         .ant-btn-primary:hover {
           transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 20px 40px rgba(42, 10, 34, 0.4);
         }
         
         @keyframes float {
@@ -240,7 +244,7 @@ export default function Login() {
         }
         
         .ant-btn-primary {
-          background: linear-gradient(45deg, #3b82f6, #6366f1, #8b5cf6);
+          background: linear-gradient(45deg, var(--infiniti-primary), var(--infiniti-secondary), var(--infiniti-primary));
           background-size: 400% 400%;
           animation: shimmer 3s ease-in-out infinite;
         }
