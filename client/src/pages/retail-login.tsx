@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Card, Form, Input, Button, message, Typography, Divider, Space } from "antd";
+import { Form, Input, Button, message, Typography, Divider, Space } from "antd";
 import { UserOutlined, LockOutlined, GoogleOutlined, FacebookOutlined, LinkedinOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useLocation } from "wouter";
 
@@ -80,7 +80,7 @@ export default function RetailLogin() {
           </div>
           
           <Title level={2} className="!text-white !mb-6 !text-3xl font-bold leading-tight">
-            ¡Vuela más, paga menos! ✈️
+            Fly More, Pay Less! ✈️
           </Title>
           
           <Text className="text-white text-lg opacity-90 mb-10 block leading-relaxed">
@@ -111,149 +111,141 @@ export default function RetailLogin() {
         </div>
       </div>
 
-      {/* Compact login form */}
-      <div className="w-full max-w-sm relative z-10">
-        <Card 
-          className="shadow-2xl border-0 backdrop-blur-md bg-white/95 transform hover:scale-105 transition-transform duration-300"
-          style={{ 
-            borderRadius: '24px',
-            padding: '4px'
-          }}
+      {/* Login form without card wrapper */}
+      <div className="w-full max-w-sm relative z-10 bg-white/95 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
+        <div className="mb-6 text-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span className="text-white font-bold text-xl">V</span>
+          </div>
+          <Title level={3} className="!mb-1 !text-gray-800 font-bold">
+            Sign In
+          </Title>
+          <Text className="text-gray-500 text-sm">Access your Volaris account</Text>
+        </div>
+
+        <Form
+          form={form}
+          name="volaris-login"
+          onFinish={handleLogin}
+          layout="vertical"
+          size="large"
+          className="space-y-1"
         >
-          <div className="mb-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <Title level={3} className="!mb-1 !text-gray-800 font-bold">
-              Iniciar Sesión
-            </Title>
-            <Text className="text-gray-500 text-sm">Accede a tu cuenta Volaris</Text>
-          </div>
-
-          <Form
-            form={form}
-            name="volaris-login"
-            onFinish={handleLogin}
-            layout="vertical"
-            size="large"
-            className="space-y-1"
+          <Form.Item
+            label={<Text className="text-gray-700 font-medium text-sm">Email Address</Text>}
+            name="email"
+            rules={[
+              { required: true, message: 'Please enter your email!' },
+              { type: 'email', message: 'Please enter a valid email!' }
+            ]}
+            className="mb-3"
           >
-            <Form.Item
-              label={<Text className="text-gray-700 font-medium text-sm">Correo Electrónico</Text>}
-              name="email"
-              rules={[
-                { required: true, message: '¡Por favor ingresa tu correo!' },
-                { type: 'email', message: '¡Por favor ingresa un correo válido!' }
-              ]}
-              className="mb-3"
+            <Input
+              prefix={<UserOutlined className="text-red-400" />}
+              placeholder="your@email.com"
+              className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
+              style={{ 
+                fontSize: '14px',
+                boxShadow: 'none'
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={<Text className="text-gray-700 font-medium text-sm">Password</Text>}
+            name="password"
+            rules={[
+              { required: true, message: 'Please enter your password!' },
+              { min: 6, message: 'Password must be at least 6 characters!' }
+            ]}
+            className="mb-3"
+          >
+            <Input.Password
+              prefix={<LockOutlined className="text-red-400" />}
+              placeholder="••••••••"
+              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
+              style={{ 
+                fontSize: '14px',
+                boxShadow: 'none'
+              }}
+            />
+          </Form.Item>
+
+          <div className="text-right mb-4">
+            <Link 
+              className="text-red-500 hover:text-red-600 text-xs font-medium"
+              onClick={() => message.info('Password recovery coming soon!')}
             >
-              <Input
-                prefix={<UserOutlined className="text-red-400" />}
-                placeholder="tu@email.com"
-                className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
-                style={{ 
-                  fontSize: '14px',
-                  boxShadow: 'none'
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label={<Text className="text-gray-700 font-medium text-sm">Contraseña</Text>}
-              name="password"
-              rules={[
-                { required: true, message: '¡Por favor ingresa tu contraseña!' },
-                { min: 6, message: '¡La contraseña debe tener al menos 6 caracteres!' }
-              ]}
-              className="mb-3"
-            >
-              <Input.Password
-                prefix={<LockOutlined className="text-red-400" />}
-                placeholder="••••••••"
-                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                className="h-11 rounded-lg border-gray-200 hover:border-red-400 focus:border-red-500 transition-colors"
-                style={{ 
-                  fontSize: '14px',
-                  boxShadow: 'none'
-                }}
-              />
-            </Form.Item>
-
-            <div className="text-right mb-4">
-              <Link 
-                className="text-red-500 hover:text-red-600 text-xs font-medium"
-                onClick={() => message.info('Función de recuperación de contraseña próximamente!')}
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-
-            <Form.Item className="!mb-4">
-              <Button
-                type="primary"
-                htmlType="submit"
-                className="w-full h-11 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 rounded-lg font-semibold text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
-                loading={loading}
-              >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <div className="text-center mb-4">
-            <Text className="text-gray-500 text-xs">
-              ¿No tienes cuenta? {' '}
-              <Link 
-                className="text-red-500 hover:text-red-600 font-medium"
-                onClick={() => message.info('¡Registro próximamente!')}
-              >
-                Regístrate
-              </Link>
-              {' '} o {' '}
-              <Link 
-                className="text-orange-500 hover:text-orange-600 font-medium"
-                onClick={() => message.info('¡Inicio con OTP próximamente!')}
-              >
-                Código SMS
-              </Link>
-            </Text>
+              Forgot your password?
+            </Link>
           </div>
 
-          <Divider className="!my-4">
-            <Text className="text-gray-400 text-xs">o continúa con</Text>
-          </Divider>
+          <Form.Item className="!mb-4">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full h-11 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 rounded-lg font-semibold text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
+              loading={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </Form.Item>
+        </Form>
 
-          <Space className="w-full justify-center" size="middle">
-            <Button
-              icon={<GoogleOutlined />}
-              shape="circle"
-              size="middle"
-              className="w-10 h-10 border-gray-200 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
-              onClick={() => handleSocialLogin('Google')}
-            />
-            <Button
-              icon={<FacebookOutlined />}
-              shape="circle"
-              size="middle"
-              className="w-10 h-10 border-gray-200 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
-              onClick={() => handleSocialLogin('Facebook')}
-            />
-            <Button
-              icon={<LinkedinOutlined />}
-              shape="circle"
-              size="middle"
-              className="w-10 h-10 border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
-              onClick={() => handleSocialLogin('LinkedIn')}
-            />
-          </Space>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-4">
-          <Text className="text-white text-xs opacity-75">
-            © 2024 Volaris. Todos los derechos reservados | Política de Privacidad
+        <div className="text-center mb-4">
+          <Text className="text-gray-500 text-xs">
+            Don't have an account? {' '}
+            <Link 
+              className="text-red-500 hover:text-red-600 font-medium"
+              onClick={() => message.info('Registration coming soon!')}
+            >
+              Sign Up
+            </Link>
+            {' '} or {' '}
+            <Link 
+              className="text-orange-500 hover:text-orange-600 font-medium"
+              onClick={() => message.info('SMS login coming soon!')}
+            >
+              SMS Code
+            </Link>
           </Text>
         </div>
+
+        <Divider className="!my-4">
+          <Text className="text-gray-400 text-xs">or continue with</Text>
+        </Divider>
+
+        <Space className="w-full justify-center" size="middle">
+          <Button
+            icon={<GoogleOutlined />}
+            shape="circle"
+            size="middle"
+            className="w-10 h-10 border-gray-200 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
+            onClick={() => handleSocialLogin('Google')}
+          />
+          <Button
+            icon={<FacebookOutlined />}
+            shape="circle"
+            size="middle"
+            className="w-10 h-10 border-gray-200 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
+            onClick={() => handleSocialLogin('Facebook')}
+          />
+          <Button
+            icon={<LinkedinOutlined />}
+            shape="circle"
+            size="middle"
+            className="w-10 h-10 border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110"
+            onClick={() => handleSocialLogin('LinkedIn')}
+          />
+        </Space>
+      </div>
+
+      {/* Footer */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+        <Text className="text-white text-xs opacity-75">
+          © 2024 Volaris. All rights reserved | Privacy Policy
+        </Text>
       </div>
 
       <style jsx global>{`
@@ -265,10 +257,6 @@ export default function RetailLogin() {
         
         .ant-btn-primary:hover {
           transform: scale(1.05) !important;
-        }
-        
-        .ant-card {
-          backdrop-filter: blur(20px);
         }
         
         .ant-form-item-label > label {
