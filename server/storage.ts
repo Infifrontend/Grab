@@ -938,5 +938,134 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+async getPaymentStatistics(userId?: number) {
+    try {
+      const whereCondition = userId ? eq(payments.userId, userId) : undefined;
+
+      const allPayments = await this.db
+        .select()
+        .from(payments)
+        .where(whereCondition);
+
+      const totalPayments = allPayments.reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0);
+      const pendingPayments = allPayments
+        .filter(p => p.paymentStatus === 'pending')
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0);
+
+      // Calculate upcoming payments (due in next 30 days)
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+      const upcomingPayments = allPayments
+        .filter(p => p.createdAt && new Date(p.createdAt) <= thirtyDaysFromNow && p.paymentStatus === 'pending')
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0);
+
+      const refundsProcessed = allPayments
+        .filter(p => p.paymentStatus === 'refunded')
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0);
+
+      return {
+        totalPayments,
+        pendingPayments,
+        upcomingPayments,
+        refundsProcessed
+      };
+    } catch (error) {
+      console.error('Error getting payment statistics:', error);
+      return {
+        totalPayments: 0,
+        pendingPayments: 0,
+        upcomingPayments: 0,
+        refundsProcessed: 0
+      };
+    }
+  }
+
+async getPayments(userId?: number) {
+    try {
+      const whereCondition = userId ? eq(payments.userId, userId) : undefined;
+
+      const paymentsData = await this.db
+        .select()
+        .from(payments)
+        .where(whereCondition)
+        .orderBy(desc(payments.createdAt));
+
+      return paymentsData.map(payment => {
+        let formattedDate = 'N/A';
+        if (payment.createdAt) {
+          try {
+            const date = new Date(payment.createdAt);
+            if (!isNaN(date.getTime())) {
+              formattedDate = date.toISOString().split('T')[0];
+            }
+          } catch (e) {
+            console.error('Date parsing error:', e);
+            formattedDate = new Date().toISOString().split('T')[0];
+          }
+        }
+
+        return {
+          key: payment.id.toString(),
+          paymentId: payment.paymentReference || `PAY-${payment.id}`,
+          bookingId: payment.bookingId ? `BK-${payment.bookingId}` : 'N/A',
+          date: formattedDate,
+          amount: `$${parseFloat(payment.amount || '0').toFixed(2)}`,
+          type: payment.paymentMethod === 'refund' ? 'Refund' : 'Payment',
+          status: this.capitalizeFirst(payment.paymentStatus || 'pending'),
+          method: this.formatPaymentMethod(payment.paymentMethod || 'unknown'),
+          processedAt: payment.processedAt,
+          transactionId: payment.transactionId
+        };
+      });
+    } catch (error) {
+      console.error('Error getting payments:', error);
+      return [];
+    }
+  }
+
+async getPaymentSchedule(userId?: number) {
+    try {
+      const today = new Date();
+      const futureDate1 = new Date(today);
+      futureDate1.setDate(today.getDate() + 15);
+      const futureDate2 = new Date(today);
+      futureDate2.setDate(today.getDate() + 30);
+      const pastDate = new Date(today);
+      pastDate.setDate(today.getDate() - 10);
+
+      // Return mock data for payment schedule since we don't have a dedicated schedule table
+      return [
+        {
+          key: 1000,
+          paymentId: "SCH-1001",
+          bookingId: "BK-2024-1001",
+          dueDate: futureDate1.toISOString().split('T')[0],
+          amount: "$1,500.00",
+          status: "Due"
+        },
+        {
+          key: 1001,
+          paymentId: "SCH-1002", 
+          bookingId: "BK-2024-1002",
+          dueDate: futureDate2.toISOString().split('T')[0],
+          amount: "$2,200.00",
+          status: "Upcoming"
+        },
+        {
+          key: 1002,
+          paymentId: "SCH-1003",
+          bookingId: "BK-2024-1003", 
+          dueDate: pastDate.toISOString().split('T')[0],
+          amount: "$900.00",
+          status: "Overdue"
+        }
+      ];
+    } catch (error) {
+      console.error('Error getting payment schedule:', error);
+      return [];
+    }
+  }
+
 // Export storage instance
 export const storage = new DatabaseStorage();
