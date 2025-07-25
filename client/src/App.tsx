@@ -34,6 +34,7 @@ import PaymentOptions from "@/pages/payment-options";
 import ReviewConfirmation from "@/pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
 import Login from "@/pages/login";
+import { AdminBookingProvider } from './context/AdminBookingContext';
 
 function Router() {
   return (
@@ -75,10 +76,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ConfigProvider theme={antdTheme}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <AdminBookingProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AdminBookingProvider>
       </ConfigProvider>
     </QueryClientProvider>
   );
