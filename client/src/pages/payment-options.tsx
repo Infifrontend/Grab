@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Card, Button, Typography, Radio, Form, Input, Row, Col, Space, Divider, message } from 'antd';
-import { CreditCardOutlined, BankOutlined, PayPalOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, BankOutlined, DollarOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useAdminBookingContext } from '../context/AdminBookingContext';
 
 const { Title, Text } = Typography;
@@ -165,7 +165,7 @@ export default function PaymentOptions() {
                         <Radio value="paypal" className="!flex !items-start">
                           <div className="flex-1 ml-2">
                             <div className="flex items-center gap-2 mb-2">
-                              <PayPalOutlined className="text-blue-500" />
+                              <DollarOutlined className="text-blue-500" />
                               <Text className="font-semibold text-gray-900">
                                 PayPal
                               </Text>
