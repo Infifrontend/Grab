@@ -541,84 +541,41 @@ export default function BidManagement() {
             dataSource={activeBids}
             expandable={{
               expandedRowRender: (record) => {
-                // Show expandable content for Completed status
-                const isExpandable = record.status.toLowerCase() === 'completed';
-                
-                if (!isExpandable) {
-                  return null;
-                }
-
                 // Get retail users from bid data
                 const bidData = (recentBidsData || []).find(
                   (bid) => `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
                 );
 
+                const baseBidAmount = parseFloat(record.bidAmount.replace('$', ''));
+
                 let retailUsers = [];
                 if (bidData) {
-                  const baseBidAmount = parseFloat(bidData.bidAmount) || 0;
-                  
                   try {
                     const notes = bidData.notes ? JSON.parse(bidData.notes) : {};
-                    const allRetailUsers = notes.retailUsers || [
-                      {
-                        id: 1,
-                        name: "John Smith",
-                        email: "john.smith@email.com",
-                        bookingRef: "GR001234",
-                        seatNumber: "12A",
-                        bidAmount: 285,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 2,
-                        name: "Sarah Johnson",
-                        email: "sarah.johnson@email.com", 
-                        bookingRef: "GR001235",
-                        seatNumber: "12B",
-                        bidAmount: 320,
-                        status: "pending_approval"
-                      }
-                    ];
-                    
-                    // Show all retail users for completed bids, ensuring bid amounts are higher than base
-                    retailUsers = allRetailUsers.map(user => ({
-                      ...user,
-                      bidAmount: user.bidAmount || (baseBidAmount + Math.floor(Math.random() * 100) + 35)
-                    })).filter(user => 
-                      (user.bidAmount || 0) > baseBidAmount
-                    );
+                    retailUsers = notes.retailUsers || [];
                   } catch (e) {
-                    // Default retail users if parsing fails - ensure bid amounts are higher than base
-                    const baseBidAmount = parseFloat(bidData.bidAmount) || 250;
-                    retailUsers = [
-                      {
-                        id: 1,
-                        name: "John Smith",
-                        email: "john.smith@email.com",
-                        bookingRef: "GR001234",
-                        seatNumber: "12A",
-                        bidAmount: baseBidAmount + 35,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 2,
-                        name: "Sarah Johnson",
-                        email: "sarah.johnson@email.com", 
-                        bookingRef: "GR001235",
-                        seatNumber: "12B",
-                        bidAmount: baseBidAmount + 70,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 3,
-                        name: "Mike Wilson",
-                        email: "mike.wilson@email.com",
-                        bookingRef: "GR001236", 
-                        seatNumber: "12C",
-                        bidAmount: baseBidAmount + 45,
-                        status: "pending_approval"
-                      }
-                    ];
+                    retailUsers = [];
+                  }
+                }
+
+                // If no retail users exist in the data, create default ones based on bid status
+                if (retailUsers.length === 0) {
+                  const userCount = Math.floor(Math.random() * 4) + 2; // 2-5 users
+                  const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+                  const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
+                  
+                  for (let i = 0; i < userCount; i++) {
+                    const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
+                    retailUsers.push({
+                      id: i + 1,
+                      name: names[i] || `User ${i + 1}`,
+                      email: `${names[i]?.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+                      bookingRef: `GR00123${i + 4}`,
+                      seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
+                      bidAmount: baseBidAmount + randomIncrement,
+                      status: i === 0 && record.status.toLowerCase() === 'approved' ? 'approved' : 
+                              record.status.toLowerCase() === 'pending' ? 'pending_approval' : 'pending_approval'
+                    });
                   }
                 }
 
@@ -627,70 +584,85 @@ export default function BidManagement() {
                     <Title level={5} className="!mb-4 text-blue-600">
                       Retail Users for {record.bidId}
                     </Title>
+                    <div className="mb-3">
+                      <Text className="text-gray-600 text-sm">
+                        Base Bid Amount: <span className="font-semibold">${baseBidAmount}</span> | 
+                        Total Retail Users: {retailUsers.length}
+                      </Text>
+                    </div>
                     <div className="space-y-3">
-                      {retailUsers.map((user) => (
-                        <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-4">
-                              <div>
-                                <Text strong className="block">{user.name}</Text>
-                                <Text className="text-gray-500 text-sm">{user.email}</Text>
-                              </div>
-                              <div>
-                                <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
-                                <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
-                              </div>
-                              <div>
-                                <Text className="text-green-600 font-semibold text-sm block">
-                                  Bid: ${user.bidAmount}
-                                </Text>
-                                <Text className="text-gray-500 text-xs">Per seat</Text>
-                              </div>
-                              <div>
-                                <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
-                                  {user.status.replace('_', ' ').toUpperCase()}
-                                </Tag>
-                              </div>
-                            </div>
-                          </div>
-                          {user.status === 'pending_approval' && (
-                            <div className="flex space-x-2">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
-                                loading={loading}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                danger
-                                size="small"
-                                onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
-                                loading={loading}
-                              >
-                                Reject
-                              </Button>
-                            </div>
-                          )}
+                      {retailUsers.length === 0 ? (
+                        <div className="text-center py-4">
+                          <Text className="text-gray-500">
+                            No retail users found for this bid
+                          </Text>
                         </div>
-                      ))}
+                      ) : (
+                        retailUsers.map((user) => (
+                          <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4">
+                                <div>
+                                  <Text strong className="block">{user.name}</Text>
+                                  <Text className="text-gray-500 text-sm">{user.email}</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
+                                  <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
+                                </div>
+                                <div>
+                                  <Text className="text-green-600 font-semibold text-sm block">
+                                    Bid: ${user.bidAmount || (baseBidAmount + Math.floor(Math.random() * 100) + 20)}
+                                  </Text>
+                                  <Text className="text-gray-500 text-xs">
+                                    +${((user.bidAmount || (baseBidAmount + 50)) - baseBidAmount).toFixed(0)} above base
+                                  </Text>
+                                </div>
+                                <div>
+                                  <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
+                                    {user.status.replace('_', ' ').toUpperCase()}
+                                  </Tag>
+                                </div>
+                              </div>
+                            </div>
+                            {user.status === 'pending_approval' && (
+                              <div className="flex space-x-2">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
+                                  loading={loading}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  danger
+                                  size="small"
+                                  onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
+                                  loading={loading}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Eligible retail users: {retailUsers.length} | 
+                        Total retail users: {retailUsers.length} | 
                         Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
-                        Rejected: {retailUsers.filter(u => u.status === 'rejected').length}
-                        {retailUsers.length === 0 && " | No users with bids higher than base amount"}
+                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
                       </Text>
                     </div>
                   </div>
                 );
               },
               rowExpandable: (record) => {
-                // Allow expansion for Completed status
-                return record.status.toLowerCase() === 'completed';
+                // All rows are now expandable to show retail users
+                return true;
               },
             }}
             columns={[
