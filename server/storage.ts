@@ -175,16 +175,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSearchRequest(request: InsertSearchRequest): Promise<void> {
-    // Create request without ID field to allow auto-increment
-    await db.insert(searchRequests).values({
-      origin: request.origin,
-      destination: request.destination,
-      departureDate: request.departureDate,
-      returnDate: request.returnDate,
-      passengers: request.passengers,
-      cabin: request.cabin,
-      tripType: request.tripType
-    });
+    try {
+      // Create request without ID field to allow auto-increment
+      await db.insert(searchRequests).values({
+        origin: request.origin,
+        destination: request.destination,
+        departureDate: request.departureDate,
+        returnDate: request.returnDate,
+        passengers: request.passengers,
+        cabin: request.cabin,
+        tripType: request.tripType
+      });
+    } catch (error) {
+      // If we get a duplicate key error, try to fix the sequence
+      if (error.code === '23505' && error.constraint === 'search_requests_pkey') {
+        console.log('Fixing search_requests sequence...');
+        
+        // Reset the sequence to the maximum ID + 1
+        await db.execute(`
+          SELECT setval('search_requests_id_seq', COALESCE((SELECT MAX(id) FROM search_requests), 0) + 1, false)
+        `);
+        
+        // Try the insert again
+        await db.insert(searchRequests).values({
+          origin: request.origin,
+          destination: request.destination,
+          departureDate: request.departureDate,
+          returnDate: request.returnDate,
+          passengers: request.passengers,
+          cabin: request.cabin,
+          tripType: request.tripType
+        });
+      } else {
+        throw error;
+      }
+    }
   }
 
   // Flights
@@ -966,6 +991,40 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
       return [];
+    }
+  }
+
+  // Fix database sequences to prevent duplicate key errors
+  async fixDatabaseSequences() {
+    try {
+      console.log('Fixing database sequences...');
+      
+      // Fix search_requests sequence
+      await db.execute(`
+        SELECT setval('search_requests_id_seq', COALESCE((SELECT MAX(id) FROM search_requests), 0) + 1, false)
+      `);
+      
+      // Fix other sequences that might have similar issues
+      await db.execute(`
+        SELECT setval('flights_id_seq', COALESCE((SELECT MAX(id) FROM flights), 0) + 1, false)
+      `);
+      
+      await db.execute(`
+        SELECT setval('flight_bookings_id_seq', COALESCE((SELECT MAX(id) FROM flight_bookings), 0) + 1, false)
+      `);
+      
+      await db.execute(`
+        SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false)
+      `);
+      
+      await db.execute(`
+        SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false)
+      `);
+      
+      console.log('Database sequences fixed successfully');
+    } catch (error) {
+      console.error('Error fixing database sequences:', error);
+      throw error;
     }
   }
 }

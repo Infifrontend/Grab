@@ -1245,6 +1245,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix database sequences
+  app.post("/api/fix-database-sequences", async (_req, res) => {
+    try {
+      await storage.fixDatabaseSequences();
+      res.json({
+        success: true,
+        message: "Database sequences fixed successfully",
+      });
+    } catch (error) {
+      console.error("Database sequences fix error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fix database sequences",
+      });
+    }
+  });
+
   // Update booking details (group leader info)
   app.put("/api/booking-details/:id", async (req, res) => {
     try {
