@@ -493,6 +493,7 @@ export default function BidManagement() {
           successRate: "75%", // This could be calculated based on historical data
           timeLeft: timeLeft,
           status: bid.bidStatus,
+          paymentStatus: bid.bidStatus === "completed" ? "paid" : "pending", // Mock payment status
           passengerCount: bid.passengerCount || 1,
           createdAt: bid.createdAt,
         };
@@ -538,6 +539,105 @@ export default function BidManagement() {
         ) : (
           <Table
             dataSource={activeBids}
+            expandable={{
+              expandedRowRender: (record) => {
+                // Only show expandable content for Completed and Paid status
+                const isExpandable = record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                
+                if (!isExpandable) {
+                  return null;
+                }
+
+                // Mock retail user data - in a real app, this would come from an API
+                const retailUsers = [
+                  {
+                    id: 1,
+                    name: "John Smith",
+                    email: "john.smith@email.com",
+                    bookingRef: "GR001234",
+                    seatNumber: "12A",
+                    status: "pending_approval"
+                  },
+                  {
+                    id: 2,
+                    name: "Sarah Johnson",
+                    email: "sarah.johnson@email.com", 
+                    bookingRef: "GR001235",
+                    seatNumber: "12B",
+                    status: "pending_approval"
+                  },
+                  {
+                    id: 3,
+                    name: "Mike Wilson",
+                    email: "mike.wilson@email.com",
+                    bookingRef: "GR001236", 
+                    seatNumber: "12C",
+                    status: "approved"
+                  }
+                ];
+
+                return (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Title level={5} className="!mb-4 text-blue-600">
+                      Associated Retail Users
+                    </Title>
+                    <div className="space-y-3">
+                      {retailUsers.map((user) => (
+                        <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-4">
+                              <div>
+                                <Text strong className="block">{user.name}</Text>
+                                <Text className="text-gray-500 text-sm">{user.email}</Text>
+                              </div>
+                              <div>
+                                <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
+                                <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
+                              </div>
+                              <div>
+                                <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
+                                  {user.status.replace('_', ' ').toUpperCase()}
+                                </Tag>
+                              </div>
+                            </div>
+                          </div>
+                          {user.status === 'pending_approval' && (
+                            <div className="flex space-x-2">
+                              <Button
+                                type="primary"
+                                size="small"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                danger
+                                size="small"
+                                onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                      <Text className="text-gray-500 text-sm">
+                        Total retail users: {retailUsers.length} | 
+                        Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
+                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
+                      </Text>
+                    </div>
+                  </div>
+                );
+              },
+              rowExpandable: (record) => {
+                // Only allow expansion for Completed and Paid status
+                return record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+              },
+            }}
             columns={[
               {
                 title: "Bid Details",
@@ -646,6 +746,16 @@ export default function BidManagement() {
                     </Tag>
                   );
                 },
+              },
+              {
+                title: "Payment Status",
+                dataIndex: "paymentStatus",
+                key: "paymentStatus",
+                render: (paymentStatus = "pending") => (
+                  <Tag color={paymentStatus === "paid" ? "green" : "orange"}>
+                    {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+                  </Tag>
+                ),
               },
               {
                 title: "Actions",
@@ -857,6 +967,23 @@ export default function BidManagement() {
       message.error(`Failed to ${action} bid. Please try again.`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetailUserAction = async (userId, action, bidId) => {
+    try {
+      // In a real application, this would make an API call to approve/reject the retail user
+      console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
+      
+      message.success(
+        `Retail user ${action === "approve" ? "approved" : "rejected"} successfully`
+      );
+
+      // Refresh the data to update the UI
+      queryClient.invalidateQueries(["recent-bids"]);
+    } catch (error) {
+      console.error(`Error ${action}ing retail user:`, error);
+      message.error(`Failed to ${action} retail user. Please try again.`);
     }
   };
 
