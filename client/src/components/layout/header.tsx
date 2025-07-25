@@ -416,6 +416,7 @@ export default function Header() {
                     icon={<LogoutOutlined />}
                     className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
                     style={{ border: "none" }}
+                    onClick={handleSignOut}
                   >
                     Sign Out
                   </Button>
