@@ -765,16 +765,6 @@ export default function BidManagement() {
                   );
                 },
               },
-              {
-                title: "Payment Status",
-                dataIndex: "paymentStatus",
-                key: "paymentStatus",
-                render: (paymentStatus = "pending") => (
-                  <Tag color={paymentStatus === "paid" ? "green" : "orange"}>
-                    {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
-                  </Tag>
-                ),
-              },
             ]}
             pagination={{ pageSize: 10 }}
             loading={!recentBidsData}
