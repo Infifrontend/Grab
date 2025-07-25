@@ -85,12 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Search request received:", req.body);
       const searchData = insertSearchRequestSchema.parse(req.body);
-      // Add timestamp for the search request
-      const searchRequestData = {
-        ...searchData,
-        createdAt: new Date()
-      };
-      await storage.createSearchRequest(searchRequestData);
+      // Create clean search request without any extra fields
+      await storage.createSearchRequest(searchData);
 
       // Search for outbound flights
       const outboundFlights = await storage.getFlights(
