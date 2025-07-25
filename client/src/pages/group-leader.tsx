@@ -9,7 +9,6 @@ import {
   Row,
   Col,
   Typography,
-  Badge,
   message,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
@@ -24,15 +23,10 @@ export default function GroupLeader() {
   const [form] = Form.useForm();
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Check if this is an admin booking
-    const adminBooking = localStorage.getItem("isAdminBooking");
-    setIsAdminBooking(adminBooking === "true");
   }, []);
 
   // Load previously saved form data if available
@@ -150,45 +144,14 @@ export default function GroupLeader() {
         </div>
 
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Title level={2} className="!mb-2 text-gray-900">
-              Group Leader Information
-            </Title>
-            <Text className="text-gray-600">
-              Please provide the details of the group leader who will be the main
-              contact for this booking.
-            </Text>
-            {isAdminBooking && (
-              <div className="flex items-center gap-2 mt-2">
-                <Badge color="blue" text="Admin Booking" />
-                <Text className="text-gray-500 text-sm">
-                  Creating booking through admin panel
-                </Text>
-              </div>
-            )}
-          </div>
-          {isAdminBooking && (
-            <Button
-              type="text"
-              onClick={() => {
-                // Clean up localStorage when going back to admin
-                localStorage.removeItem("bookingFormData");
-                localStorage.removeItem("isAdminBooking");
-                localStorage.removeItem("searchResults");
-                localStorage.removeItem("returnFlights");
-                localStorage.removeItem("searchCriteria");
-                localStorage.removeItem("passengerCount");
-                localStorage.removeItem("selectedFlightData");
-                localStorage.removeItem("selectedBundleData");
-                localStorage.removeItem("selectedServices");
-                setLocation("/admin/bookings");
-              }}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              ← Back to Admin Panel
-            </Button>
-          )}
+        <div className="mb-6">
+          <Title level={2} className="!mb-2 text-gray-900">
+            Group Leader Information
+          </Title>
+          <Text className="text-gray-600">
+            Please provide the details of the group leader who will be the main
+            contact for this booking.
+          </Text>
         </div>
 
         <Card className="mb-6">

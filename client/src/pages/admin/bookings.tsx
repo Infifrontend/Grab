@@ -687,523 +687,313 @@ export default function Bookings() {
 
           {/* Create Group Booking Tab Content */}
           {activeTab === "create-booking" && (
-            <div className="max-w-6xl">
+            <div className="max-w-4xl">
               <div className="mb-6">
                 <Title level={3} className="!mb-2 text-gray-900">
                   Create New Group Booking
                 </Title>
                 <Text className="text-gray-600">
-                  Complete retail booking flow with all steps integrated
+                  Start a new group travel booking for your organization
                 </Text>
               </div>
 
-              {/* Booking Flow Tabs */}
-              <Tabs
-                defaultActiveKey="trip-details"
-                className="admin-booking-tabs"
-                items={[
-                  {
-                    key: "trip-details",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>📅</span>
-                        Trip Details
-                      </span>
-                    ),
-                    children: (
-                      <Row gutter={24}>
-                        <Col xs={24} lg={14}>
-                          <Card className="h-fit">
-                            <div className="mb-6">
-                              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                                Trip Information
-                              </h2>
-                              <p className="text-sm text-gray-600">
-                                Enter your travel details to start the booking
-                              </p>
-                            </div>
+              <Row gutter={24}>
+                <Col xs={24} lg={14}>
+                  <Card className="h-fit">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                        Admin Quick Booking
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        Create a new group booking and navigate through the
+                        complete booking flow
+                      </p>
+                    </div>
 
-                            <Form
-                              layout="vertical"
-                              onFinish={(values) => {
-                                // Store booking data and navigate to flight search flow
-                                const totalPassengers =
-                                  values.adults + values.kids + values.infants;
+                    <Form
+                      layout="vertical"
+                      onFinish={(values) => {
+                        // Store booking data and navigate to flight search flow
+                        const totalPassengers =
+                          values.adults + values.kids + values.infants;
 
-                                const bookingData = {
-                                  origin: values.origin,
-                                  destination: values.destination,
-                                  departureDate: values.departureDate,
-                                  returnDate: values.returnDate,
-                                  tripType: values.tripType || "oneWay",
-                                  adults: values.adults,
-                                  kids: values.kids,
-                                  infants: values.infants,
-                                  cabin: values.cabin,
-                                  totalPassengers,
-                                  isAdminBooking: true,
-                                };
+                        const bookingData = {
+                          origin: values.origin,
+                          destination: values.destination,
+                          departureDate: values.departureDate,
+                          returnDate: values.returnDate,
+                          tripType: values.tripType || "oneWay",
+                          adults: values.adults,
+                          kids: values.kids,
+                          infants: values.infants,
+                          cabin: values.cabin,
+                          totalPassengers,
+                          isAdminBooking: true,
+                        };
 
-                                localStorage.setItem(
-                                  "bookingFormData",
-                                  JSON.stringify(bookingData),
-                                );
-                                localStorage.setItem("isAdminBooking", "true");
+                        localStorage.setItem(
+                          "bookingFormData",
+                          JSON.stringify(bookingData),
+                        );
+                        localStorage.setItem("isAdminBooking", "true");
 
-                                // Navigate to flight search bundle page
-                                setLocation("/flight-search-bundle");
-                              }}
-                              initialValues={{
-                                tripType: "roundTrip",
-                                adults: 1,
-                                kids: 0,
-                                infants: 0,
-                                cabin: "economy",
-                              }}
+                        // Navigate to flight search bundle page to start the complete flow
+                        setLocation("/flight-search-bundle");
+                      }}
+                      initialValues={{
+                        tripType: "oneWay",
+                        adults: 1,
+                        kids: 0,
+                        infants: 0,
+                        cabin: "economy",
+                      }}
+                    >
+                      {/* Trip Type */}
+                      <Form.Item
+                        label="Trip Type"
+                        name="tripType"
+                        className="mb-4"
+                      >
+                        <Radio.Group>
+                          <Radio value="oneWay">One way</Radio>
+                          <Radio value="roundTrip">Round trip</Radio>
+                          <Radio value="multiCity">Multi city</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+
+                      {/* Origin and Destination */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Origin *"
+                            name="origin"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select origin",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select origin"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
                             >
-                              {/* Trip Type */}
-                              <Form.Item
-                                label="Trip Type"
-                                name="tripType"
-                                className="mb-4"
-                              >
-                                <Radio.Group>
-                                  <Radio value="oneWay">One way</Radio>
-                                  <Radio value="roundTrip">Round trip</Radio>
-                                  <Radio value="multiCity">Multi city</Radio>
-                                </Radio.Group>
-                              </Form.Item>
-
-                              {/* Origin and Destination */}
-                              <Row gutter={16}>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Origin *"
-                                    name="origin"
-                                    rules={[
-                                      {
-                                        required: true,
-                                        message: "Please select origin",
-                                      },
-                                    ]}
-                                    className="mb-4"
-                                  >
-                                    <Select
-                                      placeholder="Select origin"
-                                      showSearch
-                                      filterOption={(input, option) =>
-                                        (option?.children ?? "")
-                                          .toLowerCase()
-                                          .includes(input.toLowerCase())
-                                      }
-                                    >
-                                      <Option value="Cancun">Cancun</Option>
-                                      <Option value="Chennai">Chennai</Option>
-                                      <Option value="Chicago">Chicago</Option>
-                                      <Option value="Delhi">Delhi</Option>
-                                      <Option value="Dubai">Dubai</Option>
-                                      <Option value="London">London</Option>
-                                      <Option value="Los Angeles">Los Angeles</Option>
-                                      <Option value="Mexico City">Mexico City</Option>
-                                      <Option value="Mumbai">Mumbai</Option>
-                                      <Option value="New York">New York</Option>
-                                      <Option value="Paris">Paris</Option>
-                                      <Option value="Tokyo">Tokyo</Option>
-                                    </Select>
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Destination *"
-                                    name="destination"
-                                    rules={[
-                                      {
-                                        required: true,
-                                        message: "Please select destination",
-                                      },
-                                    ]}
-                                    className="mb-4"
-                                  >
-                                    <Select
-                                      placeholder="Select destination"
-                                      showSearch
-                                      filterOption={(input, option) =>
-                                        (option?.children ?? "")
-                                          .toLowerCase()
-                                          .includes(input.toLowerCase())
-                                      }
-                                    >
-                                      <Option value="Cancun">Cancun</Option>
-                                      <Option value="Chennai">Chennai</Option>
-                                      <Option value="Chicago">Chicago</Option>
-                                      <Option value="Delhi">Delhi</Option>
-                                      <Option value="Dubai">Dubai</Option>
-                                      <Option value="London">London</Option>
-                                      <Option value="Los Angeles">Los Angeles</Option>
-                                      <Option value="Mexico City">Mexico City</Option>
-                                      <Option value="Mumbai">Mumbai</Option>
-                                      <Option value="New York">New York</Option>
-                                      <Option value="Paris">Paris</Option>
-                                      <Option value="Tokyo">Tokyo</Option>
-                                    </Select>
-                                  </Form.Item>
-                                </Col>
-                              </Row>
-
-                              {/* Dates */}
-                              <Row gutter={16}>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Departure Date *"
-                                    name="departureDate"
-                                    rules={[
-                                      {
-                                        required: true,
-                                        message: "Please select departure date",
-                                      },
-                                    ]}
-                                    className="mb-4"
-                                  >
-                                    <DatePicker
-                                      className="w-full"
-                                      format="DD MMM YYYY"
-                                      disabledDate={(current) =>
-                                        current && current.isBefore(dayjs(), "day")
-                                      }
-                                    />
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Return Date"
-                                    name="returnDate"
-                                    className="mb-4"
-                                  >
-                                    <DatePicker
-                                      className="w-full"
-                                      format="DD MMM YYYY"
-                                      disabledDate={(current) =>
-                                        current && current.isBefore(dayjs(), "day")
-                                      }
-                                    />
-                                  </Form.Item>
-                                </Col>
-                              </Row>
-
-                              {/* Passengers */}
-                              <Row gutter={16}>
-                                <Col xs={24} md={8}>
-                                  <Form.Item
-                                    label="Adults *"
-                                    name="adults"
-                                    rules={[
-                                      {
-                                        required: true,
-                                        message: "At least 1 adult required",
-                                      },
-                                    ]}
-                                    className="mb-4"
-                                  >
-                                    <InputNumber min={1} max={50} className="w-full" />
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={8}>
-                                  <Form.Item
-                                    label="Kids (2-11)"
-                                    name="kids"
-                                    className="mb-4"
-                                  >
-                                    <InputNumber min={0} max={50} className="w-full" />
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={8}>
-                                  <Form.Item
-                                    label="Infants (0-2)"
-                                    name="infants"
-                                    className="mb-4"
-                                  >
-                                    <InputNumber min={0} max={50} className="w-full" />
-                                  </Form.Item>
-                                </Col>
-                              </Row>
-
-                              {/* Cabin */}
-                              <Form.Item label="Cabin *" name="cabin" className="mb-6">
-                                <Select placeholder="Select cabin class">
-                                  <Option value="economy">Economy</Option>
-                                  <Option value="business">Business</Option>
-                                  <Option value="first">First Class</Option>
-                                </Select>
-                              </Form.Item>
-
-                              <Button
-                                type="primary"
-                                htmlType="submit"
-                                size="large"
-                                className="w-full bg-blue-600 hover:bg-blue-700"
-                              >
-                                Continue to Flight Search
-                              </Button>
-                            </Form>
-                          </Card>
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
                         </Col>
-                        <Col xs={24} lg={10}>
-                          <Card>
-                            <div className="mb-4">
-                              <Title level={4} className="!mb-2 text-gray-900">
-                                Booking Progress
-                              </Title>
-                              <Text className="text-gray-600">
-                                Complete retail booking workflow
-                              </Text>
-                            </div>
-
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white font-medium text-sm">1</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-blue-900">Trip Details</div>
-                                  <div className="text-sm text-blue-700">Current step</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">2</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Flight Search & Bundles</div>
-                                  <div className="text-sm text-gray-500">Next step</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">3</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Add Services</div>
-                                  <div className="text-sm text-gray-500">Upcoming</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">4</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Group Leader Info</div>
-                                  <div className="text-sm text-gray-500">Upcoming</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">5</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Passenger Info</div>
-                                  <div className="text-sm text-gray-500">Upcoming</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">6</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Review & Confirmation</div>
-                                  <div className="text-sm text-gray-500">Upcoming</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 p-3 rounded-lg">
-                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                  <span className="text-gray-600 font-medium text-sm">7</span>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-700">Payment</div>
-                                  <div className="text-sm text-gray-500">Final step</div>
-                                </div>
-                              </div>
-                            </div>
-                          </Card>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Destination *"
+                            name="destination"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select destination",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select destination"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                            >
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
                         </Col>
                       </Row>
-                    ),
-                  },
-                  {
-                    key: "flight-search",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>✈️</span>
-                        Flight Search & Bundles
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">✈️</span>
+
+                      {/* Dates */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Departure Date *"
+                            name="departureDate"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select departure date",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Return Date"
+                            name="returnDate"
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Passengers */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Adults *"
+                            name="adults"
+                            rules={[
+                              {
+                                required: true,
+                                message: "At least 1 adult required",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <InputNumber min={1} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Kids (2-11)"
+                            name="kids"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Infants (0-2)"
+                            name="infants"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Cabin */}
+                      <Form.Item label="Cabin *" name="cabin" className="mb-6">
+                        <Select placeholder="Select cabin class">
+                          <Option value="economy">Economy</Option>
+                          <Option value="business">Business</Option>
+                          <Option value="first">First Class</Option>
+                        </Select>
+                      </Form.Item>
+
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        size="large"
+                        className="w-full infiniti-btn-primary"
+                      >
+                        Search Flight & Start Booking Flow
+                      </Button>
+                    </Form>
+                  </Card>
+                </Col>
+                <Col xs={24} lg={10}>
+                  <Card>
+                    <div className="mb-4">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Admin Booking Tools
+                      </Title>
+                      <Text className="text-gray-600">
+                        Additional tools for managing group bookings
+                      </Text>
+                    </div>
+
+                    <Space
+                      direction="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Bulk Passenger Import
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Upload CSV file with passenger details
+                          </div>
                         </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Flight Search & Bundle Selection
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Complete trip details first to search for available flights and select bundles
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Go to Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "add-services",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>🛎️</span>
-                        Add Services
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">🛎️</span>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Corporate Discount
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Apply special pricing for corporate clients
+                          </div>
                         </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Additional Services
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Add extra services like insurance, priority boarding, and special assistance
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Start from Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "group-leader",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>👤</span>
-                        Group Leader Info
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">👤</span>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Payment Options
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Configure payment schedules and methods
+                          </div>
                         </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Group Leader Information
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Provide details for the main contact person for this group booking
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Start from Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "passenger-info",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>👥</span>
-                        Passenger Info
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">👥</span>
-                        </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Passenger Information
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Add details for all passengers including passport information
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Start from Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "review-confirmation",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>📋</span>
-                        Review & Confirmation
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">📋</span>
-                        </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Review & Confirmation
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Review all booking details before proceeding to payment
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Start from Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "payment",
-                    label: (
-                      <span className="flex items-center gap-2">
-                        <span>💳</span>
-                        Payment
-                      </span>
-                    ),
-                    children: (
-                      <div className="text-center py-12">
-                        <div className="mb-4">
-                          <span className="text-6xl">💳</span>
-                        </div>
-                        <Title level={4} className="!mb-2 text-gray-700">
-                          Payment Processing
-                        </Title>
-                        <Text className="text-gray-600 block mb-6">
-                          Complete payment to finalize your group booking
-                        </Text>
-                        <Button 
-                          onClick={() => setActiveTab("trip-details")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        >
-                          Start from Trip Details
-                        </Button>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
             </div>
           )}
 
@@ -1560,36 +1350,6 @@ export default function Bookings() {
           </Modal>
         </div>
       </div>
-
-      <style jsx>{`
-        :global(.admin-booking-tabs .ant-tabs-tab) {
-          padding: 12px 16px;
-          border-radius: 6px 6px 0 0;
-        }
-
-        :global(.admin-booking-tabs .ant-tabs-tab-btn) {
-          font-weight: 500;
-          font-size: 14px;
-        }
-
-        :global(.admin-booking-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
-          color: #1890ff;
-          font-weight: 600;
-        }
-
-        :global(.admin-booking-tabs .ant-tabs-ink-bar) {
-          background: #1890ff;
-          height: 2px;
-        }
-
-        :global(.admin-booking-tabs .ant-tabs-content-holder) {
-          padding: 24px 0 0 0;
-        }
-
-        :global(.admin-booking-tabs .ant-tabs-nav) {
-          margin-bottom: 0;
-        }
-      `}</style>
     </div>
   );
 }

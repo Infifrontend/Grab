@@ -1169,16 +1169,7 @@ export default function FlightSearchBundle() {
           {isAdminBooking && (
             <Button
               type="text"
-              onClick={() => {
-                // Clean up localStorage when going back to admin
-                localStorage.removeItem("bookingFormData");
-                localStorage.removeItem("isAdminBooking");
-                localStorage.removeItem("searchResults");
-                localStorage.removeItem("returnFlights");
-                localStorage.removeItem("searchCriteria");
-                localStorage.removeItem("passengerCount");
-                setLocation("/admin/bookings");
-              }}
+              onClick={() => setLocation("/admin/bookings")}
               className="text-gray-600 hover:text-gray-800"
             >
               ← Back to Admin Panel

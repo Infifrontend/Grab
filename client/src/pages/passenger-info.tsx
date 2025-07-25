@@ -11,7 +11,6 @@ import {
   Typography,
   Progress,
   Upload,
-  Badge,
   message,
 } from "antd";
 import {
@@ -45,15 +44,10 @@ export default function PassengerInfo() {
   const [totalPassengers, setTotalPassengers] = useState(32);
   const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
   const [bookingData, setBookingData] = useState<any>(null);
-  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Check if this is an admin booking
-    const adminBooking = localStorage.getItem("isAdminBooking");
-    setIsAdminBooking(adminBooking === "true");
   }, []);
 
   // Initialize passenger data from localStorage
@@ -255,51 +249,19 @@ export default function PassengerInfo() {
                 Please provide details for all passengers. You need{" "}
                 {totalPassengers} passengers for this group booking.
               </Text>
-              {isAdminBooking && (
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge color="blue" text="Admin Booking" />
-                  <Text className="text-gray-500 text-sm">
-                    Creating booking through admin panel
-                  </Text>
-                </div>
-              )}
             </div>
-            <div className="flex items-center gap-3">
-              {isAdminBooking && (
-                <Button
-                  type="text"
-                  onClick={() => {
-                    // Clean up localStorage when going back to admin
-                    localStorage.removeItem("bookingFormData");
-                    localStorage.removeItem("isAdminBooking");
-                    localStorage.removeItem("searchResults");
-                    localStorage.removeItem("returnFlights");
-                    localStorage.removeItem("searchCriteria");
-                    localStorage.removeItem("passengerCount");
-                    localStorage.removeItem("selectedFlightData");
-                    localStorage.removeItem("selectedBundleData");
-                    localStorage.removeItem("selectedServices");
-                    localStorage.removeItem("groupLeaderData");
-                    setLocation("/admin/bookings");
-                  }}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  ← Back to Admin Panel
-                </Button>
-              )}
-              <Button
-                type="default"
-                size="large"
-                onClick={() => {
-                  // Skip passenger info and go directly to review confirmation
-                  localStorage.setItem("passengerData", JSON.stringify([]));
-                  setLocation("/review-confirmation");
-                }}
-                className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
-              >
-                Add Passenger Later
-              </Button>
-            </div>
+            <Button
+              type="default"
+              size="large"
+              onClick={() => {
+                // Skip passenger info and go directly to review confirmation
+                localStorage.setItem("passengerData", JSON.stringify([]));
+                setLocation("/review-confirmation");
+              }}
+              className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
+            >
+              Add Passenger Later
+            </Button>
           </div>
         </div>
 
