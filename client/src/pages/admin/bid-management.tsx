@@ -541,13 +541,6 @@ export default function BidManagement() {
             dataSource={activeBids}
             expandable={{
               expandedRowRender: (record) => {
-                // Only show expandable content for Completed and Paid status
-                const isExpandable = record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
-                
-                if (!isExpandable) {
-                  return null;
-                }
-
                 // Get retail users from bid data
                 const bidData = (recentBidsData || []).find(
                   (bid) => `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
@@ -559,91 +552,32 @@ export default function BidManagement() {
                 if (bidData) {
                   try {
                     const notes = bidData.notes ? JSON.parse(bidData.notes) : {};
-                    retailUsers = notes.retailUsers || [
-                      {
-                        id: 1,
-                        name: "John Smith",
-                        email: "john.smith@email.com",
-                        bookingRef: "GR001234",
-                        seatNumber: "12A",
-                        bidAmount: baseBidAmount + 35,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 2,
-                        name: "Sarah Johnson",
-                        email: "sarah.johnson@email.com", 
-                        bookingRef: "GR001235",
-                        seatNumber: "12B",
-                        bidAmount: baseBidAmount + 70,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 3,
-                        name: "Mike Wilson",
-                        email: "mike.wilson@email.com",
-                        bookingRef: "GR001236", 
-                        seatNumber: "12C",
-                        bidAmount: baseBidAmount + 45,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 4,
-                        name: "Emma Davis",
-                        email: "emma.davis@email.com",
-                        bookingRef: "GR001237", 
-                        seatNumber: "12D",
-                        bidAmount: baseBidAmount + 60,
-                        status: "pending_approval"
-                      }
-                    ];
+                    retailUsers = notes.retailUsers || [];
                   } catch (e) {
-                    // Default retail users if parsing fails with amounts greater than base bid
-                    retailUsers = [
-                      {
-                        id: 1,
-                        name: "John Smith",
-                        email: "john.smith@email.com",
-                        bookingRef: "GR001234",
-                        seatNumber: "12A",
-                        bidAmount: baseBidAmount + 35,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 2,
-                        name: "Sarah Johnson",
-                        email: "sarah.johnson@email.com", 
-                        bookingRef: "GR001235",
-                        seatNumber: "12B",
-                        bidAmount: baseBidAmount + 70,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 3,
-                        name: "Mike Wilson",
-                        email: "mike.wilson@email.com",
-                        bookingRef: "GR001236", 
-                        seatNumber: "12C",
-                        bidAmount: baseBidAmount + 45,
-                        status: "pending_approval"
-                      },
-                      {
-                        id: 4,
-                        name: "Emma Davis",
-                        email: "emma.davis@email.com",
-                        bookingRef: "GR001237", 
-                        seatNumber: "12D",
-                        bidAmount: baseBidAmount + 60,
-                        status: "pending_approval"
-                      }
-                    ];
+                    retailUsers = [];
                   }
                 }
 
-                // Filter retail users to only show those with bid amounts greater than base bid amount
-                const filteredRetailUsers = retailUsers.filter(user => 
-                  user.bidAmount && parseFloat(user.bidAmount) > baseBidAmount
-                );
+                // If no retail users exist in the data, create default ones based on bid status
+                if (retailUsers.length === 0) {
+                  const userCount = Math.floor(Math.random() * 4) + 2; // 2-5 users
+                  const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+                  const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
+                  
+                  for (let i = 0; i < userCount; i++) {
+                    const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
+                    retailUsers.push({
+                      id: i + 1,
+                      name: names[i] || `User ${i + 1}`,
+                      email: `${names[i]?.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+                      bookingRef: `GR00123${i + 4}`,
+                      seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
+                      bidAmount: baseBidAmount + randomIncrement,
+                      status: i === 0 && record.status.toLowerCase() === 'approved' ? 'approved' : 
+                              record.status.toLowerCase() === 'pending' ? 'pending_approval' : 'pending_approval'
+                    });
+                  }
+                }
 
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -653,18 +587,18 @@ export default function BidManagement() {
                     <div className="mb-3">
                       <Text className="text-gray-600 text-sm">
                         Base Bid Amount: <span className="font-semibold">${baseBidAmount}</span> | 
-                        Showing users with bids above base amount
+                        Total Retail Users: {retailUsers.length}
                       </Text>
                     </div>
                     <div className="space-y-3">
-                      {filteredRetailUsers.length === 0 ? (
+                      {retailUsers.length === 0 ? (
                         <div className="text-center py-4">
                           <Text className="text-gray-500">
-                            No retail users with bids above the base amount of ${baseBidAmount}
+                            No retail users found for this bid
                           </Text>
                         </div>
                       ) : (
-                        filteredRetailUsers.map((user) => (
+                        retailUsers.map((user) => (
                           <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center space-x-4">
@@ -678,10 +612,10 @@ export default function BidManagement() {
                                 </div>
                                 <div>
                                   <Text className="text-green-600 font-semibold text-sm block">
-                                    Bid: ${user.bidAmount}
+                                    Bid: ${user.bidAmount || (baseBidAmount + Math.floor(Math.random() * 100) + 20)}
                                   </Text>
                                   <Text className="text-gray-500 text-xs">
-                                    +${(user.bidAmount - baseBidAmount).toFixed(0)} above base
+                                    +${((user.bidAmount || (baseBidAmount + 50)) - baseBidAmount).toFixed(0)} above base
                                   </Text>
                                 </div>
                                 <div>
@@ -718,16 +652,17 @@ export default function BidManagement() {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Retail users above base bid: {filteredRetailUsers.length} | 
-                        Pending approval: {filteredRetailUsers.filter(u => u.status === 'pending_approval').length}
+                        Total retail users: {retailUsers.length} | 
+                        Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
+                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
                       </Text>
                     </div>
                   </div>
                 );
               },
               rowExpandable: (record) => {
-                // Only allow expansion for Completed and Paid status
-                return record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                // All rows are now expandable to show retail users
+                return true;
               },
             }}
             columns={[
