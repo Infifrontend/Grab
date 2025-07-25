@@ -700,8 +700,37 @@ export class DatabaseStorage implements IStorage {
 
       return payment;
     } catch (error) {
-      console.error('Error creating payment:', error);
-      throw error;
+      // If we get a duplicate key error, try to fix the sequence
+      if (error.code === '23505' && error.constraint === 'payments_pkey') {
+        console.log('Fixing payments sequence...');
+        
+        // Reset the sequence to the maximum ID + 1
+        await db.execute(`
+          SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false)
+        `);
+        
+        // Try the insert again
+        const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+        
+        const [payment] = await db.insert(payments).values({
+          bookingId: paymentData.bookingId || null,
+          userId: paymentData.userId || 1,
+          paymentReference: paymentReference,
+          amount: paymentData.amount,
+          currency: paymentData.currency || 'USD',
+          paymentMethod: paymentData.paymentMethod,
+          paymentStatus: paymentData.paymentStatus || 'pending',
+          transactionId: paymentData.transactionId,
+          paymentGateway: paymentData.paymentGateway,
+          processedAt: paymentData.processedAt || new Date(),
+          createdAt: paymentData.createdAt || new Date()
+        }).returning();
+
+        return payment;
+      } else {
+        console.error('Error creating payment:', error);
+        throw error;
+      }
     }
   }
 
