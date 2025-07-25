@@ -555,16 +555,18 @@ export default function BidManagement() {
 
                 let retailUsers = [];
                 if (bidData) {
+                  const baseBidAmount = parseFloat(bidData.bidAmount) || 0;
+                  
                   try {
                     const notes = bidData.notes ? JSON.parse(bidData.notes) : {};
-                    retailUsers = notes.retailUsers || [
+                    const allRetailUsers = notes.retailUsers || [
                       {
                         id: 1,
                         name: "John Smith",
                         email: "john.smith@email.com",
                         bookingRef: "GR001234",
                         seatNumber: "12A",
-                        bidAmount: 185,
+                        bidAmount: 285,
                         status: "pending_approval"
                       },
                       {
@@ -573,21 +575,19 @@ export default function BidManagement() {
                         email: "sarah.johnson@email.com", 
                         bookingRef: "GR001235",
                         seatNumber: "12B",
-                        bidAmount: 220,
+                        bidAmount: 320,
                         status: "pending_approval"
-                      },
-                      {
-                        id: 3,
-                        name: "Mike Wilson",
-                        email: "mike.wilson@email.com",
-                        bookingRef: "GR001236", 
-                        seatNumber: "12C",
-                        bidAmount: 195,
-                        status: "approved"
                       }
                     ];
+                    
+                    // Filter out approved users and only show users with bids higher than base amount
+                    retailUsers = allRetailUsers.filter(user => 
+                      user.status !== 'approved' && 
+                      (user.bidAmount || 0) > baseBidAmount
+                    );
                   } catch (e) {
-                    // Default retail users if parsing fails
+                    // Default retail users if parsing fails - ensure bid amounts are higher than base
+                    const baseBidAmount = parseFloat(bidData.bidAmount) || 250;
                     retailUsers = [
                       {
                         id: 1,
@@ -595,6 +595,7 @@ export default function BidManagement() {
                         email: "john.smith@email.com",
                         bookingRef: "GR001234",
                         seatNumber: "12A",
+                        bidAmount: baseBidAmount + 35,
                         status: "pending_approval"
                       },
                       {
@@ -603,15 +604,8 @@ export default function BidManagement() {
                         email: "sarah.johnson@email.com", 
                         bookingRef: "GR001235",
                         seatNumber: "12B",
+                        bidAmount: baseBidAmount + 70,
                         status: "pending_approval"
-                      },
-                      {
-                        id: 3,
-                        name: "Mike Wilson",
-                        email: "mike.wilson@email.com",
-                        bookingRef: "GR001236", 
-                        seatNumber: "12C",
-                        status: "approved"
                       }
                     ];
                   }
@@ -637,7 +631,7 @@ export default function BidManagement() {
                               </div>
                               <div>
                                 <Text className="text-green-600 font-semibold text-sm block">
-                                  Bid: ${user.bidAmount || (Math.floor(Math.random() * 200) + 150)}
+                                  Bid: ${user.bidAmount}
                                 </Text>
                                 <Text className="text-gray-500 text-xs">Per seat</Text>
                               </div>
@@ -674,10 +668,10 @@ export default function BidManagement() {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {retailUsers.length} | 
+                        Eligible retail users: {retailUsers.length} | 
                         Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
-                        Approved: {retailUsers.filter(u => u.status === 'approved').length} |
                         Rejected: {retailUsers.filter(u => u.status === 'rejected').length}
+                        {retailUsers.length === 0 && " | No users with bids higher than base amount"}
                       </Text>
                     </div>
                   </div>
