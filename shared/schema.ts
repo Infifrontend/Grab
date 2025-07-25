@@ -128,7 +128,7 @@ export const bids = pgTable("bids", {
 // Payment handling for transactions
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
-  bookingId: integer("booking_id").references(() => bookings.id),
+  bookingId: integer("booking_id").references(() => flightBookings.id),
   userId: integer("user_id").references(() => users.id),
   paymentReference: text("payment_reference").notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
