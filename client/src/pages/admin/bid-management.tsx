@@ -661,8 +661,8 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // All rows are now expandable to show retail users
-                return true;
+                // Only show expand option for completed or approved bids
+                return record.status.toLowerCase() === 'completed' || record.status.toLowerCase() === 'approved';
               },
             }}
             columns={[
