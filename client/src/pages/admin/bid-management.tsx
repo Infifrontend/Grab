@@ -541,8 +541,8 @@ export default function BidManagement() {
             dataSource={activeBids}
             expandable={{
               expandedRowRender: (record) => {
-                // Only show expandable content for Completed and Paid status
-                const isExpandable = record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                // Show expandable content for all completed bids regardless of payment status
+                const isExpandable = record.status.toLowerCase() === 'completed';
                 
                 if (!isExpandable) {
                   return null;
@@ -683,8 +683,8 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Only allow expansion for Completed and Paid status
-                return record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                // Allow expansion for all completed bids regardless of payment status
+                return record.status.toLowerCase() === 'completed';
               },
             }}
             columns={[
