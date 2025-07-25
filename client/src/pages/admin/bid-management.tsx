@@ -440,9 +440,8 @@ export default function BidManagement() {
   ];
 
   const renderActiveBidsContent = () => {
-    // Filter active bids from the fetched data
+    // Show all bids instead of filtering by active status
     const activeBids = (recentBidsData || [])
-      .filter((bid) => bid.bidStatus === "active")
       .map((bid, index) => {
         // Calculate time left until bid expires
         const timeLeft = bid.validUntil
@@ -504,10 +503,10 @@ export default function BidManagement() {
         {/* Active Bids Header */}
         <div className="mb-6">
           <Title level={4} className="!mb-1">
-            Active Bids Requiring Attention ({activeBids.length})
+            All Bids Requiring Attention ({activeBids.length})
           </Title>
           <Text className="text-gray-500">
-            Monitor and respond to passenger upgrade bids
+            Monitor and respond to all passenger upgrade bids
           </Text>
         </div>
 
@@ -531,7 +530,7 @@ export default function BidManagement() {
           <Card>
             <div className="text-center py-8">
               <Text className="text-gray-500">
-                No active bids found. Active bids will appear here when
+                No bids found. Bids will appear here when
                 passengers submit upgrade requests.
               </Text>
             </div>
@@ -628,11 +627,25 @@ export default function BidManagement() {
                 title: "Status",
                 dataIndex: "status",
                 key: "status",
-                render: (status) => (
-                  <Tag color={status === "active" ? "green" : "blue"}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </Tag>
-                ),
+                render: (status) => {
+                  const getStatusColor = (status) => {
+                    switch (status.toLowerCase()) {
+                      case "active": return "green";
+                      case "accepted": return "blue";
+                      case "rejected": return "red";
+                      case "expired": return "orange";
+                      case "completed": return "purple";
+                      case "pending": return "yellow";
+                      default: return "default";
+                    }
+                  };
+                  
+                  return (
+                    <Tag color={getStatusColor(status)}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </Tag>
+                  );
+                },
               },
               {
                 title: "Actions",
