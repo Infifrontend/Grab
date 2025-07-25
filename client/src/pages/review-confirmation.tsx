@@ -7,6 +7,7 @@ import {
   Typography,
   Divider,
   Space,
+  Badge,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -22,10 +23,15 @@ export default function ReviewConfirmation() {
   const [, setLocation] = useLocation();
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdminBooking, setIsAdminBooking] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Check if this is an admin booking
+    const adminBooking = localStorage.getItem("isAdminBooking");
+    setIsAdminBooking(adminBooking === "true");
   }, []);
 
   const [flightData, setFlightData] = useState<any>(null);
@@ -111,11 +117,43 @@ export default function ReviewConfirmation() {
             <Text className="text-gray-600">
               Review your booking details and confirm to submit your request.
             </Text>
+            {isAdminBooking && (
+              <div className="flex items-center gap-2 mt-2">
+                <Badge color="blue" text="Admin Booking" />
+                <Text className="text-gray-500 text-sm">
+                  Creating booking through admin panel
+                </Text>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
-            <Button type="text" className="text-gray-600">
-              Cancel
-            </Button>
+            {isAdminBooking ? (
+              <Button 
+                type="text" 
+                className="text-gray-600"
+                onClick={() => {
+                  // Clean up localStorage when going back to admin
+                  localStorage.removeItem("bookingFormData");
+                  localStorage.removeItem("isAdminBooking");
+                  localStorage.removeItem("searchResults");
+                  localStorage.removeItem("returnFlights");
+                  localStorage.removeItem("searchCriteria");
+                  localStorage.removeItem("passengerCount");
+                  localStorage.removeItem("selectedFlightData");
+                  localStorage.removeItem("selectedBundleData");
+                  localStorage.removeItem("selectedServices");
+                  localStorage.removeItem("groupLeaderData");
+                  localStorage.removeItem("passengerData");
+                  setLocation("/admin/bookings");
+                }}
+              >
+                Back to Admin Panel
+              </Button>
+            ) : (
+              <Button type="text" className="text-gray-600">
+                Cancel
+              </Button>
+            )}
             <Text className="text-gray-600">Step 6 of 7</Text>
           </div>
         </div>
