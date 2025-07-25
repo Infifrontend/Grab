@@ -58,7 +58,7 @@ interface Notification {
 }
 
 export default function Header() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -159,6 +159,31 @@ export default function Header() {
 
     return () => clearInterval(interval);
   }, [refetchNotifications]);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+
+  // Check authentication status
+  useEffect(() => {
+    const userLoggedIn = localStorage.getItem('userLoggedIn');
+    const storedUsername = localStorage.getItem('username');
+
+    if (userLoggedIn === 'true' && storedUsername) {
+      setIsLoggedIn(true);
+      setUsername(storedUsername);
+    } else {
+      setIsLoggedIn(false);
+      setLocation('/login');
+    }
+  }, [setLocation]);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('userLoggedIn');
+    localStorage.removeItem('username');
+    setIsLoggedIn(false);
+    setLocation('/login');
+  };
+
 
   return (
     <header className="infiniti-header">

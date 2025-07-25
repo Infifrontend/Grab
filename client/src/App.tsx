@@ -33,51 +33,7 @@ import PassengerInfo from "./pages/passenger-info";
 import PaymentOptions from "@/pages/payment-options";
 import ReviewConfirmation from "@/pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
-import { useState } from "react";
-import { useLocation } from "wouter";
-
-// Define Login Component
-const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [, setLocation] = useLocation();
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (username === "john smith" && password === "Infi@123") {
-      setLocation("/"); // Redirect to home page
-    } else {
-      setError("Invalid credentials");
-    }
-  };
-
-  return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-    </div>
-  );
-};
+import Login from "@/pages/login";
 
 function Router() {
   return (
