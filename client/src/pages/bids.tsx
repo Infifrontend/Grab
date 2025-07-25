@@ -148,40 +148,67 @@ export default function Bids() {
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);
 
-        // Fetch payment history data
+        // Fetch payment history data specific to bids
         setPaymentLoading(true);
         try {
-          const paymentsResponse = await fetch("/api/payments");
-          const payments = await paymentsResponse.json();
+          // Get all bid IDs to fetch related payments
+          const bidIds = transformedBids.map(bid => bid.bidId.replace('BID-', ''));
+          
+          // Fetch payments for each bid
+          const bidPaymentPromises = bidIds.map(async (bidId) => {
+            try {
+              const response = await fetch(`/api/payments?bidId=${bidId}`);
+              const payments = await response.json();
+              return payments.map((payment: any) => ({
+                ...payment,
+                relatedBidId: bidId
+              }));
+            } catch (error) {
+              console.log(`No payments found for bid ${bidId}`);
+              return [];
+            }
+          });
+
+          const allBidPayments = await Promise.all(bidPaymentPromises);
+          const flattenedPayments = allBidPayments.flat();
 
           // Transform payments data for the payment history table
-          const transformedPayments = payments.map((payment: any) => {
+          const transformedPayments = flattenedPayments.map((payment: any, index: number) => {
+            // Find the corresponding bid for route information
+            const relatedBid = transformedBids.find(bid => 
+              bid.bidId === `BID-${payment.relatedBidId}` || 
+              bid.bidId === payment.bidId
+            );
+
+            const route = relatedBid ? relatedBid.route : 'N/A';
+            const bidReference = relatedBid ? relatedBid.bidId : `BID-${payment.relatedBidId}`;
+
             return {
-              paymentId: payment.paymentId || `PAY-${payment.key}`,
-              bidId: payment.bookingId || 'N/A',
-              route: 'N/A', // Will be populated from bid data if available
-              amount: payment.amount || '₹0',
-              type: payment.type || 'Payment',
-              status: payment.status || 'Pending',
-              paymentMethod: payment.method || 'N/A',
+              paymentId: payment.paymentId || payment.paymentReference || `PAY-${payment.key || index}`,
+              bidId: bidReference,
+              route: route,
+              amount: payment.amount ? `₹${parseFloat(payment.amount.toString()).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '₹0',
+              type: payment.type || (parseFloat(payment.amount || '0') < 1000 ? 'Deposit' : 'Payment'),
+              status: payment.status || payment.paymentStatus || 'Pending',
+              paymentMethod: payment.method || payment.paymentMethod || 'N/A',
               transactionId: payment.transactionId || 'N/A',
-              date: payment.date || new Date().toISOString().split('T')[0]
+              date: payment.date || (payment.createdAt ? new Date(payment.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
             };
           });
 
           setPaymentHistoryData(transformedPayments);
 
-          // Calculate payment summary
+          // Calculate payment summary based on bid payments
           const totalDeposits = transformedPayments
-            .filter(p => p.type === 'Deposit' && p.status === 'Completed')
+            .filter(p => (p.type === 'Deposit' || p.type === 'Payment') && (p.status === 'Completed' || p.status === 'completed'))
             .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
 
           const totalRefunds = transformedPayments
-            .filter(p => p.type === 'Refund' && p.status === 'Completed')
+            .filter(p => p.type === 'Refund' && (p.status === 'Completed' || p.status === 'completed'))
             .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
 
           const pendingPayments = transformedPayments
-            .filter(p => p.status === 'Pending')
+            .filter(p => p.status === 'Pending' || p.status === 'pending')
             .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
 
           setPaymentSummary({

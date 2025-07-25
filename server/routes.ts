@@ -1378,15 +1378,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/payments", async (req, res) => {
     try {
       const { userId, bidId } = req.query;
-      let payments;
+      let payments = [];
 
       if (bidId) {
-        // Fetch payments by bid ID
-        payments = await storage.getPaymentsByBidId(parseInt(bidId as string));
+        // Fetch payments by bid ID - check multiple ways payments might be linked to bids
+        console.log(`Fetching payments for bid ID: ${bidId}`);
+        
+        try {
+          // First, try to get payments directly linked to the bid
+          const directPayments = await storage.getPaymentsByBidId(parseInt(bidId as string));
+          payments = [...directPayments];
+          
+          // Also check for payments that might be linked through booking references
+          const allPayments = await storage.getPayments();
+          const bidRelatedPayments = allPayments.filter(payment => {
+            return payment.bookingId && payment.bookingId.includes(bidId as string);
+          });
+          
+          // Merge and deduplicate
+          const existingIds = new Set(payments.map(p => p.id));
+          bidRelatedPayments.forEach(payment => {
+            if (!existingIds.has(payment.id)) {
+              payments.push(payment);
+            }
+          });
+          
+          console.log(`Found ${payments.length} payments for bid ${bidId}`);
+        } catch (error) {
+          console.log(`Error fetching payments for bid ${bidId}:`, error.message);
+          payments = [];
+        }
       } else if (userId) {
-        payments = await storage.getPayments(
-          userId ? parseInt(userId as string) : undefined,
-        );
+        payments = await storage.getPayments(parseInt(userId as string));
       } else {
         payments = await storage.getPayments();
       }
@@ -1396,12 +1419,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Try to find related bid information
           const allBids = await storage.getBids();
-          const relatedBid = allBids.find(bid => {
-            // Check if payment is related to this bid through booking or notes
-            return bid.id.toString() === payment.bidId || 
-                   payment.key === bid.id.toString() ||
-                   (payment.bookingId && payment.bookingId.includes(bid.id.toString()));
-          });
+          let relatedBid = null;
+
+          if (bidId) {
+            // If we're querying for a specific bid, find that bid
+            relatedBid = allBids.find(bid => bid.id.toString() === bidId);
+          } else {
+            // Otherwise, try to match payment to any bid
+            relatedBid = allBids.find(bid => {
+              return bid.id.toString() === payment.bidId || 
+                     payment.key === bid.id.toString() ||
+                     (payment.bookingId && payment.bookingId.includes(bid.id.toString()));
+            });
+          }
 
           if (relatedBid) {
             // Parse bid configuration to get route information
@@ -1419,14 +1449,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return {
               ...payment,
               bidId: `BID-${relatedBid.id}`,
-              route: route
+              route: route,
+              paymentReference: payment.paymentReference || `PAY-${payment.id}`
             };
           }
 
-          return payment;
+          return {
+            ...payment,
+            paymentReference: payment.paymentReference || `PAY-${payment.id}`
+          };
         } catch (error) {
           console.log("Could not enhance payment data:", error.message);
-          return payment;
+          return {
+            ...payment,
+            paymentReference: payment.paymentReference || `PAY-${payment.id}`
+          };
         }
       }));
 
@@ -1519,8 +1556,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
       const paymentData = {
-        bookingId: bookingId || null, // Only use actual booking ID if provided
+        bookingId: bookingId || (bidId ? `BID-${bidId}` : null), // Link to bid if no booking ID
         userId: userId, // Add user_id field
+        paymentReference: paymentReference,
         amount: amount.toString(),
         currency: currency || "INR",
         paymentMethod: paymentMethod,

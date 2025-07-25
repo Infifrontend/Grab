@@ -925,15 +925,39 @@ export class DatabaseStorage implements IStorage {
 
   async getPaymentsByBidId(bidId: number) {
     try {
-      const bidPayments = await db
-        .select()
-        .from(payments)
-        .where(eq(payments.bidId, bidId));
+      console.log(`Looking for payments for bid ID: ${bidId}`);
+      
+      // Since we don't have a direct bidId column in payments table,
+      // we need to find payments that are related to this bid through other means
+      
+      // First, get the bid details to understand what we're looking for
+      const bidDetails = await this.getBidById(bidId);
+      if (!bidDetails) {
+        console.log(`No bid found with ID: ${bidId}`);
+        return [];
+      }
+      
+      // Get all payments and filter for ones that might be related to this bid
+      const allPayments = await db.select().from(payments);
+      
+      // Filter payments that might be related to this bid
+      const relatedPayments = allPayments.filter(payment => {
+        // Check if payment reference or booking contains the bid ID
+        const paymentRef = payment.paymentReference || '';
+        const bookingRef = payment.bookingId ? payment.bookingId.toString() : '';
+        
+        // Look for bid ID in various fields
+        return paymentRef.includes(bidId.toString()) || 
+               bookingRef.includes(bidId.toString()) ||
+               (payment.userId === bidDetails.bid?.userId && 
+                Math.abs(new Date(payment.createdAt).getTime() - new Date(bidDetails.bid?.createdAt || 0).getTime()) < 24 * 60 * 60 * 1000); // Within 24 hours
+      });
 
-      return bidPayments;
+      console.log(`Found ${relatedPayments.length} related payments for bid ${bidId}`);
+      return relatedPayments;
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
-      throw error;
+      return [];
     }
   }
 }
