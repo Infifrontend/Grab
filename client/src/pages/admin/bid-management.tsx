@@ -1524,14 +1524,13 @@ export default function BidManagement() {
               <Form.Item
                 label="Bid Title"
                 name="bidTitle"
-                rules={[{ required: true, message: "Please enter bid title" }]}
               >
-                <Input placeholder="Enter bid title" />
+                <Input placeholder="Enter bid title" disabled className="bg-gray-100" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Flight Type" name="flightType">
-                <Select placeholder="Select flight type">
+                <Select placeholder="Select flight type" disabled className="bg-gray-100">
                   <Select.Option value="Domestic">Domestic</Select.Option>
                   <Select.Option value="International">
                     International
@@ -1544,12 +1543,13 @@ export default function BidManagement() {
               <Form.Item
                 label="Origin"
                 name="origin"
-                rules={[{ required: true, message: "Please select origin" }]}
               >
                 <Select
                   mode="combobox"
                   placeholder="Search city / airport"
                   showSearch
+                  disabled
+                  className="bg-gray-100"
                   filterOption={(input, option) =>
                     (option?.value ?? "")
                       .toLowerCase()
@@ -1568,14 +1568,13 @@ export default function BidManagement() {
               <Form.Item
                 label="Destination"
                 name="destination"
-                rules={[
-                  { required: true, message: "Please select destination" },
-                ]}
               >
                 <Select
                   mode="combobox"
                   placeholder="Search city / airport"
                   showSearch
+                  disabled
+                  className="bg-gray-100"
                   filterOption={(input, option) =>
                     (option?.value ?? "")
                       .toLowerCase()
