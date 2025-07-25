@@ -297,8 +297,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking> {
-    const [newBooking] = await db.insert(flightBookings).values(booking).returning();
-    return newBooking;
+    try {
+      const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+      return newBooking;
+    } catch (error) {
+      // If we get a duplicate key error, try to fix the sequence
+      if (error.code === '23505' && error.constraint === 'flight_bookings_pkey') {
+        console.log('Fixing flight_bookings sequence...');
+        
+        // Reset the sequence to the maximum ID + 1
+        await db.execute(`
+          SELECT setval('flight_bookings_id_seq', COALESCE((SELECT MAX(id) FROM flight_bookings), 0) + 1, false)
+        `);
+        
+        // Try the insert again
+        const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+        return newBooking;
+      } else {
+        throw error;
+      }
+    }
   }
 
   async updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void> {
