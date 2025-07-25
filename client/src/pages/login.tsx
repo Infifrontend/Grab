@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, Form, Input, Button, message, Typography, Checkbox } from "antd";
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined } from "@ant-design/icons";
@@ -12,14 +11,14 @@ export default function Login() {
 
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
-    
+
     try {
       // Check credentials
       if (values.username === 'john smith' && values.password === 'Infi@123') {
         // Store user session
         localStorage.setItem('userLoggedIn', 'true');
         localStorage.setItem('username', values.username);
-        
+
         message.success('Login successful! Welcome aboard!');
         setTimeout(() => {
           setLocation('/');
@@ -36,8 +35,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Blue Gradient with Benefits */}
-      <div className="flex-1 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center relative overflow-hidden">
+      {/* Left Side - Purple Gradient with Benefits */}
+      <div className="flex-1 bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 flex items-center justify-center relative overflow-hidden" style={{
+        background: 'linear-gradient(135deg, #80206a 0%, #9c2a7a 25%, #b83389 50%, #d63d98 75%, #f047a7 100%)'
+      }}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-64 h-0.5 bg-white transform rotate-12 animate-pulse"></div>
@@ -50,7 +51,7 @@ export default function Login() {
         <div className="text-white z-10 max-w-md px-8">
           {/* Logo */}
           <div className="flex items-center mb-12">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mr-3" style={{ background: 'var(--infiniti-primary)' }}>
+            <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
               <span className="text-white text-xl font-bold">✈️</span>
             </div>
             <span className="text-2xl font-bold">Infiniti Airways</span>
@@ -59,28 +60,28 @@ export default function Login() {
           {/* Benefits List */}
           <div className="space-y-6">
             <Title level={2} className="!text-white !mb-8">
-              Login/registered users get more offers
+              Exclusive deals for registered users
             </Title>
-            
+
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">View/cancel/reschedule booking</Text>
+                <Text className="text-white text-lg">Easily view, cancel, or reschedule your flights</Text>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Manage cancellation booking/view booking history</Text>
+                <Text className="text-white text-lg">Track your booking history effortlessly</Text>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Faster booking with saved travelers</Text>
+                <Text className="text-white text-lg">Save passenger details for faster checkout</Text>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Low cancellation fee for SME business customers</Text>
+                <Text className="text-white text-lg">Enjoy low cancellation fees with retail plans</Text>
               </div>
             </div>
           </div>
@@ -92,18 +93,6 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-end mb-4 space-x-4">
-              <Button type="text" size="small" className="text-gray-500">
-                🌞 Light
-              </Button>
-              <Button type="text" size="small" className="text-gray-500">
-                🌙 Dark
-              </Button>
-              <Button type="text" size="small" className="text-gray-500">
-                🇬🇧 English
-              </Button>
-            </div>
-            
             <Title level={1} className="!text-gray-800 !mb-2">
               Login
             </Title>
@@ -154,7 +143,7 @@ export default function Login() {
               <Form.Item name="remember" valuePropName="checked" className="!mb-0">
                 <Checkbox className="text-gray-600">Remember me</Checkbox>
               </Form.Item>
-              <Button type="link" className="p-0 text-blue-600 hover:text-blue-800">
+              <Button type="link" className="p-0 hover:text-purple-800" style={{ color: '#80206a' }}>
                 Forgot password?
               </Button>
             </div>
@@ -166,7 +155,7 @@ export default function Login() {
                 htmlType="submit"
                 className="w-full h-12 border-0 rounded-lg font-semibold text-base"
                 style={{
-                  background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+                  background: 'linear-gradient(135deg, #80206a 0%, #9c2a7a 50%, #b83389 100%)',
                   boxShadow: 'none'
                 }}
                 loading={loading}
@@ -174,54 +163,17 @@ export default function Login() {
                 {loading ? 'Logging in...' : 'Login'}
               </Button>
             </Form.Item>
-
-            {/* Login with OTP */}
-            <Form.Item className="!mb-6">
-              <Button
-                className="w-full h-12 border border-orange-400 text-orange-600 rounded-lg font-medium bg-white hover:bg-orange-50"
-              >
-                Login with OTP
-              </Button>
-            </Form.Item>
-
-            {/* Social Login */}
-            <div className="text-center">
-              <Text className="text-gray-500 mb-4 block">or login with</Text>
-              <div className="flex justify-center space-x-4">
-                <Button
-                  shape="circle"
-                  size="large"
-                  className="border-gray-300 hover:border-gray-400"
-                  style={{ backgroundColor: '#db4437', borderColor: '#db4437' }}
-                >
-                  <span className="text-white font-bold">G</span>
-                </Button>
-                <Button
-                  shape="circle"
-                  size="large"
-                  className="border-gray-300 hover:border-gray-400"
-                  style={{ backgroundColor: '#3b5998', borderColor: '#3b5998' }}
-                >
-                  <span className="text-white font-bold">f</span>
-                </Button>
-                <Button
-                  shape="circle"
-                  size="large"
-                  className="border-gray-300 hover:border-gray-400"
-                  style={{ backgroundColor: '#0077b5', borderColor: '#0077b5' }}
-                >
-                  <span className="text-white font-bold">in</span>
-                </Button>
-              </div>
-            </div>
           </Form>
 
           {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <Text className="text-blue-800 text-sm block font-medium mb-1">
+          <div className="mt-8 p-4 rounded-lg border" style={{ 
+            backgroundColor: '#f8f4f7', 
+            borderColor: '#80206a33' 
+          }}>
+            <Text className="block font-medium mb-1" style={{ color: '#80206a' }}>
               🎯 Demo Credentials
             </Text>
-            <Text className="text-blue-600 text-xs">
+            <Text className="text-xs" style={{ color: '#80206a' }}>
               Username: <strong>john smith</strong> • Password: <strong>Infi@123</strong>
             </Text>
           </div>
@@ -231,23 +183,23 @@ export default function Login() {
       <style jsx global>{`
         .ant-input:focus,
         .ant-input-password:focus {
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(128, 32, 106, 0.2);
+          border-color: #80206a !important;
         }
-        
+
         .ant-btn-primary:hover {
           opacity: 0.9;
         }
-        
+
         .ant-checkbox-wrapper:hover .ant-checkbox-inner,
         .ant-checkbox:hover .ant-checkbox-inner,
         .ant-checkbox-input:focus + .ant-checkbox-inner {
-          border-color: #ff6b35;
+          border-color: #80206a;
         }
-        
+
         .ant-checkbox-checked .ant-checkbox-inner {
-          background-color: #ff6b35;
-          border-color: #ff6b35;
+          background-color: #80206a;
+          border-color: #80206a;
         }
       `}</style>
     </div>
