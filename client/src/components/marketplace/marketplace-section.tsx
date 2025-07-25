@@ -25,8 +25,7 @@ export default function MarketplaceSection() {
   };
 
   const handleBookPackage = (packageId: number) => {
-    console.log("Booking package:", packageId);
-    // Implement booking logic
+    window.open("https://demo-packages.infinitisoftware.net/", "_blank");
   };
 
   return (
