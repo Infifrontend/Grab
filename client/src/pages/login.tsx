@@ -57,34 +57,7 @@ export default function Login() {
             <span className="text-2xl font-bold">Infiniti Airways</span>
           </div>
 
-          {/* Benefits List */}
-          <div className="space-y-6">
-            <Title level={2} className="!text-white !mb-8">
-              Exclusive deals for registered users
-            </Title>
-
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Easily view, cancel, or reschedule your flights</Text>
-              </div>
-
-              <div className="flex items-start">
-                <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Track your booking history effortlessly</Text>
-              </div>
-
-              <div className="flex items-start">
-                <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Save passenger details for faster checkout</Text>
-              </div>
-
-              <div className="flex items-start">
-                <div className="w-2 h-2 rounded-full bg-white mt-2 mr-4 flex-shrink-0"></div>
-                <Text className="text-white text-lg">Enjoy low cancellation fees with retail plans</Text>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
 
