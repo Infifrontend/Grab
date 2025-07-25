@@ -175,7 +175,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSearchRequest(request: InsertSearchRequest): Promise<void> {
-    await db.insert(searchRequests).values(request);
+    // Remove id from request to let database auto-generate it
+    const { id, ...requestWithoutId } = request as any;
+    await db.insert(searchRequests).values(requestWithoutId);
   }
 
   // Flights
