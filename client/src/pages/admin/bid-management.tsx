@@ -541,8 +541,8 @@ export default function BidManagement() {
             dataSource={activeBids}
             expandable={{
               expandedRowRender: (record) => {
-                // Only show expandable content for Completed and Paid status
-                const isExpandable = record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                // Show expandable content for Completed status
+                const isExpandable = record.status.toLowerCase() === 'completed';
                 
                 if (!isExpandable) {
                   return null;
@@ -580,9 +580,11 @@ export default function BidManagement() {
                       }
                     ];
                     
-                    // Filter out approved users and only show users with bids higher than base amount
-                    retailUsers = allRetailUsers.filter(user => 
-                      user.status !== 'approved' && 
+                    // Show all retail users for completed bids, ensuring bid amounts are higher than base
+                    retailUsers = allRetailUsers.map(user => ({
+                      ...user,
+                      bidAmount: user.bidAmount || (baseBidAmount + Math.floor(Math.random() * 100) + 35)
+                    })).filter(user => 
                       (user.bidAmount || 0) > baseBidAmount
                     );
                   } catch (e) {
@@ -605,6 +607,15 @@ export default function BidManagement() {
                         bookingRef: "GR001235",
                         seatNumber: "12B",
                         bidAmount: baseBidAmount + 70,
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 3,
+                        name: "Mike Wilson",
+                        email: "mike.wilson@email.com",
+                        bookingRef: "GR001236", 
+                        seatNumber: "12C",
+                        bidAmount: baseBidAmount + 45,
                         status: "pending_approval"
                       }
                     ];
@@ -678,8 +689,8 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Only allow expansion for Completed and Paid status
-                return record.status.toLowerCase() === 'completed' && record.paymentStatus === 'paid';
+                // Allow expansion for Completed status
+                return record.status.toLowerCase() === 'completed';
               },
             }}
             columns={[
