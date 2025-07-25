@@ -34,19 +34,19 @@ import PaymentOptions from "@/pages/payment-options";
 import ReviewConfirmation from "@/pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
 import { useState } from "react";
-import { useHistory } from "wouter";
+import { useLocation } from "wouter";
 
 // Define Login Component
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const history = useHistory();
+  const [, setLocation] = useLocation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (username === "john smith" && password === "Infi@123") {
-      history.push("/"); // Redirect to home page
+      setLocation("/"); // Redirect to home page
     } else {
       setError("Invalid credentials");
     }
