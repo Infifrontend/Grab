@@ -681,30 +681,20 @@ export default function BidManagement() {
                 ),
               },
               {
-                title: "Passenger",
-                dataIndex: "passenger",
-                key: "passenger",
-                render: (passenger) => (
-                  <div>
-                    <Text strong>{passenger.name}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      {passenger.email}
-                    </Text>
-                  </div>
+                title: "Flight ID",
+                dataIndex: "flight",
+                key: "flightId",
+                render: (flight) => (
+                  <Text strong>{flight.number}</Text>
                 ),
               },
               {
-                title: "Flight Info",
+                title: "Route",
                 dataIndex: "flight",
-                key: "flightInfo",
+                key: "route",
                 render: (flight) => (
                   <div>
-                    <Text strong>{flight.number}</Text>
-                    <br />
-                    <Text className="text-gray-500 text-sm">
-                      {flight.route}
-                    </Text>
+                    <Text strong>{flight.route}</Text>
                     <br />
                     <Text className="text-gray-500 text-sm">{flight.date}</Text>
                   </div>
