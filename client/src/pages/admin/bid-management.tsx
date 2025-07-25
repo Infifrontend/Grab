@@ -564,6 +564,7 @@ export default function BidManagement() {
                         email: "john.smith@email.com",
                         bookingRef: "GR001234",
                         seatNumber: "12A",
+                        bidAmount: 185,
                         status: "pending_approval"
                       },
                       {
@@ -572,6 +573,7 @@ export default function BidManagement() {
                         email: "sarah.johnson@email.com", 
                         bookingRef: "GR001235",
                         seatNumber: "12B",
+                        bidAmount: 220,
                         status: "pending_approval"
                       },
                       {
@@ -580,6 +582,7 @@ export default function BidManagement() {
                         email: "mike.wilson@email.com",
                         bookingRef: "GR001236", 
                         seatNumber: "12C",
+                        bidAmount: 195,
                         status: "approved"
                       }
                     ];
@@ -617,7 +620,7 @@ export default function BidManagement() {
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
-                      Associated Retail Users
+                      Retail Users
                     </Title>
                     <div className="space-y-3">
                       {retailUsers.map((user) => (
@@ -631,6 +634,12 @@ export default function BidManagement() {
                               <div>
                                 <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
                                 <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
+                              </div>
+                              <div>
+                                <Text className="text-green-600 font-semibold text-sm block">
+                                  Bid: ${user.bidAmount || (Math.floor(Math.random() * 200) + 150)}
+                                </Text>
+                                <Text className="text-gray-500 text-xs">Per seat</Text>
                               </div>
                               <div>
                                 <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
