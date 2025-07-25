@@ -175,7 +175,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSearchRequest(request: InsertSearchRequest): Promise<void> {
-    await db.insert(searchRequests).values(request);
+    // Create request without ID field to allow auto-increment
+    await db.insert(searchRequests).values({
+      origin: request.origin,
+      destination: request.destination,
+      departureDate: request.departureDate,
+      returnDate: request.returnDate,
+      passengers: request.passengers,
+      cabin: request.cabin,
+      tripType: request.tripType
+    });
   }
 
   // Flights
@@ -886,8 +895,7 @@ export class DatabaseStorage implements IStorage {
 
       const [updatedBid] = await db
         .update(bids)
-        .set({
-          ...updateData,
+        .set({...updateData,
           updatedAt: new Date()
         })
         .where(eq(bids.id, bidId))
@@ -926,26 +934,26 @@ export class DatabaseStorage implements IStorage {
   async getPaymentsByBidId(bidId: number) {
     try {
       console.log(`Looking for payments for bid ID: ${bidId}`);
-      
+
       // Since we don't have a direct bidId column in payments table,
       // we need to find payments that are related to this bid through other means
-      
+
       // First, get the bid details to understand what we're looking for
       const bidDetails = await this.getBidById(bidId);
       if (!bidDetails) {
         console.log(`No bid found with ID: ${bidId}`);
         return [];
       }
-      
+
       // Get all payments and filter for ones that might be related to this bid
       const allPayments = await db.select().from(payments);
-      
+
       // Filter payments that might be related to this bid
       const relatedPayments = allPayments.filter(payment => {
         // Check if payment reference or booking contains the bid ID
         const paymentRef = payment.paymentReference || '';
         const bookingRef = payment.bookingId ? payment.bookingId.toString() : '';
-        
+
         // Look for bid ID in various fields
         return paymentRef.includes(bidId.toString()) || 
                bookingRef.includes(bidId.toString()) ||

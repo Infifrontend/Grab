@@ -85,6 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Search request received:", req.body);
       const searchData = insertSearchRequestSchema.parse(req.body);
+
+      // Create search request (storage will handle ID generation)
       await storage.createSearchRequest(searchData);
 
       // Search for outbound flights
@@ -972,8 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create bid configuration
-  app.post("/api/bid-configurations", async (req: Request, res: Response) => {
-    try {      console.log("Received bid configuration data:", req.body);
+  app.post("/api/bid-configurations", async (req: Request, res: Response) => {try {      console.log("Received bid configuration data:", req.body);
 
       const {
         bidTitle,
@@ -1383,18 +1384,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bidId) {
         // Fetch payments by bid ID - check multiple ways payments might be linked to bids
         console.log(`Fetching payments for bid ID: ${bidId}`);
-        
+
         try {
           // First, try to get payments directly linked to the bid
           const directPayments = await storage.getPaymentsByBidId(parseInt(bidId as string));
           payments = [...directPayments];
-          
+
           // Also check for payments that might be linked through booking references
           const allPayments = await storage.getPayments();
           const bidRelatedPayments = allPayments.filter(payment => {
             return payment.bookingId && payment.bookingId.includes(bidId as string);
           });
-          
+
           // Merge and deduplicate
           const existingIds = new Set(payments.map(p => p.id));
           bidRelatedPayments.forEach(payment => {
@@ -1402,7 +1403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               payments.push(payment);
             }
           });
-          
+
           console.log(`Found ${payments.length} payments for bid ${bidId}`);
         } catch (error) {
           console.log(`Error fetching payments for bid ${bidId}:`, error.message);
