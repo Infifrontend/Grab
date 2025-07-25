@@ -1648,7 +1648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ notifications: notificationsList });
     } catch (error) {
       console.error("Error fetching notifications:", error);
-      res.json({ notifications: [] });
+      res.status(500).json({ error: "Failed to fetch notifications" });
     }
   });
 
