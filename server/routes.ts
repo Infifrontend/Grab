@@ -1752,15 +1752,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Update the status
-      const newStatus = action === 'approve' ? 'approved' : 'rejected';
-      existingNotes.retailUsers[retailUserIndex].status = newStatus;
-      existingNotes.retailUsers[retailUserIndex].updatedAt = new Date().toISOString();
-      existingNotes.retailUsers[retailUserIndex].updatedBy = 'Admin';
+      let newBidStatus = existingBid.bid.bidStatus; // Keep current bid status by default
 
-      // Update the bid with new notes
+      if (action === 'approve') {
+        // If approving this user, reject all other users automatically
+        existingNotes.retailUsers.forEach((user, index) => {
+          if (index === retailUserIndex) {
+            // Approve the selected user
+            user.status = 'approved';
+            user.updatedAt = new Date().toISOString();
+            user.updatedBy = 'Admin';
+          } else if (user.status === 'pending_approval' || user.status === 'approved') {
+            // Reject all other users who were pending or previously approved
+            user.status = 'rejected';
+            user.updatedAt = new Date().toISOString();
+            user.updatedBy = 'Admin (Auto-rejected)';
+          }
+        });
+
+        // Update bid status from "Completed" to "Approved" when a retail user is approved
+        if (existingBid.bid.bidStatus === 'completed') {
+          newBidStatus = 'approved';
+        }
+      } else {
+        // If rejecting this user, just update their status
+        existingNotes.retailUsers[retailUserIndex].status = 'rejected';
+        existingNotes.retailUsers[retailUserIndex].updatedAt = new Date().toISOString();
+        existingNotes.retailUsers[retailUserIndex].updatedBy = 'Admin';
+      }
+
+      // Update the bid with new notes and potentially new bid status
       const updateData = {
         notes: JSON.stringify(existingNotes),
+        bidStatus: newBidStatus,
         updatedAt: new Date()
       };
 
@@ -1770,20 +1794,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await createNotification(
         'retail_user_status_updated',
         `Retail User ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-        `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been ${newStatus} for bid ${bidId}`,
+        action === 'approve' 
+          ? `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been approved for bid ${bidId}. All other pending users have been automatically rejected. Bid status updated to "Approved".`
+          : `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been rejected for bid ${bidId}`,
         'medium',
         {
           bidId: parseInt(bidId),
           userId: parseInt(userId),
-          action: newStatus,
-          userName: existingNotes.retailUsers[retailUserIndex].name
+          action: action === 'approve' ? 'approved' : 'rejected',
+          userName: existingNotes.retailUsers[retailUserIndex].name,
+          bidStatusUpdated: action === 'approve' && existingBid.bid.bidStatus === 'completed'
         }
       );
 
       res.json({
         success: true,
-        message: `Retail user ${newStatus} successfully`,
-        retailUser: existingNotes.retailUsers[retailUserIndex]
+        message: action === 'approve' 
+          ? `Retail user approved successfully. All other users have been automatically rejected. Bid status updated to "Approved".`
+          : `Retail user rejected successfully`,
+        retailUser: existingNotes.retailUsers[retailUserIndex],
+        bidStatusUpdated: newBidStatus !== existingBid.bid.bidStatus,
+        newBidStatus: newBidStatus
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
@@ -1846,6 +1877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create notification (helper function for internal use)
   const createNotification = async (type: string, title: string, message: string, priority: string = 'medium', actionData: any = null) => {
     try {
+      const now = new Date();
       await db.insert(notifications).values({
         type,
         title,
@@ -1853,8 +1885,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         priority,
         isRead: false,
         actionData: actionData ? JSON.stringify(actionData) : null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: now,
+        updatedAt: now,
       });
     } catch (error) {
       console.error("Error creating notification:", error);

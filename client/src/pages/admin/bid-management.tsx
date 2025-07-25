@@ -772,6 +772,7 @@ export default function BidManagement() {
                     switch (status.toLowerCase()) {
                       case "active": return "green";
                       case "accepted": return "blue";
+                      case "approved": return "cyan";
                       case "rejected": return "red";
                       case "expired": return "orange";
                       case "completed": return "purple";
@@ -1031,13 +1032,22 @@ export default function BidManagement() {
       const result = await response.json();
 
       if (result.success) {
-        message.success(
-          `Retail user ${action === "approve" ? "approved" : "rejected"} successfully`
-        );
+        if (action === "approve") {
+          message.success(
+            result.message || "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'."
+          );
+        } else {
+          message.success(
+            result.message || "Retail user rejected successfully"
+          );
+        }
 
-        // Refresh the data to update the UI
+        // Refresh the data to update the UI with new bid status and retail user statuses
         queryClient.invalidateQueries(["recent-bids"]);
         queryClient.invalidateQueries(["bid-configurations"]);
+        
+        // Force refetch to get latest data
+        refetchBids();
       } else {
         throw new Error(result.message || `Failed to ${action} retail user`);
       }
