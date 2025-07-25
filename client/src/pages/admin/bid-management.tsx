@@ -661,8 +661,8 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Only show expand option for completed or approved bids
-                return record.status.toLowerCase() === 'completed' || record.status.toLowerCase() === 'approved';
+                // Only show expand option for completed bids
+                return record.status.toLowerCase() === 'completed';
               },
             }}
             columns={[
