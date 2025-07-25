@@ -113,23 +113,7 @@ export default function Payments() {
       title: 'DATE',
       dataIndex: 'date',
       key: 'date',
-      render: (text: string) => {
-        // Handle invalid dates
-        if (!text || text === 'Invalid Date' || text === 'N/A') {
-          return <Text className="text-gray-400">N/A</Text>;
-        }
-        
-        // Try to format the date properly
-        try {
-          const date = new Date(text);
-          if (isNaN(date.getTime())) {
-            return <Text className="text-gray-400">N/A</Text>;
-          }
-          return <Text className="text-gray-600">{date.toLocaleDateString()}</Text>;
-        } catch (e) {
-          return <Text className="text-gray-400">N/A</Text>;
-        }
-      },
+      render: (text: string) => <Text className="text-gray-600">{text}</Text>,
     },
     {
       title: 'AMOUNT',
@@ -389,23 +373,7 @@ export default function Payments() {
                   title: 'DUE DATE',
                   dataIndex: 'dueDate',
                   key: 'dueDate',
-                  render: (text: string) => {
-                    // Handle invalid dates
-                    if (!text || text === 'Invalid Date' || text === 'N/A') {
-                      return <Text className="text-gray-400">N/A</Text>;
-                    }
-                    
-                    // Try to format the date properly
-                    try {
-                      const date = new Date(text);
-                      if (isNaN(date.getTime())) {
-                        return <Text className="text-gray-400">N/A</Text>;
-                      }
-                      return <Text className="text-gray-600">{date.toLocaleDateString()}</Text>;
-                    } catch (e) {
-                      return <Text className="text-gray-400">N/A</Text>;
-                    }
-                  },
+                  render: (text: string) => <Text className="text-gray-600">{text}</Text>,
                 },
                 {
                   title: 'AMOUNT',

@@ -1479,7 +1479,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
       const paymentData = {
-        paymentReference: paymentReference,
         bookingId: bookingId || null, // Only use actual booking ID if provided
         userId: userId, // Add user_id field
         amount: amount.toString(),
