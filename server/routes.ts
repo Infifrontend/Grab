@@ -85,7 +85,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Search request received:", req.body);
       const searchData = insertSearchRequestSchema.parse(req.body);
-      // Create clean search request without any extra fields
       await storage.createSearchRequest(searchData);
 
       // Search for outbound flights

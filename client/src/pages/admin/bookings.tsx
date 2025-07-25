@@ -39,943 +39,9 @@ import dayjs from "dayjs";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
-import BookingSteps from "@/components/booking/booking-steps";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
-
-// Admin Booking Flow Component
-function AdminBookingFlow({ onReturn }: { onReturn: () => void }) {
-  const [, setLocation] = useLocation();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [bookingData, setBookingData] = useState<any>({});
-  const [flightData, setFlightData] = useState<any>({});
-  const [bundleData, setBundleData] = useState<any>({});
-  const [selectedServices, setSelectedServices] = useState<any[]>([]);
-  const [groupLeaderData, setGroupLeaderData] = useState<any>({});
-  const [passengerData, setPassengerData] = useState<any[]>([]);
-  const [bookingSummary, setBookingSummary] = useState<any>({});
-
-  const steps = [
-    "Trip Details",
-    "Flight Search & Bundles", 
-    "Add Services",
-    "Group Leader Info",
-    "Passenger Info",
-    "Review & Confirmation",
-    "Payment"
-  ];
-
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleStepComplete = (stepData: any) => {
-    switch (currentStep) {
-      case 0:
-        setBookingData(stepData);
-        localStorage.setItem("bookingFormData", JSON.stringify(stepData));
-        localStorage.setItem("isAdminBooking", "true");
-        break;
-      case 1:
-        setFlightData(stepData);
-        localStorage.setItem("selectedFlightData", JSON.stringify(stepData));
-        break;
-      case 2:
-        setSelectedServices(stepData);
-        localStorage.setItem("selectedServices", JSON.stringify(stepData));
-        break;
-      case 3:
-        setGroupLeaderData(stepData);
-        localStorage.setItem("groupLeaderData", JSON.stringify(stepData));
-        break;
-      case 4:
-        setPassengerData(stepData);
-        localStorage.setItem("passengerData", JSON.stringify(stepData));
-        break;
-      case 5:
-        // Review step
-        break;
-      case 6:
-        // Payment step - create booking
-        handleCreateBooking(stepData);
-        return;
-    }
-    handleNext();
-  };
-
-  const handleCreateBooking = async (paymentData: any) => {
-    try {
-      const comprehensiveBookingData = {
-        bookingData,
-        flightData,
-        bundleData,
-        selectedServices,
-        groupLeaderData,
-        passengerData,
-        paymentData,
-        bookingSummary,
-        isAdminBooking: true
-      };
-
-      const response = await fetch("/api/group-bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(comprehensiveBookingData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        message.success("Group booking created successfully!");
-        
-        // Clear localStorage
-        localStorage.removeItem("bookingFormData");
-        localStorage.removeItem("selectedFlightData");
-        localStorage.removeItem("selectedServices");
-        localStorage.removeItem("groupLeaderData");
-        localStorage.removeItem("passengerData");
-        localStorage.removeItem("isAdminBooking");
-        
-        // Return to dashboard
-        onReturn();
-      } else {
-        throw new Error("Failed to create booking");
-      }
-    } catch (error) {
-      console.error("Booking creation error:", error);
-      message.error("Failed to create booking. Please try again.");
-    }
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return <TripDetailsStep onComplete={handleStepComplete} initialData={bookingData} />;
-      case 1:
-        return <FlightSearchStep onComplete={handleStepComplete} bookingData={bookingData} />;
-      case 2:
-        return <AddServicesStep onComplete={handleStepComplete} initialData={selectedServices} />;
-      case 3:
-        return <GroupLeaderStep onComplete={handleStepComplete} initialData={groupLeaderData} />;
-      case 4:
-        return <PassengerInfoStep onComplete={handleStepComplete} bookingData={bookingData} initialData={passengerData} />;
-      case 5:
-        return <ReviewStep onComplete={handleStepComplete} allData={{ bookingData, flightData, selectedServices, groupLeaderData, passengerData }} />;
-      case 6:
-        return <PaymentStep onComplete={handleStepComplete} bookingSummary={bookingSummary} />;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Title level={3} className="!mb-2 text-gray-900">
-            Create New Group Booking
-          </Title>
-          <Text className="text-gray-600">
-            Complete the booking process step by step
-          </Text>
-        </div>
-        <Button
-          type="text"
-          onClick={onReturn}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          ← Back to Dashboard
-        </Button>
-      </div>
-
-      {/* Progress Steps */}
-      <Card className="mb-6">
-        <BookingSteps currentStep={currentStep} size="small" />
-      </Card>
-
-      {/* Step Content */}
-      <Card>
-        {renderStepContent()}
-        
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t">
-          <Button
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className="text-gray-600"
-          >
-            Previous
-          </Button>
-          
-          <div className="text-sm text-gray-500">
-            Step {currentStep + 1} of {steps.length}
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Step Components
-function TripDetailsStep({ onComplete, initialData }: { onComplete: (data: any) => void; initialData: any }) {
-  const [form] = Form.useForm();
-  const [tripType, setTripType] = useState(initialData?.tripType || "roundTrip");
-
-  const handleSubmit = (values: any) => {
-    const totalPassengers = values.adults + values.kids + values.infants;
-    const formData = {
-      ...values,
-      tripType,
-      totalPassengers,
-      isAdminBooking: true
-    };
-    onComplete(formData);
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Trip Details</Title>
-      
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{
-          tripType: tripType,
-          adults: initialData?.adults || 1,
-          kids: initialData?.kids || 0,
-          infants: initialData?.infants || 0,
-          cabin: initialData?.cabin || "economy",
-          ...initialData
-        }}
-      >
-        {/* Trip Type */}
-        <div className="mb-6">
-          <Text className="block mb-3 text-gray-700 font-medium">Trip Type</Text>
-          <Radio.Group
-            value={tripType}
-            onChange={(e) => setTripType(e.target.value)}
-            className="flex gap-8"
-          >
-            <Radio value="oneWay">One way</Radio>
-            <Radio value="roundTrip">Round trip</Radio>
-          </Radio.Group>
-        </div>
-
-        {/* Origin and Destination */}
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Origin *"
-              name="origin"
-              rules={[{ required: true, message: "Please select origin" }]}
-            >
-              <Select placeholder="Select origin" showSearch>
-                <Option value="New York">New York</Option>
-                <Option value="Los Angeles">Los Angeles</Option>
-                <Option value="London">London</Option>
-                <Option value="Paris">Paris</Option>
-                <Option value="Tokyo">Tokyo</Option>
-                <Option value="Dubai">Dubai</Option>
-                <Option value="Mumbai">Mumbai</Option>
-                <Option value="Delhi">Delhi</Option>
-                <Option value="Chennai">Chennai</Option>
-                <Option value="Bangalore">Bangalore</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Destination *"
-              name="destination"
-              rules={[{ required: true, message: "Please select destination" }]}
-            >
-              <Select placeholder="Select destination" showSearch>
-                <Option value="New York">New York</Option>
-                <Option value="Los Angeles">Los Angeles</Option>
-                <Option value="London">London</Option>
-                <Option value="Paris">Paris</Option>
-                <Option value="Tokyo">Tokyo</Option>
-                <Option value="Dubai">Dubai</Option>
-                <Option value="Mumbai">Mumbai</Option>
-                <Option value="Delhi">Delhi</Option>
-                <Option value="Chennai">Chennai</Option>
-                <Option value="Bangalore">Bangalore</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* Dates */}
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Departure Date *"
-              name="departureDate"
-              rules={[{ required: true, message: "Please select departure date" }]}
-            >
-              <DatePicker
-                className="w-full"
-                format="DD MMM YYYY"
-                disabledDate={(current) => current && current.isBefore(dayjs(), "day")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Return Date"
-              name="returnDate"
-              rules={tripType === "roundTrip" ? [{ required: true, message: "Please select return date" }] : []}
-            >
-              <DatePicker
-                className="w-full"
-                format="DD MMM YYYY"
-                disabled={tripType === "oneWay"}
-                disabledDate={(current) => current && current.isBefore(dayjs(), "day")}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* Passengers */}
-        <Row gutter={24}>
-          <Col xs={24} md={8}>
-            <Form.Item
-              label="Adults *"
-              name="adults"
-              rules={[{ required: true, message: "At least 1 adult required" }]}
-            >
-              <InputNumber min={1} max={50} className="w-full" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label="Kids (2-11)" name="kids">
-              <InputNumber min={0} max={50} className="w-full" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label="Infants (0-2)" name="infants">
-              <InputNumber min={0} max={50} className="w-full" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* Cabin */}
-        <Form.Item
-          label="Cabin *"
-          name="cabin"
-          rules={[{ required: true, message: "Please select cabin class" }]}
-        >
-          <Select placeholder="Select cabin class">
-            <Option value="economy">Economy</Option>
-            <Option value="business">Business</Option>
-            <Option value="first">First Class</Option>
-          </Select>
-        </Form.Item>
-
-        <div className="flex justify-end">
-          <Button type="primary" htmlType="submit" size="large">
-            Continue to Flight Search
-          </Button>
-        </div>
-      </Form>
-    </div>
-  );
-}
-
-function FlightSearchStep({ onComplete, bookingData }: { onComplete: (data: any) => void; bookingData: any }) {
-  const [selectedFlight, setSelectedFlight] = useState<any>(null);
-  const [flights] = useState([
-    {
-      id: 1,
-      airline: "Qatar Airways",
-      flightNumber: "QR729",
-      origin: bookingData.origin,
-      destination: bookingData.destination,
-      departureTime: "10:30 AM",
-      arrivalTime: "2:45 PM",
-      price: 850,
-      stops: "Non-stop"
-    },
-    {
-      id: 2,
-      airline: "Emirates",
-      flightNumber: "EK203",
-      origin: bookingData.origin,
-      destination: bookingData.destination,
-      departureTime: "6:15 PM",
-      arrivalTime: "10:30 PM",
-      price: 920,
-      stops: "1 Stop"
-    }
-  ]);
-
-  const handleFlightSelect = (flight: any) => {
-    setSelectedFlight(flight);
-  };
-
-  const handleContinue = () => {
-    if (selectedFlight) {
-      onComplete({
-        selectedFlightId: selectedFlight.id,
-        outbound: selectedFlight,
-        basePrice: selectedFlight.price
-      });
-    }
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Flight Search & Bundle Selection</Title>
-      
-      <div className="mb-6">
-        <Text className="text-gray-600">
-          Route: {bookingData.origin} → {bookingData.destination} | 
-          Passengers: {bookingData.totalPassengers} | 
-          Cabin: {bookingData.cabin}
-        </Text>
-      </div>
-
-      <div className="space-y-4 mb-6">
-        {flights.map((flight) => (
-          <Card
-            key={flight.id}
-            className={`cursor-pointer transition-all ${
-              selectedFlight?.id === flight.id ? 'border-blue-500 bg-blue-50' : 'hover:shadow-md'
-            }`}
-            onClick={() => handleFlightSelect(flight)}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-2">
-                  <Text strong className="text-lg">{flight.airline}</Text>
-                  <Text className="text-gray-500">{flight.flightNumber}</Text>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div>
-                    <Text strong className="text-xl">{flight.departureTime}</Text>
-                    <div className="text-sm text-gray-500">{flight.origin}</div>
-                  </div>
-                  <div className="flex-1 text-center">
-                    <div className="text-sm text-gray-500">{flight.stops}</div>
-                    <div className="border-t border-gray-300 my-1"></div>
-                  </div>
-                  <div>
-                    <Text strong className="text-xl">{flight.arrivalTime}</Text>
-                    <div className="text-sm text-gray-500">{flight.destination}</div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right ml-6">
-                <Text strong className="text-2xl text-green-600">
-                  ${flight.price}
-                </Text>
-                <div className="text-sm text-gray-500">per person</div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex justify-end">
-        <Button
-          type="primary"
-          size="large"
-          disabled={!selectedFlight}
-          onClick={handleContinue}
-        >
-          Continue to Services
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function AddServicesStep({ onComplete, initialData }: { onComplete: (data: any) => void; initialData: any[] }) {
-  const [selectedServices, setSelectedServices] = useState(initialData || []);
-
-  const services = [
-    { id: 1, name: "Priority Boarding", price: 25, description: "Board the aircraft first" },
-    { id: 2, name: "Extra Baggage", price: 50, description: "Additional 23kg checked baggage" },
-    { id: 3, name: "Seat Selection", price: 15, description: "Choose your preferred seat" },
-    { id: 4, name: "Travel Insurance", price: 35, description: "Comprehensive travel coverage" }
-  ];
-
-  const handleServiceToggle = (service: any) => {
-    const isSelected = selectedServices.some(s => s.id === service.id);
-    if (isSelected) {
-      setSelectedServices(selectedServices.filter(s => s.id !== service.id));
-    } else {
-      setSelectedServices([...selectedServices, service]);
-    }
-  };
-
-  const handleContinue = () => {
-    onComplete(selectedServices);
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Add Services</Title>
-      
-      <div className="space-y-4 mb-6">
-        {services.map((service) => {
-          const isSelected = selectedServices.some(s => s.id === service.id);
-          return (
-            <Card
-              key={service.id}
-              className={`cursor-pointer transition-all ${
-                isSelected ? 'border-blue-500 bg-blue-50' : 'hover:shadow-md'
-              }`}
-              onClick={() => handleServiceToggle(service)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <Title level={5} className="!mb-1">{service.name}</Title>
-                  <Text className="text-gray-600">{service.description}</Text>
-                </div>
-                <div className="text-right">
-                  <Text strong className="text-lg">${service.price}</Text>
-                  <div className="text-sm text-gray-500">per person</div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="flex justify-end">
-        <Button type="primary" size="large" onClick={handleContinue}>
-          Continue to Group Leader Info
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function GroupLeaderStep({ onComplete, initialData }: { onComplete: (data: any) => void; initialData: any }) {
-  const [form] = Form.useForm();
-
-  const handleSubmit = (values: any) => {
-    onComplete(values);
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Group Leader Information</Title>
-      
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={initialData}
-      >
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="First Name *"
-              name="firstName"
-              rules={[{ required: true, message: "Please enter first name" }]}
-            >
-              <Input placeholder="Enter first name" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Last Name *"
-              name="lastName"
-              rules={[{ required: true, message: "Please enter last name" }]}
-            >
-              <Input placeholder="Enter last name" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Email *"
-              name="email"
-              rules={[
-                { required: true, message: "Please enter email" },
-                { type: "email", message: "Please enter valid email" }
-              ]}
-            >
-              <Input placeholder="Enter email address" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Phone *"
-              name="phone"
-              rules={[{ required: true, message: "Please enter phone number" }]}
-            >
-              <Input placeholder="Enter phone number" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          label="Organization"
-          name="organization"
-        >
-          <Input placeholder="Enter organization name" />
-        </Form.Item>
-
-        <Form.Item
-          label="Group Type"
-          name="groupType"
-        >
-          <Select placeholder="Select group type">
-            <Option value="corporate">Corporate</Option>
-            <Option value="leisure">Leisure</Option>
-            <Option value="educational">Educational</Option>
-            <Option value="sports">Sports</Option>
-            <Option value="religious">Religious</Option>
-          </Select>
-        </Form.Item>
-
-        <div className="flex justify-end">
-          <Button type="primary" htmlType="submit" size="large">
-            Continue to Passenger Info
-          </Button>
-        </div>
-      </Form>
-    </div>
-  );
-}
-
-function PassengerInfoStep({ onComplete, bookingData, initialData }: { onComplete: (data: any) => void; bookingData: any; initialData: any[] }) {
-  const [passengers, setPassengers] = useState(
-    initialData.length > 0 ? initialData : 
-    Array.from({ length: bookingData.totalPassengers }, (_, i) => ({
-      id: i + 1,
-      firstName: "",
-      lastName: "",
-      dateOfBirth: null,
-      passportNumber: "",
-      nationality: ""
-    }))
-  );
-
-  const handlePassengerChange = (index: number, field: string, value: any) => {
-    const updatedPassengers = [...passengers];
-    updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
-    setPassengers(updatedPassengers);
-  };
-
-  const handleContinue = () => {
-    const isValid = passengers.every(p => 
-      p.firstName && p.lastName && p.dateOfBirth && p.passportNumber && p.nationality
-    );
-    
-    if (isValid) {
-      onComplete(passengers);
-    } else {
-      message.error("Please fill in all passenger information");
-    }
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Passenger Information</Title>
-      
-      <div className="space-y-6 mb-6">
-        {passengers.map((passenger, index) => (
-          <Card key={index} title={`Passenger ${index + 1}`}>
-            <Row gutter={16}>
-              <Col xs={24} md={8}>
-                <div className="mb-4">
-                  <Text className="block mb-2">First Name *</Text>
-                  <Input
-                    value={passenger.firstName}
-                    onChange={(e) => handlePassengerChange(index, "firstName", e.target.value)}
-                    placeholder="Enter first name"
-                  />
-                </div>
-              </Col>
-              <Col xs={24} md={8}>
-                <div className="mb-4">
-                  <Text className="block mb-2">Last Name *</Text>
-                  <Input
-                    value={passenger.lastName}
-                    onChange={(e) => handlePassengerChange(index, "lastName", e.target.value)}
-                    placeholder="Enter last name"
-                  />
-                </div>
-              </Col>
-              <Col xs={24} md={8}>
-                <div className="mb-4">
-                  <Text className="block mb-2">Date of Birth *</Text>
-                  <DatePicker
-                    className="w-full"
-                    value={passenger.dateOfBirth}
-                    onChange={(date) => handlePassengerChange(index, "dateOfBirth", date)}
-                    format="DD MMM YYYY"
-                  />
-                </div>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <div className="mb-4">
-                  <Text className="block mb-2">Passport Number *</Text>
-                  <Input
-                    value={passenger.passportNumber}
-                    onChange={(e) => handlePassengerChange(index, "passportNumber", e.target.value)}
-                    placeholder="Enter passport number"
-                  />
-                </div>
-              </Col>
-              <Col xs={24} md={12}>
-                <div className="mb-4">
-                  <Text className="block mb-2">Nationality *</Text>
-                  <Select
-                    className="w-full"
-                    value={passenger.nationality}
-                    onChange={(value) => handlePassengerChange(index, "nationality", value)}
-                    placeholder="Select nationality"
-                  >
-                    <Option value="US">United States</Option>
-                    <Option value="UK">United Kingdom</Option>
-                    <Option value="CA">Canada</Option>
-                    <Option value="AU">Australia</Option>
-                    <Option value="IN">India</Option>
-                  </Select>
-                </div>
-              </Col>
-            </Row>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex justify-end">
-        <Button type="primary" size="large" onClick={handleContinue}>
-          Continue to Review
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function ReviewStep({ onComplete, allData }: { onComplete: (data: any) => void; allData: any }) {
-  const { bookingData, flightData, selectedServices, groupLeaderData, passengerData } = allData;
-  
-  const basePrice = flightData?.basePrice || 850;
-  const servicesTotal = selectedServices.reduce((sum: number, service: any) => sum + service.price, 0);
-  const subtotal = (basePrice + servicesTotal) * bookingData.totalPassengers;
-  const taxes = subtotal * 0.08;
-  const total = subtotal + taxes;
-
-  const handleContinue = () => {
-    const bookingSummary = {
-      subtotal,
-      taxes,
-      totalAmount: total,
-      passengerCount: bookingData.totalPassengers
-    };
-    onComplete(bookingSummary);
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Review & Confirmation</Title>
-      
-      <Row gutter={24}>
-        <Col xs={24} lg={16}>
-          <Space direction="vertical" size="large" className="w-full">
-            {/* Trip Details */}
-            <Card title="Trip Details">
-              <Descriptions column={2}>
-                <Descriptions.Item label="Route">
-                  {bookingData.origin} → {bookingData.destination}
-                </Descriptions.Item>
-                <Descriptions.Item label="Trip Type">
-                  {bookingData.tripType}
-                </Descriptions.Item>
-                <Descriptions.Item label="Departure">
-                  {bookingData.departureDate?.format?.("DD MMM YYYY") || "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Passengers">
-                  {bookingData.totalPassengers}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-
-            {/* Flight Details */}
-            <Card title="Selected Flight">
-              <Descriptions column={2}>
-                <Descriptions.Item label="Airline">
-                  {flightData?.outbound?.airline || "Qatar Airways"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Flight Number">
-                  {flightData?.outbound?.flightNumber || "QR729"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Departure">
-                  {flightData?.outbound?.departureTime || "10:30 AM"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Arrival">
-                  {flightData?.outbound?.arrivalTime || "2:45 PM"}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-
-            {/* Group Leader */}
-            <Card title="Group Leader">
-              <Descriptions column={2}>
-                <Descriptions.Item label="Name">
-                  {groupLeaderData.firstName} {groupLeaderData.lastName}
-                </Descriptions.Item>
-                <Descriptions.Item label="Email">
-                  {groupLeaderData.email}
-                </Descriptions.Item>
-                <Descriptions.Item label="Phone">
-                  {groupLeaderData.phone}
-                </Descriptions.Item>
-                <Descriptions.Item label="Organization">
-                  {groupLeaderData.organization || "N/A"}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Space>
-        </Col>
-
-        <Col xs={24} lg={8}>
-          <Card title="Booking Summary">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <Text>Base Price ({bookingData.totalPassengers} passengers)</Text>
-                <Text>${(basePrice * bookingData.totalPassengers).toLocaleString()}</Text>
-              </div>
-              
-              {selectedServices.length > 0 && (
-                <div className="flex justify-between">
-                  <Text>Services ({bookingData.totalPassengers} passengers)</Text>
-                  <Text>${(servicesTotal * bookingData.totalPassengers).toLocaleString()}</Text>
-                </div>
-              )}
-              
-              <div className="flex justify-between">
-                <Text>Subtotal</Text>
-                <Text>${subtotal.toLocaleString()}</Text>
-              </div>
-              
-              <div className="flex justify-between">
-                <Text>Taxes & Fees</Text>
-                <Text>${taxes.toLocaleString()}</Text>
-              </div>
-              
-              <hr />
-              
-              <div className="flex justify-between">
-                <Text strong className="text-lg">Total</Text>
-                <Text strong className="text-lg text-green-600">
-                  ${total.toLocaleString()}
-                </Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <div className="flex justify-end mt-6">
-        <Button type="primary" size="large" onClick={handleContinue}>
-          Continue to Payment
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function PaymentStep({ onComplete, bookingSummary }: { onComplete: (data: any) => void; bookingSummary: any }) {
-  const [paymentMethod, setPaymentMethod] = useState("creditCard");
-
-  const handleSubmit = () => {
-    const paymentData = {
-      paymentMethod,
-      totalAmount: bookingSummary.totalAmount,
-      paymentDate: new Date().toISOString()
-    };
-    onComplete(paymentData);
-  };
-
-  return (
-    <div>
-      <Title level={4} className="!mb-6">Payment</Title>
-      
-      <Row gutter={24}>
-        <Col xs={24} lg={16}>
-          <Card title="Payment Method">
-            <Radio.Group
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full"
-            >
-              <Space direction="vertical" size="middle" className="w-full">
-                <Radio value="creditCard">
-                  <div>
-                    <Text strong>Credit Card</Text>
-                    <div className="text-sm text-gray-500">Pay with credit/debit card</div>
-                  </div>
-                </Radio>
-                <Radio value="bankTransfer">
-                  <div>
-                    <Text strong>Bank Transfer</Text>
-                    <div className="text-sm text-gray-500">Direct bank transfer</div>
-                  </div>
-                </Radio>
-                <Radio value="invoice">
-                  <div>
-                    <Text strong>Invoice</Text>
-                    <div className="text-sm text-gray-500">Send invoice for payment</div>
-                  </div>
-                </Radio>
-              </Space>
-            </Radio.Group>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={8}>
-          <Card title="Payment Summary">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <Text>Total Amount</Text>
-                <Text strong className="text-lg text-green-600">
-                  ${bookingSummary.totalAmount?.toLocaleString() || "0"}
-                </Text>
-              </div>
-              <div className="flex justify-between">
-                <Text>Payment Method</Text>
-                <Text>
-                  {paymentMethod === "creditCard" && "Credit Card"}
-                  {paymentMethod === "bankTransfer" && "Bank Transfer"}
-                  {paymentMethod === "invoice" && "Invoice"}
-                </Text>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <div className="flex justify-end mt-6">
-        <Button type="primary" size="large" onClick={handleSubmit}>
-          Complete Booking
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export default function Bookings() {
   const [, setLocation] = useLocation();
@@ -1621,7 +687,314 @@ export default function Bookings() {
 
           {/* Create Group Booking Tab Content */}
           {activeTab === "create-booking" && (
-            <AdminBookingFlow onReturn={() => setActiveTab("dashboard")} />
+            <div className="max-w-4xl">
+              <div className="mb-6">
+                <Title level={3} className="!mb-2 text-gray-900">
+                  Create New Group Booking
+                </Title>
+                <Text className="text-gray-600">
+                  Start a new group travel booking for your organization
+                </Text>
+              </div>
+
+              <Row gutter={24}>
+                <Col xs={24} lg={14}>
+                  <Card className="h-fit">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                        Admin Quick Booking
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        Create a new group booking and navigate through the
+                        complete booking flow
+                      </p>
+                    </div>
+
+                    <Form
+                      layout="vertical"
+                      onFinish={(values) => {
+                        // Store booking data and navigate to flight search flow
+                        const totalPassengers =
+                          values.adults + values.kids + values.infants;
+
+                        const bookingData = {
+                          origin: values.origin,
+                          destination: values.destination,
+                          departureDate: values.departureDate,
+                          returnDate: values.returnDate,
+                          tripType: values.tripType || "oneWay",
+                          adults: values.adults,
+                          kids: values.kids,
+                          infants: values.infants,
+                          cabin: values.cabin,
+                          totalPassengers,
+                          isAdminBooking: true,
+                        };
+
+                        localStorage.setItem(
+                          "bookingFormData",
+                          JSON.stringify(bookingData),
+                        );
+                        localStorage.setItem("isAdminBooking", "true");
+
+                        // Navigate to flight search bundle page to start the complete flow
+                        setLocation("/flight-search-bundle");
+                      }}
+                      initialValues={{
+                        tripType: "oneWay",
+                        adults: 1,
+                        kids: 0,
+                        infants: 0,
+                        cabin: "economy",
+                      }}
+                    >
+                      {/* Trip Type */}
+                      <Form.Item
+                        label="Trip Type"
+                        name="tripType"
+                        className="mb-4"
+                      >
+                        <Radio.Group>
+                          <Radio value="oneWay">One way</Radio>
+                          <Radio value="roundTrip">Round trip</Radio>
+                          <Radio value="multiCity">Multi city</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+
+                      {/* Origin and Destination */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Origin *"
+                            name="origin"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select origin",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select origin"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                            >
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Destination *"
+                            name="destination"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select destination",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <Select
+                              placeholder="Select destination"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.children ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                            >
+                              <Option value="New York">New York</Option>
+                              <Option value="Los Angeles">Los Angeles</Option>
+                              <Option value="London">London</Option>
+                              <Option value="Paris">Paris</Option>
+                              <Option value="Tokyo">Tokyo</Option>
+                              <Option value="Dubai">Dubai</Option>
+                              <Option value="Mumbai">Mumbai</Option>
+                              <Option value="Delhi">Delhi</Option>
+                              <Option value="Chennai">Chennai</Option>
+                              <Option value="Bangalore">Bangalore</Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Dates */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Departure Date *"
+                            name="departureDate"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select departure date",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            label="Return Date"
+                            name="returnDate"
+                            className="mb-4"
+                          >
+                            <DatePicker
+                              className="w-full"
+                              format="DD MMM YYYY"
+                              disabledDate={(current) =>
+                                current && current.isBefore(dayjs(), "day")
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Passengers */}
+                      <Row gutter={16}>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Adults *"
+                            name="adults"
+                            rules={[
+                              {
+                                required: true,
+                                message: "At least 1 adult required",
+                              },
+                            ]}
+                            className="mb-4"
+                          >
+                            <InputNumber min={1} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Kids (2-11)"
+                            name="kids"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label="Infants (0-2)"
+                            name="infants"
+                            className="mb-4"
+                          >
+                            <InputNumber min={0} max={50} className="w-full" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      {/* Cabin */}
+                      <Form.Item label="Cabin *" name="cabin" className="mb-6">
+                        <Select placeholder="Select cabin class">
+                          <Option value="economy">Economy</Option>
+                          <Option value="business">Business</Option>
+                          <Option value="first">First Class</Option>
+                        </Select>
+                      </Form.Item>
+
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        size="large"
+                        className="w-full infiniti-btn-primary"
+                      >
+                        Search Flight & Start Booking Flow
+                      </Button>
+                    </Form>
+                  </Card>
+                </Col>
+                <Col xs={24} lg={10}>
+                  <Card>
+                    <div className="mb-4">
+                      <Title level={4} className="!mb-2 text-gray-900">
+                        Admin Booking Tools
+                      </Title>
+                      <Text className="text-gray-600">
+                        Additional tools for managing group bookings
+                      </Text>
+                    </div>
+
+                    <Space
+                      direction="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Bulk Passenger Import
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Upload CSV file with passenger details
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Corporate Discount
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Apply special pricing for corporate clients
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        size="large"
+                        className="w-full text-left flex items-center justify-start"
+                        style={{ height: "auto", padding: "12px 16px" }}
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            Payment Options
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Configure payment schedules and methods
+                          </div>
+                        </div>
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
           )}
 
           {/* Manage Bookings Tab Content */}

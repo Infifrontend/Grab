@@ -175,17 +175,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSearchRequest(request: InsertSearchRequest): Promise<void> {
-    // Create a clean request object without any id field
-    const cleanRequest = {
-      origin: request.origin,
-      destination: request.destination,
-      departureDate: request.departureDate,
-      returnDate: request.returnDate || null,
-      passengers: request.passengers,
-      cabin: request.cabin,
-      tripType: request.tripType
-    };
-    await db.insert(searchRequests).values(cleanRequest);
+    await db.insert(searchRequests).values(request);
   }
 
   // Flights
