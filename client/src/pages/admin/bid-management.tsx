@@ -620,7 +620,7 @@ export default function BidManagement() {
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
-                      Retail Users
+                      Retail Users for {record.bidId}
                     </Title>
                     <div className="space-y-3">
                       {retailUsers.map((user) => (
@@ -676,7 +676,8 @@ export default function BidManagement() {
                       <Text className="text-gray-500 text-sm">
                         Total retail users: {retailUsers.length} | 
                         Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
-                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
+                        Approved: {retailUsers.filter(u => u.status === 'approved').length} |
+                        Rejected: {retailUsers.filter(u => u.status === 'rejected').length}
                       </Text>
                     </div>
                   </div>
