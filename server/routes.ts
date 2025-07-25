@@ -1688,6 +1688,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Approve or reject retail user for a bid
+  app.put("/api/bids/:bidId/retail-users/:userId/status", async (req, res) => {
+    try {
+      const { bidId, userId } = req.params;
+      const { action } = req.body; // 'approve' or 'reject'
+
+      console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
+
+      // Get existing bid
+      const existingBid = await storage.getBidById(parseInt(bidId));
+      if (!existingBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      // Parse existing notes to get retail users data
+      let existingNotes = {};
+      try {
+        existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+      } catch (e) {
+        existingNotes = {};
+      }
+
+      // Initialize retail users array if it doesn't exist
+      if (!existingNotes.retailUsers) {
+        existingNotes.retailUsers = [
+          {
+            id: 1,
+            name: "John Smith",
+            email: "john.smith@email.com",
+            bookingRef: "GR001234",
+            seatNumber: "12A",
+            status: "pending_approval"
+          },
+          {
+            id: 2,
+            name: "Sarah Johnson",
+            email: "sarah.johnson@email.com",
+            bookingRef: "GR001235",
+            seatNumber: "12B",
+            status: "pending_approval"
+          },
+          {
+            id: 3,
+            name: "Mike Wilson",
+            email: "mike.wilson@email.com",
+            bookingRef: "GR001236",
+            seatNumber: "12C",
+            status: "approved"
+          }
+        ];
+      }
+
+      // Find and update the specific retail user
+      const retailUserIndex = existingNotes.retailUsers.findIndex(user => user.id === parseInt(userId));
+      if (retailUserIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Retail user not found"
+        });
+      }
+
+      // Update the status
+      const newStatus = action === 'approve' ? 'approved' : 'rejected';
+      existingNotes.retailUsers[retailUserIndex].status = newStatus;
+      existingNotes.retailUsers[retailUserIndex].updatedAt = new Date().toISOString();
+      existingNotes.retailUsers[retailUserIndex].updatedBy = 'Admin';
+
+      // Update the bid with new notes
+      const updateData = {
+        notes: JSON.stringify(existingNotes),
+        updatedAt: new Date()
+      };
+
+      await storage.updateBidDetails(parseInt(bidId), updateData);
+
+      // Create notification for the action
+      await createNotification(
+        'retail_user_status_updated',
+        `Retail User ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+        `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been ${newStatus} for bid ${bidId}`,
+        'medium',
+        {
+          bidId: parseInt(bidId),
+          userId: parseInt(userId),
+          action: newStatus,
+          userName: existingNotes.retailUsers[retailUserIndex].name
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Retail user ${newStatus} successfully`,
+        retailUser: existingNotes.retailUsers[retailUserIndex]
+      });
+    } catch (error) {
+      console.error(`Error ${req.body.action}ing retail user:`, error);
+      res.status(500).json({
+        success: false,
+        message: `Failed to ${req.body.action} retail user`,
+        error: error.message
+      });
+    }
+  });
+
   // Reset bid payment status (for testing/admin purposes)
   app.put("/api/bids/:id/reset-payment", async (req, res) => {
     try {

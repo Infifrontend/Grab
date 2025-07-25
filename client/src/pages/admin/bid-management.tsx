@@ -548,33 +548,71 @@ export default function BidManagement() {
                   return null;
                 }
 
-                // Mock retail user data - in a real app, this would come from an API
-                const retailUsers = [
-                  {
-                    id: 1,
-                    name: "John Smith",
-                    email: "john.smith@email.com",
-                    bookingRef: "GR001234",
-                    seatNumber: "12A",
-                    status: "pending_approval"
-                  },
-                  {
-                    id: 2,
-                    name: "Sarah Johnson",
-                    email: "sarah.johnson@email.com", 
-                    bookingRef: "GR001235",
-                    seatNumber: "12B",
-                    status: "pending_approval"
-                  },
-                  {
-                    id: 3,
-                    name: "Mike Wilson",
-                    email: "mike.wilson@email.com",
-                    bookingRef: "GR001236", 
-                    seatNumber: "12C",
-                    status: "approved"
+                // Get retail users from bid data
+                const bidData = (recentBidsData || []).find(
+                  (bid) => `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
+                );
+
+                let retailUsers = [];
+                if (bidData) {
+                  try {
+                    const notes = bidData.notes ? JSON.parse(bidData.notes) : {};
+                    retailUsers = notes.retailUsers || [
+                      {
+                        id: 1,
+                        name: "John Smith",
+                        email: "john.smith@email.com",
+                        bookingRef: "GR001234",
+                        seatNumber: "12A",
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 2,
+                        name: "Sarah Johnson",
+                        email: "sarah.johnson@email.com", 
+                        bookingRef: "GR001235",
+                        seatNumber: "12B",
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 3,
+                        name: "Mike Wilson",
+                        email: "mike.wilson@email.com",
+                        bookingRef: "GR001236", 
+                        seatNumber: "12C",
+                        status: "approved"
+                      }
+                    ];
+                  } catch (e) {
+                    // Default retail users if parsing fails
+                    retailUsers = [
+                      {
+                        id: 1,
+                        name: "John Smith",
+                        email: "john.smith@email.com",
+                        bookingRef: "GR001234",
+                        seatNumber: "12A",
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 2,
+                        name: "Sarah Johnson",
+                        email: "sarah.johnson@email.com", 
+                        bookingRef: "GR001235",
+                        seatNumber: "12B",
+                        status: "pending_approval"
+                      },
+                      {
+                        id: 3,
+                        name: "Mike Wilson",
+                        email: "mike.wilson@email.com",
+                        bookingRef: "GR001236", 
+                        seatNumber: "12C",
+                        status: "approved"
+                      }
+                    ];
                   }
-                ];
+                }
 
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -608,6 +646,7 @@ export default function BidManagement() {
                                 size="small"
                                 className="bg-green-600 hover:bg-green-700"
                                 onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
+                                loading={loading}
                               >
                                 Approve
                               </Button>
@@ -615,6 +654,7 @@ export default function BidManagement() {
                                 danger
                                 size="small"
                                 onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
+                                loading={loading}
                               >
                                 Reject
                               </Button>
@@ -971,19 +1011,41 @@ export default function BidManagement() {
   };
 
   const handleRetailUserAction = async (userId, action, bidId) => {
+    setLoading(true);
     try {
-      // In a real application, this would make an API call to approve/reject the retail user
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
       
-      message.success(
-        `Retail user ${action === "approve" ? "approved" : "rejected"} successfully`
+      // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1")
+      const numericBidId = bidId.replace('BID', '').replace(/^0+/, '') || bidId;
+      
+      const response = await apiRequest(
+        "PUT", 
+        `/api/bids/${numericBidId}/retail-users/${userId}/status`,
+        { action }
       );
 
-      // Refresh the data to update the UI
-      queryClient.invalidateQueries(["recent-bids"]);
+      if (!response.ok) {
+        throw new Error("Failed to update retail user status");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        message.success(
+          `Retail user ${action === "approve" ? "approved" : "rejected"} successfully`
+        );
+
+        // Refresh the data to update the UI
+        queryClient.invalidateQueries(["recent-bids"]);
+        queryClient.invalidateQueries(["bid-configurations"]);
+      } else {
+        throw new Error(result.message || `Failed to ${action} retail user`);
+      }
     } catch (error) {
       console.error(`Error ${action}ing retail user:`, error);
-      message.error(`Failed to ${action} retail user. Please try again.`);
+      message.error(error.message || `Failed to ${action} retail user. Please try again.`);
+    } finally {
+      setLoading(false);
     }
   };
 
