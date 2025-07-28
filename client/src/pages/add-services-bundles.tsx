@@ -18,7 +18,7 @@ import {
   MinusOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 
@@ -293,7 +293,8 @@ const services: Record<string, IndividualService[]> = {
 };
 
 export default function AddServicesBundles() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
+
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedBundles, setSelectedBundles] = useState<string[]>([]);
   const [individualServiceCounts, setIndividualServiceCounts] = useState<
@@ -343,9 +344,9 @@ export default function AddServicesBundles() {
     localStorage.setItem("tempServiceSelections", JSON.stringify(currentSelections));
 
     if (isAdminBooking) {
-      setLocation("/flight-search-bundle?admin=true");
+      navigate("/flight-search-bundle?admin=true");
     } else {
-      setLocation("/flight-search-bundle");
+      navigate("/flight-search-bundle");
     }
   };
 
@@ -405,7 +406,7 @@ export default function AddServicesBundles() {
       }
 
     console.log("Continue to Group Leader", { selectedServices });
-    setLocation(nextLocation);
+    navigate(nextLocation);
   };
 
   const toggleBundle = (bundleId: string) => {
@@ -558,7 +559,7 @@ export default function AddServicesBundles() {
           {isAdminBooking && (
             <Button
               type="text"
-              onClick={() => setLocation("/admin/bookings")}
+              onClick={() => navigate("/admin/bookings")}
               className="text-gray-600 hover:text-gray-800"
             >
               ← Back to Admin Panel

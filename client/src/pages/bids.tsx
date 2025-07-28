@@ -24,7 +24,7 @@ import {
   CreditCardOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
@@ -32,7 +32,7 @@ const { RangePicker } = DatePicker;
 
 export default function Bids() {
   const [activeTab, setActiveTab] = useState("management");
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState({
     activeBids: 0,
@@ -438,7 +438,7 @@ export default function Bids() {
           type="link"
           size="small"
           onClick={() =>
-            setLocation(`/bid-details/${record.bidId.replace("BID-", "")}`)
+            navigate(`/bid-details/${record.bidId.replace("BID-", "")}`)
           }
         >
           View Details

@@ -28,7 +28,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Header from "@/components/layout/header";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import BookingSteps from "@/components/booking/booking-steps";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -167,7 +167,7 @@ const mealOptions: BundleOption[] = [
 ];
 
 export default function FlightSearchBundle() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [flights, setFlights] = useState<Flight[]>([]);
   const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
@@ -617,7 +617,7 @@ export default function FlightSearchBundle() {
   ]);
 
   const handleBackToTripDetails = () => {
-    setLocation("/");
+    navigate("/");
   };
 
   const handleContinue = () => {
@@ -661,7 +661,7 @@ export default function FlightSearchBundle() {
     }
 
     console.log("Continue to Add Services & Bundles with flight data:", selectedFlightData);
-    setLocation("/add-services-bundles");
+    navigate("/add-services-bundles");
   };
 
   const handleSearchFlights = async () => {
@@ -1013,7 +1013,7 @@ export default function FlightSearchBundle() {
       onClick={onSelect}
     >
       <Row align="middle" justify="space-between">
-        <Col span={16}>
+        <Col span={18}>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-lg">{getAirlineIcon(flight.airline)}</span>
             <div>
@@ -1034,12 +1034,12 @@ export default function FlightSearchBundle() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
             <div className="text-center">
               <Text className="font-medium text-xs">
                 {formatFlightTime(flight.departureTime)}
               </Text>
-              <Text className="text-xs text-gray-500">{flight.origin}</Text>
+              <Text className="block text-xs text-gray-500">{flight.origin}</Text>
             </div>
             <div className="flex items-center mx-4">
               <div className="w-12 h-px bg-gray-300"></div>
@@ -1050,7 +1050,7 @@ export default function FlightSearchBundle() {
               <Text className="font-medium text-xs">
                 {formatFlightTime(flight.arrivalTime)}
               </Text>
-              <Text className="text-xs text-gray-500">
+              <Text className="block text-xs text-gray-500">
                 {flight.destination}
               </Text>
             </div>
@@ -1061,7 +1061,7 @@ export default function FlightSearchBundle() {
             </div>
           </div>
         </Col>
-        <Col span={8} className="text-right">
+        <Col span={6} className="text-right">
           <Text className="text-xl font-bold text-gray-900">
             ${flight.price}
           </Text>
@@ -1169,7 +1169,7 @@ export default function FlightSearchBundle() {
           {isAdminBooking && (
             <Button
               type="text"
-              onClick={() => setLocation("/admin/bookings")}
+              onClick={() => navigate("/admin/bookings")}
               className="text-gray-600 hover:text-gray-800"
             >
               ← Back to Admin Panel

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Card, Form, Input, Button, message, Typography, Checkbox } from "antd";
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
+import loginBg from '../images/loginBanner.jpg';
 
 const { Title, Text } = Typography;
 
 export default function Login() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: { username: string; password: string }) => {
@@ -21,7 +22,7 @@ export default function Login() {
 
         message.success('Login successful! Welcome aboard!');
         setTimeout(() => {
-          setLocation('/');
+          navigate('/');
         }, 1000);
       } else {
         message.error('Invalid username or password. Please try again.');
@@ -36,8 +37,10 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Purple Gradient with Benefits */}
-      <div className="flex-1 bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 flex items-center justify-center relative overflow-hidden" style={{
-        background: 'linear-gradient(135deg, #80206a 0%, #9c2a7a 25%, #b83389 50%, #d63d98 75%, #f047a7 100%)'
+      <div className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden" style={{
+        backgroundImage:`url(${loginBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
@@ -47,18 +50,15 @@ export default function Login() {
           <div className="absolute top-32 right-40 text-white text-2xl animate-bounce">✈️</div>
           <div className="absolute bottom-48 left-20 text-white text-xl animate-bounce delay-1000">🛩️</div>
         </div>
-
+{/* 
         <div className="text-white z-10 max-w-md px-8">
-          {/* Logo */}
           <div className="flex items-center mb-12">
             <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
               <span className="text-white text-xl font-bold">✈️</span>
             </div>
             <span className="text-2xl font-bold">Infiniti Airways</span>
           </div>
-
-          
-        </div>
+        </div> */}
       </div>
 
       {/* Right Side - Login Form */}

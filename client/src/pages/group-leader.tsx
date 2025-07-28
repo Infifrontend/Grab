@@ -12,7 +12,7 @@ import {
   message,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 
@@ -21,7 +21,7 @@ const { Option } = Select;
 
 export default function GroupLeader() {
   const [form] = Form.useForm();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   // Scroll to top on page load
@@ -55,7 +55,7 @@ export default function GroupLeader() {
     } catch (error) {
       console.warn("Could not save group leader data:", error);
     }
-    setLocation("/add-services-bundles");
+    navigate("/add-services-bundles");
   };
 
   const handleContinue = () => {
@@ -120,7 +120,7 @@ export default function GroupLeader() {
         localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
 
         message.success("Group leader information saved locally!");
-        setLocation("/passenger-info");
+        navigate("/passenger-info");
       } catch (error) {
         console.error("Error processing group leader data:", error);
         message.error("Failed to process group leader information");

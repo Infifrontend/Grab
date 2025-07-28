@@ -25,24 +25,29 @@ import {
   MinusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useRoute, useLocation } from "wouter";
+
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import type { Booking } from "@shared/schema";
 import dayjs from "dayjs";
+import { useNavigate,useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function ManageBookingDetail() {
-  const [, params] = useRoute("/manage-booking/:id");
-  const [, setLocation] = useLocation();
+  // const [, params] = useRoute("/manage-booking/:id");
+  const params = useParams();
+  
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("basic-info");
   const [paymentAmount, setPaymentAmount] = useState("4500.00");
   const [paymentMethod, setPaymentMethod] = useState("Credit Card");
 
   // Get booking ID from URL params
-  const bookingId = params?.id;
+  // const bookingId = params?.id;
+  const bookingId = params.id;
+
 
   // Fetch booking details from API
   const {
@@ -155,7 +160,7 @@ export default function ManageBookingDetail() {
           />
           <div className="mt-4">
             <Button 
-              onClick={() => setLocation("/manage-booking")}
+              onClick={() => navigate("/manage-booking")}
               type="primary"
             >
               Back to Manage Booking
@@ -193,7 +198,7 @@ export default function ManageBookingDetail() {
 
   const handleCancelChanges = () => {
     message.info("Changes cancelled");
-    setLocation("/manage-booking");
+    navigate("/manage-booking");
   };
 
   const handleSaveChanges = async () => {

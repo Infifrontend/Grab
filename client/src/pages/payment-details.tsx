@@ -20,34 +20,36 @@ import {
   BankOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import { useLocation, useRoute } from "wouter";
 import Header from "@/components/layout/header";
+import { useNavigate,useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export default function PaymentDetails() {
   const [form] = Form.useForm();
-  const [, setLocation] = useLocation();
-  const [, params] = useRoute("/payment-details/:bidId");
+  const navigate = useNavigate();
+  // const [, params] = useRoute("/payment-details/:bidId");
+    const params = useParams();
+  
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bidParticipationData, setBidParticipationData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentReference, setPaymentReference] = useState('');
 
   useEffect(() => {
     // Load bid participation data from localStorage
-    const storedData = localStorage.getItem("bidParticipationData");
+    const storedData = localStorage.getItem('bidParticipationData');
     if (storedData) {
       setBidParticipationData(JSON.parse(storedData));
     } else {
       // If no data, redirect back to bids
-      setLocation("/bids");
+      navigate('/bids');
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   const handleBack = () => {
-    setLocation(`/bid-details/${params?.bidId}`);
+    navigate(`/bid-details/${params.id}`);
   };
 
   const handlePaymentSubmit = async () => {
@@ -57,11 +59,11 @@ export default function PaymentDetails() {
     }
 
     // Get the bid ID from the URL params
-    const bidId = params?.bidId;
+    const bidId = params.id;
 
     if (!bidId) {
-      message.error("Bid ID not found");
-      setLocation("/bids");
+      message.error('Bid ID not found');
+      navigate('/bids');
       return;
     }
 
@@ -95,7 +97,7 @@ export default function PaymentDetails() {
           const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
           if (notes.paymentInfo?.paymentCompleted === true) {
             message.error("Payment has already been completed for this bid");
-            setLocation("/bids");
+            navigate('/bids');
             return;
           }
         } catch (noteError) {
@@ -179,7 +181,7 @@ export default function PaymentDetails() {
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
-    setLocation("/bids");
+    navigate('/bids');
   };
 
   if (!bidParticipationData) {

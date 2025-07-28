@@ -11,7 +11,7 @@ import {
 import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 import dayjs from "dayjs";
@@ -19,7 +19,7 @@ import dayjs from "dayjs";
 const { Title, Text } = Typography;
 
 export default function ReviewConfirmation() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -79,7 +79,7 @@ export default function ReviewConfirmation() {
     };
     localStorage.setItem("tempReviewData", JSON.stringify(reviewData));
     console.log("Saved review data before going back");
-    setLocation("/passenger-info");
+    navigate("/passenger-info");
   };
 
 
@@ -438,7 +438,7 @@ export default function ReviewConfirmation() {
           <Button
             type="primary"
             size="large"
-            onClick={() => setLocation("/payment-options")}
+            onClick={() => navigate("/payment-options")}
             className="px-8"
             style={{
               backgroundColor: "#2a0a22",

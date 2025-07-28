@@ -1,8 +1,7 @@
 import { Card, Tag, Button } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { Plane, Users, Clock, DollarSign } from "lucide-react";
-import { useLocation } from "wouter";
-
+import { useNavigate } from "react-router-dom";
 interface ActiveBid {
   id: number;
   userId: number;
@@ -27,7 +26,7 @@ interface ActiveBid {
 }
 
 export default function ActiveBidsSection() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
     queryKey: ["/api/bids"],
@@ -229,7 +228,7 @@ export default function ActiveBidsSection() {
                     href={`/bid-details/${bid.id}`}
                     onClick={(e) => {
                       e.preventDefault();
-                      setLocation(`/bid-details/${bid.id}`);
+                      navigate(`/bid-details/${bid.id}`);
                     }}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
                   >

@@ -7,23 +7,19 @@ import {
   MailOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
-import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export default function DownloadItinerary() {
   const navigate = useNavigate();
-  // const [match, params] = useRoute("/download-itinerary/:id");
-    const params = useParams();
+  const params = useParams();
 
   const printRef = useRef(null);
 
-  // const bookingId = params?.id;
-  const bookingId = params.id;
-
+  const bookingId = params?.id;
 
   // Fetch booking details from API
   const {

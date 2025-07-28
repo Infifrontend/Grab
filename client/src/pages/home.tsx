@@ -5,13 +5,13 @@ import MarketplaceSection from "@/components/marketplace/marketplace-section";
 import RecentBookingsSection from "@/components/bookings/recent-bookings-section";
 import { Alert, Button } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleBidsRedirect = () => {
-    setLocation("/bids");
+    navigate("/bids");
   };
 
   return (

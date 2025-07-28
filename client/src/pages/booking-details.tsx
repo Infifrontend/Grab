@@ -5,17 +5,18 @@ import {
   EditOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
-import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import type { Booking } from "@shared/schema";
 import dayjs from 'dayjs';
+import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export default function BookingDetails() {
-  const [, params] = useRoute("/booking-details/:id");
-  const [, setLocation] = useLocation();
+    const params  = useParams();
+
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Get booking ID from URL params or query string
@@ -34,7 +35,7 @@ export default function BookingDetails() {
   });
 
   const handleManageBooking = () => {
-    setLocation(`/manage-booking/${bookingId}`);
+    navigate(`/manage-booking/${bookingId}`);
   };
 
   if (isLoading) {
@@ -108,7 +109,7 @@ export default function BookingDetails() {
             <Button 
               icon={<DownloadOutlined />} 
               className="flex items-center"
-              onClick={() => setLocation(`/download-itinerary/${bookingId}`)}
+              onClick={() => navigate(`/download-itinerary/${bookingId}`)}
             >
               Download Itinerary
             </Button>

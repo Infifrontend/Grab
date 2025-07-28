@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { Card, Row, Col, Tabs, Button, Typography, Space, Badge, Statistic, Table, Dropdown, Menu, message } from 'antd';
 import { DownloadOutlined, PlusOutlined, FileExcelOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
 import { BookOpen, TrendingUp, Users, Plane } from 'lucide-react';
 import Header from "@/components/layout/header";
 import { apiRequest } from "@/lib/queryClient";
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   // Fetch booking overview data for charts
   const { data: bookingOverview } = useQuery({
@@ -118,11 +118,11 @@ export default function Dashboard() {
   }
 
   const handleViewBooking = (bookingId) => {
-    setLocation(`/booking-details/${bookingId}`);
+    navigate(`/booking-details/${bookingId}`);
   };
 
   const handleNewBooking = () => {
-    setLocation('/new-booking');
+    navigate('/new-booking');
   };
 
   // Function to convert booking data to CSV format

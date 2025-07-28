@@ -45,13 +45,15 @@ import {
   TrophyOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
+import AdminHeader from "./admin-header";
+import AdminSidebar from "./admin-sidebar";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 export default function OfferManagement() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
@@ -62,14 +64,14 @@ export default function OfferManagement() {
     // Check if admin is logged in
     const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
     if (!isAdminLoggedIn) {
-      setLocation("/admin/login");
+      navigate("/admin/login");
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
     localStorage.removeItem("adminUsername");
-    setLocation("/admin/login");
+    navigate("/admin/login");
   };
 
   const renderDashboardContent = () => (
@@ -1327,145 +1329,11 @@ export default function OfferManagement() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">GR</span>
-                </div>
-                <div>
-                  <Text className="text-gray-600 text-sm font-medium">
-                    GROUP RETAIL
-                  </Text>
-                  <br />
-                  <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge count={5} size="small">
-                <BellOutlined className="text-gray-500 text-lg" />
-              </Badge>
-              <Avatar size="small" className="bg-blue-600">
-                <span className="text-white font-medium">JD</span>
-              </Avatar>
-              <div className="text-right">
-                <Text className="font-medium text-gray-900 block">
-                  John Doe
-                </Text>
-                <Text className="text-gray-500 text-sm">System Admin</Text>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdminHeader />
 
       <div className="flex">
         {/* Sidebar */}
-        <div
-          className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
-          style={{ height: "calc(100vh - 73px)" }}
-        >
-          <div className="h-full overflow-y-auto">
-            <div className="p-6">
-              <nav className="space-y-2">
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/dashboard")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📊</span>
-                  </div>
-                  <Text className="text-current">Dashboard</Text>
-                </div>
-                <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-blue-600 text-xs">🎯</span>
-                  </div>
-                  <Text className="text-white font-medium">
-                    Offer Management
-                  </Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/bid-management")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🏆</span>
-                  </div>
-                  <Text className="text-current">Bid Management</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/bookings")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📅</span>
-                  </div>
-                  <Text className="text-current">Booking Management</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/cms")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📝</span>
-                  </div>
-                  <Text className="text-current">CMS Management</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/reports")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📊</span>
-                  </div>
-                  <Text className="text-current">Reports & Analytics</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/admin-settings")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🔧</span>
-                  </div>
-                  <Text className="text-current">System Settings</Text>
-                </div>
-              </nav>
-            </div>
-
-            {/* User Info Section at Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
-              <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
-                <Avatar size="small" className="bg-blue-600 flex-shrink-0">
-                  <span className="text-white font-medium">JD</span>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Text className="text-white font-medium text-sm block truncate">
-                        John Doe
-                      </Text>
-                      <Text className="text-slate-400 text-xs truncate">
-                        System Admin
-                      </Text>
-                    </div>
-                    <Button
-                      type="text"
-                      icon={<LogoutOutlined />}
-                      size="small"
-                      className="text-slate-400 hover:text-white flex-shrink-0"
-                      onClick={handleLogout}
-                      title="Logout"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminSidebar activeMenu="Offer Management" />
 
         {/* Main Content */}
         <div className="flex-1 p-6">

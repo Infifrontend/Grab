@@ -15,7 +15,7 @@ import {
   message,
 } from "antd";
 import { ArrowLeftOutlined, EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
@@ -41,7 +41,7 @@ interface SearchFormData {
 export default function NewBooking() {
   const [form] = Form.useForm();
   const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("roundTrip");
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
@@ -91,7 +91,7 @@ export default function NewBooking() {
         JSON.stringify(data.returnFlights || [])
       );
       message.success(`Found ${data.flights?.length || 0} flights!`);
-      setLocation("/flight-search-bundle");
+      navigate("/flight-search-bundle");
     },
     onError: (error) => {
       console.error("Search error:", error);
@@ -100,7 +100,7 @@ export default function NewBooking() {
   });
 
   const handleBackToHome = () => {
-    setLocation("/");
+    navigate("/");
   };
 
   const handleSubmit = async (values: any) => {
@@ -178,7 +178,7 @@ export default function NewBooking() {
       );
 
       // Navigate to flight search bundle page
-      setLocation("/flight-search-bundle");
+      navigate("/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");

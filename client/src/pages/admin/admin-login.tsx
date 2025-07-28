@@ -2,12 +2,12 @@
 import { useState } from "react";
 import { Card, Form, Input, Button, message, Typography, Divider } from "antd";
 import { UserOutlined, LockOutlined, RocketOutlined } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export default function AdminLogin() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: { username: string; password: string }) => {
@@ -22,7 +22,7 @@ export default function AdminLogin() {
         
         message.success('Login successful! Redirecting to admin dashboard...');
         setTimeout(() => {
-          setLocation('/admin/dashboard');
+          navigate('/admin/dashboard');
         }, 1000);
       } else {
         message.error('Invalid username or password. Please try again.');
@@ -61,7 +61,7 @@ export default function AdminLogin() {
           <Title 
             level={2} 
             className="!mb-2 text-gray-900 font-bold tracking-wide cursor-pointer hover:text-blue-600 transition-colors duration-200"
-            onClick={() => setLocation('/')}
+            onClick={() => navigate('/')}
           >
             INFINITI AIRWAYS
           </Title>

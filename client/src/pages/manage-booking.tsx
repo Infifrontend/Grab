@@ -18,7 +18,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import Header from "@/components/layout/header";
 import type { Booking } from "@shared/schema";
@@ -27,7 +27,7 @@ const { Title, Text } = Typography;
 
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -87,7 +87,7 @@ export default function ManageBooking() {
       message.success(`Booking found! ${passengerCount} confirmed passengers`);
 
       // Navigate to the booking details page with the retrieved data
-      setLocation(`/manage-booking/${bookingId}`);
+      navigate(`/manage-booking/${bookingId}`);
     } catch (error) {
       console.error("Error fetching booking:", error);
       message.error("Error fetching booking details. Please try again.");
@@ -95,7 +95,7 @@ export default function ManageBooking() {
   };
 
   const handleManageBooking = (booking: Booking) => {
-    setLocation(`/manage-booking/${booking.id}`);
+    navigate(`/manage-booking/${booking.id}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -282,7 +282,7 @@ export default function ManageBooking() {
                     type="primary"
                     className="w-full infiniti-btn-primary"
                     onClick={() =>
-                      setLocation(
+                      navigate(
                         `/booking-details/${booking.bookingReference}`,
                       )
                     }
@@ -314,7 +314,7 @@ export default function ManageBooking() {
                   <Button
                     type="primary"
                     className="infiniti-btn-primary mt-4"
-                    onClick={() => setLocation("/new-booking")}
+                    onClick={() => navigate("/new-booking")}
                   >
                     Create New Booking
                   </Button>

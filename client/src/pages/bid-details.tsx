@@ -20,7 +20,7 @@ import {
   DollarOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
-import { useLocation, useRoute } from "wouter";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import dayjs from "dayjs";
 
@@ -28,13 +28,14 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 export default function BidDetails() {
-  const [, setLocation] = useLocation();
-  const [, params] = useRoute("/bid-details/:id");
-  const [passengers, setPassengers] = useState(0);
+  const navigate = useNavigate();
+  // const [, params] = useRoute("/bid-details/:id");  
+  const params  = useParams();
+  const [passengers, setPassengers] = useState<any>(0);
   const [bidAmount, setBidAmount] = useState(0);
   const [originalBidAmount, setOriginalBidAmount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [bidData, setBidData] = useState(null);
+  const [bidData, setBidData] = useState<any>(null);
   const [error, setError] = useState(null);
 
   // Fetch bid details from database
@@ -190,7 +191,7 @@ export default function BidDetails() {
   };
 
   const handleBack = () => {
-    setLocation("/bids");
+    navigate("/bids");
   };
 
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,11 +210,21 @@ export default function BidDetails() {
   };
 
   const handlePassengersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPassengers = parseInt(e.target.value);
-    if (newPassengers > 0) {
+    const newPassengers = e.target.value ? parseInt(e.target.value) : null;
+    if (newPassengers === null || newPassengers > 0) {
       setPassengers(newPassengers);
     }
   };
+
+  const handleBlurPassengerChange = (e: React.FocusEvent<HTMLInputElement>) => {
+    const newPaxCount = parseInt(e.target.value) || 0;
+
+    if (newPaxCount < bidData?.bid?.passengerCount) {
+      setPassengers(bidData?.bid?.passengerCount);
+    } else {
+      setPassengers(newPaxCount);
+    }
+  }
 
   const handleContinueToPayment = () => {
     // Store bid participation data for payment
@@ -511,14 +522,18 @@ export default function BidDetails() {
                     </Text>
                     <Input
                       value={passengers}
+                      onBlur={handleBlurPassengerChange}
                       onChange={handlePassengersChange}
                       placeholder="25"
                       size="large"
                       type="number"
-                      min="1"
                       prefix={<UserOutlined className="text-gray-400" />}
                       className="rounded-md"
                     />
+                    <Text className="text-gray-500 text-sm mt-1">
+                      Minimum passenger count: {bidData?.bid?.passengerCount} (can only
+                      increase)
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} md={12}>

@@ -25,14 +25,14 @@ import {
   LogoutOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import type { MenuProps } from "antd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-
+// import { navigate } from "wouter/use-browser-location";
+import { Link, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const { Title, Text } = Typography;
-
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
   { key: "dashboard", label: "Dashboard", path: "/dashboard" },
@@ -58,9 +58,10 @@ interface Notification {
 }
 
 export default function Header() {
-  const [location, setLocation] = useLocation();
+  const location = useLocation();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch notifications from API
   const { data: notificationsData, refetch: refetchNotifications } = useQuery({
@@ -173,15 +174,15 @@ export default function Header() {
       setUsername(storedUsername);
     } else {
       setIsLoggedIn(false);
-      setLocation('/login');
+      navigate('/login');
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   const handleSignOut = () => {
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('username');
     setIsLoggedIn(false);
-    setLocation('/login');
+    navigate('/login');
   };
 
 
@@ -190,7 +191,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="infiniti-logo cursor-pointer">
+          <Link to="/" className="infiniti-logo cursor-pointer">
             <img
               src="/src/images/Logo.png"
               alt="Volaris"
@@ -204,8 +205,8 @@ export default function Header() {
             {navigationItems.map((item) => (
               <Link
                 key={item.key}
-                href={item.path}
-                className={`infiniti-nav-item ${location === item.path ? "active" : ""}`}
+                to={item.path}
+                className={`infiniti-nav-item ${location.pathname === item.path ? "active" : ""}`}
               >
                 {item.label}
               </Link>
@@ -433,7 +434,8 @@ export default function Header() {
         </div>
       </div>
 
-      <style jsx global>{`
+      <style>
+        {`
         .user-profile-dropdown .ant-card-body {
           padding: 20px !important;
         }
@@ -499,7 +501,8 @@ export default function Header() {
             box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
           }
         }
-      `}</style>
+        `}
+      </style>
     </header>
   );
 }

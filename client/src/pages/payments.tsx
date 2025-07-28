@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, Row, Col, Typography, Button, Input, Select, Table, Badge, Space, Tabs, Modal, Form, Radio, message, Spin } from 'antd';
 import { ExportOutlined, SearchOutlined, EyeOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
-import { useLocation } from 'wouter';
 import Header from "@/components/layout/header";
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function Payments() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("payment-history");
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -27,7 +27,7 @@ export default function Payments() {
   const [paymentSchedule, setPaymentSchedule] = useState([]);
 
   const handleViewPayment = (paymentId: string) => {
-    setLocation(`/payment-details/${paymentId}`);
+    navigate(`/payment-details/${paymentId}`);
   };
 
   // Fetch payment statistics

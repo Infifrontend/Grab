@@ -18,7 +18,7 @@ import {
   UploadOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
@@ -40,7 +40,7 @@ interface PassengerInfo {
 
 export default function PassengerInfo() {
   const [form] = Form.useForm();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [totalPassengers, setTotalPassengers] = useState(32);
   const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
   const [bookingData, setBookingData] = useState<any>(null);
@@ -168,7 +168,7 @@ export default function PassengerInfo() {
     }));
     localStorage.setItem("tempPassengerData", JSON.stringify(currentPassengerData));
     console.log("Saved passenger data:", currentPassengerData);
-    setLocation("/group-leader");
+    navigate("/group-leader");
   };
 
   const handleContinue = () => {
@@ -181,7 +181,7 @@ export default function PassengerInfo() {
 
     console.log("Passenger data stored:", allPassengerData);
     console.log("Navigating to review confirmation...");
-    setLocation("/review-confirmation");
+    navigate("/review-confirmation");
   };
 
   const handleAddPassenger = () => {
@@ -256,7 +256,7 @@ export default function PassengerInfo() {
               onClick={() => {
                 // Skip passenger info and go directly to review confirmation
                 localStorage.setItem("passengerData", JSON.stringify([]));
-                setLocation("/review-confirmation");
+                navigate("/review-confirmation");
               }}
               className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
             >

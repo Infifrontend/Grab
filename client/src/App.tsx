@@ -1,10 +1,12 @@
-import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConfigProvider } from "antd";
 import { antdTheme } from "./lib/antd-theme";
+
+// Pages
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -12,6 +14,16 @@ import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
 import AdminLogin from "@/pages/admin/admin-login";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
+import AdminBookingDetails from "@/pages/admin/bookings";
+import AdminFlightSearchResults from "@/pages/admin/flight-search-results";
+import AdminFlightSearchBundle from "@/pages/admin/flight-search-bundle";
+import AdminAddServicesBundles from "./pages/admin/add-services-bundles";
+import AdminGroupLeader from "./pages/admin/group-leader";
+import AdminPassengerInfo from "./pages/admin/passenger-info";
+import AdminPaymentOptions from "@/pages/admin/payment-options";
+import AdminReviewConfirmation from "@/pages/admin/review-confirmation";
+import AdminDownloadItinerary from "./pages/admin/download-itinerary";
+
 import BidManagement from "@/pages/admin/bid-management";
 import OfferManagement from "@/pages/admin/offer-management";
 import Bookings from "@/pages/admin/bookings";
@@ -35,49 +47,63 @@ import ReviewConfirmation from "@/pages/review-confirmation";
 import DownloadItinerary from "./pages/download-itinerary";
 import Login from "@/pages/login";
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/booking-details/:id" component={BookingDetails} />
-      <Route path="/manage-booking" component={ManageBooking} />
-      <Route path="/manage-booking/:id" component={ManageBookingDetail} />
-      <Route path="/payments" component={Payments} />
-      <Route path="/payment-details/:bidId" component={PaymentDetails} />
-      <Route path="/bids" component={Bids} />
-      <Route path="/bid-details/:id" component={BidDetails} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/login" component={Login} />
-      <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/bid-management" component={BidManagement} />
-      <Route path="/admin/offer-management" component={OfferManagement} />
-      <Route path="/admin/bookings" component={Bookings} />
-      <Route path="/admin/cms" component={CMS} />
-      <Route path="/admin/admin-settings" component={AdminSettings} />
-      <Route path="/admin/reports" component={Reports} />
-      <Route path="/new-booking" component={NewBooking} />
-      <Route path="/flight-search-results" component={FlightSearchResults} />
-      <Route path="/flight-search-bundle" component={FlightSearchBundle} />
-      <Route path="/add-services-bundles" component={AddServicesBundles} />
-      <Route path="/group-leader" component={GroupLeader} />
-      <Route path="/passenger-info" component={PassengerInfo} />
-      <Route path="/payment-options" component={PaymentOptions} />
-      <Route path="/review-confirmation" component={ReviewConfirmation} />
-      <Route path="/download-itinerary/:id" component={DownloadItinerary} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ConfigProvider theme={antdTheme}>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/booking-details/:id" element={<AdminBookingDetails />} />
+              <Route path="/admin/flight-search-results" element={<AdminFlightSearchResults />} />
+              <Route path="/admin/flight-search-bundle" element={<AdminFlightSearchBundle />} />
+              <Route path="/admin/add-services-bundles" element={<AdminAddServicesBundles />} />
+              <Route path="/admin/group-leader" element={<AdminGroupLeader />} />
+              <Route path="/admin/passenger-info" element={<AdminPassengerInfo />} />
+              <Route path="/admin/payment-options" element={<AdminPaymentOptions />} />
+              <Route path="/admin/review-confirmation" element={<AdminReviewConfirmation />} />
+              <Route path="/admin/download-itinerary/:id" element={<AdminDownloadItinerary />} />
+              <Route path="/admin/bid-management" element={<BidManagement />} />
+              <Route path="/admin/offer-management" element={<OfferManagement />} />
+              <Route path="/admin/bookings" element={<Bookings />} />
+              <Route path="/admin/cms" element={<CMS />} />
+              <Route path="/admin/admin-settings" element={<AdminSettings />} />
+              <Route path="/admin/reports" element={<Reports />} />
+
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/booking-details/:id" element={<BookingDetails />} />
+              <Route path="/manage-booking" element={<ManageBooking />} />
+              <Route path="/manage-booking/:id" element={<ManageBookingDetail />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/payment-details/:bidId" element={<PaymentDetails />} />
+              <Route path="/bids" element={<Bids />} />
+              <Route path="/bid-details/:id" element={<BidDetails />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/bid-management" element={<BidManagement />} />
+              <Route path="/admin/offer-management" element={<OfferManagement />} />
+              <Route path="/admin/bookings" element={<Bookings />} />
+              <Route path="/admin/cms" element={<CMS />} />
+              <Route path="/admin/admin-settings" element={<AdminSettings />} />
+              <Route path="/admin/reports" element={<Reports />} />
+              <Route path="/new-booking" element={<NewBooking />} />
+              <Route path="/flight-search-results" element={<FlightSearchResults />} />
+              <Route path="/flight-search-bundle" element={<FlightSearchBundle />} />
+              <Route path="/add-services-bundles" element={<AddServicesBundles />} />
+              <Route path="/group-leader" element={<GroupLeader />} />
+              <Route path="/passenger-info" element={<PassengerInfo />} />
+              <Route path="/payment-options" element={<PaymentOptions />} />
+              <Route path="/review-confirmation" element={<ReviewConfirmation />} />
+              <Route path="/download-itinerary/:id" element={<DownloadItinerary />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
         </TooltipProvider>
       </ConfigProvider>
     </QueryClientProvider>

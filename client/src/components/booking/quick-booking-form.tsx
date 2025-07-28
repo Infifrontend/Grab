@@ -15,8 +15,7 @@ import {
 import { EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-
+import { useNavigate } from "react-router-dom";
 const { Option } = Select;
 
 interface SearchFormData {
@@ -36,7 +35,7 @@ export default function QuickBookingForm() {
   const [tripType, setTripType] = useState<
     "oneWay" | "roundTrip" | "multiCity"
   >("oneWay");
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
@@ -78,7 +77,7 @@ export default function QuickBookingForm() {
       // Store search results in localStorage for the results page
       localStorage.setItem("searchResults", JSON.stringify(data.flights || []));
       message.success(`Found ${data.flights?.length || 0} flights!`);
-      setLocation("/flight-search-results");
+      navigate("/flight-search-results");
     },
     onError: (error) => {
       console.error("Search error:", error);
@@ -99,7 +98,7 @@ export default function QuickBookingForm() {
       message.success(
         `Booking created! Reference: ${data.booking.bookingReference}`,
       );
-      setLocation(`/booking-details?ref=${data.booking.bookingReference}`);
+      navigate(`/booking-details?ref=${data.booking.bookingReference}`);
     },
     onError: (error) => {
       console.error("Booking error:", error);
@@ -181,7 +180,7 @@ export default function QuickBookingForm() {
       );
 
       // Navigate to flight search bundle page
-      setLocation("/flight-search-bundle");
+      navigate(window.location.pathname.includes('/admin/') ? "/admin/flight-search-bundle" : "/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");

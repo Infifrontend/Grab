@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { Booking } from "@shared/schema";
 import type { ColumnsType } from "antd/es/table";
-import { useLocation } from "wouter";
-
+import { useNavigate } from "react-router-dom";
 export default function RecentBookingsSection() {
   const { data: flightBookings, isLoading } = useQuery({
     queryKey: ["/api/recent-flight-bookings"],
@@ -18,7 +17,7 @@ export default function RecentBookingsSection() {
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 3) || [];
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -106,7 +105,7 @@ export default function RecentBookingsSection() {
           className="text-[var(--infiniti-primary)] font-medium hover:underline"
           onClick={(e) => {
             e.preventDefault();
-            setLocation(`/booking-details/${record.bookingReference}`);
+            navigate(`/booking-details/${record.bookingReference}`);
           }}
         >
           View Details

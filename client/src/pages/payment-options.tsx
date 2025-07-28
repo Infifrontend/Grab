@@ -22,7 +22,7 @@ import {
   DollarOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 import dayjs from "dayjs";
@@ -31,7 +31,7 @@ const { Title, Text } = Typography;
 
 export default function PaymentOptions() {
   const [form] = Form.useForm();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -230,21 +230,21 @@ export default function PaymentOptions() {
       creditCardData
     };
     localStorage.setItem("tempPaymentData", JSON.stringify(tempPaymentData));
-    setLocation("/review-confirmation");
+    navigate("/review-confirmation");
   };
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
     if (bookingReference) {
-      setLocation(`/booking-details/${bookingReference}`);
+      navigate(`/booking-details/${bookingReference}`);
     } else {
-      setLocation("/dashboard");
+      navigate("/dashboard");
     }
   };
 
   const handleSuccessModalCancel = () => {
     setShowSuccessModal(false);
-    setLocation("/dashboard");
+    navigate("/dashboard");
   };
 
   const handleSubmitBooking = async () => {

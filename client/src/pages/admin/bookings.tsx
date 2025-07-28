@@ -36,15 +36,17 @@ import {
 } from "@ant-design/icons";
 import { Form, Radio, InputNumber } from "antd";
 import dayjs from "dayjs";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
+import AdminHeader from "./admin-header";
+import AdminSidebar from "./admin-sidebar";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 export default function Bookings() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -56,13 +58,13 @@ export default function Bookings() {
     // Check if admin is logged in
     const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
     if (!isAdminLoggedIn) {
-      setLocation("/admin/login");
+      navigate("/admin/login");
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
-    setLocation("/admin/login");
+    navigate("/admin/login");
   };
 
   // Fetch flight bookings from API
@@ -82,7 +84,13 @@ export default function Bookings() {
   });
 
   // Process bookings data for display
-  const processedBookings = flightBookings.map((booking) => {
+  let sortedFlightBookings = flightBookings?.sort((a:any, b:any) => {
+    const dateA:any = new Date(a.bookedAt);
+    const dateB:any = new Date(b.bookedAt);
+    return dateB - dateA; // For descending order (newest first)
+  });
+
+  const processedBookings = sortedFlightBookings.map((booking:any) => {
     // Parse comprehensive data if available
     let comprehensiveData = {};
     let groupLeaderName = "N/A";
@@ -358,7 +366,7 @@ export default function Bookings() {
   };
 
   const handleEditBooking = (booking) => {
-    setLocation(`/booking-details/${booking.bookingId}`);
+    navigate(`/booking-details/${booking.bookingId}`);
   };
 
   const handleSendConfirmation = (booking) => {
@@ -384,7 +392,7 @@ export default function Bookings() {
 
   // Handle manage booking - navigate to existing manage booking flow
   const handleManageBooking = (bookingId) => {
-    setLocation(`/manage-booking/${bookingId}`);
+    navigate(`/manage-booking/${bookingId}`);
   };
 
   if (error) {
@@ -410,145 +418,11 @@ export default function Bookings() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">GR</span>
-                </div>
-                <div>
-                  <Text className="text-gray-600 text-sm font-medium">
-                    GROUP RETAIL
-                  </Text>
-                  <br />
-                  <Text className="text-gray-500 text-xs">ADMIN PORTAL</Text>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge count={5} size="small">
-                <BellOutlined className="text-gray-500 text-lg" />
-              </Badge>
-              <Avatar size="small" className="bg-blue-600">
-                <span className="text-white font-medium">JD</span>
-              </Avatar>
-              <div className="text-right">
-                <Text className="font-medium text-gray-900 block">
-                  John Doe
-                </Text>
-                <Text className="text-gray-500 text-sm">System Admin</Text>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdminHeader />
 
       <div className="flex">
         {/* Sidebar */}
-        <div
-          className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
-          style={{ height: "calc(100vh - 73px)" }}
-        >
-          <div className="h-full overflow-y-auto">
-            <div className="p-6">
-              <nav className="space-y-2">
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/dashboard")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📊</span>
-                  </div>
-                  <Text className="text-current">Dashboard</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/offer-management")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🎯</span>
-                  </div>
-                  <Text className="text-current">Offer Management</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/bid-management")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🏆</span>
-                  </div>
-                  <Text className="text-current">Bid Management</Text>
-                </div>
-                <div className="flex items-center space-x-3 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-3 shadow-md">
-                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-blue-600 text-xs">📅</span>
-                  </div>
-                  <Text className="text-white font-medium">
-                    Booking Management
-                  </Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/cms")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📝</span>
-                  </div>
-                  <Text className="text-current">CMS Management</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/reports")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">📊</span>
-                  </div>
-                  <Text className="text-current">Reports & Analytics</Text>
-                </div>
-                <div
-                  className="flex items-center space-x-3 text-slate-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 cursor-pointer transition-all duration-200"
-                  onClick={() => setLocation("/admin/admin-settings")}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <span className="text-current text-xs">🔧</span>
-                  </div>
-                  <Text className="text-current">System Settings</Text>
-                </div>
-              </nav>
-            </div>
-
-            {/* User Info Section at Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-700">
-              <div className="flex items-center space-x-3 bg-slate-800 rounded-lg p-3">
-                <Avatar size="small" className="bg-blue-600 flex-shrink-0">
-                  <span className="text-white font-medium">JD</span>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Text className="text-white font-medium text-sm block truncate">
-                        John Doe
-                      </Text>
-                      <Text className="text-slate-400 text-xs truncate">
-                        System Admin
-                      </Text>
-                    </div>
-                    <Button
-                      type="text"
-                      icon={<LogoutOutlined />}
-                      size="small"
-                      className="text-slate-400 hover:text-white flex-shrink-0"
-                      onClick={handleLogout}
-                      title="Logout"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminSidebar activeMenu="Booking Management" />
 
         {/* Main Content */}
         <div className="flex-1 p-6">
@@ -710,224 +584,7 @@ export default function Bookings() {
                       </p>
                     </div>
 
-                    <Form
-                      layout="vertical"
-                      onFinish={(values) => {
-                        // Store booking data and navigate to flight search flow
-                        const totalPassengers =
-                          values.adults + values.kids + values.infants;
-
-                        const bookingData = {
-                          origin: values.origin,
-                          destination: values.destination,
-                          departureDate: values.departureDate,
-                          returnDate: values.returnDate,
-                          tripType: values.tripType || "oneWay",
-                          adults: values.adults,
-                          kids: values.kids,
-                          infants: values.infants,
-                          cabin: values.cabin,
-                          totalPassengers,
-                          isAdminBooking: true,
-                        };
-
-                        localStorage.setItem(
-                          "bookingFormData",
-                          JSON.stringify(bookingData),
-                        );
-                        localStorage.setItem("isAdminBooking", "true");
-
-                        // Navigate to flight search bundle page to start the complete flow
-                        setLocation("/flight-search-bundle");
-                      }}
-                      initialValues={{
-                        tripType: "oneWay",
-                        adults: 1,
-                        kids: 0,
-                        infants: 0,
-                        cabin: "economy",
-                      }}
-                    >
-                      {/* Trip Type */}
-                      <Form.Item
-                        label="Trip Type"
-                        name="tripType"
-                        className="mb-4"
-                      >
-                        <Radio.Group>
-                          <Radio value="oneWay">One way</Radio>
-                          <Radio value="roundTrip">Round trip</Radio>
-                          <Radio value="multiCity">Multi city</Radio>
-                        </Radio.Group>
-                      </Form.Item>
-
-                      {/* Origin and Destination */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Origin *"
-                            name="origin"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select origin",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <Select
-                              placeholder="Select origin"
-                              showSearch
-                              filterOption={(input, option) =>
-                                (option?.children ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              <Option value="New York">New York</Option>
-                              <Option value="Los Angeles">Los Angeles</Option>
-                              <Option value="London">London</Option>
-                              <Option value="Paris">Paris</Option>
-                              <Option value="Tokyo">Tokyo</Option>
-                              <Option value="Dubai">Dubai</Option>
-                              <Option value="Mumbai">Mumbai</Option>
-                              <Option value="Delhi">Delhi</Option>
-                              <Option value="Chennai">Chennai</Option>
-                              <Option value="Bangalore">Bangalore</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Destination *"
-                            name="destination"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select destination",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <Select
-                              placeholder="Select destination"
-                              showSearch
-                              filterOption={(input, option) =>
-                                (option?.children ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              <Option value="New York">New York</Option>
-                              <Option value="Los Angeles">Los Angeles</Option>
-                              <Option value="London">London</Option>
-                              <Option value="Paris">Paris</Option>
-                              <Option value="Tokyo">Tokyo</Option>
-                              <Option value="Dubai">Dubai</Option>
-                              <Option value="Mumbai">Mumbai</Option>
-                              <Option value="Delhi">Delhi</Option>
-                              <Option value="Chennai">Chennai</Option>
-                              <Option value="Bangalore">Bangalore</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Dates */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Departure Date *"
-                            name="departureDate"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Please select departure date",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <DatePicker
-                              className="w-full"
-                              format="DD MMM YYYY"
-                              disabledDate={(current) =>
-                                current && current.isBefore(dayjs(), "day")
-                              }
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            label="Return Date"
-                            name="returnDate"
-                            className="mb-4"
-                          >
-                            <DatePicker
-                              className="w-full"
-                              format="DD MMM YYYY"
-                              disabledDate={(current) =>
-                                current && current.isBefore(dayjs(), "day")
-                              }
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Passengers */}
-                      <Row gutter={16}>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Adults *"
-                            name="adults"
-                            rules={[
-                              {
-                                required: true,
-                                message: "At least 1 adult required",
-                              },
-                            ]}
-                            className="mb-4"
-                          >
-                            <InputNumber min={1} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Kids (2-11)"
-                            name="kids"
-                            className="mb-4"
-                          >
-                            <InputNumber min={0} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            label="Infants (0-2)"
-                            name="infants"
-                            className="mb-4"
-                          >
-                            <InputNumber min={0} max={50} className="w-full" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      {/* Cabin */}
-                      <Form.Item label="Cabin *" name="cabin" className="mb-6">
-                        <Select placeholder="Select cabin class">
-                          <Option value="economy">Economy</Option>
-                          <Option value="business">Business</Option>
-                          <Option value="first">First Class</Option>
-                        </Select>
-                      </Form.Item>
-
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        size="large"
-                        className="w-full infiniti-btn-primary"
-                      >
-                        Search Flight & Start Booking Flow
-                      </Button>
-                    </Form>
+                    <QuickBookingForm />
                   </Card>
                 </Col>
                 <Col xs={24} lg={10}>
