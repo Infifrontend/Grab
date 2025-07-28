@@ -1851,6 +1851,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Insert bid data endpoint
+  app.post("/api/insert-bid-data", async (_req, res) => {
+    try {
+      const { insertBidData } = await import("./insert-bid-data");
+      const result = await insertBidData();
+      res.json(result);
+    } catch (error) {
+      console.error("Bid data insertion error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to insert bid data",
+      });
+    }
+  });
+
   // Reset bid payment status (for testing/admin purposes)
   app.put("/api/bids/:id/reset-payment", async (req, res) => {
     try {
