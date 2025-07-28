@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 import { Pool, neonConfig } from "@neondatabase/serverless";
@@ -9,8 +9,11 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 
 // Use server-side environment variable, not VITE_ prefixed one for security
-const databaseUrl = process.env.DATABASE_URL;
-console.log('Database connection status:', databaseUrl ? 'Connected' : 'Not configured');
+const databaseUrl = process.env.VITE_DATABASE_URL;
+console.log(
+  "Database connection status:",
+  databaseUrl ? "Connected" : "Not configured",
+);
 
 if (!databaseUrl) {
   throw new Error(
