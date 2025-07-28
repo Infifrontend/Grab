@@ -86,6 +86,8 @@ export default function ActiveBidsSection() {
         }
       case 'accepted':
         return { status: "Accepted", color: "green" };
+      case 'approved':
+        return { status: "Accepted", color: "green" };
       case 'rejected':
         return { status: "Declined", color: "red" };
       case 'expired':

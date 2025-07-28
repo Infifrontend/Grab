@@ -1262,6 +1262,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Migrate bid status labels
+  app.post("/api/migrate-bid-status-labels", async (_req, res) => {
+    try {
+      const { migrateBidStatusLabels } = await import("./migrate-bid-status-labels");
+      const result = await migrateBidStatusLabels();
+      res.json(result);
+    } catch (error) {
+      console.error("Bid status labels migration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to migrate bid status labels",
+      });
+    }
+  });
+
   // Update booking details (group leader info)
   app.put("/api/booking-details/:id", async (req, res) => {
     try {
