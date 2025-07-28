@@ -1728,43 +1728,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         existingNotes = {};
       }
 
-      // Initialize retail users array if it doesn't exist
-      if (!existingNotes.retailUsers) {
-        existingNotes.retailUsers = [
-          {
-            id: 1,
-            name: "John Smith",
-            email: "john.smith@email.com",
-            bookingRef: "GR001234",
-            seatNumber: "12A",
-            status: "pending_approval"
-          },
-          {
-            id: 2,
-            name: "Sarah Johnson",
-            email: "sarah.johnson@email.com",
-            bookingRef: "GR001235",
-            seatNumber: "12B",
-            status: "pending_approval"
-          },
-          {
-            id: 3,
-            name: "Mike Wilson",
-            email: "mike.wilson@email.com",
-            bookingRef: "GR001236",
-            seatNumber: "12C",
-            status: "approved"
-          }
-        ];
+      // Initialize retail users array if it doesn't exist or ensure we have enough users
+      if (!existingNotes.retailUsers || existingNotes.retailUsers.length === 0) {
+        const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+        const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
+        const userCount = Math.max(parseInt(userId), 5); // Ensure we have at least as many users as the requested userId
+        
+        existingNotes.retailUsers = [];
+        for (let i = 0; i < userCount; i++) {
+          const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
+          const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
+          
+          existingNotes.retailUsers.push({
+            id: i + 1,
+            name: names[i] || `User ${i + 1}`,
+            email: `${names[i]?.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+            bookingRef: `GR00123${i + 4}`,
+            seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
+            bidAmount: baseBidAmount + randomIncrement,
+            status: existingBid.bid.bidStatus === 'approved' && i === 0 ? 'approved' : 'pending_approval'
+          });
+        }
       }
 
       // Find and update the specific retail user
-      const retailUserIndex = existingNotes.retailUsers.findIndex(user => user.id === parseInt(userId));
+      let retailUserIndex = existingNotes.retailUsers.findIndex(user => user.id === parseInt(userId));
+      
+      // If user still not found, add them dynamically
       if (retailUserIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: "Retail user not found"
-        });
+        const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
+        const randomIncrement = Math.floor(Math.random() * 100) + 20;
+        const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+        const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
+        const userIdNum = parseInt(userId);
+        
+        const newUser = {
+          id: userIdNum,
+          name: names[userIdNum - 1] || `User ${userIdNum}`,
+          email: `${names[userIdNum - 1]?.toLowerCase().replace(' ', '.')}@${domains[userIdNum % domains.length]}` || `user${userIdNum}@email.com`,
+          bookingRef: `GR00123${userIdNum + 3}`,
+          seatNumber: `1${2 + userIdNum - 1}${String.fromCharCode(64 + userIdNum)}`, // 12A, 13B, etc.
+          bidAmount: baseBidAmount + randomIncrement,
+          status: 'pending_approval'
+        };
+        
+        existingNotes.retailUsers.push(newUser);
+        retailUserIndex = existingNotes.retailUsers.length - 1;
+        
+        console.log(`Created new retail user dynamically:`, newUser);
       }
 
       let newBidStatus = existingBid.bid.bidStatus; // Keep current bid status by default
