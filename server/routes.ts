@@ -20,7 +20,6 @@ import {
   bookings,
   passengers,
   bids,
-  bidConfigurations,
   payments,
   notifications,
 } from "../shared/schema.js";
