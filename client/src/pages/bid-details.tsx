@@ -103,15 +103,17 @@ export default function BidDetails() {
   const getStatusDisplay = (status) => {
     switch (status) {
       case "active":
-        return "Active";
+        return "Open";
       case "accepted":
+        return "Accepted";
+      case "approved":
         return "Accepted";
       case "rejected":
         return "Declined";
       case "expired":
         return "Expired";
       case "completed":
-        return "Completed";
+        return "Under Review";
       default:
         return "Draft";
     }

@@ -120,17 +120,17 @@ export default function Bids() {
             deposit: `$${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
             status:
               bid.bidStatus === "active"
-                ? "Pending"
+                ? "Open"
                 : bid.bidStatus === "accepted"
                   ? "Accepted"
                   : bid.bidStatus === "approved"
-                    ? "Approved"
+                    ? "Accepted"
                   : bid.bidStatus === "rejected"
                     ? "Declined"
                   : bid.bidStatus === "expired"
                     ? "Expired"
                   : bid.bidStatus === "completed"
-                    ? "Completed"
+                    ? "Under Review"
                   : bid.bidStatus === "pending"
                       ? "Under Review"
                       : "Under Review",
@@ -140,7 +140,7 @@ export default function Bids() {
                 : bid.bidStatus === "accepted"
                   ? "Converted to Booking"
                   : bid.bidStatus === "approved"
-                    ? "Approved for Booking"
+                    ? "Accepted for Booking"
                   : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
                     ? "Refunded"
                     : "Paid",
@@ -333,14 +333,12 @@ export default function Bids() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending":
+      case "Open":
         return "orange";
       case "Under Review":
         return "blue";
       case "Accepted":
         return "green";
-      case "Approved":
-        return "cyan";
       case "Declined":
         return "red";
       case "Expired":
@@ -349,8 +347,6 @@ export default function Bids() {
         return "purple";
       case "Payment Pending":
         return "orange";
-      case "Completed":
-        return "green";
       case "Converted":
         return "blue";
       default:
@@ -677,9 +673,8 @@ export default function Bids() {
                     }
                     options={[
                       { value: "all", label: "All Status" },
-                      { value: "pending", label: "Pending" },
+                      { value: "open", label: "Open" },
                       { value: "accepted", label: "Accepted" },
-                      { value: "approved", label: "Approved" },
                       { value: "declined", label: "Declined" },
                       { value: "expired", label: "Expired" },
                       { value: "under review", label: "Under Review" },

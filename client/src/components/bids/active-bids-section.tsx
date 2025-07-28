@@ -82,7 +82,7 @@ export default function ActiveBidsSection() {
             return { status: "Awaiting Payment", color: "orange" };
           }
         } catch (e) {
-          return { status: "Awaiting Payment", color: "orange" };
+          return { status: "Under Review", color: "orange" };
         }
       case 'accepted':
         return { status: "Accepted", color: "green" };
@@ -101,9 +101,9 @@ export default function ActiveBidsSection() {
           } else if (notes.paymentInfo?.paymentStatus === "Paid") {
             return { status: "Deposit Paid", color: "blue" };
           }
-          return { status: "Active", color: "orange" };
+          return { status: "Open", color: "orange" };
         } catch (e) {
-          return { status: "Active", color: "orange" };
+          return { status: "Open", color: "orange" };
         }
       default:
         return { status: "Pending", color: "orange" };
