@@ -736,9 +736,9 @@ export default function BidDetails() {
             >
               Cancel
             </Button>
-            {(transformedBidData.status === "Active" ||
-              transformedBidData.status === "active") &&
-              transformedBidData.status !== "completed" && (
+            {(transformedBidData.status === "Open" ||
+              transformedBidData.status === "open") &&
+              transformedBidData.status !== "Under Review" && (
                 <div className="flex justify-end">
                   <Button
                     type="primary"
