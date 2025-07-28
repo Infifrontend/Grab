@@ -33,16 +33,16 @@ export default function PaymentDetails() {
   const [bidParticipationData, setBidParticipationData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentReference, setPaymentReference] = useState("");
 
   useEffect(() => {
     // Load bid participation data from localStorage
-    const storedData = localStorage.getItem('bidParticipationData');
+    const storedData = localStorage.getItem("bidParticipationData");
     if (storedData) {
       setBidParticipationData(JSON.parse(storedData));
     } else {
       // If no data, redirect back to bids
-      setLocation('/bids');
+      setLocation("/bids");
     }
   }, [setLocation]);
 
@@ -60,13 +60,13 @@ export default function PaymentDetails() {
     const bidId = params?.bidId;
 
     if (!bidId) {
-      message.error('Bid ID not found');
-      setLocation('/bids');
+      message.error("Bid ID not found");
+      setLocation("/bids");
       return;
     }
 
     // Validate form based on payment method
-    if (paymentMethod === 'creditCard') {
+    if (paymentMethod === "creditCard") {
       try {
         await form.validateFields();
       } catch (error) {
@@ -83,19 +83,19 @@ export default function PaymentDetails() {
       // First, verify the bid exists and is in a valid state for payment
       const bidCheckResponse = await fetch(`/api/bids/${bidId}`);
       if (!bidCheckResponse.ok) {
-        throw new Error('Bid not found');
+        throw new Error("Bid not found");
       }
 
       const bidData = await bidCheckResponse.json();
       console.log("Bid data:", bidData);
 
       // Check if payment has already been completed
-      if (bidData.bid?.bidStatus === 'completed') {
+      if (bidData.bid?.bidStatus === "completed") {
         try {
           const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
           if (notes.paymentInfo?.paymentCompleted === true) {
             message.error("Payment has already been completed for this bid");
-            setLocation('/bids');
+            setLocation("/bids");
             return;
           }
         } catch (noteError) {
@@ -103,64 +103,72 @@ export default function PaymentDetails() {
         }
       }
 
-      const formValues = paymentMethod === "creditCard" ? form.getFieldsValue() : {};
+      const formValues =
+        paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
       // Create payment record using bid ID
-      const paymentResponse = await fetch('/api/payments', {
-        method: 'POST',
+      const paymentResponse = await fetch("/api/payments", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           bidId: parseInt(bidId),
           bookingId: parseInt(bidId), // Use bid ID as booking reference for now
           amount: bidParticipationData.depositRequired.toString(),
-          currency: 'INR',
+          currency: "INR",
           paymentMethod: paymentMethod,
-          paymentStatus: 'completed',
-          paymentType: 'deposit',
-          cardDetails: paymentMethod === 'creditCard' ? formValues : null
-        })
+          paymentStatus: "completed",
+          paymentType: "deposit",
+          cardDetails: paymentMethod === "creditCard" ? formValues : null,
+        }),
       });
 
       if (!paymentResponse.ok) {
         const errorData = await paymentResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || `Payment processing failed: ${paymentResponse.status}`);
+        throw new Error(
+          errorData.message ||
+            `Payment processing failed: ${paymentResponse.status}`,
+        );
       }
 
       const paymentResult = await paymentResponse.json();
       console.log("Payment created successfully:", paymentResult);
 
       // Update bid status to completed after successful payment
-      const bidUpdateResponse = await fetch(`/api/bids/${bidId}/payment-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const bidUpdateResponse = await fetch(
+        `/api/bids/${bidId}/payment-status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bidStatus: "completed",
+            paymentStatus: "Paid",
+            passengerCount: bidParticipationData.passengerCount,
+            bidAmount: bidParticipationData.bidAmount,
+          }),
         },
-        body: JSON.stringify({
-          bidStatus: 'completed',
-          paymentStatus: 'Paid',
-          passengerCount: bidParticipationData.passengerCount,
-          bidAmount: bidParticipationData.bidAmount
-        })
-      });
+      );
 
       if (!bidUpdateResponse.ok) {
-        console.warn('Payment succeeded but bid status update failed');
+        console.warn("Payment succeeded but bid status update failed");
         // Don't throw error here as payment was successful
       }
 
       // Store payment reference for display
-      setPaymentReference(paymentResult.paymentReference || `PAY-${bidId}-${Date.now()}`);
+      setPaymentReference(
+        paymentResult.paymentReference || `PAY-${bidId}-${Date.now()}`,
+      );
 
       // Clear localStorage
-      localStorage.removeItem('bidParticipationData');
+      localStorage.removeItem("bidParticipationData");
 
-      message.success('Payment processed successfully!');
+      message.success("Payment processed successfully!");
 
       // Show success modal
       setShowSuccessModal(true);
-
     } catch (error) {
       console.error("Payment processing error:", error);
       message.error(error.message || "Payment failed. Please try again.");
@@ -171,7 +179,7 @@ export default function PaymentDetails() {
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
-    setLocation('/bids');
+    setLocation("/bids");
   };
 
   if (!bidParticipationData) {
@@ -198,7 +206,8 @@ export default function PaymentDetails() {
             Payment Details
           </Title>
           <Text className="text-gray-600">
-            Complete your bid by paying the required deposit. This amount will be refunded if your bid is not accepted.
+            Complete your bid by paying the required deposit. This amount will
+            be refunded if your bid is not accepted.
           </Text>
         </div>
 
@@ -217,7 +226,7 @@ export default function PaymentDetails() {
                       Total Bid Amount:
                     </Text>
                     <Text className="text-gray-900 font-semibold text-lg">
-                      ₹{bidParticipationData.totalBid.toLocaleString()}
+                      ${bidParticipationData.totalBid.toLocaleString()}
                     </Text>
                   </Col>
                   <Col span={12}>
@@ -225,7 +234,7 @@ export default function PaymentDetails() {
                       Deposit Required:
                     </Text>
                     <Text className="text-blue-600 font-bold text-xl">
-                      ₹{bidParticipationData.depositRequired.toLocaleString()}
+                      ${bidParticipationData.depositRequired.toLocaleString()}
                     </Text>
                   </Col>
                 </Row>
@@ -275,7 +284,12 @@ export default function PaymentDetails() {
                                 <Form.Item
                                   label="Card Number"
                                   name="cardNumber"
-                                  rules={[{ required: true, message: 'Please enter card number' }]}
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please enter card number",
+                                    },
+                                  ]}
                                 >
                                   <Input
                                     placeholder="1234 5678 9012 3456"
@@ -287,7 +301,12 @@ export default function PaymentDetails() {
                                 <Form.Item
                                   label="Cardholder Name"
                                   name="cardholderName"
-                                  rules={[{ required: true, message: 'Please enter cardholder name' }]}
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please enter cardholder name",
+                                    },
+                                  ]}
                                 >
                                   <Input placeholder="John Doe" size="large" />
                                 </Form.Item>
@@ -298,16 +317,26 @@ export default function PaymentDetails() {
                                 <Form.Item
                                   label="Expiry Date"
                                   name="expiryDate"
-                                  rules={[{ required: true, message: 'Please enter expiry date' }]}
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please enter expiry date",
+                                    },
+                                  ]}
                                 >
                                   <Input placeholder="MM/YY" size="large" />
                                 </Form.Item>
                               </Col>
                               <Col xs={24} md={12}>
-                                <Form.Item 
-                                  label="CVV" 
+                                <Form.Item
+                                  label="CVV"
                                   name="cvv"
-                                  rules={[{ required: true, message: 'Please enter CVV' }]}
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Please enter CVV",
+                                    },
+                                  ]}
                                 >
                                   <Input placeholder="123" size="large" />
                                 </Form.Item>
@@ -329,7 +358,8 @@ export default function PaymentDetails() {
                           </Text>
                         </div>
                         <Text className="text-gray-600 text-sm block">
-                          Direct bank transfer. Payment confirmation may take 1-2 business days.
+                          Direct bank transfer. Payment confirmation may take
+                          1-2 business days.
                         </Text>
                       </div>
                     </Radio>
@@ -379,7 +409,8 @@ export default function PaymentDetails() {
                     Passengers
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData.passengerCount} passenger{bidParticipationData.passengerCount > 1 ? 's' : ''}
+                    {bidParticipationData.passengerCount} passenger
+                    {bidParticipationData.passengerCount > 1 ? "s" : ""}
                   </Text>
                 </div>
 
@@ -388,7 +419,7 @@ export default function PaymentDetails() {
                     Bid Amount (per person)
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    ₹{bidParticipationData.bidAmount.toLocaleString()}
+                    ${bidParticipationData.bidAmount.toLocaleString()}
                   </Text>
                 </div>
               </div>
@@ -399,14 +430,14 @@ export default function PaymentDetails() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Total Bid Amount</Text>
                   <Text className="text-gray-900 font-semibold">
-                    ₹{bidParticipationData.totalBid.toLocaleString()}
+                    ${bidParticipationData.totalBid.toLocaleString()}
                   </Text>
                 </div>
 
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Deposit Required (10%)</Text>
                   <Text className="text-blue-600 font-bold text-lg">
-                    ₹{bidParticipationData.depositRequired.toLocaleString()}
+                    ${bidParticipationData.depositRequired.toLocaleString()}
                   </Text>
                 </div>
               </div>
@@ -421,7 +452,8 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ₹{bidParticipationData.depositRequired.toLocaleString()} & Submit Bid
+                Pay ${bidParticipationData.depositRequired.toLocaleString()} &
+                Submit Bid
               </Button>
             </Card>
           </Col>
@@ -435,9 +467,9 @@ export default function PaymentDetails() {
         onOk={handleSuccessModalOk}
         onCancel={handleSuccessModalOk}
         footer={[
-          <Button 
-            key="ok" 
-            type="primary" 
+          <Button
+            key="ok"
+            type="primary"
             onClick={handleSuccessModalOk}
             className="bg-blue-600 hover:bg-blue-700"
           >

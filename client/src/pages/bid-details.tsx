@@ -193,7 +193,7 @@ export default function BidDetails() {
 
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow any input during typing
-    setBidAmount(e.target.value === '' ? 0 : parseInt(e.target.value) || 0);
+    setBidAmount(e.target.value === "" ? 0 : parseInt(e.target.value) || 0);
   };
 
   const handleBidAmountBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -225,11 +225,14 @@ export default function BidDetails() {
         title: transformedBidData.groupName,
         route: transformedBidData.route,
         travelDate: transformedBidData.departureDate,
-      }
+      },
     };
 
     // Store in localStorage for payment page
-    localStorage.setItem('bidParticipationData', JSON.stringify(bidParticipationData));
+    localStorage.setItem(
+      "bidParticipationData",
+      JSON.stringify(bidParticipationData),
+    );
 
     // Navigate to payment page
     setLocation(`/payment-details/${transformedBidData.bidId}`);
@@ -358,7 +361,6 @@ export default function BidDetails() {
                     />
                   </div>
                 </Col>
-
               </Row>
             </div>
 
@@ -528,11 +530,11 @@ export default function BidDetails() {
                       onBlur={handleBidAmountBlur}
                       placeholder="850"
                       size="large"
-                      prefix={<span className="text-gray-400">₹</span>}
+                      prefix={<span className="text-gray-400">$</span>}
                       className="rounded-md"
                     />
                     <Text className="text-gray-500 text-sm mt-1">
-                      Minimum bid amount: ₹{originalBidAmount} (can only
+                      Minimum bid amount: ${originalBidAmount} (can only
                       increase)
                     </Text>
                   </div>
@@ -686,7 +688,7 @@ export default function BidDetails() {
                     Bid per person
                   </Text>
                   <Text className="text-blue-600 font-bold text-lg">
-                    ₹{bidAmount}
+                    ${bidAmount}
                   </Text>
                 </div>
               </Col>
@@ -696,7 +698,7 @@ export default function BidDetails() {
                     Total Bid
                   </Text>
                   <Text className="text-blue-600 font-bold text-2xl">
-                    ₹{(passengers * bidAmount).toLocaleString()}
+                    ${(passengers * bidAmount).toLocaleString()}
                   </Text>
                 </div>
               </Col>
@@ -710,7 +712,7 @@ export default function BidDetails() {
                   Deposit Required (10%)
                 </Text>
                 <Text className="text-orange-600 font-bold text-lg">
-                  ₹{(passengers * bidAmount * 0.1).toLocaleString()}
+                  ${(passengers * bidAmount * 0.1).toLocaleString()}
                 </Text>
               </div>
             </Col>
@@ -732,20 +734,22 @@ export default function BidDetails() {
             >
               Cancel
             </Button>
-            {(transformedBidData.status === 'Active' || transformedBidData.status === 'active') && transformedBidData.status !== 'completed' && (
-              <div className="flex justify-end">
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handleContinueToPayment}
-                  className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
-                >
-                  Continue to Payment
-                </Button>
-              </div>
-            )}
+            {(transformedBidData.status === "Active" ||
+              transformedBidData.status === "active") &&
+              transformedBidData.status !== "completed" && (
+                <div className="flex justify-end">
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleContinueToPayment}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+                  >
+                    Continue to Payment
+                  </Button>
+                </div>
+              )}
 
-            {transformedBidData.status === 'completed' && (
+            {transformedBidData.status === "completed" && (
               <div className="flex justify-end">
                 <Button
                   size="large"
