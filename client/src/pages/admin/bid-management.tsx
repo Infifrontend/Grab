@@ -745,6 +745,19 @@ export default function BidManagement() {
                 dataIndex: "status",
                 key: "status",
                 render: (status) => {
+                  const getStatusDisplay = (status) => {
+                    switch (status.toLowerCase()) {
+                      case "active": return "Open";
+                      case "completed": return "Under Review";
+                      case "approved": return "Accepted";
+                      case "accepted": return "Accepted";
+                      case "rejected": return "Declined";
+                      case "expired": return "Expired";
+                      case "pending": return "Pending";
+                      default: return status.charAt(0).toUpperCase() + status.slice(1);
+                    }
+                  };
+                  
                   const getStatusColor = (status) => {
                     switch (status.toLowerCase()) {
                       case "active": return "green";
@@ -760,7 +773,7 @@ export default function BidManagement() {
                   
                   return (
                     <Tag color={getStatusColor(status)}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      {getStatusDisplay(status)}
                     </Tag>
                   );
                 },
