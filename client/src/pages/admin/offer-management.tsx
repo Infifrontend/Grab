@@ -924,8 +924,7 @@ export default function OfferManagement() {
                       <Col xs={24} lg={12}>
                         <Card size="small">
                           <div className="flex justify-between items-center mb-3">
-                            <Text className="font-semibold">
-                              Sustainable Travel Preference
+                            <Text className="font-semibold">                              Sustainable Travel Preference
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
                               High Impact
@@ -2390,15 +2389,25 @@ export default function OfferManagement() {
       {/* Create Modal (Dynamic based on active tab) */}
       <Modal
         title={
-          activeTab === "policies"
-            ? "Create Policy"
-            : activeTab === "ancillaries"
-              ? "Add New Ancillary"
-              : activeTab === "discounts"
-                ? "Create New Discount"
-                : activeTab === "promocodes"
-                  ? "Create New Promo Code"
-                  : "Create New Item"
+          <div className="border-b border-gray-200 pb-4 mb-6">
+            <Title level={3} className="!mb-2 text-gray-900">
+              {activeTab === "policies"
+                ? "Create New Policy"
+                : activeTab === "ancillaries"
+                  ? "Add New Ancillary"
+                  : activeTab === "discounts"
+                    ? "Create New Discount"
+                    : activeTab === "promocodes"
+                      ? "Create New Promo Code"
+                      : "Create New Item"}
+            </Title>
+            {activeTab === "policies" && (
+              <Text className="text-gray-600 text-base">
+                Configure comprehensive policy rules including refund/change policies, eligibility criteria, 
+                stacking rules, blackout dates, and compliance constraints
+              </Text>
+            )}
+          </div>
         }
         visible={isModalVisible}
         onCancel={() => {
@@ -2408,18 +2417,11 @@ export default function OfferManagement() {
           form.resetFields();
         }}
         footer={null}
-        width={activeTab === "policies" ? 900 : 600}
+        width={activeTab === "policies" ? 1000 : 600}
         className="custom-modal"
+        bodyStyle={{ padding: "24px 32px 32px" }}
       >
-        {activeTab === "policies" && (
-          <div className="mb-6">
-            <Text className="text-gray-600">
-              Configure comprehensive policy rules including refund/change
-              policies, eligibility criteria, stacking rules, blackout dates,
-              and compliance constraints
-            </Text>
-          </div>
-        )}
+        
 
         <Form
           form={form}
@@ -2851,13 +2853,18 @@ export default function OfferManagement() {
 
                 {/* Step 5: Validity Period */}
                 {policyModalStep === 4 && (
-                  <div>
-                    <Title level={4} className="!mb-4 text-purple-600">
-                      Validity Period
-                    </Title>
-                    <Text className="text-gray-600 block mb-6">
-                      Set the active period for this policy and configure any regulatory compliance requirements.
-                    </Text>
+                  <div className="space-y-6">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CalendarOutlined className="text-2xl text-purple-600" />
+                      </div>
+                      <Title level={3} className="!mb-2 text-gray-900">
+                        Validity Period
+                      </Title>
+                      <Text className="text-gray-600 text-base">
+                        Set the active period for this policy including start date, end date, and timezone.
+                      </Text>
+                    </div>
 
                     <Row gutter={16} className="mb-6">
                       <Col span={12}>
@@ -3002,7 +3009,6 @@ export default function OfferManagement() {
                                 placeholder="Additional regulatory notes and constraints..."
                               />
                             </Form.Item>
-                          </div>
 
                           <Form.Item name="requiresApproval" valuePropName="checked">
                             <Switch />
@@ -3493,7 +3499,7 @@ export default function OfferManagement() {
                   )}
                 </>
               )}
-              
+
               {activeTab !== "policies" && (
                 <Button
                   type="primary"
@@ -3571,6 +3577,57 @@ export default function OfferManagement() {
 
         .custom-table .ant-table-tbody > tr:hover > td {
           background-color: #f8fafc;
+        }
+      `}</style>
+      <style jsx>{`
+        .custom-modal .ant-modal-header {
+          border-bottom: none;
+          padding: 24px 32px 0;
+        }
+
+        .custom-modal .ant-modal-title {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .custom-steps .ant-steps-item-title {
+          font-weight: 500;
+          font-size: 14px;
+        }
+
+        .custom-steps .ant-steps-item-description {
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        .custom-steps .ant-steps-item-finish .ant-steps-item-icon {
+          background-color: #10b981;
+          border-color: #10b981;
+        }
+
+        .custom-steps .ant-steps-item-process .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+
+        .ant-form-item-label > label {
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .ant-input, .ant-select-selector, .ant-input-number {
+          border-radius: 6px;
+          border-color: #d1d5db;
+          transition: all 0.2s ease;
+        }
+
+        .ant-input:focus, .ant-select-focused .ant-select-selector, .ant-input-number:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .ant-switch-checked {
+          background-color: #10b981;
         }
       `}</style>
     </div>
