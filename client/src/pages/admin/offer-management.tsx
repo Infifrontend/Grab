@@ -2751,20 +2751,24 @@ export default function OfferManagement() {
                             label="Loyalty Program Tiers"
                           >
                             <Checkbox.Group className="w-full">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                              <div className="space-y-3">
                                 {loyaltyOptions.map((item) => (
                                   <div
                                     key={item.value}
-                                    className={`flex items-center space-x-3 p-4 rounded-xl border transition-colors 
-                                    ${item.bg} ${item.border} ${item.hover}`}
+                                    className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
                                   >
                                     <Checkbox
                                       value={item.value}
                                       className="scale-110"
                                     />
-                                    <Text
-                                      className={`font-semibold ${item.text}`}
-                                    >
+                                    <div className={`w-4 h-4 rounded-full ${
+                                      item.value === 'bronze' ? 'bg-amber-600' :
+                                      item.value === 'silver' ? 'bg-gray-400' :
+                                      item.value === 'gold' ? 'bg-yellow-500' :
+                                      item.value === 'platinum' ? 'bg-slate-400' :
+                                      'bg-blue-500'
+                                    }`}></div>
+                                    <Text className="font-medium text-gray-700">
                                       {item.label}
                                     </Text>
                                   </div>
