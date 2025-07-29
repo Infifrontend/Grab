@@ -396,7 +396,7 @@ export default function ReviewConfirmation() {
                   <div className="flex justify-between items-center">
                     <Text className="text-gray-600">Taxes & Fees</Text>
                     <Text className="font-medium">
-                      ${bookingSummary?.taxes || "304"}
+                      ${bookingSummary?.taxes.toFixed(2) || "304"}
                     </Text>
                   </div>
 
