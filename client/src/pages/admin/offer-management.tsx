@@ -3777,7 +3777,10 @@ export default function OfferManagement() {
                   {policyModalStep < 1 ? (
                     <Button
                       type="primary"
-                      onClick={() => setPolicyModalStep(Math.min(1, policyModalStep + 1))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPolicyModalStep(Math.min(1, policyModalStep + 1));
+                      }}
                       className="bg-blue-600 hover:bg-blue-700"
                       size="large"
                     >
