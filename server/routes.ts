@@ -1632,8 +1632,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Get user ID from bid if bidId is provided
-      let userId = 1; // Default fallback
+      // Ensure default user exists and get user ID from bid if bidId is provided
+      let userId = null;
+      
+      // First, ensure we have a default user
+      try {
+        let defaultUser = await storage.getUserByUsername("default_user");
+        if (!defaultUser) {
+          console.log("Creating default user for payments...");
+          defaultUser = await storage.createUser({
+            username: "default_user",
+            password: "default_password",
+            name: "Default User"
+          });
+          console.log("Default user created:", defaultUser);
+        }
+        userId = defaultUser.id;
+      } catch (userError) {
+        console.error("Error handling default user:", userError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to setup user information for payment"
+        });
+      }
+
+      // If bidId is provided, try to get the actual user from the bid
       if (bidId) {
         try {
           const parsedBidId = parseInt(bidId);
@@ -1646,8 +1669,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error(`Bid not found with ID: ${bidId}`);
           }
           
+          // Try to use the bid's user ID if it exists and is valid
           if (bidDetails.bid.userId) {
-            userId = bidDetails.bid.userId;
+            const bidUser = await storage.getUser(bidDetails.bid.userId);
+            if (bidUser) {
+              userId = bidDetails.bid.userId;
+              console.log(`Using bid user ${userId} for payment`);
+            } else {
+              console.log(`Bid user ${bidDetails.bid.userId} not found, using default user ${userId}`);
+            }
           }
           
           console.log(`Found bid ${bidId} for user ${userId}`);
