@@ -2633,310 +2633,293 @@ export default function OfferManagement() {
 
                 {/* Step 3: Eligibility Rules */}
                 {policyModalStep === 2 && (
-                  <div className="space-y-6">
-                    {/* Enhanced Header Section */}
-                    <div className="relative text-center mb-8 pb-6 border-b border-gray-100">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-purple-25 to-green-50 opacity-30 rounded-2xl"></div>
-                      <div className="relative z-10">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                          <UserOutlined className="text-3xl text-white" />
-                        </div>
-                        <Title level={2} className="!mb-3 text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                          Eligibility Configuration
-                        </Title>
-                        <Text className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-                          Define comprehensive criteria for policy eligibility including loyalty status, 
-                          passenger demographics, age restrictions, and booking channel preferences.
-                        </Text>
+                  <div className="max-w-6xl mx-auto">
+                    {/* Modern Header Section */}
+                    <div className="text-center mb-12">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                        <UserOutlined className="text-4xl text-white" />
                       </div>
+                      <Title level={2} className="!mb-4 text-gray-900">
+                        Eligibility Configuration
+                      </Title>
+                      <Text className="text-gray-600 text-lg max-w-4xl mx-auto leading-relaxed">
+                        Define comprehensive criteria for policy eligibility including loyalty status, 
+                        passenger demographics, age restrictions, and booking channel preferences.
+                      </Text>
                     </div>
 
-                    {/* Enhanced Main Content Grid */}
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                      {/* Enhanced Loyalty & Membership Section */}
-                      <div className="group relative bg-gradient-to-br from-blue-50 via-blue-25 to-indigo-50 p-8 rounded-2xl border border-blue-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-full opacity-20 -mr-10 -mt-10"></div>
-                        <div className="relative z-10">
-                          <div className="flex items-center mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                              <TrophyOutlined className="text-white text-xl" />
-                            </div>
-                            <div>
-                              <Text className="font-bold text-blue-900 text-xl block">
-                                Loyalty & Membership
-                              </Text>
-                              <Text className="text-blue-700 text-sm">
-                                Configure tier-based access
-                              </Text>
-                            </div>
+                    {/* Clean Grid Layout */}
+                    <div className="space-y-12">
+                      {/* Loyalty & Membership Section */}
+                      <div className="bg-white rounded-3xl border border-gray-200 p-10 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center mb-8">
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-6 shadow-lg">
+                            <TrophyOutlined className="text-white text-2xl" />
                           </div>
-
-                          {/* Enhanced Loyalty Tiers */}
-                          <div className="mb-8">
-                            <div className="flex items-center justify-between mb-5">
-                              <Text className="font-semibold text-blue-800 text-lg">
-                                Loyalty Tiers
-                              </Text>
-                              <Badge className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
-                                Select Multiple
-                              </Badge>
-                            </div>
-                            <Form.Item name="loyaltyTiers" className="!mb-0">
-                              <Checkbox.Group className="w-full">
-                                <div className="space-y-3">
-                                  {[
-                                    { value: "bronze", label: "Bronze", color: "bg-amber-500", bgColor: "bg-amber-50", borderColor: "border-amber-200" },
-                                    { value: "silver", label: "Silver", color: "bg-gray-400", bgColor: "bg-gray-50", borderColor: "border-gray-200" },
-                                    { value: "gold", label: "Gold", color: "bg-yellow-500", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
-                                    { value: "platinum", label: "Platinum", color: "bg-gray-300", bgColor: "bg-gray-50", borderColor: "border-gray-300" },
-                                    { value: "diamond", label: "Diamond", color: "bg-blue-500", bgColor: "bg-blue-50", borderColor: "border-blue-200" }
-                                  ].map((tier) => (
-                                    <div key={tier.value} className={`group/tier flex items-center p-4 bg-white rounded-xl border-2 ${tier.borderColor} hover:border-blue-300 transition-all duration-200 hover:shadow-md cursor-pointer`}>
-                                      <Checkbox value={tier.value} className="mr-4" />
-                                      <div className="flex items-center flex-1">
-                                        <div className={`w-4 h-4 ${tier.color} rounded-full mr-3 shadow-sm`}></div>
-                                        <div className="flex-1">
-                                          <Text className="font-medium text-gray-900">{tier.label}</Text>
-                                          <Text className="text-gray-500 text-xs">Tier {tier.value} members</Text>
-                                        </div>
-                                        <div className="opacity-0 group-hover/tier:opacity-100 transition-opacity">
-                                          <span className="text-blue-500 text-xs">✓</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </Checkbox.Group>
-                            </Form.Item>
-                          </div>
-
-                          {/* Enhanced Corporate Customers */}
-                          <div className="p-5 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
-                            <Form.Item
-                              name="corporateCustomersOnly"
-                              valuePropName="checked"
-                              className="!mb-0"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                                    <span className="text-blue-600 text-lg">🏢</span>
-                                  </div>
-                                  <div>
-                                    <Text className="font-semibold text-gray-900 block">Corporate Customers Only</Text>
-                                    <Text className="text-gray-500 text-sm">Restrict access to business accounts</Text>
-                                  </div>
-                                </div>
-                                <Switch size="default" className="ml-4" />
-                              </div>
-                            </Form.Item>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Enhanced Demographics & Age Section */}
-                      <div className="group relative bg-gradient-to-br from-green-50 via-green-25 to-emerald-50 p-8 rounded-2xl border border-green-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-full opacity-20 -mr-10 -mt-10"></div>
-                        <div className="relative z-10">
-                          <div className="flex items-center mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                              <span className="text-white text-xl">👥</span>
-                            </div>
-                            <div>
-                              <Text className="font-bold text-green-900 text-xl block">
-                                Demographics & Age
-                              </Text>
-                              <Text className="text-green-700 text-sm">
-                                Define passenger criteria
-                              </Text>
-                            </div>
-                          </div>
-
-                          {/* Enhanced Passenger Types */}
-                          <div className="mb-8">
-                            <div className="flex items-center justify-between mb-5">
-                              <Text className="font-semibold text-green-800 text-lg">
-                                Passenger Categories
-                              </Text>
-                              <Badge className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-                                Select All That Apply
-                              </Badge>
-                            </div>
-                            <Form.Item name="passengerTypes" className="!mb-0">
-                              <Checkbox.Group className="w-full">
-                                <div className="grid grid-cols-2 gap-3">
-                                  {[
-                                    { value: "adult", label: "Adult", icon: "👨", desc: "18+ years" },
-                                    { value: "child", label: "Child", icon: "👧", desc: "2-17 years" },
-                                    { value: "infant", label: "Infant", icon: "👶", desc: "0-2 years" },
-                                    { value: "senior", label: "Senior", icon: "👴", desc: "65+ years" },
-                                    { value: "student", label: "Student", icon: "🎓", desc: "With valid ID" },
-                                    { value: "military", label: "Military", icon: "🪖", desc: "Active/Veteran" }
-                                  ].map((type) => (
-                                    <div key={type.value} className="group/passenger flex items-center p-3 bg-white rounded-lg border-2 border-green-100 hover:border-green-300 transition-all duration-200 hover:shadow-sm cursor-pointer">
-                                      <Checkbox value={type.value} className="mr-3" />
-                                      <div className="flex items-center flex-1">
-                                        <span className="text-lg mr-2">{type.icon}</span>
-                                        <div>
-                                          <Text className="font-medium text-sm text-gray-900">{type.label}</Text>
-                                          <Text className="text-xs text-gray-500">{type.desc}</Text>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </Checkbox.Group>
-                            </Form.Item>
-                          </div>
-
-                          {/* Enhanced Age Restrictions */}
-                          <div className="bg-white p-5 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
-                            <div className="flex items-center mb-4">
-                              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                                <span className="text-green-600 text-sm">📅</span>
-                              </div>
-                              <Text className="font-semibold text-green-800 text-lg">
-                                Age Restrictions
-                              </Text>
-                            </div>
-                            <Row gutter={16} className="mb-4">
-                              <Col span={12}>
-                                <Form.Item label={<span className="font-medium text-gray-700">Minimum Age</span>} name="minAge" className="!mb-3">
-                                  <InputNumber
-                                    placeholder="0"
-                                    className="w-full rounded-lg"
-                                    min={0}
-                                    max={120}
-                                    size="large"
-                                    suffix="years"
-                                  />
-                                </Form.Item>
-                              </Col>
-                              <Col span={12}>
-                                <Form.Item label={<span className="font-medium text-gray-700">Maximum Age</span>} name="maxAge" className="!mb-3">
-                                  <InputNumber
-                                    placeholder="100"
-                                    className="w-full rounded-lg"
-                                    min={0}
-                                    max={120}
-                                    size="large"
-                                    suffix="years"
-                                  />
-                                </Form.Item>
-                              </Col>
-                            </Row>
-
-                            <Form.Item
-                              name="requiresAdultSupervision"
-                              valuePropName="checked"
-                              className="!mb-0"
-                            >
-                              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                <div className="flex items-center">
-                                  <span className="text-lg mr-3">👨‍👩‍👧‍👦</span>
-                                  <div>
-                                    <Text className="font-medium text-gray-900">Requires Adult Supervision</Text>
-                                    <Text className="text-gray-500 text-sm">For minors traveling alone</Text>
-                                  </div>
-                                </div>
-                                <Checkbox className="ml-4" />
-                              </div>
-                            </Form.Item>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Enhanced Booking Channels Section */}
-                      <div className="group relative bg-gradient-to-br from-purple-50 via-purple-25 to-violet-50 p-8 rounded-2xl border border-purple-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-full opacity-20 -mr-10 -mt-10"></div>
-                        <div className="relative z-10">
-                          <div className="flex items-center mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                              <span className="text-white text-xl">📱</span>
-                            </div>
-                            <div>
-                              <Text className="font-bold text-purple-900 text-xl block">
-                                Booking Channels
-                              </Text>
-                              <Text className="text-purple-700 text-sm">
-                                Control access points
-                              </Text>
-                            </div>
-                          </div>
-
                           <div>
-                            <div className="flex items-center justify-between mb-5">
-                              <Text className="font-semibold text-purple-800 text-lg">
-                                Allowed Channels
-                              </Text>
-                              <Badge className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
-                                Multi-Channel
-                              </Badge>
-                            </div>
-                            <Form.Item name="bookingChannels" className="!mb-0">
-                              <Checkbox.Group className="w-full">
-                                <div className="space-y-4">
-                                  {[
-                                    { value: "website", label: "Website", icon: "🌐", color: "blue", desc: "Desktop & mobile web" },
-                                    { value: "mobile", label: "Mobile App", icon: "📱", color: "green", desc: "iOS & Android apps" },
-                                    { value: "callcenter", label: "Call Center", icon: "☎️", color: "orange", desc: "Phone bookings" },
-                                    { value: "agent", label: "Travel Agent", icon: "🏢", color: "indigo", desc: "Third-party agents" },
-                                    { value: "airport", label: "Airport Counter", icon: "✈️", color: "red", desc: "Airport check-in" }
-                                  ].map((channel) => (
-                                    <div key={channel.value} className="group/channel flex items-center p-4 bg-white rounded-xl border-2 border-purple-100 hover:border-purple-300 transition-all duration-200 hover:shadow-md cursor-pointer">
-                                      <Checkbox value={channel.value} className="mr-4" />
-                                      <div className="flex items-center flex-1">
-                                        <div className={`w-10 h-10 bg-${channel.color}-100 rounded-lg flex items-center justify-center mr-4`}>
-                                          <span className={`text-${channel.color}-600 text-lg`}>{channel.icon}</span>
-                                        </div>
-                                        <div className="flex-1">
-                                          <Text className="font-medium text-gray-900">{channel.label}</Text>
-                                          <Text className="text-gray-500 text-sm">{channel.desc}</Text>
-                                        </div>
-                                        <div className="opacity-0 group-hover/channel:opacity-100 transition-opacity">
-                                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </Checkbox.Group>
-                            </Form.Item>
+                            <Title level={3} className="!mb-2 text-gray-900">
+                              Loyalty & Membership
+                            </Title>
+                            <Text className="text-gray-600 text-base">
+                              Configure tier-based access and corporate customer restrictions
+                            </Text>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Enhanced Summary Section */}
-                    <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-200 shadow-sm">
-                      <div className="flex items-start">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4 shadow-md">
-                          <span className="text-white text-xl">📋</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-3">
-                            <Text className="font-bold text-gray-900 text-lg">Eligibility Configuration Summary</Text>
-                            <Badge className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
-                              Auto-Generated
+                        {/* Loyalty Tiers */}
+                        <div className="mb-10">
+                          <div className="flex items-center justify-between mb-6">
+                            <Text className="font-semibold text-gray-800 text-lg">
+                              Loyalty Tiers
+                            </Text>
+                            <Badge className="bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium border border-blue-200">
+                              Select Multiple
                             </Badge>
                           </div>
-                          <Text className="text-gray-600 leading-relaxed">
-                            Configure the above criteria to define comprehensive eligibility rules. All selected conditions will be evaluated 
-                            using <span className="font-medium text-blue-600">AND logic</span> to determine final policy access. 
-                            <span className="font-medium">Real-time validation</span> ensures consistent policy enforcement across all booking channels.
+                          <Form.Item name="loyaltyTiers" className="!mb-0">
+                            <Checkbox.Group className="w-full">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                  { value: "bronze", label: "Bronze", color: "bg-amber-500", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
+                                  { value: "silver", label: "Silver", color: "bg-gray-400", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
+                                  { value: "gold", label: "Gold", color: "bg-yellow-500", bgColor: "bg-yellow-50", borderColor: "border-yellow-200", textColor: "text-yellow-700" },
+                                  { value: "platinum", label: "Platinum", color: "bg-gray-300", bgColor: "bg-gray-50", borderColor: "border-gray-300", textColor: "text-gray-700" },
+                                  { value: "diamond", label: "Diamond", color: "bg-blue-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" }
+                                ].map((tier) => (
+                                  <div key={tier.value} className={`group/tier relative p-6 ${tier.bgColor} rounded-xl border-2 ${tier.borderColor} hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer`}>
+                                    <div className="flex items-center space-x-4">
+                                      <Checkbox value={tier.value} className="scale-125" />
+                                      <div className={`w-6 h-6 ${tier.color} rounded-full shadow-sm`}></div>
+                                      <div className="flex-1">
+                                        <Text className={`font-semibold text-lg ${tier.textColor}`}>{tier.label}</Text>
+                                        <Text className="text-gray-500 text-sm">Tier {tier.value} members</Text>
+                                      </div>
+                                    </div>
+                                    <div className="absolute top-3 right-3 opacity-0 group-hover/tier:opacity-100 transition-opacity">
+                                      <span className="text-blue-500 text-sm">✓</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </Checkbox.Group>
+                          </Form.Item>
+                        </div>
+
+                        {/* Corporate Customers */}
+                        <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
+                          <Form.Item
+                            name="corporateCustomersOnly"
+                            valuePropName="checked"
+                            className="!mb-0"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                                  <span className="text-blue-600 text-2xl">🏢</span>
+                                </div>
+                                <div>
+                                  <Text className="font-semibold text-gray-900 text-lg block">Corporate Customers Only</Text>
+                                  <Text className="text-gray-600 text-base">Restrict access to business accounts and corporate travelers</Text>
+                                </div>
+                              </div>
+                              <Switch size="large" className="ml-6" />
+                            </div>
+                          </Form.Item>
+                        </div>
+                      </div>
+
+                      {/* Demographics & Age Section */}
+                      <div className="bg-white rounded-3xl border border-gray-200 p-10 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center mb-8">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mr-6 shadow-lg">
+                            <span className="text-white text-2xl">👥</span>
+                          </div>
+                          <div>
+                            <Title level={3} className="!mb-2 text-gray-900">
+                              Demographics & Age
+                            </Title>
+                            <Text className="text-gray-600 text-base">
+                              Define passenger categories and age-based restrictions
+                            </Text>
+                          </div>
+                        </div>
+
+                        {/* Passenger Types */}
+                        <div className="mb-10">
+                          <div className="flex items-center justify-between mb-6">
+                            <Text className="font-semibold text-gray-800 text-lg">
+                              Passenger Categories
+                            </Text>
+                            <Badge className="bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium border border-green-200">
+                              Select All That Apply
+                            </Badge>
+                          </div>
+                          <Form.Item name="passengerTypes" className="!mb-0">
+                            <Checkbox.Group className="w-full">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                  { value: "adult", label: "Adult", icon: "👨", desc: "18+ years", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+                                  { value: "child", label: "Child", icon: "👧", desc: "2-17 years", bgColor: "bg-purple-50", borderColor: "border-purple-200" },
+                                  { value: "infant", label: "Infant", icon: "👶", desc: "0-2 years", bgColor: "bg-pink-50", borderColor: "border-pink-200" },
+                                  { value: "senior", label: "Senior", icon: "👴", desc: "65+ years", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
+                                  { value: "student", label: "Student", icon: "🎓", desc: "With valid ID", bgColor: "bg-indigo-50", borderColor: "border-indigo-200" },
+                                  { value: "military", label: "Military", icon: "🪖", desc: "Active/Veteran", bgColor: "bg-emerald-50", borderColor: "border-emerald-200" }
+                                ].map((type) => (
+                                  <div key={type.value} className={`group/passenger p-5 ${type.bgColor} rounded-xl border-2 ${type.borderColor} hover:border-green-300 hover:shadow-md transition-all duration-200 cursor-pointer`}>
+                                    <div className="flex items-center space-x-4 mb-2">
+                                      <Checkbox value={type.value} className="scale-125" />
+                                      <span className="text-2xl">{type.icon}</span>
+                                    </div>
+                                    <div className="ml-8">
+                                      <Text className="font-semibold text-gray-900 text-base">{type.label}</Text>
+                                      <Text className="text-gray-500 text-sm">{type.desc}</Text>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </Checkbox.Group>
+                          </Form.Item>
+                        </div>
+
+                        {/* Age Restrictions */}
+                        <div className="p-6 bg-green-50 rounded-xl border border-green-200">
+                          <div className="flex items-center mb-6">
+                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                              <span className="text-green-600 text-xl">📅</span>
+                            </div>
+                            <Text className="font-semibold text-gray-800 text-lg">
+                              Age Restrictions
+                            </Text>
+                          </div>
+                          <Row gutter={24} className="mb-6">
+                            <Col span={12}>
+                              <Form.Item label={<span className="font-medium text-gray-700 text-base">Minimum Age</span>} name="minAge" className="!mb-4">
+                                <InputNumber
+                                  placeholder="0"
+                                  className="w-full rounded-lg"
+                                  min={0}
+                                  max={120}
+                                  size="large"
+                                  suffix="years"
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                              <Form.Item label={<span className="font-medium text-gray-700 text-base">Maximum Age</span>} name="maxAge" className="!mb-4">
+                                <InputNumber
+                                  placeholder="100"
+                                  className="w-full rounded-lg"
+                                  min={0}
+                                  max={120}
+                                  size="large"
+                                  suffix="years"
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+
+                          <Form.Item
+                            name="requiresAdultSupervision"
+                            valuePropName="checked"
+                            className="!mb-0"
+                          >
+                            <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-green-200">
+                              <div className="flex items-center space-x-4">
+                                <span className="text-2xl">👨‍👩‍👧‍👦</span>
+                                <div>
+                                  <Text className="font-medium text-gray-900 text-base">Requires Adult Supervision</Text>
+                                  <Text className="text-gray-600 text-sm">Apply to minors traveling alone without adult supervision</Text>
+                                </div>
+                              </div>
+                              <Checkbox className="ml-4 scale-125" />
+                            </div>
+                          </Form.Item>
+                        </div>
+                      </div>
+
+                      {/* Booking Channels Section */}
+                      <div className="bg-white rounded-3xl border border-gray-200 p-10 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center mb-8">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mr-6 shadow-lg">
+                            <span className="text-white text-2xl">📱</span>
+                          </div>
+                          <div>
+                            <Title level={3} className="!mb-2 text-gray-900">
+                              Booking Channels
+                            </Title>
+                            <Text className="text-gray-600 text-base">
+                              Control which booking channels can access this policy
+                            </Text>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-6">
+                          <Text className="font-semibold text-gray-800 text-lg">
+                            Allowed Channels
                           </Text>
-                          <div className="mt-4 flex items-center space-x-4">
-                            <div className="flex items-center text-sm text-gray-500">
-                              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                              Auto-validation enabled
+                          <Badge className="bg-purple-50 text-purple-700 px-4 py-2 rounded-full text-sm font-medium border border-purple-200">
+                            Multi-Channel Support
+                          </Badge>
+                        </div>
+                        <Form.Item name="bookingChannels" className="!mb-0">
+                          <Checkbox.Group className="w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {[
+                                { value: "website", label: "Website", icon: "🌐", desc: "Desktop & mobile web platforms", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+                                { value: "mobile", label: "Mobile App", icon: "📱", desc: "iOS & Android native applications", bgColor: "bg-green-50", borderColor: "border-green-200" },
+                                { value: "callcenter", label: "Call Center", icon: "☎️", desc: "Phone bookings and customer service", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
+                                { value: "agent", label: "Travel Agent", icon: "🏢", desc: "Third-party travel agencies", bgColor: "bg-indigo-50", borderColor: "border-indigo-200" },
+                                { value: "airport", label: "Airport Counter", icon: "✈️", desc: "Airport check-in and kiosks", bgColor: "bg-red-50", borderColor: "border-red-200" }
+                              ].map((channel) => (
+                                <div key={channel.value} className={`group/channel p-6 ${channel.bgColor} rounded-xl border-2 ${channel.borderColor} hover:border-purple-300 hover:shadow-md transition-all duration-200 cursor-pointer`}>
+                                  <div className="flex items-start space-x-4">
+                                    <Checkbox value={channel.value} className="scale-125 mt-1" />
+                                    <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                      <span className="text-2xl">{channel.icon}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <Text className="font-semibold text-gray-900 text-base block mb-1">{channel.label}</Text>
+                                      <Text className="text-gray-600 text-sm leading-relaxed">{channel.desc}</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                              Multi-criteria support
+                          </Checkbox.Group>
+                        </Form.Item>
+                      </div>
+
+                      {/* Configuration Summary */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl border border-blue-200 p-8">
+                        <div className="flex items-start space-x-6">
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-white text-2xl">📋</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-4">
+                              <Title level={4} className="!mb-0 text-gray-900">Eligibility Configuration Summary</Title>
+                              <Badge className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium border border-blue-200">
+                                Auto-Generated Rules
+                              </Badge>
                             </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                              <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                              Real-time enforcement
+                            <Text className="text-gray-700 leading-relaxed text-base mb-6">
+                              Configure the above criteria to define comprehensive eligibility rules. All selected conditions will be evaluated 
+                              using <span className="font-semibold text-blue-600">AND logic</span> to determine final policy access. 
+                              <span className="font-semibold">Real-time validation</span> ensures consistent policy enforcement across all booking channels.
+                            </Text>
+                            <div className="flex flex-wrap gap-6">
+                              <div className="flex items-center text-gray-600">
+                                <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                                <Text className="font-medium">Auto-validation enabled</Text>
+                              </div>
+                              <div className="flex items-center text-gray-600">
+                                <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                                <Text className="font-medium">Multi-criteria support</Text>
+                              </div>
+                              <div className="flex items-center text-gray-600">
+                                <span className="w-3 h-3 bg-purple-500 rounded-full mr-3"></span>
+                                <Text className="font-medium">Real-time enforcement</Text>
+                              </div>
                             </div>
                           </div>
                         </div>
