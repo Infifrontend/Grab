@@ -2421,7 +2421,7 @@ export default function OfferManagement() {
         className="custom-modal"
         bodyStyle={{ padding: "24px 32px 32px" }}
       >
-
+        
 
         <Form
           form={form}
@@ -3251,7 +3251,7 @@ export default function OfferManagement() {
                     rules={[
                       {
                         required: true,
-                        message: "Please enter discount value"
+                        message: "Please enter discount value",
                       },
                     ]}
                   >
@@ -3351,6 +3351,111 @@ export default function OfferManagement() {
                 <Input.TextArea
                   rows={4}
                   placeholder="Enter discount description..."
+                />
+              </Form.Item>
+            </>
+          ) : activeTab === "ancillaries" ? (
+            // Ancillary Form Fields
+            <>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item
+                    label="Service Name"
+                    name="serviceName"
+                    rules={[
+                      { required: true, message: "Please enter service name" },
+                    ]}
+                  >
+                    <Input placeholder="Enter service name" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Category"
+                    name="category"
+                    rules={[
+                      { required: true, message: "Please select category" },
+                    ]}
+                  >
+                    <Select placeholder="Select category" size="large">
+                      <Select.Option value="seat">Seat</Select.Option>
+                      <Select.Option value="food-beverage">
+                        Food & Beverage
+                      </Select.Option>
+                      <Select.Option value="service">Service</Select.Option>
+                      <Select.Option value="baggage">Baggage</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Base Price ($)"
+                    name="basePrice"
+                    rules={[
+                      { required: true, message: "Please enter base price" },
+                    ]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      formatter={(value) =>
+                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Availability"
+                    name="availability"
+                    rules={[
+                      { required: true, message: "Please select availability" },
+                    ]}
+                  >
+                    <Select placeholder="Select availability" size="large">
+                      <Select.Option value="all-flights">
+                        All flights
+                      </Select.Option>
+                      <Select.Option value="flight-dependent">
+                        Flight dependent
+                      </Select.Option>
+                      <Select.Option value="route-specific">
+                        Route specific
+                      </Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Bundle Compatible"
+                    name="bundleCompatible"
+                    valuePropName="checked"
+                    initialValue={true}
+                  >
+                    <Switch />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[
+                  { required: true, message: "Please enter description" },
+                ]}
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter service description..."
                 />
               </Form.Item>
             </>
@@ -3571,40 +3676,20 @@ export default function OfferManagement() {
               )}
 
               {activeTab !== "policies" && (
-                <>
-                  <Button
-                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
-                    disabled={policyModalStep === 0}
-                    size="large"
-                  >
-                    Previous
-                  </Button>
-                  {policyModalStep < 1 ? (
-                    <Button
-                      type="primary"
-                      onClick={() => setPolicyModalStep(Math.min(1, policyModalStep + 1))}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      size="large"
-                    >
-                      Next
-                    </Button>
-                  ) : (
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      className="bg-blue-600 hover:bg-blue-700"
-                      size="large"
-                    >
-                      {activeTab === "ancillaries"
-                        ? "Add Ancillary"
-                        : activeTab === "discounts"
-                          ? "Create Discount"
-                          : activeTab === "promocodes"
-                            ? "Create Promo Code"
-                            : "Create"}
-                    </Button>
-                  )}
-                </>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  size="large"
+                >
+                  {activeTab === "ancillaries"
+                    ? "Add Ancillary"
+                    : activeTab === "discounts"
+                      ? "Create Discount"
+                      : activeTab === "promocodes"
+                        ? "Create Promo Code"
+                        : "Create"}
+                </Button>
               )}
             </div>
           </div>
