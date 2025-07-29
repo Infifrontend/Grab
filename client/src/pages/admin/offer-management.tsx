@@ -3203,162 +3203,514 @@ export default function OfferManagement() {
               </div>
             </>
           ) : activeTab === "discounts" ? (
-            // Discount Form Fields
+            // Discount Form Fields - Multi-step
             <>
-              <Row gutter={16}>
-                <Col span={16}>
-                  <Form.Item
-                    label="Discount Name"
-                    name="discountName"
-                    rules={[
-                      { required: true, message: "Please enter discount name" },
-                    ]}
-                  >
-                    <Input placeholder="Enter discount name" size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="Discount Code"
-                    name="discountCode"
-                    rules={[
-                      { required: true, message: "Please enter discount code" },
-                    ]}
-                  >
-                    <Input placeholder="e.g. SAVE20" size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Discount Type"
-                    name="discountType"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select discount type",
-                      },
-                    ]}
-                  >
-                    <Select placeholder="Select type" size="large">
-                      <Select.Option value="percentage">
-                        Percentage
-                      </Select.Option>
-                      <Select.Option value="fixed">Fixed Amount</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Discount Value"
-                    name="discountValue"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter discount value",
-                      },
-                    ]}
-                  >
-                    <InputNumber
-                      placeholder="0"
-                      size="large"
-                      className="w-full"
-                      min={0}
-                      max={100}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Target"
-                    name="target"
-                    rules={[
-                      { required: true, message: "Please select target" },
-                    ]}
-                  >
-                    <Select placeholder="Select target" size="large">
-                      <Select.Option value="ancillaries">
-                        Ancillaries
-                      </Select.Option>
-                      <Select.Option value="offers">Offers</Select.Option>
-                      <Select.Option value="both">Both</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Usage Limit"
-                    name="usageLimit"
-                    rules={[
-                      { required: true, message: "Please enter usage limit" },
-                    ]}
-                  >
-                    <InputNumber
-                      placeholder="e.g. 5000"
-                      size="large"
-                      className="w-full"
-                      min={1}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Valid From"
-                    name="validFrom"
-                    rules={[
-                      { required: true, message: "Please select start date" },
-                    ]}
-                  >
-                    <DatePicker
-                      size="large"
-                      className="w-full"
-                      format="MMM DD, YYYY"
-                      disabledDate={(current) =>
-                        current && current.isBefore(new Date(), "day")
-                      }
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Valid To"
-                    name="validTo"
-                    rules={[
-                      { required: true, message: "Please select end date" },
-                    ]}
-                  >
-                    <DatePicker
-                      size="large"
-                      className="w-full"
-                      format="MMM DD, YYYY"
-                      disabledDate={(current) =>
-                        current && current.isBefore(new Date(), "day")
-                      }
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                label="Description"
-                name="description"
-                rules={[
-                  { required: true, message: "Please enter description" },
-                ]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter discount description..."
+              {/* Steps Navigation */}
+              <div className="mb-6">
+                <Steps
+                  current={policyModalStep}
+                  size="small"
+                  items={[
+                    {
+                      title: "Basic Info",
+                      description: "Discount details",
+                    },
+                    {
+                      title: "Discount Rules",
+                      description: "Application rules",
+                    },
+                    {
+                      title: "Eligibility",
+                      description: "User criteria",
+                    },
+                    {
+                      title: "Date Windows",
+                      description: "Validity period",
+                    },
+                    {
+                      title: "Combinability",
+                      description: "Promo code rules",
+                    },
+                  ]}
                 />
-              </Form.Item>
+              </div>
+
+              {/* Step Content */}
+              <div style={{ minHeight: "400px" }}>
+                {/* Step 1: Basic Info */}
+                {policyModalStep === 0 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-blue-600">
+                      Basic Information
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Configure the fundamental details of your discount including name, code, and description.
+                    </Text>
+
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-medium">Discount Name <span className="text-red-500">*</span></span>}
+                          name="discountName"
+                          rules={[
+                            { required: true, message: "Please enter discount name" },
+                          ]}
+                        >
+                          <Input
+                            placeholder="e.g., Early Bird Discount"
+                            size="large"
+                            className="rounded-lg"
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-medium">Discount Code <span className="text-red-500">*</span></span>}
+                          name="discountCode"
+                          rules={[
+                            { required: true, message: "Please enter discount code" },
+                          ]}
+                        >
+                          <Input
+                            placeholder="e.g., EARLY20"
+                            size="large"
+                            className="rounded-lg"
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Form.Item
+                      label={<span className="font-medium">Description</span>}
+                      name="description"
+                    >
+                      <Input.TextArea
+                        rows={4}
+                        placeholder="Describe what this discount offers..."
+                        className="rounded-lg"
+                      />
+                    </Form.Item>
+
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Discount Type <span className="text-red-500">*</span></span>}
+                          name="discountType"
+                          rules={[
+                            { required: true, message: "Please select discount type" },
+                          ]}
+                        >
+                          <Select placeholder="Percentage (%)" size="large" className="rounded-lg">
+                            <Select.Option value="percentage">Percentage (%)</Select.Option>
+                            <Select.Option value="fixed">Fixed Amount</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Discount Value <span className="text-red-500">*</span></span>}
+                          name="discountValue"
+                          rules={[
+                            { required: true, message: "Please enter discount value" },
+                          ]}
+                        >
+                          <InputNumber
+                            placeholder="20"
+                            size="large"
+                            className="w-full rounded-lg"
+                            min={0}
+                            max={100}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Status</span>}
+                          name="status"
+                          initialValue="active"
+                        >
+                          <Select placeholder="Active" size="large" className="rounded-lg">
+                            <Select.Option value="active">Active</Select.Option>
+                            <Select.Option value="inactive">Inactive</Select.Option>
+                            <Select.Option value="draft">Draft</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
+
+                {/* Step 2: Discount Rules */}
+                {policyModalStep === 1 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-green-600">
+                      Target Application
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Define how and where this discount should be applied.
+                    </Text>
+
+                    <div className="space-y-4 mb-6">
+                      <Form.Item name="targetApplication" initialValue="baseFareOnly">
+                        <div className="space-y-3">
+                          <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
+                            <div className="flex items-center">
+                              <input type="radio" value="baseFareOnly" className="mr-3" />
+                              <div>
+                                <Text className="font-semibold text-blue-900">Base Fare Only</Text>
+                                <Text className="text-blue-700 text-sm block">Apply discount to base fare/ticket price</Text>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                            <div className="flex items-center">
+                              <input type="radio" value="ancillariesOnly" className="mr-3" />
+                              <div>
+                                <Text className="font-semibold">Ancillaries Only</Text>
+                                <Text className="text-gray-600 text-sm block">Apply discount to selected ancillary services</Text>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                            <div className="flex items-center">
+                              <input type="radio" value="both" className="mr-3" />
+                              <div>
+                                <Text className="font-semibold">Both Base Fare & Ancillaries</Text>
+                                <Text className="text-gray-600 text-sm block">Apply discount to both fare and selected services</Text>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Form.Item>
+                    </div>
+
+                    <Row gutter={24}>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Total Usage Limit</span>}
+                          name="totalUsageLimit"
+                        >
+                          <InputNumber
+                            placeholder="1000"
+                            size="large"
+                            className="w-full rounded-lg"
+                            min={1}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Per User Limit</span>}
+                          name="perUserLimit"
+                        >
+                          <InputNumber
+                            placeholder="1"
+                            size="large"
+                            className="w-full rounded-lg"
+                            min={1}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label={<span className="font-medium">Maximum Discount Cap ($)</span>}
+                          name="maxDiscountCap"
+                        >
+                          <InputNumber
+                            placeholder="100"
+                            size="large"
+                            className="w-full rounded-lg"
+                            min={0}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
+
+                {/* Step 3: Eligibility */}
+                {policyModalStep === 2 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-purple-600">
+                      Eligibility Criteria
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Define who can use this discount based on loyalty status, location, and travel routes.
+                    </Text>
+
+                    <div className="mb-8">
+                      <Title level={5} className="!mb-4">
+                        Loyalty Program Tiers
+                      </Title>
+                      <Form.Item name="loyaltyTiers">
+                        <Checkbox.Group className="w-full">
+                          <Row gutter={[16, 16]}>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="bronze" className="mb-2" />
+                                <Text className="block font-medium">Bronze</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="silver" className="mb-2" />
+                                <Text className="block font-medium">Silver</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="gold" className="mb-2" />
+                                <Text className="block font-medium">Gold</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="platinum" className="mb-2" />
+                                <Text className="block font-medium">Platinum</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                          <Row gutter={[16, 16]} className="mt-4">
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="diamond" className="mb-2" />
+                                <Text className="block font-medium">Diamond</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-8">
+                      <Title level={5} className="!mb-4">
+                        Geographic Eligibility
+                      </Title>
+                      <Form.Item name="geographicEligibility">
+                        <Checkbox.Group className="w-full">
+                          <Row gutter={[16, 16]}>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="US" className="mb-2" />
+                                <Text className="block font-medium">US</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="CA" className="mb-2" />
+                                <Text className="block font-medium">CA</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="MX" className="mb-2" />
+                                <Text className="block font-medium">MX</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="UK" className="mb-2" />
+                                <Text className="block font-medium">UK</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                          <Row gutter={[16, 16]} className="mt-4">
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="AU" className="mb-2" />
+                                <Text className="block font-medium">AU</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="DE" className="mb-2" />
+                                <Text className="block font-medium">DE</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="FR" className="mb-2" />
+                                <Text className="block font-medium">FR</Text>
+                              </div>
+                            </Col>
+                            <Col span={6}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="JP" className="mb-2" />
+                                <Text className="block font-medium">JP</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-8">
+                      <Title level={5} className="!mb-4">
+                        Route Restrictions
+                      </Title>
+                      <Form.Item name="routeRestrictions">
+                        <Checkbox.Group className="w-full">
+                          <Row gutter={[16, 16]}>
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="LAX-JFK" className="mb-2" />
+                                <Text className="block font-medium">LAX-JFK</Text>
+                              </div>
+                            </Col>
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="ORD-SFO" className="mb-2" />
+                                <Text className="block font-medium">ORD-SFO</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                          <Row gutter={[16, 16]} className="mt-4">
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="MIA-DEN" className="mb-2" />
+                                <Text className="block font-medium">MIA-DEN</Text>
+                              </div>
+                            </Col>
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="ATL-SEA" className="mb-2" />
+                                <Text className="block font-medium">ATL-SEA</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                          <Row gutter={[16, 16]} className="mt-4">
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="DEN-BOS" className="mb-2" />
+                                <Text className="block font-medium">DEN-BOS</Text>
+                              </div>
+                            </Col>
+                            <Col span={12}>
+                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                                <Checkbox value="LAX-ORD" className="mb-2" />
+                                <Text className="block font-medium">LAX-ORD</Text>
+                              </div>
+                            </Col>
+                          </Row>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item
+                        label={<span className="font-medium">Minimum Spend Threshold ($)</span>}
+                        name="minSpendThreshold"
+                      >
+                        <InputNumber
+                          placeholder="100"
+                          size="large"
+                          className="w-full rounded-lg"
+                          min={0}
+                        />
+                      </Form.Item>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Date Windows */}
+                {policyModalStep === 3 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-orange-600">
+                      Date Windows & Validity
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Set the validity period and any blackout dates for this discount.
+                    </Text>
+
+                    <Row gutter={16} className="mb-8">
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-medium">Valid From <span className="text-red-500">*</span></span>}
+                          name="validFrom"
+                          rules={[
+                            { required: true, message: "Please select start date" },
+                          ]}
+                        >
+                          <DatePicker
+                            placeholder="Pick start date"
+                            size="large"
+                            className="w-full rounded-lg"
+                            format="MMM DD, YYYY"
+                            disabledDate={(current) =>
+                              current && current.isBefore(new Date(), "day")
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label={<span className="font-medium">Valid Until <span className="text-red-500">*</span></span>}
+                          name="validTo"
+                          rules={[
+                            { required: true, message: "Please select end date" },
+                          ]}
+                        >
+                          <DatePicker
+                            placeholder="Pick end date"
+                            size="large"
+                            className="w-full rounded-lg"
+                            format="MMM DD, YYYY"
+                            disabledDate={(current) =>
+                              current && current.isBefore(new Date(), "day")
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <div className="mb-6">
+                      <Title level={5} className="!mb-4">
+                        Blackout Dates
+                      </Title>
+                      <Form.Item name="blackoutDates">
+                        <DatePicker
+                          placeholder="dd-----yyyy"
+                          size="large"
+                          className="w-full rounded-lg"
+                          format="MMM DD, YYYY"
+                        />
+                      </Form.Item>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 5: Combinability */}
+                {policyModalStep === 4 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-pink-600">
+                      Promo Code Combinability
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Configure how this discount interacts with promotional codes.
+                    </Text>
+
+                    <div className="p-6 border border-gray-200 rounded-lg bg-gray-50">
+                      <Form.Item
+                        name="allowPromoCodeCombination"
+                        valuePropName="checked"
+                        className="!mb-4"
+                      >
+                        <div className="flex items-start">
+                          <Checkbox className="mr-4 mt-1" />
+                          <div>
+                            <Text className="font-semibold text-lg block mb-2">
+                              Allow Combination with Promo Codes
+                            </Text>
+                            <Text className="text-gray-600">
+                              This discount can be used together with promotional codes
+                            </Text>
+                          </div>
+                        </div>
+                      </Form.Item>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : activeTab === "ancillaries" ? (
             // Ancillary Form Fields - Multi-step
@@ -3799,18 +4151,47 @@ export default function OfferManagement() {
                 </>
               )}
 
-              {activeTab !== "policies" && activeTab !== "ancillaries" && (
+              {activeTab === "discounts" && (
+                <>
+                  <Button
+                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
+                    disabled={policyModalStep === 0}
+                    size="large"
+                  >
+                    Previous
+                  </Button>
+                  {policyModalStep < 4 ? (
+                    <Button
+                      type="primary"
+                      onClick={() => setPolicyModalStep(Math.min(4, policyModalStep + 1))}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="large"
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="bg-green-600 hover:bg-green-700"
+                      size="large"
+                    >
+                      Create Discount
+                    </Button>
+                  )}
+                </>
+              )}
+
+              {activeTab !== "policies" && activeTab !== "ancillaries" && activeTab !== "discounts" && (
                 <Button
                   type="primary"
                   htmlType="submit"
                   className="bg-blue-600 hover:bg-blue-700"
                   size="large"
                 >
-                  {activeTab === "discounts"
-                    ? "Create Discount"
-                    : activeTab === "promocodes"
-                      ? "Create Promo Code"
-                      : "Create"}
+                  {activeTab === "promocodes"
+                    ? "Create Promo Code"
+                    : "Create"}
                 </Button>
               )}
             </div>
