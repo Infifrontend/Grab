@@ -170,10 +170,10 @@ export default function BidDetails() {
     // Pricing Information
     bidAmount: bidAmount,
 
-    // Contact Information from database
-    contactName: bidData.user?.name || "Unknown",
-    email: bidData.user?.username || "Unknown",
-    phone: bidData.user?.phone || "Contact via email",
+    // Contact Information - Updated with John Smith dummy data
+    contactName: "John Smith",
+    email: "john.smith@email.com",
+    phone: "+1 (555) 123-4567",
 
     // Additional Information from database
     specialRequests:
