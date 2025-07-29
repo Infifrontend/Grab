@@ -878,36 +878,8 @@ export class DatabaseStorage implements IStorage {
       console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
-      // If we get a sequence error, try to fix it and retry once
-      if (error.code === '23502' && error.column === 'id') {
-        console.log('Fixing bids sequence due to null ID error...');
-        
-        try {
-          // Reset the sequence to the maximum ID + 1
-          await db.execute(`
-            SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false)
-          `);
-          
-          // Try the insert again
-          const [bid] = await db
-            .insert(bids)
-            .values({
-              ...bidData,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            })
-            .returning();
-            
-          console.log("Bid created successfully after sequence fix:", bid);
-          return bid;
-        } catch (retryError) {
-          console.error("Error creating bid after sequence fix:", retryError);
-          throw retryError;
-        }
-      } else {
-        console.error("Error creating bid:", error);
-        throw error;
-      }
+      console.error("Error creating bid:", error);
+      throw error;
     }
   }
 

@@ -973,18 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create bid configuration
-  app.post("/api/bid-configurations", async (req: Request, res: Response) => {
-    try {
-      console.log("Received bid configuration data:", req.body);
-
-      // Preventively fix database sequences before creating bid
-      try {
-        await db.execute(`
-          SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false)
-        `);
-      } catch (seqError) {
-        console.warn("Could not fix sequence, continuing with creation:", seqError.message);
-      }
+  app.post("/api/bid-configurations", async (req: Request, res: Response) => {try {      console.log("Received bid configuration data:", req.body);
 
       const {
         bidTitle,
