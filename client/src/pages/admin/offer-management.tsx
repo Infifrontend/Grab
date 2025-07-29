@@ -3014,6 +3014,7 @@ export default function OfferManagement() {
                             <Switch />
                             <span className="ml-2">Requires Approval</span>
                           </Form.Item>
+                        </div>
                         </Col>
                       </Row>
                     </div>
