@@ -2487,34 +2487,6 @@ export default function OfferManagement() {
             // Policy Form Fields - Multi-step
             <>
               {/* Steps Navigation */}
-              <div className="mb-6">
-                <Steps
-                  current={policyModalStep}
-                  size="small"
-                  items={[
-                    {
-                      title: "Basic Info",
-                      description: "General policy details",
-                    },
-                    {
-                      title: "Refund/Change",
-                      description: "Rules and policies",
-                    },
-                    {
-                      title: "Eligibility",
-                      description: "User criteria",
-                    },
-                    {
-                      title: "Stacking & Dates",
-                      description: "Discount rules",
-                    },
-                    {
-                      title: "Validity",
-                      description: "Period settings",
-                    },
-                  ]}
-                />
-              </div>
 
               {/* Step Content */}
               <div style={{ minHeight: "400px" }}>
@@ -3469,34 +3441,6 @@ export default function OfferManagement() {
             // Discount Form Fields - Multi-step
             <>
               {/* Steps Navigation */}
-              <div className="mb-6">
-                <Steps
-                  current={policyModalStep}
-                  size="small"
-                  items={[
-                    {
-                      title: "Basic Info",
-                      description: "Discount details",
-                    },
-                    {
-                      title: "Discount Rules",
-                      description: "Application rules",
-                    },
-                    {
-                      title: "Eligibility",
-                      description: "User criteria",
-                    },
-                    {
-                      title: "Date Windows",
-                      description: "Validity period",
-                    },
-                    {
-                      title: "Combinability",
-                      description: "Promo code rules",
-                    },
-                  ]}
-                />
-              </div>
 
               {/* Step Content */}
               <div style={{ minHeight: "400px" }}>
