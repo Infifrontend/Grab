@@ -2407,6 +2407,12 @@ export default function OfferManagement() {
                 stacking rules, blackout dates, and compliance constraints
               </Text>
             )}
+            {activeTab === "ancillaries" && (
+              <Text className="text-gray-600 text-base">
+                Configure comprehensive ancillary details including product definitions, pricing rules, 
+                availability logic, bundle options, and categories
+              </Text>
+            )}
           </div>
         }
         visible={isModalVisible}
@@ -2417,7 +2423,7 @@ export default function OfferManagement() {
           form.resetFields();
         }}
         footer={null}
-        width={activeTab === "policies" ? 1000 : 600}
+        width={activeTab === "policies" || activeTab === "ancillaries" ? 1000 : 600}
         className="custom-modal"
         bodyStyle={{ padding: "24px 32px 32px" }}
       >
@@ -3355,109 +3361,193 @@ export default function OfferManagement() {
               </Form.Item>
             </>
           ) : activeTab === "ancillaries" ? (
-            // Ancillary Form Fields
+            // Ancillary Form Fields - Multi-step
             <>
-              <Row gutter={16}>
-                <Col span={24}>
-                  <Form.Item
-                    label="Service Name"
-                    name="serviceName"
-                    rules={[
-                      { required: true, message: "Please enter service name" },
-                    ]}
-                  >
-                    <Input placeholder="Enter service name" size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Category"
-                    name="category"
-                    rules={[
-                      { required: true, message: "Please select category" },
-                    ]}
-                  >
-                    <Select placeholder="Select category" size="large">
-                      <Select.Option value="seat">Seat</Select.Option>
-                      <Select.Option value="food-beverage">
-                        Food & Beverage
-                      </Select.Option>
-                      <Select.Option value="service">Service</Select.Option>
-                      <Select.Option value="baggage">Baggage</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Base Price ($)"
-                    name="basePrice"
-                    rules={[
-                      { required: true, message: "Please enter base price" },
-                    ]}
-                  >
-                    <InputNumber
-                      placeholder="0"
-                      size="large"
-                      className="w-full"
-                      min={0}
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Availability"
-                    name="availability"
-                    rules={[
-                      { required: true, message: "Please select availability" },
-                    ]}
-                  >
-                    <Select placeholder="Select availability" size="large">
-                      <Select.Option value="all-flights">
-                        All flights
-                      </Select.Option>
-                      <Select.Option value="flight-dependent">
-                        Flight dependent
-                      </Select.Option>
-                      <Select.Option value="route-specific">
-                        Route specific
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Bundle Compatible"
-                    name="bundleCompatible"
-                    valuePropName="checked"
-                    initialValue={true}
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                label="Description"
-                name="description"
-                rules={[
-                  { required: true, message: "Please enter description" },
-                ]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter service description..."
+              {/* Steps Navigation */}
+              <div className="mb-6">
+                <Steps
+                  current={policyModalStep}
+                  size="small"
+                  items={[
+                    {
+                      title: "Basic Information",
+                      description: "Service details",
+                    },
+                    {
+                      title: "Terms & Conditions",
+                      description: "Service policies",
+                    },
+                  ]}
                 />
-              </Form.Item>
+              </div>
+
+              {/* Step Content */}
+              <div style={{ minHeight: "400px" }}>
+                {/* Step 1: Basic Information */}
+                {policyModalStep === 0 && (
+                  <div>
+                    <Title level={4} className="!mb-4 text-blue-600">
+                      Basic Information
+                    </Title>
+                    <Text className="text-gray-600 block mb-6">
+                      Configure comprehensive ancillary details including product definitions, pricing rules, availability logic, bundle options, and categories.
+                    </Text>
+
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          label="Ancillary Name"
+                          name="ancillaryName"
+                          rules={[
+                            { required: true, message: "Please enter ancillary name" },
+                          ]}
+                        >
+                          <Input
+                            placeholder="e.g., Premium Meal Service"
+                            size="large"
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label="Category"
+                          name="category"
+                          rules={[
+                            { required: true, message: "Please select category" },
+                          ]}
+                        >
+                          <Select placeholder="Select category" size="large">
+                            <Select.Option value="seat">Seat</Select.Option>
+                            <Select.Option value="food-beverage">
+                              Food & Beverage
+                            </Select.Option>
+                            <Select.Option value="service">Service</Select.Option>
+                            <Select.Option value="baggage">Baggage</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          label="Ancillary Type"
+                          name="ancillaryType"
+                          rules={[
+                            { required: true, message: "Please select type" },
+                          ]}
+                        >
+                          <Select placeholder="Select type" size="large">
+                            <Select.Option value="mandatory">Mandatory</Select.Option>
+                            <Select.Option value="optional">Optional</Select.Option>
+                            <Select.Option value="bundle">Bundle</Select.Option>
+                          </Select>
+                        </Select>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          label="Status"
+                          name="status"
+                          initialValue="active"
+                        >
+                          <Select placeholder="Select status" size="large">
+                            <Select.Option value="active">Active</Select.Option>
+                            <Select.Option value="inactive">Inactive</Select.Option>
+                            <Select.Option value="draft">Draft</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Form.Item
+                      label="Description"
+                      name="description"
+                    >
+                      <Input.TextArea
+                        rows={4}
+                        placeholder="Describe the ancillary service..."
+                      />
+                    </Form.Item>
+                  </div>
+                )}
+
+                {/* Step 2: Terms and Conditions */}
+                {policyModalStep === 1 && (
+                  <div>
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                        <span className="text-blue-600 text-xs">📋</span>
+                      </div>
+                      <Title level={4} className="!mb-0 text-blue-600">
+                        Terms and Conditions
+                      </Title>
+                    </div>
+
+                    <div className="mb-6">
+                      <div className="flex items-center space-x-4 mb-4">
+                        <Form.Item
+                          name="refundable"
+                          valuePropName="checked"
+                          className="!mb-0"
+                        >
+                          <div className="flex items-center">
+                            <Switch className="mr-2" />
+                            <Text>Refundable</Text>
+                          </div>
+                        </Form.Item>
+
+                        <Form.Item
+                          name="changeable"
+                          valuePropName="checked"
+                          className="!mb-0"
+                        >
+                          <div className="flex items-center">
+                            <Switch className="mr-2" />
+                            <Text>Changeable</Text>
+                          </div>
+                        </Form.Item>
+
+                        <Form.Item
+                          name="transferable"
+                          valuePropName="checked"
+                          className="!mb-0"
+                        >
+                          <div className="flex items-center">
+                            <Switch className="mr-2" />
+                            <Text>Transferable</Text>
+                          </div>
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <Text className="font-medium block mb-3">
+                        Cancellation Policy
+                      </Text>
+                      <Form.Item name="cancellationPolicy">
+                        <Input.TextArea
+                          rows={4}
+                          placeholder="Describe cancellation terms and conditions..."
+                          className="bg-gray-50"
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Text className="font-medium block mb-3">
+                        Special Conditions
+                      </Text>
+                      <Form.Item name="specialConditions">
+                        <Input.TextArea
+                          rows={4}
+                          placeholder="Any special terms, restrictions, or conditions..."
+                          className="bg-gray-50"
+                        />
+                      </Form.Item>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : activeTab === "promocodes" ? (
             // Promo Code Form Fields
@@ -3675,20 +3765,49 @@ export default function OfferManagement() {
                 </>
               )}
 
-              {activeTab !== "policies" && (
+              {activeTab === "ancillaries" && (
+                <>
+                  <Button
+                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
+                    disabled={policyModalStep === 0}
+                    size="large"
+                  >
+                    Previous
+                  </Button>
+                  {policyModalStep < 1 ? (
+                    <Button
+                      type="primary"
+                      onClick={() => setPolicyModalStep(Math.min(1, policyModalStep + 1))}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="large"
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="large"
+                    >
+                      Create Ancillary
+                    </Button>
+                  )}
+                </>
+              )}
+
+              {activeTab !== "policies" && activeTab !== "ancillaries" && (
                 <Button
                   type="primary"
                   htmlType="submit"
                   className="bg-blue-600 hover:bg-blue-700"
                   size="large"
                 >
-                  {activeTab === "ancillaries"
-                    ? "Add Ancillary"
-                    : activeTab === "discounts"
-                      ? "Create Discount"
-                      : activeTab === "promocodes"
-                        ? "Create Promo Code"
-                        : "Create"}
+                  {activeTab === "discounts"
+                    ? "Create Discount"
+                    : activeTab === "promocodes"
+                      ? "Create Promo Code"
+                      : "Create"}
                 </Button>
               )}
             </div>
