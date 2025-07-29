@@ -2388,7 +2388,7 @@ export default function OfferManagement() {
       <Modal
         title={
           activeTab === "policies"
-            ? "Create New Policy"
+            ? "Create Policy"
             : activeTab === "ancillaries"
               ? "Add New Ancillary"
               : activeTab === "discounts"
@@ -2404,9 +2404,17 @@ export default function OfferManagement() {
           form.resetFields();
         }}
         footer={null}
-        width={600}
+        width={activeTab === "policies" ? 900 : 600}
         className="custom-modal"
       >
+        {activeTab === "policies" && (
+          <div className="mb-6">
+            <Text className="text-gray-600">
+              Configure comprehensive policy rules including refund/change policies, eligibility criteria, stacking rules, blackout dates, and compliance constraints
+            </Text>
+          </div>
+        )}
+        
         <Form
           form={form}
           layout="vertical"
@@ -2419,103 +2427,374 @@ export default function OfferManagement() {
           {activeTab === "policies" ? (
             // Policy Form Fields
             <>
-              <Row gutter={16}>
-                <Col span={24}>
-                  <Form.Item
-                    label="Policy Name"
-                    name="policyName"
-                    rules={[
-                      { required: true, message: "Please enter policy name" },
-                    ]}
-                  >
-                    <Input placeholder="Enter policy name" size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
+              {/* Basic Information Section */}
+              <div className="mb-6">
+                <Title level={4} className="!mb-4">
+                  Basic Information
+                </Title>
+                
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Policy Name"
+                      name="policyName"
+                      rules={[
+                        { required: true, message: "Please enter policy name" },
+                      ]}
+                    >
+                      <Input placeholder="e.g., Premium Member Re..." size="large" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Priority Level"
+                      name="priorityLevel"
+                      rules={[
+                        { required: true, message: "Please select priority level" },
+                      ]}
+                    >
+                      <Select placeholder="Select priority" size="large">
+                        <Select.Option value="high">High</Select.Option>
+                        <Select.Option value="medium">Medium</Select.Option>
+                        <Select.Option value="low">Low</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Policy Type"
-                    name="type"
-                    rules={[
-                      { required: true, message: "Please select policy type" },
-                    ]}
-                  >
-                    <Select placeholder="Select type" size="large">
-                      <Select.Option value="refund">Refund</Select.Option>
-                      <Select.Option value="pricing">Pricing</Select.Option>
-                      <Select.Option value="cancellation">
-                        Cancellation
-                      </Select.Option>
-                      <Select.Option value="modification">
-                        Modification
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Target"
-                    name="target"
-                    rules={[
-                      { required: true, message: "Please select target" },
-                    ]}
-                  >
-                    <Select placeholder="Select target" size="large">
-                      <Select.Option value="all-offers">
-                        All Offers
-                      </Select.Option>
-                      <Select.Option value="premium-seats">
-                        Ancillary: Premium Seats
-                      </Select.Option>
-                      <Select.Option value="meals">
-                        Ancillary: Meals
-                      </Select.Option>
-                      <Select.Option value="baggage">
-                        Ancillary: Baggage
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+                <Form.Item label="Policy Description" name="policyDescription">
+                  <Input.TextArea
+                    rows={3}
+                    placeholder="Describe the policy purpose and scope..."
+                  />
+                </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Price Effect (%)"
-                    name="priceEffect"
-                    rules={[
-                      { required: true, message: "Please enter price effect" },
-                    ]}
-                  >
-                    <InputNumber
-                      placeholder="0"
-                      size="large"
-                      className="w-full"
-                      min={-100}
-                      max={100}
-                      formatter={(value) => `${value}%`}
-                      parser={(value) => value.replace("%", "")}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Status" name="status" initialValue="active">
-                    <Select size="large">
-                      <Select.Option value="active">Active</Select.Option>
-                      <Select.Option value="inactive">Inactive</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+                <Form.Item name="policyEnabled" valuePropName="checked" initialValue={true}>
+                  <Switch />
+                  <span className="ml-2">Policy Enabled</span>
+                </Form.Item>
+              </div>
 
-              <Form.Item label="Description" name="description">
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter policy description..."
-                />
-              </Form.Item>
+              {/* Refund/Change Rules Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <DollarOutlined className="text-green-600 mr-2" />
+                  <Title level={5} className="!mb-0 text-green-600">
+                    Refund/Change Rules
+                  </Title>
+                </div>
+
+                <Row gutter={24}>
+                  <Col span={12}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Refund Policy</Text>
+                      <Form.Item name="allowRefunds" valuePropName="checked" className="!mb-2">
+                        <Switch />
+                        <span className="ml-2">Allow Refunds</span>
+                      </Form.Item>
+                      
+                      <Row gutter={12}>
+                        <Col span={12}>
+                          <Form.Item label="Refund Deadline (hours before departure)" name="refundDeadline">
+                            <InputNumber placeholder="24" className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label="Refund Percentage (%)" name="refundPercentage">
+                            <InputNumber placeholder="100" className="w-full" min={0} max={100} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Form.Item label="Refund Fee ($)" name="refundFee">
+                        <InputNumber placeholder="0" className="w-full" min={0} />
+                      </Form.Item>
+                    </div>
+                  </Col>
+
+                  <Col span={12}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Change Policy</Text>
+                      <Form.Item name="allowChanges" valuePropName="checked" className="!mb-2">
+                        <Switch />
+                        <span className="ml-2">Allow Changes</span>
+                      </Form.Item>
+
+                      <Row gutter={12}>
+                        <Col span={12}>
+                          <Form.Item label="Change Deadline (hours before departure)" name="changeDeadline">
+                            <InputNumber placeholder="24" className="w-full" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label="Change Fee ($)" name="changeFee">
+                            <InputNumber placeholder="0" className="w-full" min={0} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Eligibility Rules Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <span className="text-blue-600 mr-2">👤</span>
+                  <Title level={5} className="!mb-0 text-blue-600">
+                    Eligibility Rules
+                  </Title>
+                </div>
+
+                <Row gutter={24}>
+                  <Col span={8}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Loyalty Tiers</Text>
+                      <Form.Item name="loyaltyTiers">
+                        <Space direction="vertical">
+                          <Checkbox value="bronze">Bronze</Checkbox>
+                          <Checkbox value="silver">Silver</Checkbox>
+                          <Checkbox value="gold">Gold</Checkbox>
+                          <Checkbox value="platinum">Platinum</Checkbox>
+                          <Checkbox value="diamond">Diamond</Checkbox>
+                        </Space>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Passenger Types</Text>
+                      <Form.Item name="passengerTypes">
+                        <Space direction="vertical">
+                          <Checkbox value="adult">Adult</Checkbox>
+                          <Checkbox value="child">Child</Checkbox>
+                          <Checkbox value="infant">Infant</Checkbox>
+                          <Checkbox value="senior">Senior</Checkbox>
+                          <Checkbox value="student">Student</Checkbox>
+                          <Checkbox value="military">Military</Checkbox>
+                        </Space>
+                      </Form.Item>
+                    </div>
+                  </Col>
+
+                  <Col span={8}>
+                    <div className="mb-4">
+                      <Form.Item name="corporateCustomersOnly" valuePropName="checked">
+                        <Switch />
+                        <span className="ml-2">Corporate Customers Only</span>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Age Restrictions</Text>
+                      <Row gutter={12}>
+                        <Col span={12}>
+                          <Form.Item label="Min Age" name="minAge">
+                            <InputNumber placeholder="0" className="w-full" min={0} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label="Max Age" name="maxAge">
+                            <InputNumber placeholder="100" className="w-full" min={0} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Form.Item name="requiresAdultSupervision" valuePropName="checked">
+                        <Checkbox>Requires Adult Supervision</Checkbox>
+                      </Form.Item>
+                    </div>
+                  </Col>
+
+                  <Col span={8}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Booking Channels</Text>
+                      <Form.Item name="bookingChannels">
+                        <Space direction="vertical">
+                          <Checkbox value="website">Website</Checkbox>
+                          <Checkbox value="mobile">Mobile App</Checkbox>
+                          <Checkbox value="callcenter">Call Center</Checkbox>
+                          <Checkbox value="agent">Travel Agent</Checkbox>
+                          <Checkbox value="airport">Airport</Checkbox>
+                        </Space>
+                      </Form.Item>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Discount Stacking/Combinability Rules Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <PercentageOutlined className="text-orange-600 mr-2" />
+                  <Title level={5} className="!mb-0 text-orange-600">
+                    Discount Stacking/Combinability Rules
+                  </Title>
+                </div>
+
+                <Form.Item name="allowDiscountStacking" valuePropName="checked" className="mb-4">
+                  <Switch />
+                  <span className="ml-2">Allow Discount Stacking</span>
+                </Form.Item>
+
+                <div>
+                  <Text className="font-medium block mb-2">Conflicting Offers (Cannot be combined)</Text>
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item name="conflictingOffers1">
+                        <Space direction="vertical" className="w-full">
+                          <Checkbox value="comfort-plus">Comfort Plus Offer</Checkbox>
+                          <Checkbox value="early-bird">Early Bird Discount</Checkbox>
+                          <Checkbox value="baggage-fixed">Baggage Fixed Discount</Checkbox>
+                        </Space>
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item name="conflictingOffers2">
+                        <Space direction="vertical" className="w-full">
+                          <Checkbox value="business-traveler">Business Traveler Offer</Checkbox>
+                          <Checkbox value="meal-service">Meal Service Discount</Checkbox>
+                          <Checkbox value="summer-travel">Summer Travel Promo</Checkbox>
+                        </Space>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </div>
+              </div>
+
+              {/* Blackout Dates Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <CalendarOutlined className="text-red-600 mr-2" />
+                  <Title level={5} className="!mb-0 text-red-600">
+                    Blackout Dates
+                  </Title>
+                </div>
+
+                <Form.Item name="hasBlackoutDates" valuePropName="checked">
+                  <Switch />
+                  <span className="ml-2">Has Blackout Dates</span>
+                </Form.Item>
+              </div>
+
+              {/* Regulatory/Compliance Constraints Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <span className="text-purple-600 mr-2">📋</span>
+                  <Title level={5} className="!mb-0 text-purple-600">
+                    Regulatory/Compliance Constraints
+                  </Title>
+                </div>
+
+                <Row gutter={24}>
+                  <Col span={12}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Applicable Regions</Text>
+                      <Form.Item name="applicableRegions">
+                        <Row gutter={[12, 8]}>
+                          <Col span={12}><Checkbox value="north-america">North America</Checkbox></Col>
+                          <Col span={12}><Checkbox value="europe">Europe</Checkbox></Col>
+                          <Col span={12}><Checkbox value="asia-pacific">Asia Pacific</Checkbox></Col>
+                          <Col span={12}><Checkbox value="latin-america">Latin America</Checkbox></Col>
+                          <Col span={12}><Checkbox value="middle-east">Middle East</Checkbox></Col>
+                          <Col span={12}><Checkbox value="africa">Africa</Checkbox></Col>
+                        </Row>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Form.Item name="gdprCompliant" valuePropName="checked">
+                        <Switch />
+                        <span className="ml-2">GDPR/Data Protection Compliant</span>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Form.Item name="adaCompliant" valuePropName="checked">
+                        <Switch />
+                        <span className="ml-2">ADA/Accessibility Compliant</span>
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Form.Item name="enableAuditTrail" valuePropName="checked" initialValue={true}>
+                        <Switch />
+                        <span className="ml-2">Enable Audit Trail</span>
+                      </Form.Item>
+                    </div>
+                  </Col>
+
+                  <Col span={12}>
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Tax Implications</Text>
+                      <Form.Item name="taxImplications">
+                        <Input.TextArea
+                          rows={3}
+                          placeholder="Describe any tax implications or considerations..."
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <Text className="font-medium block mb-2">Regulatory Notes</Text>
+                      <Form.Item name="regulatoryNotes">
+                        <Input.TextArea
+                          rows={3}
+                          placeholder="Additional regulatory notes and constraints..."
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <Form.Item name="requiresApproval" valuePropName="checked">
+                      <Switch />
+                      <span className="ml-2">Requires Approval</span>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Validity Period Section */}
+              <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                <Title level={5} className="!mb-4">
+                  Validity Period
+                </Title>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Valid From"
+                      name="validFrom"
+                      rules={[
+                        { required: true, message: "Please select start date" },
+                      ]}
+                    >
+                      <DatePicker
+                        size="large"
+                        className="w-full"
+                        placeholder="Pick start date"
+                        format="MMM DD, YYYY"
+                        disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Valid To"
+                      name="validTo"
+                      rules={[
+                        { required: true, message: "Please select end date" },
+                      ]}
+                    >
+                      <DatePicker
+                        size="large"
+                        className="w-full"
+                        placeholder="Pick end date"
+                        format="MMM DD, YYYY"
+                        disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
             </>
           ) : activeTab === "discounts" ? (
             // Discount Form Fields
@@ -2942,16 +3221,22 @@ export default function OfferManagement() {
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 mt-6">
+          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
             <Button
               onClick={() => {
                 setIsModalVisible(false);
                 form.resetFields();
               }}
+              size="large"
             >
               Cancel
             </Button>
-            <Button type="primary" htmlType="submit" className="bg-blue-600">
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              className="bg-blue-600 hover:bg-blue-700"
+              size="large"
+            >
               {activeTab === "policies"
                 ? "Create Policy"
                 : activeTab === "ancillaries"
