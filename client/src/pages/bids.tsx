@@ -141,10 +141,12 @@ export default function Bids() {
                   ? "Converted to Booking"
                   : bid.bidStatus === "approved"
                     ? "Accepted for Booking"
-                    : bid.bidStatus === "rejected" ||
-                        bid.bidStatus === "expired"
-                      ? "Refunded"
-                      : "Paid",
+                    : bid.bidStatus === "active"
+                      ? "Open"
+                      : bid.bidStatus === "rejected" ||
+                          bid.bidStatus === "expired"
+                        ? "Refunded"
+                        : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
@@ -395,13 +397,17 @@ export default function Bids() {
     switch (payment) {
       case "Paid":
         return "blue";
-      case "Payment Completed":
+      case "Accepted for Booking":
         return "green";
+      case "Payment Completed":
+        return "blue";
       case "Converted to Booking":
         return "green";
       case "Refunded":
         return "orange";
       case "Pending":
+        return "orange";
+      case "Open":
         return "orange";
       default:
         return "default";

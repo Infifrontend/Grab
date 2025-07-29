@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
   Tabs,
@@ -76,7 +76,8 @@ export default function BidManagement() {
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
   const [bidConfigurations, setBidConfigurations] = useState([]);
-
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   // Fetch unique flight locations for autocomplete
   const { data: locationsData } = useQuery({
     queryKey: ["flight-locations"],
@@ -495,13 +496,48 @@ export default function BidManagement() {
         maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
         successRate: "75%", // This could be calculated based on historical data
         timeLeft: timeLeft,
+        expiryDate: new Date(bid.validUntil).toLocaleDateString(),
         status: bid.bidStatus,
         paymentStatus: bid.bidStatus === "completed" ? "paid" : "pending", // Mock payment status
         passengerCount: bid.passengerCount || 1,
         createdAt: bid.createdAt,
       };
     });
+    const filteredBids = useMemo(() => {
+      const lowerSearch = searchText.toLowerCase();
 
+      return activeBids.filter(
+        (bid: {
+          flight: { number: { toString: () => string }; route: string };
+          upgrade: string;
+          bidId: string;
+          bidAmount: string;
+          status: string;
+        }) => {
+          const flightNumber =
+            bid.flight?.number?.toString().toLowerCase() || "";
+          const route = bid.flight?.route?.toLowerCase() || "";
+          const upgrade = bid.upgrade?.toLowerCase() || "";
+          const bidId = bid.bidId?.toLowerCase() || "";
+          const bidAmount = bid.bidAmount?.toLowerCase() || "";
+
+          const matchesSearch =
+            !searchText ||
+            bidId.includes(lowerSearch) ||
+            flightNumber.includes(lowerSearch) ||
+            route.includes(lowerSearch) ||
+            upgrade.includes(lowerSearch) ||
+            bidAmount.includes(lowerSearch);
+
+          const matchesStatus =
+            !statusFilter ||
+            statusFilter === "all" ||
+            bid.status.toLowerCase() === statusFilter.toLowerCase();
+
+          return matchesSearch && matchesStatus;
+        },
+      );
+    }, [searchText, statusFilter, activeBids]);
     return (
       <div>
         {/* Active Bids Header */}
@@ -518,14 +554,26 @@ export default function BidManagement() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Input
-              placeholder="Search by passenger name or flight number..."
+              className="search-input"
+              placeholder="Search by passenger name..."
+              onChange={(e) => setSearchText(e.target.value)}
               prefix={<SearchOutlined />}
               style={{ width: 300 }}
             />
           </div>
-          <Select placeholder="Filter by status" style={{ width: 150 }}>
-            <Select.Option value="active">Active</Select.Option>
-            <Select.Option value="pending">Pending Review</Select.Option>
+          <Select
+            placeholder="Filter by status"
+            onChange={(value) => setStatusFilter(value)}
+            style={{ width: 150 }}
+          >
+            <Select.Option value="all">All</Select.Option>
+            <Select.Option value="active">Open</Select.Option>
+            <Select.Option value="completed">Under Review</Select.Option>
+            <Select.Option value="approved">Accepted</Select.Option>
+            <Select.Option value="rejected">Declined</Select.Option>
+            <Select.Option value="expired">Expired</Select.Option>
+            <Select.Option value="pending">Pending</Select.Option>
+            <Select.Option value="completed">completed</Select.Option>
           </Select>
         </div>
 
@@ -541,7 +589,7 @@ export default function BidManagement() {
           </Card>
         ) : (
           <Table
-            dataSource={activeBids}
+            dataSource={filteredBids}
             expandable={{
               expandedRowRender: (record: any) => {
                 // Get retail users from bid data
@@ -759,10 +807,10 @@ export default function BidManagement() {
                   </div>
                 );
               },
-              // rowExpandable: (record) => {
-              //   // Only show expand option for completed bids
-              //   return record.status.toLowerCase() === 'completed';
-              // },
+              rowExpandable: (record) => {
+                // Only show expand option for completed bids
+                return record.status.toLowerCase() !== "active";
+              },
             }}
             columns={[
               {
@@ -779,12 +827,7 @@ export default function BidManagement() {
                   </div>
                 ),
               },
-              {
-                title: "Flight ID",
-                dataIndex: "flight",
-                key: "flightId",
-                render: (flight) => <Text strong>{flight.number}</Text>,
-              },
+
               {
                 title: "Route",
                 dataIndex: "flight",
@@ -820,6 +863,15 @@ export default function BidManagement() {
                     </Text>
                   </div>
                 ),
+              },
+              {
+                title: "Expiry Date",
+                dataIndex: "expiryDate",
+                key: "expiryDate",
+                render: (expiryDate) => (
+                  <Text className="text-gray-500 text-sm">{expiryDate}</Text>
+                ),
+                width: 110,
               },
               {
                 title: "Time Left",
@@ -1103,18 +1155,20 @@ export default function BidManagement() {
 
       // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1", "BID3" -> "3")
       let numericBidId = bidId;
-      if (typeof bidId === 'string') {
+      if (typeof bidId === "string") {
         // Remove "BID" prefix and leading zeros, but keep the actual number
-        numericBidId = bidId.replace(/^BID0*/, '') || bidId;
+        numericBidId = bidId.replace(/^BID0*/, "") || bidId;
         // If it's still not a number, try to extract just the numeric part
         const match = bidId.match(/\d+/);
         if (match) {
           numericBidId = match[0];
         }
       }
-      
-      console.log(`Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`);
-      
+
+      console.log(
+        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
+      );
+
       // Validate that we have a valid numeric ID
       if (!numericBidId || isNaN(parseInt(numericBidId))) {
         message.error(`Invalid bid ID format: ${bidId}`);
@@ -4299,6 +4353,11 @@ export default function BidManagement() {
         .ant-input-focused {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+        .search-input {
+          .ant-input {
+            border: unset !important;
+          }
         }
       `}</style>
     </div>
