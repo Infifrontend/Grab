@@ -28,7 +28,7 @@ const { Title, Text } = Typography;
 export default function PaymentDetails() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const params = useParams<{ id: string }>();
+  const params = useParams<any>();
 
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bidParticipationData, setBidParticipationData] = useState<any>(null);
@@ -121,18 +121,19 @@ export default function PaymentDetails() {
   };
 
   const handlePaymentSubmit = async () => {
+    console.log(params);
     if (!paymentMethod) {
       message.error("Please select a payment method");
       return;
     }
 
     // Get the bid ID from the URL params
-    const bidId = params.id;
+    const bidId = params?.bidId;
     console.log("Bid ID from params:", bidId, "Full params object:", params);
     if (!bidId) {
       console.error("Bid ID is undefined. Params:", params);
       message.error("Bid ID not found");
-      navigate("/bids");
+      // navigate("/bids");
       return;
     }
 
