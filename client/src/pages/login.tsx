@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Card, Form, Input, Button, message, Typography, Checkbox } from "antd";
-import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LockOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  MailOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import loginBg from '../images/loginBanner.jpg';
+import loginBg from "../images/loginBanner.jpg";
 
 const { Title, Text } = Typography;
 
@@ -10,25 +16,28 @@ export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (values: { username: string; password: string }) => {
+  const handleLogin = async (values: {
+    username: string;
+    password: string;
+  }) => {
     setLoading(true);
 
     try {
       // Check credentials
-      if (values.username === 'john smith' && values.password === 'Infi@123') {
+      if (values.username === "john smith" && values.password === "Infi@123") {
         // Store user session
-        localStorage.setItem('userLoggedIn', 'true');
-        localStorage.setItem('username', values.username);
+        localStorage.setItem("userLoggedIn", "true");
+        localStorage.setItem("username", values.username);
 
-        message.success('Login successful! Welcome aboard!');
+        message.success("Login successful! Welcome aboard!");
         setTimeout(() => {
-          navigate('/');
+          navigate("/");
         }, 1000);
       } else {
-        message.error('Invalid username or password. Please try again.');
+        message.error("Invalid username or password. Please try again.");
       }
     } catch (error) {
-      message.error('Login failed. Please try again.');
+      message.error("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -37,28 +46,61 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Purple Gradient with Benefits */}
-      <div className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden" style={{
-        backgroundImage:`url(${loginBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
+      <div
+        className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${loginBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-64 h-0.5 bg-white transform rotate-12 animate-pulse"></div>
           <div className="absolute top-40 right-20 w-48 h-0.5 bg-white transform -rotate-12 animate-pulse delay-1000"></div>
           <div className="absolute bottom-32 left-32 w-56 h-0.5 bg-white transform rotate-6 animate-pulse delay-2000"></div>
-          <div className="absolute top-32 right-40 text-white text-2xl animate-bounce">✈️</div>
-          <div className="absolute bottom-48 left-20 text-white text-xl animate-bounce delay-1000">🛩️</div>
-        </div>
-{/* 
-        <div className="text-white z-10 max-w-md px-8">
-          <div className="flex items-center mb-12">
-            <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
-              <span className="text-white text-xl font-bold">✈️</span>
-            </div>
-            <span className="text-2xl font-bold">Infiniti Airways</span>
+          {/* <div className="absolute top-32 right-40 text-white text-2xl animate-bounce">✈️</div> */}
+          <div className="absolute bottom-48 left-20 text-white text-xl animate-bounce delay-1000">
+            🛩️
           </div>
-        </div> */}
+        </div>
+        <div className="absolute inset-0 opacity-1">
+          <div
+            style={{
+              background:
+                "linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url('../images/login-bg-3.jpg') no-repeat center center / cover",
+              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "end",
+              padding: "140px 40px",
+              height: "100vh",
+              boxSizing: "border-box",
+              fontSize: "18px",
+              lineHeight: "2",
+              gap: "10px",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "38px",
+                fontWeight: "bold",
+              }}
+            >
+              Group Airline Booking
+            </div>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "18px",
+                fontWeight: "bold",
+              }}
+            >
+              Easier with modern tools and planning
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Right Side - Login Form */}
@@ -69,9 +111,6 @@ export default function Login() {
             <Title level={1} className="!text-gray-800 !mb-2">
               Login
             </Title>
-            <Text className="text-gray-500">
-              Easy to manage airline disruption
-            </Text>
           </div>
 
           {/* Login Form */}
@@ -85,38 +124,48 @@ export default function Login() {
             <Form.Item
               name="username"
               rules={[
-                { required: true, message: 'Please enter your email ID!' }
+                { required: true, message: "Please enter your email ID!" },
               ]}
             >
               <Input
                 prefix={<MailOutlined className="text-gray-400" />}
                 placeholder="Enter your email ID"
                 className="h-12 rounded-lg border-gray-300"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: "16px" }}
               />
             </Form.Item>
 
             <Form.Item
               name="password"
               rules={[
-                { required: true, message: 'Please enter your password!' }
+                { required: true, message: "Please enter your password!" },
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined className="text-gray-400" />}
                 placeholder="Enter your password"
-                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                iconRender={(visible) =>
+                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                }
                 className="h-12 rounded-lg border-gray-300"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: "16px" }}
               />
             </Form.Item>
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between mb-6">
-              <Form.Item name="remember" valuePropName="checked" className="!mb-0">
+              <Form.Item
+                name="remember"
+                valuePropName="checked"
+                className="!mb-0"
+              >
                 <Checkbox className="text-gray-600">Remember me</Checkbox>
               </Form.Item>
-              <Button type="link" className="p-0 hover:text-purple-800" style={{ color: '#80206a' }}>
+              <Button
+                type="link"
+                className="p-0 hover:text-purple-800"
+                style={{ color: "#80206a" }}
+              >
                 Forgot password?
               </Button>
             </div>
@@ -128,26 +177,34 @@ export default function Login() {
                 htmlType="submit"
                 className="w-full h-12 border-0 rounded-lg font-semibold text-base"
                 style={{
-                  background: 'linear-gradient(135deg, #80206a 0%, #9c2a7a 50%, #b83389 100%)',
-                  boxShadow: 'none'
+                  background:
+                    "linear-gradient(135deg, #80206a 0%, #9c2a7a 50%, #b83389 100%)",
+                  boxShadow: "none",
                 }}
                 loading={loading}
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loading ? "Logging in..." : "Login"}
               </Button>
             </Form.Item>
           </Form>
 
           {/* Demo Credentials */}
-          <div className="mt-8 p-4 rounded-lg border" style={{ 
-            backgroundColor: '#f8f4f7', 
-            borderColor: '#80206a33' 
-          }}>
-            <Text className="block font-medium mb-1" style={{ color: '#80206a' }}>
+          <div
+            className="mt-8 p-4 rounded-lg border"
+            style={{
+              backgroundColor: "#f8f4f7",
+              borderColor: "#80206a33",
+            }}
+          >
+            <Text
+              className="block font-medium mb-1"
+              style={{ color: "#80206a" }}
+            >
               🎯 Demo Credentials
             </Text>
-            <Text className="text-xs" style={{ color: '#80206a' }}>
-              Username: <strong>john smith</strong> • Password: <strong>Infi@123</strong>
+            <Text className="text-xs" style={{ color: "#80206a" }}>
+              Username: <strong>john smith</strong> • Password:{" "}
+              <strong>Infi@123</strong>
             </Text>
           </div>
         </div>

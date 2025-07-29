@@ -26,7 +26,7 @@ export default function GroupLeader() {
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Load previously saved form data if available
@@ -48,9 +48,14 @@ export default function GroupLeader() {
       const currentValues = form.getFieldsValue();
       // Filter out empty values to avoid storing unnecessary data
       const filteredValues = Object.fromEntries(
-        Object.entries(currentValues).filter(([_, value]) => value !== undefined && value !== "")
+        Object.entries(currentValues).filter(
+          ([_, value]) => value !== undefined && value !== "",
+        ),
       );
-      localStorage.setItem("tempGroupLeaderData", JSON.stringify(filteredValues));
+      localStorage.setItem(
+        "tempGroupLeaderData",
+        JSON.stringify(filteredValues),
+      );
       console.log("Saved group leader data:", filteredValues);
     } catch (error) {
       console.warn("Could not save group leader data:", error);
@@ -59,73 +64,84 @@ export default function GroupLeader() {
   };
 
   const handleContinue = () => {
-    form.validateFields().then((values) => {
-      handleSubmit(values);
-    }).catch((errorInfo) => {
-      console.log('Validation Failed:', errorInfo);
-    });
+    form
+      .validateFields()
+      .then((values) => {
+        handleSubmit(values);
+      })
+      .catch((errorInfo) => {
+        console.log("Validation Failed:", errorInfo);
+      });
   };
 
   const handleSubmit = (values: any) => {
-      try {
-        console.log("Group leader data:", values);
+    try {
+      console.log("Group leader data:", values);
 
-        // Store group leader data in localStorage only
-        localStorage.setItem("groupLeaderData", JSON.stringify(values));
+      // Store group leader data in localStorage only
+      localStorage.setItem("groupLeaderData", JSON.stringify(values));
 
-        // Calculate and store total booking amount
-        const bookingData = JSON.parse(localStorage.getItem("bookingFormData") || "{}");
-        const flightData = JSON.parse(localStorage.getItem("selectedFlightData") || "{}");
-        const bundleData = JSON.parse(localStorage.getItem("selectedBundleData") || "{}");
-        const servicesData = JSON.parse(localStorage.getItem("selectedServices") || "[]");
+      // Calculate and store total booking amount
+      const bookingData = JSON.parse(
+        localStorage.getItem("bookingFormData") || "{}",
+      );
+      const flightData = JSON.parse(
+        localStorage.getItem("selectedFlightData") || "{}",
+      );
+      const bundleData = JSON.parse(
+        localStorage.getItem("selectedBundleData") || "{}",
+      );
+      const servicesData = JSON.parse(
+        localStorage.getItem("selectedServices") || "[]",
+      );
 
-        const passengerCount = bookingData.totalPassengers || 1;
-        let totalAmount = 0;
+      const passengerCount = bookingData.totalPassengers || 1;
+      let totalAmount = 0;
 
-        // Calculate flight cost
-        if (flightData.baseCost) {
-          totalAmount += flightData.baseCost;
-        }
-
-        // Calculate bundle cost
-        if (bundleData.bundleCost) {
-          totalAmount += bundleData.bundleCost * passengerCount;
-        }
-
-        // Calculate services cost
-        const servicesCost = servicesData.reduce((total, service) => {
-          return total + (service.price * passengerCount);
-        }, 0);
-        totalAmount += servicesCost;
-
-        // Add taxes (8%)
-        const subtotal = totalAmount;
-        const taxes = subtotal * 0.08;
-
-        // Apply group discount for 10+ passengers
-        const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0;
-
-        const finalTotal = subtotal + taxes - groupDiscount;
-
-        // Store booking summary
-        const bookingSummary = {
-          subtotal,
-          taxes,
-          groupDiscount,
-          totalAmount: finalTotal,
-          passengerCount,
-          calculatedAt: new Date().toISOString()
-        };
-
-        localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
-
-        message.success("Group leader information saved locally!");
-        navigate("/passenger-info");
-      } catch (error) {
-        console.error("Error processing group leader data:", error);
-        message.error("Failed to process group leader information");
+      // Calculate flight cost
+      if (flightData.baseCost) {
+        totalAmount += flightData.baseCost;
       }
-    };
+
+      // Calculate bundle cost
+      if (bundleData.bundleCost) {
+        totalAmount += bundleData.bundleCost * passengerCount;
+      }
+
+      // Calculate services cost
+      const servicesCost = servicesData.reduce((total, service) => {
+        return total + service.price * passengerCount;
+      }, 0);
+      totalAmount += servicesCost;
+
+      // Add taxes (8%)
+      const subtotal = totalAmount;
+      const taxes = subtotal * 0.08;
+
+      // Apply group discount for 10+ passengers
+      const groupDiscount = passengerCount >= 10 ? subtotal * 0.15 : 0;
+
+      const finalTotal = subtotal + taxes - groupDiscount;
+
+      // Store booking summary
+      const bookingSummary = {
+        subtotal,
+        taxes,
+        groupDiscount,
+        totalAmount: finalTotal,
+        passengerCount,
+        calculatedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
+
+      message.success("Group leader information saved locally!");
+      navigate("/passenger-info");
+    } catch (error) {
+      console.error("Error processing group leader data:", error);
+      message.error("Failed to process group leader information");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -238,24 +254,20 @@ export default function GroupLeader() {
 
               <Row gutter={24}>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Date of Birth"
-                    name="dateOfBirth"
-                  >
+                  <Form.Item label="Date of Birth" name="dateOfBirth">
                     <DatePicker
                       size="large"
                       placeholder="DD MMM YYYY"
                       format="DD MMM YYYY"
                       className="w-full"
-                      disabledDate={(current) => current && current.isAfter(new Date(), 'day')}
+                      disabledDate={(current) =>
+                        current && current.isAfter(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Nationality"
-                    name="nationality"
-                  >
+                  <Form.Item label="Nationality" name="nationality">
                     <Select
                       size="large"
                       placeholder="Select nationality"
@@ -284,10 +296,7 @@ export default function GroupLeader() {
 
               <Row gutter={24}>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Passport Number"
-                    name="passportNumber"
-                  >
+                  <Form.Item label="Passport Number" name="passportNumber">
                     <Input size="large" placeholder="Enter passport number" />
                   </Form.Item>
                 </Col>
@@ -315,10 +324,7 @@ export default function GroupLeader() {
 
               <Row gutter={24}>
                 <Col xs={24}>
-                  <Form.Item
-                    label="Street Address"
-                    name="streetAddress"
-                  >
+                  <Form.Item label="Street Address" name="streetAddress">
                     <Input size="large" placeholder="Enter street address" />
                   </Form.Item>
                 </Col>
@@ -326,10 +332,7 @@ export default function GroupLeader() {
 
               <Row gutter={24}>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="City"
-                    name="city"
-                  >
+                  <Form.Item label="City" name="city">
                     <Input size="large" placeholder="Enter city" />
                   </Form.Item>
                 </Col>
@@ -347,10 +350,7 @@ export default function GroupLeader() {
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Country"
-                    name="country"
-                  >
+                  <Form.Item label="Country" name="country">
                     <Select
                       size="large"
                       placeholder="Select country"
@@ -379,18 +379,12 @@ export default function GroupLeader() {
 
               <Row gutter={24}>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Contact Name"
-                    name="emergencyContactName"
-                  >
+                  <Form.Item label="Contact Name" name="emergencyContactName">
                     <Input size="large" placeholder="Enter contact name" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Contact Phone"
-                    name="emergencyContactPhone"
-                  >
+                  <Form.Item label="Contact Phone" name="emergencyContactPhone">
                     <Input size="large" placeholder="Enter contact phone" />
                   </Form.Item>
                 </Col>

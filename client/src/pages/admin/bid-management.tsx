@@ -378,7 +378,9 @@ export default function BidManagement() {
         // Show success message
         message.success(
           result.message ||
-            `Bid configuration "${finalValues.bidTitle || "New Bid"}" created successfully!`,
+            `Bid configuration "${
+              finalValues.bidTitle || "New Bid"
+            }" created successfully!`,
         );
 
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
@@ -443,63 +445,62 @@ export default function BidManagement() {
 
   const renderActiveBidsContent = () => {
     // Show all bids instead of filtering by active status
-    const activeBids = (recentBidsData || [])
-      .map((bid, index) => {
-        // Calculate time left until bid expires
-        const timeLeft = bid.validUntil
-          ? calculateTimeLeft(new Date(bid.validUntil))
-          : "No expiry";
+    const activeBids = (recentBidsData || []).map((bid, index) => {
+      // Calculate time left until bid expires
+      const timeLeft = bid.validUntil
+        ? calculateTimeLeft(new Date(bid.validUntil))
+        : "No expiry";
 
-        // Parse configuration data if available
-        let configData = {};
-        try {
-          configData = bid.notes ? JSON.parse(bid.notes) : {};
-        } catch (e) {
-          configData = {};
-        }
+      // Parse configuration data if available
+      let configData = {};
+      try {
+        configData = bid.notes ? JSON.parse(bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
 
-        return {
-          key: bid.id.toString(),
-          bidId: `BID${bid.id.toString().padStart(3, "0")}`,
-          passenger: {
-            name:
-              configData.groupLeaderName ||
-              configData.contactName ||
-              `User ${bid.userId}`,
-            email:
-              configData.groupLeaderEmail ||
-              configData.email ||
-              "user@example.com",
-          },
-          flight: {
-            number:
-              configData.flightNumber ||
-              `GR-${Math.floor(Math.random() * 9000) + 1000}`,
-            route:
-              configData.origin && configData.destination
-                ? `${configData.origin} → ${configData.destination}`
-                : bid.flight
-                  ? `${bid.flight.origin} → ${bid.flight.destination}`
-                  : "Route not available",
-            date: configData.travelDate
-              ? new Date(configData.travelDate).toLocaleDateString()
-              : bid.flight?.departureTime
-                ? new Date(bid.flight.departureTime).toLocaleDateString()
-                : "N/A",
-          },
-          upgrade: configData.fareType
-            ? `Economy → ${configData.fareType}`
-            : "Economy → Business",
-          bidAmount: `$${bid.bidAmount}`,
-          maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
-          successRate: "75%", // This could be calculated based on historical data
-          timeLeft: timeLeft,
-          status: bid.bidStatus,
-          paymentStatus: bid.bidStatus === "completed" ? "paid" : "pending", // Mock payment status
-          passengerCount: bid.passengerCount || 1,
-          createdAt: bid.createdAt,
-        };
-      });
+      return {
+        key: bid.id.toString(),
+        bidId: `BID${bid.id.toString().padStart(3, "0")}`,
+        passenger: {
+          name:
+            configData.groupLeaderName ||
+            configData.contactName ||
+            `User ${bid.userId}`,
+          email:
+            configData.groupLeaderEmail ||
+            configData.email ||
+            "user@example.com",
+        },
+        flight: {
+          number:
+            configData.flightNumber ||
+            `GR-${Math.floor(Math.random() * 9000) + 1000}`,
+          route:
+            configData.origin && configData.destination
+              ? `${configData.origin} → ${configData.destination}`
+              : bid.flight
+                ? `${bid.flight.origin} → ${bid.flight.destination}`
+                : "Route not available",
+          date: configData.travelDate
+            ? new Date(configData.travelDate).toLocaleDateString()
+            : bid.flight?.departureTime
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
+        },
+        upgrade: configData.fareType
+          ? `Economy → ${configData.fareType}`
+          : "Economy → Business",
+        bidAmount: `$${bid.bidAmount}`,
+        maxBid: `$${(parseFloat(bid.bidAmount) * 1.2).toFixed(0)}`,
+        successRate: "75%", // This could be calculated based on historical data
+        timeLeft: timeLeft,
+        status: bid.bidStatus,
+        paymentStatus: bid.bidStatus === "completed" ? "paid" : "pending", // Mock payment status
+        passengerCount: bid.passengerCount || 1,
+        createdAt: bid.createdAt,
+      };
+    });
 
     return (
       <div>
@@ -533,8 +534,8 @@ export default function BidManagement() {
           <Card>
             <div className="text-center py-8">
               <Text className="text-gray-500">
-                No bids found. Bids will appear here when
-                passengers submit upgrade requests.
+                No bids found. Bids will appear here when passengers submit
+                upgrade requests.
               </Text>
             </div>
           </Card>
@@ -542,18 +543,25 @@ export default function BidManagement() {
           <Table
             dataSource={activeBids}
             expandable={{
-              expandedRowRender: (record) => {
+              expandedRowRender: (record: any) => {
                 // Get retail users from bid data
                 const bidData = (recentBidsData || []).find(
-                  (bid) => `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
+                  (bid) =>
+                    `BID${bid?.id?.toString().padStart(3, "0")}` ===
+                    record.bidId,
                 );
 
-                const baseBidAmount = parseFloat(record.bidAmount.replace('$', ''));
+                const baseBidAmount = parseFloat(
+                  record.bidAmount.replace("$", ""),
+                );
 
-                let retailUsers = [];
+                let retailUsers = [],
+                  highestBidAmount: any;
                 if (bidData) {
                   try {
-                    const notes = bidData.notes ? JSON.parse(bidData.notes) : {};
+                    const notes = bidData.notes
+                      ? JSON.parse(bidData.notes)
+                      : {};
                     retailUsers = notes.retailUsers || [];
                   } catch (e) {
                     retailUsers = [];
@@ -563,23 +571,51 @@ export default function BidManagement() {
                 // If no retail users exist in the data, create default ones based on bid status
                 if (retailUsers.length === 0) {
                   const userCount = Math.floor(Math.random() * 4) + 2; // 2-5 users
-                  const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
-                  const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
-                  
+                  const names = [
+                    "John Smith",
+                    "Sarah Johnson",
+                    "Mike Wilson",
+                    "Emma Davis",
+                    "David Brown",
+                    "Lisa Garcia",
+                  ];
+                  const domains = [
+                    "gmail.com",
+                    "yahoo.com",
+                    "email.com",
+                    "outlook.com",
+                  ];
+
                   for (let i = 0; i < userCount; i++) {
-                    const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
+                    const randomIncrement =
+                      Math.floor(Math.random() * 100) + 20; // $20-$120 above base
                     retailUsers.push({
                       id: i + 1,
                       name: names[i] || `User ${i + 1}`,
-                      email: `${names[i]?.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+                      email:
+                        `${names[i]?.toLowerCase().replace(" ", ".")}@${
+                          domains[i % domains.length]
+                        }` || `user${i + 1}@email.com`,
                       bookingRef: `GR00123${i + 4}`,
                       seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
                       bidAmount: baseBidAmount + randomIncrement,
-                      status: i === 0 && record.status.toLowerCase() === 'approved' ? 'approved' : 
-                              record.status.toLowerCase() === 'pending' ? 'pending_approval' : 'pending_approval'
+                      status:
+                        i === 0 && record.status.toLowerCase() === "approved"
+                          ? "approved"
+                          : record.status.toLowerCase() === "pending"
+                            ? "pending_approval"
+                            : "pending_approval",
                     });
                   }
+                  highestBidAmount = Math.max(
+                    ...retailUsers.map((user) => user.bidAmount),
+                  );
                 }
+
+                console.log(
+                  record?.status?.toLowerCase() === '"approved"',
+                  record?.status,
+                );
 
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -588,8 +624,9 @@ export default function BidManagement() {
                     </Title>
                     <div className="mb-3">
                       <Text className="text-gray-600 text-sm">
-                        Base Bid Amount: <span className="font-semibold">${baseBidAmount}</span> | 
-                        Total Retail Users: {retailUsers.length}
+                        Base Bid Amount:{" "}
+                        <span className="font-semibold">${baseBidAmount}</span>{" "}
+                        | Total Retail Users: {retailUsers.length}
                       </Text>
                     </div>
                     <div className="space-y-3">
@@ -601,71 +638,131 @@ export default function BidManagement() {
                         </div>
                       ) : (
                         retailUsers.map((user) => (
-                          <div key={user.id} className="bg-white p-3 rounded-md border flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-4">
-                                <div>
-                                  <Text strong className="block">{user.name}</Text>
-                                  <Text className="text-gray-500 text-sm">{user.email}</Text>
-                                </div>
-                                <div>
-                                  <Text className="text-gray-600 text-sm block">Booking: {user.bookingRef}</Text>
-                                  <Text className="text-gray-600 text-sm">Seat: {user.seatNumber}</Text>
-                                </div>
-                                <div>
-                                  <Text className="text-green-600 font-semibold text-sm block">
-                                    Bid: ${user.bidAmount || (baseBidAmount + Math.floor(Math.random() * 100) + 20)}
-                                  </Text>
-                                  <Text className="text-gray-500 text-xs">
-                                    +${((user.bidAmount || (baseBidAmount + 50)) - baseBidAmount).toFixed(0)} above base
-                                  </Text>
-                                </div>
-                                <div>
-                                  <Tag color={user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange'}>
-                                    {user.status.replace('_', ' ').toUpperCase()}
-                                  </Tag>
-                                </div>
-                              </div>
+                          // Display each retail user in a card-like format
+                          <div
+                            key={user.id}
+                            className={`p-4 rounded-md border transition-all shadow-sm grid grid-cols-1 sm:grid-cols-5 gap-4 items-center
+                              ${
+                                user.status === "approved"
+                                  ? "border-green-500 bg-green-50"
+                                  : user.bidAmount === highestBidAmount
+                                    ? "border-yellow-500 bg-yellow-50"
+                                    : "bg-white border"
+                              }
+                            `}
+                          >
+                            {/* Column 1: User Info */}
+                            <div>
+                              <Text strong>{user.name}</Text>
+                              <Text className="block text-gray-500 text-sm">
+                                {user.email}
+                              </Text>
                             </div>
-                            {user.status === 'pending_approval' && (
-                              <div className="flex space-x-2">
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => handleRetailUserAction(user.id, 'approve', record.bidId)}
-                                  loading={loading}
-                                >
-                                  Approve
-                                </Button>
-                                <Button
-                                  danger
-                                  size="small"
-                                  onClick={() => handleRetailUserAction(user.id, 'reject', record.bidId)}
-                                  loading={loading}
-                                >
-                                  Reject
-                                </Button>
-                              </div>
-                            )}
+
+                            {/* Column 2: Booking Info */}
+                            <div>
+                              <Text className="text-gray-600 text-sm block">
+                                Booking: {user.bookingRef}
+                              </Text>
+                              <Text className="text-gray-600 text-sm">
+                                Seat: {user.seatNumber}
+                              </Text>
+                            </div>
+
+                            {/* Column 3: Bid Info */}
+                            <div>
+                              <Text className="text-green-600 font-semibold text-sm block">
+                                Bid: ${user.bidAmount}
+                                {user.bidAmount === highestBidAmount && (
+                                  <span className="inline items-center gap-1 text-yellow-600 text-xs font-semibold bg-yellow-100 px-2 py-0.5 rounded-full">
+                                    🏆 Top Bidder
+                                  </span>
+                                )}
+                              </Text>
+                              <Text className="text-gray-500 text-xs">
+                                +${(user.bidAmount - baseBidAmount).toFixed(0)}{" "}
+                                above base
+                              </Text>
+                            </div>
+
+                            {/* Column 4: Status */}
+                            <div className="flex sm:justify-start">
+                              <Tag
+                                color={
+                                  user.status === "approved"
+                                    ? "green"
+                                    : user.status === "rejected"
+                                      ? "red"
+                                      : "orange"
+                                }
+                              >
+                                {user.status.replace("_", " ").toUpperCase()}
+                              </Tag>
+                            </div>
+
+                            {/* Column 5: Buttons (only if pending) */}
+                            <div className="flex gap-2">
+                              {user.status === "pending_approval" && (
+                                <>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={() =>
+                                      handleRetailUserAction(
+                                        user.id,
+                                        "approve",
+                                        record.bidId,
+                                      )
+                                    }
+                                    loading={loading}
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    danger
+                                    size="small"
+                                    onClick={() =>
+                                      handleRetailUserAction(
+                                        user.id,
+                                        "reject",
+                                        record.bidId,
+                                      )
+                                    }
+                                    loading={loading}
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         ))
                       )}
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {retailUsers.length} | 
-                        Pending approval: {retailUsers.filter(u => u.status === 'pending_approval').length} |
-                        Approved: {retailUsers.filter(u => u.status === 'approved').length}
+                        Total retail users: {retailUsers.length} | Pending
+                        approval:{" "}
+                        {
+                          retailUsers.filter(
+                            (u) => u.status === "pending_approval",
+                          ).length
+                        }{" "}
+                        | Approved:{" "}
+                        {
+                          retailUsers.filter((u) => u.status === "approved")
+                            .length
+                        }
                       </Text>
                     </div>
                   </div>
                 );
               },
-              rowExpandable: (record) => {
-                // Only show expand option for completed bids
-                return record.status.toLowerCase() === 'completed';
-              },
+              // rowExpandable: (record) => {
+              //   // Only show expand option for completed bids
+              //   return record.status.toLowerCase() === 'completed';
+              // },
             }}
             columns={[
               {
@@ -686,9 +783,7 @@ export default function BidManagement() {
                 title: "Flight ID",
                 dataIndex: "flight",
                 key: "flightId",
-                render: (flight) => (
-                  <Text strong>{flight.number}</Text>
-                ),
+                render: (flight) => <Text strong>{flight.number}</Text>,
               },
               {
                 title: "Route",
@@ -749,30 +844,46 @@ export default function BidManagement() {
                 render: (status) => {
                   const getStatusDisplay = (status) => {
                     switch (status.toLowerCase()) {
-                      case "active": return "Open";
-                      case "completed": return "Under Review";
-                      case "approved": return "Accepted";
-                      case "accepted": return "Accepted";
-                      case "rejected": return "Declined";
-                      case "expired": return "Expired";
-                      case "pending": return "Pending";
-                      default: return status.charAt(0).toUpperCase() + status.slice(1);
+                      case "active":
+                        return "Open";
+                      case "completed":
+                        return "Under Review";
+                      case "approved":
+                        return "Accepted";
+                      case "accepted":
+                        return "Accepted";
+                      case "rejected":
+                        return "Declined";
+                      case "expired":
+                        return "Expired";
+                      case "pending":
+                        return "Pending";
+                      default:
+                        return status.charAt(0).toUpperCase() + status.slice(1);
                     }
                   };
-                  
+
                   const getStatusColor = (status) => {
                     switch (status.toLowerCase()) {
-                      case "active": return "green";
-                      case "accepted": return "blue";
-                      case "approved": return "cyan";
-                      case "rejected": return "red";
-                      case "expired": return "orange";
-                      case "completed": return "purple";
-                      case "pending": return "yellow";
-                      default: return "default";
+                      case "active":
+                        return "green";
+                      case "accepted":
+                        return "blue";
+                      case "approved":
+                        return "cyan";
+                      case "rejected":
+                        return "red";
+                      case "expired":
+                        return "orange";
+                      case "completed":
+                        return "purple";
+                      case "pending":
+                        return "yellow";
+                      default:
+                        return "default";
                     }
                   };
-                  
+
                   return (
                     <Tag color={getStatusColor(status)}>
                       {getStatusDisplay(status)}
@@ -842,12 +953,16 @@ export default function BidManagement() {
           configData.destination || bidRecord.flight?.destination || "Unknown",
         departureTime: configData.travelDate
           ? new Date(
-              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[0] || "09:00"}`,
+              `${configData.travelDate}T${
+                configData.departureTimeRange?.split(" - ")[0] || "09:00"
+              }`,
             ).toISOString()
           : bidData.createdAt,
         arrivalTime: configData.travelDate
           ? new Date(
-              `${configData.travelDate}T${configData.departureTimeRange?.split(" - ")[1] || "12:00"}`,
+              `${configData.travelDate}T${
+                configData.departureTimeRange?.split(" - ")[1] || "12:00"
+              }`,
             ).toISOString()
           : null,
         price: bidData.bidAmount || 0,
@@ -921,7 +1036,9 @@ export default function BidManagement() {
 
       if (result.success) {
         message.success(
-          `Bid configuration ${checked ? "activated" : "deactivated"} successfully`,
+          `Bid configuration ${
+            checked ? "activated" : "deactivated"
+          } successfully`,
         );
         // Refetch bid configurations to update the display
         refetchBids();
@@ -983,14 +1100,14 @@ export default function BidManagement() {
     setLoading(true);
     try {
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
-      
+
       // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1")
-      const numericBidId = bidId.replace('BID', '').replace(/^0+/, '') || bidId;
-      
+      const numericBidId = bidId.replace("BID", "").replace(/^0+/, "") || bidId;
+
       const response = await apiRequest(
-        "PUT", 
+        "PUT",
         `/api/bids/${numericBidId}/retail-users/${userId}/status`,
-        { action }
+        { action },
       );
 
       if (!response.ok) {
@@ -1002,18 +1119,19 @@ export default function BidManagement() {
       if (result.success) {
         if (action === "approve") {
           message.success(
-            result.message || "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'."
+            result.message ||
+              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
           );
         } else {
           message.success(
-            result.message || "Retail user rejected successfully"
+            result.message || "Retail user rejected successfully",
           );
         }
 
         // Refresh the data to update the UI with new bid status and retail user statuses
         queryClient.invalidateQueries(["recent-bids"]);
         queryClient.invalidateQueries(["bid-configurations"]);
-        
+
         // Force refetch to get latest data
         refetchBids();
       } else {
@@ -1021,7 +1139,9 @@ export default function BidManagement() {
       }
     } catch (error) {
       console.error(`Error ${action}ing retail user:`, error);
-      message.error(error.message || `Failed to ${action} retail user. Please try again.`);
+      message.error(
+        error.message || `Failed to ${action} retail user. Please try again.`,
+      );
     } finally {
       setLoading(false);
     }
@@ -1489,16 +1609,21 @@ export default function BidManagement() {
         <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
           <Row gutter={[16, 16]}>
             <Col span={12}>
-              <Form.Item
-                label="Bid Title"
-                name="bidTitle"
-              >
-                <Input placeholder="Enter bid title" disabled className="bg-gray-100" />
+              <Form.Item label="Bid Title" name="bidTitle">
+                <Input
+                  placeholder="Enter bid title"
+                  disabled
+                  className="bg-gray-100"
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Flight Type" name="flightType">
-                <Select placeholder="Select flight type" disabled className="bg-gray-100">
+                <Select
+                  placeholder="Select flight type"
+                  disabled
+                  className="bg-gray-100"
+                >
                   <Select.Option value="Domestic">Domestic</Select.Option>
                   <Select.Option value="International">
                     International
@@ -1508,10 +1633,7 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Origin"
-                name="origin"
-              >
+              <Form.Item label="Origin" name="origin">
                 <Select
                   mode="combobox"
                   placeholder="Search city / airport"
@@ -1533,10 +1655,7 @@ export default function BidManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Destination"
-                name="destination"
-              >
+              <Form.Item label="Destination" name="destination">
                 <Select
                   mode="combobox"
                   placeholder="Search city / airport"
@@ -3294,7 +3413,11 @@ export default function BidManagement() {
                         <Text
                           className={`
                           text-xs font-medium
-                          ${index <= currentStep ? "text-gray-800" : "text-gray-500"}
+                          ${
+                            index <= currentStep
+                              ? "text-gray-800"
+                              : "text-gray-500"
+                          }
                         `}
                         >
                           {step.title}
@@ -3615,7 +3738,12 @@ export default function BidManagement() {
                             controls={true}
                             keyboard={true}
                             formatter={(value) =>
-                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
+                              value
+                                ? `$ ${value}`.replace(
+                                    /\B(?=(\d{3})+(?!\d))/g,
+                                    ",",
+                                  )
+                                : ""
                             }
                             parser={(value) =>
                               value?.replace(/\$\s?|(,*)/g, "") || ""
@@ -3641,7 +3769,12 @@ export default function BidManagement() {
                             controls={true}
                             keyboard={true}
                             formatter={(value) =>
-                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
+                              value
+                                ? `$ ${value}`.replace(
+                                    /\B(?=(\d{3})+(?!\d))/g,
+                                    ",",
+                                  )
+                                : ""
                             }
                             parser={(value) =>
                               value?.replace(/\$\s?|(,*)/g, "") || ""
@@ -3689,7 +3822,12 @@ export default function BidManagement() {
                             controls={true}
                             keyboard={true}
                             formatter={(value) =>
-                              value ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
+                              value
+                                ? `$ ${value}`.replace(
+                                    /\B(?=(\d{3})+(?!\d))/g,
+                                    ",",
+                                  )
+                                : ""
                             }
                             parser={(value) =>
                               value?.replace(/\$\s?|(,*)/g, "") || ""

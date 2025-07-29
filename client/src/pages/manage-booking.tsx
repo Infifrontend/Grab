@@ -71,9 +71,7 @@ export default function ManageBooking() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          message.error(
-            "Booking not found. Please check your booking ID.",
-          );
+          message.error("Booking not found. Please check your booking ID.");
         } else {
           message.error("Error fetching booking details. Please try again.");
         }
@@ -83,7 +81,10 @@ export default function ManageBooking() {
       const bookingDetails = await response.json();
 
       // Show success message with passenger count
-      const passengerCount = bookingDetails.booking?.passengerCount || bookingDetails.passengers?.length || 1;
+      const passengerCount =
+        bookingDetails.booking?.passengerCount ||
+        bookingDetails.passengers?.length ||
+        1;
       message.success(`Booking found! ${passengerCount} confirmed passengers`);
 
       // Navigate to the booking details page with the retrieved data
@@ -182,7 +183,9 @@ export default function ManageBooking() {
                   Need Help?
                 </Title>
                 <Text className="text-gray-600">
-                  Can't find your booking or need assistance? Check your booking to view confirmed passenger counts and manage your reservation.
+                  Can't find your booking or need assistance? Check your booking
+                  to view confirmed passenger counts and manage your
+                  reservation.
                 </Text>
               </div>
 
@@ -282,9 +285,7 @@ export default function ManageBooking() {
                     type="primary"
                     className="w-full infiniti-btn-primary"
                     onClick={() =>
-                      navigate(
-                        `/booking-details/${booking.bookingReference}`,
-                      )
+                      navigate(`/booking-details/${booking.bookingReference}`)
                     }
                   >
                     View Details

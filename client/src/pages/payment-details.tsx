@@ -21,7 +21,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import Header from "@/components/layout/header";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
@@ -29,22 +29,22 @@ export default function PaymentDetails() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   // const [, params] = useRoute("/payment-details/:bidId");
-    const params = useParams();
-  
+  const params = useParams();
+
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bidParticipationData, setBidParticipationData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentReference, setPaymentReference] = useState("");
 
   useEffect(() => {
     // Load bid participation data from localStorage
-    const storedData = localStorage.getItem('bidParticipationData');
+    const storedData = localStorage.getItem("bidParticipationData");
     if (storedData) {
       setBidParticipationData(JSON.parse(storedData));
     } else {
       // If no data, redirect back to bids
-      navigate('/bids');
+      navigate("/bids");
     }
   }, [navigate]);
 
@@ -62,8 +62,8 @@ export default function PaymentDetails() {
     const bidId = params.id;
 
     if (!bidId) {
-      message.error('Bid ID not found');
-      navigate('/bids');
+      message.error("Bid ID not found");
+      navigate("/bids");
       return;
     }
 
@@ -97,7 +97,7 @@ export default function PaymentDetails() {
           const notes = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
           if (notes.paymentInfo?.paymentCompleted === true) {
             message.error("Payment has already been completed for this bid");
-            navigate('/bids');
+            navigate("/bids");
             return;
           }
         } catch (noteError) {
@@ -181,7 +181,7 @@ export default function PaymentDetails() {
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
-    navigate('/bids');
+    navigate("/bids");
   };
 
   if (!bidParticipationData) {
@@ -236,7 +236,7 @@ export default function PaymentDetails() {
                       Deposit Required:
                     </Text>
                     <Text className="text-blue-600 font-bold text-xl">
-                      ${bidParticipationData.depositRequired.toLocaleString()}
+                      ${bidParticipationData.totalBid.toLocaleString()}
                     </Text>
                   </Col>
                 </Row>
@@ -244,7 +244,7 @@ export default function PaymentDetails() {
 
               <Alert
                 message="Deposit Information"
-                description="This deposit (10% of bid amount) secures your participation in the bid. If your bid is not accepted by the airline, the full amount will be refunded within 5-7 business days."
+                description="This deposit secures your participation in the bid. If your bid is not accepted by the airline, the full amount will be refunded within 5-7 business days."
                 type="info"
                 showIcon
                 className="mb-6"
@@ -436,12 +436,12 @@ export default function PaymentDetails() {
                   </Text>
                 </div>
 
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <Text className="text-gray-600">Deposit Required (10%)</Text>
                   <Text className="text-blue-600 font-bold text-lg">
                     ${bidParticipationData.depositRequired.toLocaleString()}
                   </Text>
-                </div>
+                </div> */}
               </div>
 
               <Divider />
@@ -454,8 +454,8 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${bidParticipationData.depositRequired.toLocaleString()} &
-                Submit Bid
+                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit
+                Bid
               </Button>
             </Card>
           </Col>

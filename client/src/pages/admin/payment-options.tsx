@@ -73,7 +73,8 @@ export default function PaymentOptions() {
       } else {
         const savedTripType = localStorage.getItem("selectedTripType");
         setTripType(
-          (savedTripType as "oneWay" | "roundTrip" | "multiCity") || "roundTrip"
+          (savedTripType as "oneWay" | "roundTrip" | "multiCity") ||
+            "roundTrip",
         );
       }
 
@@ -104,7 +105,7 @@ export default function PaymentOptions() {
         const data = JSON.parse(storedBookingData);
         setBookingData(data);
         setPassengerCount(
-          data.totalPassengers || data.adults + data.kids + data.infants || 1
+          data.totalPassengers || data.adults + data.kids + data.infants || 1,
         );
       }
 
@@ -265,7 +266,7 @@ export default function PaymentOptions() {
       }
 
       const selectedOption = availablePaymentOptions.find(
-        (opt) => opt.id === paymentMethod
+        (opt) => opt.id === paymentMethod,
       );
       const discount = selectedOption?.discount || 0;
       const discountedTotal = totalAmount * (1 - discount);
@@ -353,8 +354,8 @@ export default function PaymentOptions() {
           paymentSchedule === "full"
             ? discountedTotal
             : paymentSchedule === "deposit"
-            ? discountedTotal * 0.3
-            : discountedTotal / 3,
+              ? discountedTotal * 0.3
+              : discountedTotal / 3,
         selectedPaymentOption: selectedOption
           ? {
               id: selectedOption.id,
@@ -494,7 +495,7 @@ export default function PaymentOptions() {
         {/* Sidebar */}
         <AdminSidebar activeMenu="Booking Management" />
 
-        <div className="max-w-5xl mx-auto py-6">
+        <div className="w-3/4 mx-auto py-8 px-8">
           {/* Booking Steps */}
           <div className="mb-8">
             <div className="overflow-x-auto">
@@ -553,7 +554,7 @@ export default function PaymentOptions() {
                             {(() => {
                               const selectedOption =
                                 availablePaymentOptions.find(
-                                  (opt) => opt.id === paymentMethod
+                                  (opt) => opt.id === paymentMethod,
                                 );
                               const discount = selectedOption?.discount || 0;
                               return (totalAmount * (1 - discount)).toFixed(2);
@@ -582,7 +583,7 @@ export default function PaymentOptions() {
                               {(() => {
                                 const selectedOption =
                                   availablePaymentOptions.find(
-                                    (opt) => opt.id === paymentMethod
+                                    (opt) => opt.id === paymentMethod,
                                   );
                                 const discount = selectedOption?.discount || 0;
                                 const discountedTotal =
@@ -600,7 +601,7 @@ export default function PaymentOptions() {
                               {(() => {
                                 const selectedOption =
                                   availablePaymentOptions.find(
-                                    (opt) => opt.id === paymentMethod
+                                    (opt) => opt.id === paymentMethod,
                                   );
                                 const discount = selectedOption?.discount || 0;
                                 const discountedTotal =
@@ -633,7 +634,7 @@ export default function PaymentOptions() {
                                 {(() => {
                                   const selectedOption =
                                     availablePaymentOptions.find(
-                                      (opt) => opt.id === paymentMethod
+                                      (opt) => opt.id === paymentMethod,
                                     );
                                   const discount =
                                     selectedOption?.discount || 0;
@@ -652,7 +653,7 @@ export default function PaymentOptions() {
                                 {(() => {
                                   const selectedOption =
                                     availablePaymentOptions.find(
-                                      (opt) => opt.id === paymentMethod
+                                      (opt) => opt.id === paymentMethod,
                                     );
                                   const discount =
                                     selectedOption?.discount || 0;
@@ -671,7 +672,7 @@ export default function PaymentOptions() {
                                 {(() => {
                                   const selectedOption =
                                     availablePaymentOptions.find(
-                                      (opt) => opt.id === paymentMethod
+                                      (opt) => opt.id === paymentMethod,
                                     );
                                   const discount =
                                     selectedOption?.discount || 0;
@@ -854,12 +855,12 @@ export default function PaymentOptions() {
                       {bookingData
                         ? tripType === "roundTrip"
                           ? `${dayjs(bookingData.departureDate).format(
-                              "DD MMM YYYY"
+                              "DD MMM YYYY",
                             )} - ${dayjs(bookingData.returnDate).format(
-                              "DD MMM YYYY"
+                              "DD MMM YYYY",
                             )}`
                           : dayjs(bookingData.departureDate).format(
-                              "DD MMM YYYY"
+                              "DD MMM YYYY",
                             )
                         : "Travel Dates"}
                     </Text>
@@ -1026,7 +1027,7 @@ export default function PaymentOptions() {
 
                   {(() => {
                     const selectedOption = availablePaymentOptions.find(
-                      (opt) => opt.id === paymentMethod
+                      (opt) => opt.id === paymentMethod,
                     );
                     const discount = selectedOption?.discount || 0;
                     if (discount > 0) {
@@ -1055,7 +1056,7 @@ export default function PaymentOptions() {
                       $
                       {(() => {
                         const selectedOption = availablePaymentOptions.find(
-                          (opt) => opt.id === paymentMethod
+                          (opt) => opt.id === paymentMethod,
                         );
                         const discount = selectedOption?.discount || 0;
                         return (totalAmount * (1 - discount)).toFixed(2);
@@ -1075,7 +1076,7 @@ export default function PaymentOptions() {
                         $
                         {(() => {
                           const selectedOption = availablePaymentOptions.find(
-                            (opt) => opt.id === paymentMethod
+                            (opt) => opt.id === paymentMethod,
                           );
                           const discount = selectedOption?.discount || 0;
                           const discountedTotal = totalAmount * (1 - discount);
@@ -1099,7 +1100,7 @@ export default function PaymentOptions() {
                           $
                           {(() => {
                             const selectedOption = availablePaymentOptions.find(
-                              (opt) => opt.id === paymentMethod
+                              (opt) => opt.id === paymentMethod,
                             );
                             const discount = selectedOption?.discount || 0;
                             const discountedTotal =
@@ -1120,7 +1121,7 @@ export default function PaymentOptions() {
                             {(() => {
                               const selectedOption =
                                 availablePaymentOptions.find(
-                                  (opt) => opt.id === paymentMethod
+                                  (opt) => opt.id === paymentMethod,
                                 );
                               const discount = selectedOption?.discount || 0;
                               const discountedTotal =
@@ -1138,7 +1139,7 @@ export default function PaymentOptions() {
                             {(() => {
                               const selectedOption =
                                 availablePaymentOptions.find(
-                                  (opt) => opt.id === paymentMethod
+                                  (opt) => opt.id === paymentMethod,
                                 );
                               const discount = selectedOption?.discount || 0;
                               const discountedTotal =

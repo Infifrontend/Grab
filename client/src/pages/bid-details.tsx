@@ -29,8 +29,8 @@ const { TextArea } = Input;
 
 export default function BidDetails() {
   const navigate = useNavigate();
-  // const [, params] = useRoute("/bid-details/:id");  
-  const params  = useParams();
+  // const [, params] = useRoute("/bid-details/:id");
+  const params = useParams();
   const [passengers, setPassengers] = useState<any>(0);
   const [bidAmount, setBidAmount] = useState(0);
   const [originalBidAmount, setOriginalBidAmount] = useState(0);
@@ -224,7 +224,7 @@ export default function BidDetails() {
     } else {
       setPassengers(newPaxCount);
     }
-  }
+  };
 
   const handleContinueToPayment = () => {
     // Store bid participation data for payment
@@ -248,7 +248,7 @@ export default function BidDetails() {
     );
 
     // Navigate to payment page
-    setLocation(`/payment-details/${transformedBidData.bidId}`);
+    navigate(`/payment-details/${transformedBidData.bidId}`);
   };
 
   return (
@@ -531,8 +531,8 @@ export default function BidDetails() {
                       className="rounded-md"
                     />
                     <Text className="text-gray-500 text-sm mt-1">
-                      Minimum passenger count: {bidData?.bid?.passengerCount} (can only
-                      increase)
+                      Minimum passenger count: {bidData?.bid?.passengerCount}{" "}
+                      (can only increase)
                     </Text>
                   </div>
                 </Col>

@@ -1,16 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Button,
-  Card,
-  Row,
-  Col,
-  Typography,
-  Divider,
-  Space,
-} from "antd";
-import {
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
+import { Button, Card, Row, Col, Typography, Divider, Space } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
@@ -25,7 +15,7 @@ export default function ReviewConfirmation() {
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const [flightData, setFlightData] = useState<any>(null);
@@ -75,16 +65,12 @@ export default function ReviewConfirmation() {
       groupLeaderData,
       selectedServices,
       bundleData,
-      bookingSummary
+      bookingSummary,
     };
     localStorage.setItem("tempReviewData", JSON.stringify(reviewData));
     console.log("Saved review data before going back");
     navigate("/passenger-info");
   };
-
-
-
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -237,10 +223,12 @@ export default function ReviewConfirmation() {
                       >
                         <Text className="text-gray-900">{service.name}</Text>
                         <Text className="text-gray-600">
-                          ${service.price.toLocaleString('en-US', {
+                          $
+                          {service.price.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })} per person
+                            maximumFractionDigits: 2,
+                          })}{" "}
+                          per person
                         </Text>
                       </div>
                     ))
@@ -418,8 +406,6 @@ export default function ReviewConfirmation() {
                 </Text>
               </Space>
             </Card>
-
-
           </Col>
         </Row>
 
@@ -450,8 +436,6 @@ export default function ReviewConfirmation() {
         </div>
       </div>
 
-
-
       <style jsx>{`
         .ant-card {
           border-radius: 8px;
@@ -466,8 +450,6 @@ export default function ReviewConfirmation() {
         .ant-divider {
           margin: 16px 0;
         }
-
-
       `}</style>
     </div>
   );

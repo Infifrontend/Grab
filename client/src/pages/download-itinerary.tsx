@@ -1,6 +1,15 @@
-
 import React, { useRef } from "react";
-import { Card, Button, Typography, Row, Col, Space, Divider, Spin, Alert } from "antd";
+import {
+  Card,
+  Button,
+  Typography,
+  Row,
+  Col,
+  Space,
+  Divider,
+  Spin,
+  Alert,
+} from "antd";
 import {
   ArrowLeftOutlined,
   DownloadOutlined,
@@ -17,13 +26,12 @@ const { Title, Text } = Typography;
 export default function DownloadItinerary() {
   const navigate = useNavigate();
   // const [match, params] = useRoute("/download-itinerary/:id");
-    const params = useParams();
+  const params = useParams();
 
   const printRef = useRef(null);
 
   // const bookingId = params?.id;
   const bookingId = params.id;
-
 
   // Fetch booking details from API
   const {
@@ -45,7 +53,7 @@ export default function DownloadItinerary() {
     if (bookingId) {
       navigate(`/booking-details/${bookingId}`);
     } else {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   };
 
@@ -54,11 +62,12 @@ export default function DownloadItinerary() {
 
     try {
       // Create a printable version of the content
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       if (!printWindow) return;
 
-      const { booking, passengers, flightData, comprehensiveData } = bookingDetails;
-      
+      const { booking, passengers, flightData, comprehensiveData } =
+        bookingDetails;
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -103,15 +112,17 @@ export default function DownloadItinerary() {
             </div>
             <div class="detail-row">
               <span class="detail-label">Total Amount:</span>
-              <span class="detail-value">$${parseFloat(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              <span class="detail-value">$${parseFloat(booking.totalAmount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Booking Date:</span>
-              <span class="detail-value">${new Date(booking.bookedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+              <span class="detail-value">${new Date(booking.bookedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
             </div>
           </div>
 
-          ${flightData ? `
+          ${
+            flightData
+              ? `
           <div class="section">
             <div class="section-title">Flight Details</div>
             <div class="flight-info">
@@ -133,11 +144,11 @@ export default function DownloadItinerary() {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Departure:</span>
-                <span class="detail-value">${new Date(flightData.departureTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date(flightData.departureTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span class="detail-value">${new Date(flightData.departureTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date(flightData.departureTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Arrival:</span>
-                <span class="detail-value">${new Date(flightData.arrivalTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date(flightData.arrivalTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span class="detail-value">${new Date(flightData.arrivalTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date(flightData.arrivalTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Duration:</span>
@@ -149,61 +160,92 @@ export default function DownloadItinerary() {
               </div>
             </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
 
-          ${passengers && passengers.length > 0 ? `
+          ${
+            passengers && passengers.length > 0
+              ? `
           <div class="section">
             <div class="section-title">Passenger Details</div>
             <div class="passenger-list">
-              ${passengers.map((passenger, index) => `
+              ${passengers
+                .map(
+                  (passenger, index) => `
                 <div class="passenger-item">
                   <div class="detail-row">
                     <span class="detail-label">Passenger ${index + 1}:</span>
                     <span class="detail-value">${passenger.title} ${passenger.firstName} ${passenger.lastName}</span>
                   </div>
-                  ${passenger.nationality ? `
+                  ${
+                    passenger.nationality
+                      ? `
                   <div class="detail-row">
                     <span class="detail-label">Nationality:</span>
                     <span class="detail-value">${passenger.nationality}</span>
                   </div>
-                  ` : ''}
-                  ${passenger.dateOfBirth ? `
+                  `
+                      : ""
+                  }
+                  ${
+                    passenger.dateOfBirth
+                      ? `
                   <div class="detail-row">
                     <span class="detail-label">Date of Birth:</span>
-                    <span class="detail-value">${new Date(passenger.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    <span class="detail-value">${new Date(passenger.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
                   </div>
-                  ` : ''}
+                  `
+                      : ""
+                  }
                 </div>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
 
-          ${comprehensiveData?.groupLeaderInfo ? `
+          ${
+            comprehensiveData?.groupLeaderInfo
+              ? `
           <div class="section">
             <div class="section-title">Group Leader Information</div>
             <div class="detail-row">
               <span class="detail-label">Name:</span>
-              <span class="detail-value">${comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.firstName || 'N/A'}</span>
+              <span class="detail-value">${comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.firstName || "N/A"}</span>
             </div>
-            ${comprehensiveData.groupLeaderInfo.email ? `
+            ${
+              comprehensiveData.groupLeaderInfo.email
+                ? `
             <div class="detail-row">
               <span class="detail-label">Email:</span>
               <span class="detail-value">${comprehensiveData.groupLeaderInfo.email}</span>
             </div>
-            ` : ''}
-            ${comprehensiveData.groupLeaderInfo.phone || comprehensiveData.groupLeaderInfo.phoneNumber ? `
+            `
+                : ""
+            }
+            ${
+              comprehensiveData.groupLeaderInfo.phone ||
+              comprehensiveData.groupLeaderInfo.phoneNumber
+                ? `
             <div class="detail-row">
               <span class="detail-label">Phone:</span>
               <span class="detail-value">${comprehensiveData.groupLeaderInfo.phone || comprehensiveData.groupLeaderInfo.phoneNumber}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
-          ` : ''}
+          `
+              : ""
+          }
 
           <div class="footer">
             <p>This is a computer-generated itinerary. Please contact us for any queries.</p>
-            <p>Generated on: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p>Generated on: ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
           </div>
         </body>
         </html>
@@ -211,12 +253,11 @@ export default function DownloadItinerary() {
 
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      
+
       // Wait for content to load then trigger print dialog which allows save as PDF
       setTimeout(() => {
         printWindow.print();
       }, 500);
-
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
@@ -224,7 +265,7 @@ export default function DownloadItinerary() {
 
   const handleEmailItinerary = () => {
     if (!bookingDetails) return;
-    
+
     const { booking, flightData } = bookingDetails;
     const subject = `Travel Itinerary - ${booking.bookingReference}`;
     const body = `Dear Traveler,
@@ -232,11 +273,15 @@ export default function DownloadItinerary() {
 Please find your travel itinerary details below:
 
 Booking Reference: ${booking.bookingReference}
-${flightData ? `Flight: ${flightData.flightNumber} (${flightData.airline})
+${
+  flightData
+    ? `Flight: ${flightData.flightNumber} (${flightData.airline})
 Route: ${flightData.origin} → ${flightData.destination}
-Departure: ${new Date(flightData.departureTime).toLocaleString('en-IN')}` : ''}
+Departure: ${new Date(flightData.departureTime).toLocaleString("en-IN")}`
+    : ""
+}
 Passengers: ${booking.passengerCount}
-Total Amount: ₹${parseFloat(booking.totalAmount).toLocaleString('en-IN')}
+Total Amount: ₹${parseFloat(booking.totalAmount).toLocaleString("en-IN")}
 
 For detailed itinerary, please download the PDF version.
 
@@ -365,7 +410,10 @@ Group Airline Booking Team`;
                   </Text>
                   {comprehensiveData?.groupLeaderInfo && (
                     <Text className="text-gray-600">
-                      Group Leader: {comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.firstName || 'N/A'}
+                      Group Leader:{" "}
+                      {comprehensiveData.groupLeaderInfo.name ||
+                        comprehensiveData.groupLeaderInfo.firstName ||
+                        "N/A"}
                     </Text>
                   )}
                 </div>
@@ -378,13 +426,17 @@ Group Airline Booking Team`;
                     <Text className="text-gray-600 font-medium">
                       Passengers:
                     </Text>
-                    <Text className="text-gray-900 font-semibold">{booking.passengerCount}</Text>
+                    <Text className="text-gray-900 font-semibold">
+                      {booking.passengerCount}
+                    </Text>
                   </div>
 
                   {flightData && (
                     <>
                       <div className="flex justify-between">
-                        <Text className="text-gray-600 font-medium">Route:</Text>
+                        <Text className="text-gray-600 font-medium">
+                          Route:
+                        </Text>
                         <Text className="text-gray-900 font-semibold">
                           {flightData.origin} → {flightData.destination}
                         </Text>
@@ -395,48 +447,86 @@ Group Airline Booking Team`;
                           Departure:
                         </Text>
                         <Text className="text-gray-900 font-semibold">
-                          {new Date(flightData.departureTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(flightData.departureTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(
+                            flightData.departureTime,
+                          ).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}{" "}
+                          at{" "}
+                          {new Date(
+                            flightData.departureTime,
+                          ).toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </Text>
                       </div>
 
                       <div className="flex justify-between">
-                        <Text className="text-gray-600 font-medium">Arrival:</Text>
+                        <Text className="text-gray-600 font-medium">
+                          Arrival:
+                        </Text>
                         <Text className="text-gray-900 font-semibold">
-                          {new Date(flightData.arrivalTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(flightData.arrivalTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(flightData.arrivalTime).toLocaleDateString(
+                            "en-GB",
+                            { day: "2-digit", month: "short", year: "numeric" },
+                          )}{" "}
+                          at{" "}
+                          {new Date(flightData.arrivalTime).toLocaleTimeString(
+                            "en-GB",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}
                         </Text>
                       </div>
 
                       <div className="flex justify-between">
-                        <Text className="text-gray-600 font-medium">Airline:</Text>
+                        <Text className="text-gray-600 font-medium">
+                          Airline:
+                        </Text>
                         <Text className="text-gray-900 font-semibold">
                           {flightData.airline}
                         </Text>
                       </div>
 
                       <div className="flex justify-between">
-                        <Text className="text-gray-600 font-medium">Flight:</Text>
+                        <Text className="text-gray-600 font-medium">
+                          Flight:
+                        </Text>
                         <Text className="text-gray-900 font-semibold">
                           {flightData.flightNumber}
                         </Text>
                       </div>
 
                       <div className="flex justify-between">
-                        <Text className="text-gray-600 font-medium">Class:</Text>
-                        <Text className="text-gray-900 font-semibold">{flightData.cabin}</Text>
+                        <Text className="text-gray-600 font-medium">
+                          Class:
+                        </Text>
+                        <Text className="text-gray-900 font-semibold">
+                          {flightData.cabin}
+                        </Text>
                       </div>
                     </>
                   )}
 
                   <div className="flex justify-between">
-                    <Text className="text-gray-600 font-medium">Total Amount:</Text>
+                    <Text className="text-gray-600 font-medium">
+                      Total Amount:
+                    </Text>
                     <Text className="text-gray-900 font-semibold">
-                      ${parseFloat(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      $
+                      {parseFloat(booking.totalAmount).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      })}
                     </Text>
                   </div>
 
                   <div className="flex justify-between">
                     <Text className="text-gray-600 font-medium">Status:</Text>
-                    <Text className={`font-semibold ${booking.bookingStatus === 'confirmed' ? 'text-green-600' : 'text-orange-600'}`}>
+                    <Text
+                      className={`font-semibold ${booking.bookingStatus === "confirmed" ? "text-green-600" : "text-orange-600"}`}
+                    >
                       {booking.bookingStatus}
                     </Text>
                   </div>
@@ -449,7 +539,8 @@ Group Airline Booking Team`;
                   <Text className="text-gray-700 text-sm">
                     The full itinerary includes detailed flight information,
                     passenger lists, special requests, and contact information.
-                    Use the download button above to get the complete PDF version.
+                    Use the download button above to get the complete PDF
+                    version.
                   </Text>
                 </div>
               </div>
@@ -491,7 +582,7 @@ Group Airline Booking Team`;
           .ant-btn {
             display: none !important;
           }
-          
+
           .ant-typography {
             color: #000 !important;
           }

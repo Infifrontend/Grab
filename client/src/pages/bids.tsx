@@ -48,7 +48,7 @@ export default function Bids() {
     totalDeposits: 0,
     totalRefunds: 0,
     netAmount: 0,
-    pendingPayments: 0
+    pendingPayments: 0,
   });
   const [searchParams, setSearchParams] = useState({
     bidId: "",
@@ -125,15 +125,15 @@ export default function Bids() {
                   ? "Accepted"
                   : bid.bidStatus === "approved"
                     ? "Accepted"
-                  : bid.bidStatus === "rejected"
-                    ? "Declined"
-                  : bid.bidStatus === "expired"
-                    ? "Expired"
-                  : bid.bidStatus === "completed"
-                    ? "Under Review"
-                  : bid.bidStatus === "pending"
-                      ? "Under Review"
-                      : "Under Review",
+                    : bid.bidStatus === "rejected"
+                      ? "Declined"
+                      : bid.bidStatus === "expired"
+                        ? "Expired"
+                        : bid.bidStatus === "completed"
+                          ? "Under Review"
+                          : bid.bidStatus === "pending"
+                            ? "Under Review"
+                            : "Under Review",
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
@@ -141,9 +141,10 @@ export default function Bids() {
                   ? "Converted to Booking"
                   : bid.bidStatus === "approved"
                     ? "Accepted for Booking"
-                  : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
-                    ? "Refunded"
-                    : "Paid",
+                    : bid.bidStatus === "rejected" ||
+                        bid.bidStatus === "expired"
+                      ? "Refunded"
+                      : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
@@ -156,8 +157,10 @@ export default function Bids() {
         setPaymentLoading(true);
         try {
           // Get all bid IDs to fetch related payments
-          const bidIds = transformedBids.map(bid => bid.bidId.replace('BID-', ''));
-          
+          const bidIds = transformedBids.map((bid) =>
+            bid.bidId.replace("BID-", ""),
+          );
+
           // Fetch payments for each bid
           const bidPaymentPromises = bidIds.map(async (bidId) => {
             try {
@@ -165,7 +168,7 @@ export default function Bids() {
               const payments = await response.json();
               return payments.map((payment: any) => ({
                 ...payment,
-                relatedBidId: bidId
+                relatedBidId: bidId,
               }));
             } catch (error) {
               console.log(`No payments found for bid ${bidId}`);
@@ -177,51 +180,85 @@ export default function Bids() {
           const flattenedPayments = allBidPayments.flat();
 
           // Transform payments data for the payment history table
-          const transformedPayments = flattenedPayments.map((payment: any, index: number) => {
-            // Find the corresponding bid for route information
-            const relatedBid = transformedBids.find(bid => 
-              bid.bidId === `BID-${payment.relatedBidId}` || 
-              bid.bidId === payment.bidId
-            );
+          const transformedPayments = flattenedPayments.map(
+            (payment: any, index: number) => {
+              // Find the corresponding bid for route information
+              const relatedBid = transformedBids.find(
+                (bid) =>
+                  bid.bidId === `BID-${payment.relatedBidId}` ||
+                  bid.bidId === payment.bidId,
+              );
 
-            const route = relatedBid ? relatedBid.route : 'N/A';
-            const bidReference = relatedBid ? relatedBid.bidId : `BID-${payment.relatedBidId}`;
+              const route = relatedBid ? relatedBid.route : "N/A";
+              const bidReference = relatedBid
+                ? relatedBid.bidId
+                : `BID-${payment.relatedBidId}`;
 
-            return {
-              paymentId: payment.paymentId || payment.paymentReference || `PAY-${payment.key || index}`,
-              bidId: bidReference,
-              route: route,
-              amount: payment.amount ? `₹${parseFloat(payment.amount.toString()).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '₹0',
-              type: payment.type || (parseFloat(payment.amount || '0') < 1000 ? 'Deposit' : 'Payment'),
-              status: payment.status || payment.paymentStatus || 'Pending',
-              paymentMethod: payment.method || payment.paymentMethod || 'N/A',
-              transactionId: payment.transactionId || 'N/A',
-              date: payment.date || (payment.createdAt ? new Date(payment.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
-            };
-          });
+              return {
+                paymentId:
+                  payment.paymentId ||
+                  payment.paymentReference ||
+                  `PAY-${payment.key || index}`,
+                bidId: bidReference,
+                route: route,
+                amount: payment.amount
+                  ? `₹${parseFloat(payment.amount.toString()).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+                  : "₹0",
+                type:
+                  payment.type ||
+                  (parseFloat(payment.amount || "0") < 1000
+                    ? "Deposit"
+                    : "Payment"),
+                status: payment.status || payment.paymentStatus || "Pending",
+                paymentMethod: payment.method || payment.paymentMethod || "N/A",
+                transactionId: payment.transactionId || "N/A",
+                date:
+                  payment.date ||
+                  (payment.createdAt
+                    ? new Date(payment.createdAt).toISOString().split("T")[0]
+                    : new Date().toISOString().split("T")[0]),
+              };
+            },
+          );
 
           setPaymentHistoryData(transformedPayments);
 
           // Calculate payment summary based on bid payments
           const totalDeposits = transformedPayments
-            .filter(p => (p.type === 'Deposit' || p.type === 'Payment') && (p.status === 'Completed' || p.status === 'completed'))
-            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+            .filter(
+              (p) =>
+                (p.type === "Deposit" || p.type === "Payment") &&
+                (p.status === "Completed" || p.status === "completed"),
+            )
+            .reduce(
+              (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
+              0,
+            );
 
           const totalRefunds = transformedPayments
-            .filter(p => p.type === 'Refund' && (p.status === 'Completed' || p.status === 'completed'))
-            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+            .filter(
+              (p) =>
+                p.type === "Refund" &&
+                (p.status === "Completed" || p.status === "completed"),
+            )
+            .reduce(
+              (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
+              0,
+            );
 
           const pendingPayments = transformedPayments
-            .filter(p => p.status === 'Pending' || p.status === 'pending')
-            .reduce((sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, '')), 0);
+            .filter((p) => p.status === "Pending" || p.status === "pending")
+            .reduce(
+              (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
+              0,
+            );
 
           setPaymentSummary({
             totalDeposits,
             totalRefunds,
             netAmount: totalDeposits - totalRefunds,
-            pendingPayments
+            pendingPayments,
           });
-
         } catch (error) {
           console.error("Error fetching payment history:", error);
           setPaymentHistoryData([]);
@@ -883,7 +920,10 @@ export default function Bids() {
                     <Spin size="small" />
                   ) : (
                     <Title level={3} className="!mb-0 text-green-600">
-                      ₹{paymentSummary.totalDeposits.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      ₹
+                      {paymentSummary.totalDeposits.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                      })}
                     </Title>
                   )}
                 </Card>
@@ -897,7 +937,10 @@ export default function Bids() {
                     <Spin size="small" />
                   ) : (
                     <Title level={3} className="!mb-0 text-purple-600">
-                      ₹{paymentSummary.totalRefunds.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      ₹
+                      {paymentSummary.totalRefunds.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                      })}
                     </Title>
                   )}
                 </Card>
@@ -911,7 +954,10 @@ export default function Bids() {
                     <Spin size="small" />
                   ) : (
                     <Title level={3} className="!mb-0 text-blue-600">
-                      ₹{paymentSummary.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      ₹
+                      {paymentSummary.netAmount.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                      })}
                     </Title>
                   )}
                 </Card>
@@ -925,7 +971,10 @@ export default function Bids() {
                     <Spin size="small" />
                   ) : (
                     <Title level={3} className="!mb-0 text-orange-600">
-                      ₹{paymentSummary.pendingPayments.toLocaleString('en-IN', { minimimFractionDigits: 2 })}
+                      ₹
+                      {paymentSummary.pendingPayments.toLocaleString("en-IN", {
+                        minimimFractionDigits: 2,
+                      })}
                     </Title>
                   )}
                 </Card>

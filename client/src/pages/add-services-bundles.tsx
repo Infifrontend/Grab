@@ -61,7 +61,7 @@ const premiumBundles: BundleOption[] = [
       "Pay 50% now, 50% later",
       "No interest charges",
       "Automatic payment reminders",
-      "Secure payment processing"
+      "Secure payment processing",
     ],
   },
   {
@@ -78,7 +78,7 @@ const premiumBundles: BundleOption[] = [
       "Reserve seats immediately",
       "Add passenger names up to 30 days before travel",
       "Email reminders for pending details",
-      "No risk of price increases"
+      "No risk of price increases",
     ],
   },
   {
@@ -95,7 +95,7 @@ const premiumBundles: BundleOption[] = [
       "One free date change per booking",
       "Waived change fees",
       "Subject to fare difference only",
-      "Valid for 12 months"
+      "Valid for 12 months",
     ],
   },
   {
@@ -112,7 +112,7 @@ const premiumBundles: BundleOption[] = [
       "100% refund if cancelled 48+ hours before",
       "75% refund if cancelled 24-48 hours before",
       "No questions asked policy",
-      "Instant refund processing"
+      "Instant refund processing",
     ],
   },
   {
@@ -129,7 +129,7 @@ const premiumBundles: BundleOption[] = [
       "Split payment among up to 10 people",
       "Individual payment links",
       "Automatic payment tracking",
-      "Group payment dashboard"
+      "Group payment dashboard",
     ],
   },
   {
@@ -147,7 +147,7 @@ const premiumBundles: BundleOption[] = [
       "Includes Schedule Shield",
       "Includes Worry-Free Cancellation",
       "Priority customer support",
-      "Save $50 vs individual purchases"
+      "Save $50 vs individual purchases",
     ],
   },
 ];
@@ -168,7 +168,7 @@ const standardBundles: BundleOption[] = [
       "Extra legroom seat",
       "Premium meal",
       "1 additional checked bag",
-      "Priority baggage handling"
+      "Priority baggage handling",
     ],
   },
   {
@@ -185,7 +185,7 @@ const standardBundles: BundleOption[] = [
       "Fast-track security",
       "Premium seat selection",
       "Wi-Fi access",
-      "Flexible rebooking"
+      "Flexible rebooking",
     ],
   },
   {
@@ -202,7 +202,7 @@ const standardBundles: BundleOption[] = [
       "Entertainment package",
       "Priority family boarding",
       "Extra baggage allowance",
-      "Travel insurance"
+      "Travel insurance",
     ],
   },
 ];
@@ -214,22 +214,22 @@ const services: Record<string, IndividualService[]> = {
       name: "Seat Selection",
       description: "Choose your preferred seat",
       price: 25,
-      category: "comfort"
+      category: "comfort",
     },
     {
       id: "airport-lounge",
       name: "Airport Lounge Access",
       description: "Relax in premium lounges",
       price: 65,
-      category: "comfort"
+      category: "comfort",
     },
     {
       id: "extra-legroom",
       name: "Extra Legroom Seat",
       description: "More space to stretch out",
       price: 40,
-      category: "comfort"
-    }
+      category: "comfort",
+    },
   ],
   baggage: [
     {
@@ -237,15 +237,15 @@ const services: Record<string, IndividualService[]> = {
       name: "Extra Baggage (23kg)",
       description: "Additional checked baggage",
       price: 45,
-      category: "baggage"
+      category: "baggage",
     },
     {
       id: "priority-baggage",
       name: "Priority Baggage",
       description: "First off the carousel",
       price: 20,
-      category: "baggage"
-    }
+      category: "baggage",
+    },
   ],
   convenience: [
     {
@@ -253,15 +253,15 @@ const services: Record<string, IndividualService[]> = {
       name: "Priority Boarding",
       description: "Board the aircraft first",
       price: 15,
-      category: "convenience"
+      category: "convenience",
     },
     {
       id: "fast-track-security",
       name: "Fast Track Security",
       description: "Skip the security queues",
       price: 25,
-      category: "convenience"
-    }
+      category: "convenience",
+    },
   ],
   dining: [
     {
@@ -269,8 +269,8 @@ const services: Record<string, IndividualService[]> = {
       name: "Premium Meal",
       description: "Upgrade your in-flight dining",
       price: 35,
-      category: "dining"
-    }
+      category: "dining",
+    },
   ],
   connectivity: [
     {
@@ -278,8 +278,8 @@ const services: Record<string, IndividualService[]> = {
       name: "In-flight WiFi",
       description: "Stay connected during your flight",
       price: 20,
-      category: "connectivity"
-    }
+      category: "connectivity",
+    },
   ],
   insurance: [
     {
@@ -287,9 +287,9 @@ const services: Record<string, IndividualService[]> = {
       name: "Travel Insurance",
       description: "Comprehensive travel protection",
       price: 55,
-      category: "insurance"
-    }
-  ]
+      category: "insurance",
+    },
+  ],
 };
 
 export default function AddServicesBundles() {
@@ -305,7 +305,7 @@ export default function AddServicesBundles() {
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Load booking data from localStorage on component mount
@@ -324,9 +324,12 @@ export default function AddServicesBundles() {
     if (tempSelections) {
       try {
         const selections = JSON.parse(tempSelections);
-        if (selections.selectedBundles) setSelectedBundles(selections.selectedBundles);
-        if (selections.individualServiceCounts) setIndividualServiceCounts(selections.individualServiceCounts);
-        if (selections.selectedServices) setSelectedServices(selections.selectedServices);
+        if (selections.selectedBundles)
+          setSelectedBundles(selections.selectedBundles);
+        if (selections.individualServiceCounts)
+          setIndividualServiceCounts(selections.individualServiceCounts);
+        if (selections.selectedServices)
+          setSelectedServices(selections.selectedServices);
       } catch (error) {
         console.warn("Could not restore service selections:", error);
       }
@@ -338,10 +341,16 @@ export default function AddServicesBundles() {
     const currentSelections = {
       selectedBundles,
       individualServiceCounts,
-      selectedServices
+      selectedServices,
     };
-    localStorage.setItem("selectedServices", JSON.stringify(currentSelections.selectedServices));
-    localStorage.setItem("tempServiceSelections", JSON.stringify(currentSelections));
+    localStorage.setItem(
+      "selectedServices",
+      JSON.stringify(currentSelections.selectedServices),
+    );
+    localStorage.setItem(
+      "tempServiceSelections",
+      JSON.stringify(currentSelections),
+    );
 
     if (isAdminBooking) {
       navigate("/flight-search-bundle?admin=true");
@@ -401,9 +410,9 @@ export default function AddServicesBundles() {
     localStorage.setItem("selectedServices", JSON.stringify(selectedServices));
     let nextLocation = "/group-leader";
 
-      if (isAdminBooking) {
-          nextLocation += "?admin=true";
-      }
+    if (isAdminBooking) {
+      nextLocation += "?admin=true";
+    }
 
     console.log("Continue to Group Leader", { selectedServices });
     navigate(nextLocation);
@@ -543,29 +552,29 @@ export default function AddServicesBundles() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-          <div>
-            <Title level={2} className="!mb-2 text-gray-900">
-              Add Services & Bundles
-            </Title>
+            <div>
+              <Title level={2} className="!mb-2 text-gray-900">
+                Add Services & Bundles
+              </Title>
+              {isAdminBooking && (
+                <div className="flex items-center gap-2">
+                  <Badge color="blue" text="Admin Booking" />
+                  <Text className="text-gray-600">
+                    Creating booking through admin panel
+                  </Text>
+                </div>
+              )}
+            </div>
             {isAdminBooking && (
-              <div className="flex items-center gap-2">
-                <Badge color="blue" text="Admin Booking" />
-                <Text className="text-gray-600">
-                  Creating booking through admin panel
-                </Text>
-              </div>
+              <Button
+                type="text"
+                onClick={() => navigate("/admin/bookings")}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                ← Back to Admin Panel
+              </Button>
             )}
           </div>
-          {isAdminBooking && (
-            <Button
-              type="text"
-              onClick={() => navigate("/admin/bookings")}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              ← Back to Admin Panel
-            </Button>
-          )}
-        </div>
           <Text className="text-gray-600">
             Choose from our curated bundles or select individual services to
             enhance your group travel experience.
@@ -1102,7 +1111,7 @@ export default function AddServicesBundles() {
                                 onClick={() =>
                                   updateServiceCount(
                                     "inflight-wifi",
-                                                                   (individualServiceCounts["inflight-wifi"] ||
+                                    (individualServiceCounts["inflight-wifi"] ||
                                       0) + 1,
                                   )
                                 }

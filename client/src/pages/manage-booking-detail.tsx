@@ -30,7 +30,7 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import type { Booking } from "@shared/schema";
 import dayjs from "dayjs";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -38,7 +38,7 @@ const { Option } = Select;
 export default function ManageBookingDetail() {
   // const [, params] = useRoute("/manage-booking/:id");
   const params = useParams();
-  
+
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("basic-info");
   const [paymentAmount, setPaymentAmount] = useState("4500.00");
@@ -47,7 +47,6 @@ export default function ManageBookingDetail() {
   // Get booking ID from URL params
   // const bookingId = params?.id;
   const bookingId = params.id;
-
 
   // Fetch booking details from API
   const {
@@ -128,7 +127,9 @@ export default function ManageBookingDetail() {
   ).length;
 
   // Set current group size to match confirmed passengers count
-  const [currentGroupSize, setCurrentGroupSize] = useState(confirmedPassengersCount);
+  const [currentGroupSize, setCurrentGroupSize] = useState(
+    confirmedPassengersCount,
+  );
 
   React.useEffect(() => {
     // Update current group size to match confirmed passengers count
@@ -159,10 +160,7 @@ export default function ManageBookingDetail() {
             showIcon
           />
           <div className="mt-4">
-            <Button 
-              onClick={() => navigate("/manage-booking")}
-              type="primary"
-            >
+            <Button onClick={() => navigate("/manage-booking")} type="primary">
               Back to Manage Booking
             </Button>
           </div>
@@ -204,7 +202,7 @@ export default function ManageBookingDetail() {
   const handleSaveChanges = async () => {
     try {
       console.log("Starting to save changes for booking:", bookingId);
-      
+
       // Save group leader information
       console.log("Saving group leader information...");
       const groupLeaderResponse = await fetch(
@@ -235,9 +233,12 @@ export default function ManageBookingDetail() {
       const validPassengers = passengers.filter(
         (p) => p.firstName.trim() || p.lastName.trim(),
       );
-      
-      console.log(`Saving ${validPassengers.length} passengers:`, validPassengers);
-      
+
+      console.log(
+        `Saving ${validPassengers.length} passengers:`,
+        validPassengers,
+      );
+
       const passengersResponse = await fetch(
         `/api/booking-passengers/${bookingId}`,
         {

@@ -14,7 +14,7 @@ const AdminSidebar = ({ activeMenu }: any) => {
 
   return (
     <div
-      className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
+      className="w-72 bg-gradient-to-b from-slate-900 to-slate-800 sticky top-[73px] shadow-xl"
       style={{ height: "calc(100vh - 73px)" }}
     >
       <div className="h-full overflow-y-auto">

@@ -97,7 +97,7 @@ export default function ReviewConfirmation() {
         {/* Sidebar */}
         <AdminSidebar activeMenu="Booking Management" />
 
-        <div className="max-w-5xl mx-auto py-6">
+        <div className="w-3/4 mx-auto py-8 px-8">
           {/* Booking Steps */}
           <div className="mb-8">
             <div className="overflow-x-auto">
@@ -148,8 +148,8 @@ export default function ReviewConfirmation() {
                             ? bookingData.tripType === "oneWay"
                               ? "One-way"
                               : bookingData.tripType === "roundTrip"
-                              ? "Round-trip"
-                              : "Multi-city"
+                                ? "Round-trip"
+                                : "Multi-city"
                             : "One-way"}
                         </Text>
                       </div>
@@ -173,10 +173,10 @@ export default function ReviewConfirmation() {
                           {bookingData?.departureDate
                             ? typeof bookingData.departureDate === "string"
                               ? dayjs(bookingData.departureDate).format(
-                                  "DD MMM YYYY"
+                                  "DD MMM YYYY",
                                 )
                               : dayjs(bookingData.departureDate).format(
-                                  "DD MMM YYYY"
+                                  "DD MMM YYYY",
                                 )
                             : "22 Jun 2024"}
                         </Text>
@@ -221,10 +221,10 @@ export default function ReviewConfirmation() {
                           bookingData.tripType !== "oneWay"
                             ? typeof bookingData.returnDate === "string"
                               ? dayjs(bookingData.returnDate).format(
-                                  "DD MMM YYYY"
+                                  "DD MMM YYYY",
                                 )
                               : dayjs(bookingData.returnDate).format(
-                                  "DD MMM YYYY"
+                                  "DD MMM YYYY",
                                 )
                             : "N/A"}
                         </Text>
@@ -372,7 +372,7 @@ export default function ReviewConfirmation() {
                                 total +
                                 service.price *
                                   (bookingData?.totalPassengers || 1),
-                              0
+                              0,
                             )
                           : "3,800")}
                     </Text>
@@ -386,7 +386,7 @@ export default function ReviewConfirmation() {
                         {((bundleData?.bundleCost || 0) +
                           selectedServices.reduce(
                             (total, service) => total + service.price,
-                            0
+                            0,
                           )) *
                           (bookingData?.totalPassengers || 1)}
                       </Text>

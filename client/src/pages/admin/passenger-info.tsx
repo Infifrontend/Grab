@@ -113,7 +113,7 @@ export default function PassengerInfo() {
                 passportNumber: "",
                 passportExpiry: "",
                 specialRequests: "",
-              }))
+              })),
             );
           }
         } catch (error) {
@@ -129,7 +129,7 @@ export default function PassengerInfo() {
               passportNumber: "",
               passportExpiry: "",
               specialRequests: "",
-            }))
+            })),
           );
         }
       } else {
@@ -144,7 +144,7 @@ export default function PassengerInfo() {
             passportNumber: "",
             passportExpiry: "",
             specialRequests: "",
-          }))
+          })),
         );
       }
     }
@@ -158,7 +158,7 @@ export default function PassengerInfo() {
       p.dateOfBirth &&
       p.nationality &&
       p.passportNumber &&
-      p.passportExpiry
+      p.passportExpiry,
   ).length;
 
   const handleBack = () => {
@@ -175,7 +175,7 @@ export default function PassengerInfo() {
     }));
     localStorage.setItem(
       "tempPassengerData",
-      JSON.stringify(currentPassengerData)
+      JSON.stringify(currentPassengerData),
     );
     console.log("Saved passenger data:", currentPassengerData);
     navigate("/admin/group-leader");
@@ -184,7 +184,7 @@ export default function PassengerInfo() {
   const handleContinue = () => {
     // Store all passenger data before navigating
     const allPassengerData = passengers.filter(
-      (p) => p.firstName && p.lastName && p.dateOfBirth && p.nationality
+      (p) => p.firstName && p.lastName && p.dateOfBirth && p.nationality,
     );
 
     localStorage.setItem("passengerData", JSON.stringify(allPassengerData));
@@ -213,7 +213,7 @@ export default function PassengerInfo() {
   const handlePassengerChange = (
     index: number,
     field: keyof PassengerInfo,
-    value: string
+    value: string,
   ) => {
     const updatedPassengers = [...passengers];
     updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
@@ -241,7 +241,7 @@ export default function PassengerInfo() {
         {/* Sidebar */}
         <AdminSidebar activeMenu="Booking Management" />
 
-        <div className="max-w-5xl mx-auto py-6">
+        <div className="w-3/4 mx-auto py-8 px-8">
           {/* Booking Steps */}
           <div className="mb-8">
             <div className="overflow-x-auto">
@@ -290,7 +290,7 @@ export default function PassengerInfo() {
             </div>
             <Progress
               percent={Math.round(
-                (completedPassengers / totalPassengers) * 100
+                (completedPassengers / totalPassengers) * 100,
               )}
               strokeColor="#2563eb"
               className="mb-4"
@@ -359,7 +359,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "firstName",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -377,7 +377,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "lastName",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -403,7 +403,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "dateOfBirth",
-                              date ? date.toISOString() : ""
+                              date ? date.toISOString() : "",
                             )
                           }
                           disabledDate={(current) =>
@@ -455,7 +455,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "passportNumber",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -479,7 +479,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "passportExpiry",
-                              date ? date.toISOString() : ""
+                              date ? date.toISOString() : "",
                             )
                           }
                         />
@@ -499,7 +499,7 @@ export default function PassengerInfo() {
                             handlePassengerChange(
                               index,
                               "specialRequests",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />

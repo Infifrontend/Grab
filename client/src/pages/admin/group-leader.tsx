@@ -57,12 +57,12 @@ export default function GroupLeader() {
       // Filter out empty values to avoid storing unnecessary data
       const filteredValues = Object.fromEntries(
         Object.entries(currentValues).filter(
-          ([_, value]) => value !== undefined && value !== ""
-        )
+          ([_, value]) => value !== undefined && value !== "",
+        ),
       );
       localStorage.setItem(
         "tempGroupLeaderData",
-        JSON.stringify(filteredValues)
+        JSON.stringify(filteredValues),
       );
       console.log("Saved group leader data:", filteredValues);
     } catch (error) {
@@ -91,16 +91,16 @@ export default function GroupLeader() {
 
       // Calculate and store total booking amount
       const bookingData = JSON.parse(
-        localStorage.getItem("bookingFormData") || "{}"
+        localStorage.getItem("bookingFormData") || "{}",
       );
       const flightData = JSON.parse(
-        localStorage.getItem("selectedFlightData") || "{}"
+        localStorage.getItem("selectedFlightData") || "{}",
       );
       const bundleData = JSON.parse(
-        localStorage.getItem("selectedBundleData") || "{}"
+        localStorage.getItem("selectedBundleData") || "{}",
       );
       const servicesData = JSON.parse(
-        localStorage.getItem("selectedServices") || "[]"
+        localStorage.getItem("selectedServices") || "[]",
       );
 
       const passengerCount = bookingData.totalPassengers || 1;
@@ -160,7 +160,7 @@ export default function GroupLeader() {
         {/* Sidebar */}
         <AdminSidebar activeMenu="Booking Management" />
 
-        <div className="max-w-5xl mx-auto py-6">
+        <div className="w-3/4 mx-auto py-8 px-8">
           {/* Booking Steps */}
           <div className="mb-8">
             <div className="overflow-x-auto">

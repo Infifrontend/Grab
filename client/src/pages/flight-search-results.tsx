@@ -169,7 +169,7 @@ export default function FlightSearchResults() {
       infants,
       cabin,
       tripType,
-      totalPassengers: adults + kids + infants
+      totalPassengers: adults + kids + infants,
     };
     localStorage.setItem("bookingFormData", JSON.stringify(searchCriteria));
     navigate("/");

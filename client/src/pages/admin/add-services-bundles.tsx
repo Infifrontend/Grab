@@ -347,11 +347,11 @@ export default function AddServicesBundles() {
     };
     localStorage.setItem(
       "selectedServices",
-      JSON.stringify(currentSelections.selectedServices)
+      JSON.stringify(currentSelections.selectedServices),
     );
     localStorage.setItem(
       "tempServiceSelections",
-      JSON.stringify(currentSelections)
+      JSON.stringify(currentSelections),
     );
 
     if (isAdminBooking) {
@@ -391,7 +391,7 @@ export default function AddServicesBundles() {
           "baggage",
           "dining",
         ].find((cat) =>
-          services[cat].some((service) => service.id === serviceId)
+          services[cat].some((service) => service.id === serviceId),
         );
         if (category) {
           const service = services[category].find((s) => s.id === serviceId);
@@ -424,7 +424,7 @@ export default function AddServicesBundles() {
     setSelectedBundles((prev) =>
       prev.includes(bundleId)
         ? prev.filter((id) => id !== bundleId)
-        : [...prev, bundleId]
+        : [...prev, bundleId],
     );
   };
 
@@ -520,8 +520,8 @@ export default function AddServicesBundles() {
       <div className="flex">
         {/* Sidebar */}
         <AdminSidebar activeMenu="Booking Management" />
-        
-        <div className="max-w-5xl mx-auto py-6">
+
+        <div className="w-3/4 mx-auto py-8 px-8">
           {/* Booking Steps */}
           <div className="mb-8">
             <BookingSteps currentStep={2} size="small" className="mb-6" />
@@ -642,7 +642,7 @@ export default function AddServicesBundles() {
                                       "seat-selection",
                                       (individualServiceCounts[
                                         "seat-selection"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -663,7 +663,7 @@ export default function AddServicesBundles() {
                                       "seat-selection",
                                       (individualServiceCounts[
                                         "seat-selection"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -690,7 +690,7 @@ export default function AddServicesBundles() {
                                       "airport-lounge",
                                       (individualServiceCounts[
                                         "airport-lounge"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -711,7 +711,7 @@ export default function AddServicesBundles() {
                                       "airport-lounge",
                                       (individualServiceCounts[
                                         "airport-lounge"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -740,7 +740,7 @@ export default function AddServicesBundles() {
                                       "extra-legroom",
                                       (individualServiceCounts[
                                         "extra-legroom"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -760,7 +760,7 @@ export default function AddServicesBundles() {
                                       "extra-legroom",
                                       (individualServiceCounts[
                                         "extra-legroom"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -802,7 +802,7 @@ export default function AddServicesBundles() {
                                       "extra-baggage",
                                       (individualServiceCounts[
                                         "extra-baggage"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -822,7 +822,7 @@ export default function AddServicesBundles() {
                                       "extra-baggage",
                                       (individualServiceCounts[
                                         "extra-baggage"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -849,7 +849,7 @@ export default function AddServicesBundles() {
                                       "priority-baggage",
                                       (individualServiceCounts[
                                         "priority-baggage"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -871,7 +871,7 @@ export default function AddServicesBundles() {
                                       "priority-baggage",
                                       (individualServiceCounts[
                                         "priority-baggage"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -913,7 +913,7 @@ export default function AddServicesBundles() {
                                       "priority-boarding",
                                       (individualServiceCounts[
                                         "priority-boarding"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -935,7 +935,7 @@ export default function AddServicesBundles() {
                                       "priority-boarding",
                                       (individualServiceCounts[
                                         "priority-boarding"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -962,7 +962,7 @@ export default function AddServicesBundles() {
                                       "fast-track-security",
                                       (individualServiceCounts[
                                         "fast-track-security"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -984,7 +984,7 @@ export default function AddServicesBundles() {
                                       "fast-track-security",
                                       (individualServiceCounts[
                                         "fast-track-security"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -1026,7 +1026,7 @@ export default function AddServicesBundles() {
                                       "premium-meal",
                                       (individualServiceCounts[
                                         "premium-meal"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -1045,7 +1045,7 @@ export default function AddServicesBundles() {
                                       "premium-meal",
                                       (individualServiceCounts[
                                         "premium-meal"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -1087,7 +1087,7 @@ export default function AddServicesBundles() {
                                       "inflight-wifi",
                                       (individualServiceCounts[
                                         "inflight-wifi"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -1107,7 +1107,7 @@ export default function AddServicesBundles() {
                                       "inflight-wifi",
                                       (individualServiceCounts[
                                         "inflight-wifi"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />
@@ -1149,7 +1149,7 @@ export default function AddServicesBundles() {
                                       "travel-insurance",
                                       (individualServiceCounts[
                                         "travel-insurance"
-                                      ] || 0) - 1
+                                      ] || 0) - 1,
                                     )
                                   }
                                   disabled={
@@ -1171,7 +1171,7 @@ export default function AddServicesBundles() {
                                       "travel-insurance",
                                       (individualServiceCounts[
                                         "travel-insurance"
-                                      ] || 0) + 1
+                                      ] || 0) + 1,
                                     )
                                   }
                                 />

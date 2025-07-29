@@ -181,7 +181,7 @@ export default function FlightSearchBundle() {
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Fetch unique flight locations for autocomplete
@@ -199,7 +199,7 @@ export default function FlightSearchBundle() {
   const [selectedMeals, setSelectedMeals] = useState<string[]>([
     "standard-meal",
   ]);
-  
+
   // Additional state variables
   const [isAdminBooking, setIsAdminBooking] = useState(false);
   const [originOptions, setOriginOptions] = useState<string[]>([]);
@@ -660,7 +660,10 @@ export default function FlightSearchBundle() {
       localStorage.setItem("isAdminBooking", "true");
     }
 
-    console.log("Continue to Add Services & Bundles with flight data:", selectedFlightData);
+    console.log(
+      "Continue to Add Services & Bundles with flight data:",
+      selectedFlightData,
+    );
     navigate("/add-services-bundles");
   };
 
@@ -911,42 +914,58 @@ export default function FlightSearchBundle() {
   // Get selected flight objects
   const selectedOutboundFlight = useMemo(() => {
     if (!selectedOutbound) return null;
-    return filteredFlights.find(flight => flight.id.toString() === selectedOutbound) || null;
+    return (
+      filteredFlights.find(
+        (flight) => flight.id.toString() === selectedOutbound,
+      ) || null
+    );
   }, [selectedOutbound, filteredFlights]);
 
   const selectedReturnFlight = useMemo(() => {
     if (!selectedReturn) return null;
-    return filteredReturnFlights.find(flight => flight.id.toString() === selectedReturn) || null;
+    return (
+      filteredReturnFlights.find(
+        (flight) => flight.id.toString() === selectedReturn,
+      ) || null
+    );
   }, [selectedReturn, filteredReturnFlights]);
 
   // Get selected options
-  const selectedSeatOption = seatOptions.find(option => option.id === selectedSeat);
-  const selectedBaggageOption = baggageOptions.find(option => option.id === selectedBaggage);
-  
+  const selectedSeatOption = seatOptions.find(
+    (option) => option.id === selectedSeat,
+  );
+  const selectedBaggageOption = baggageOptions.find(
+    (option) => option.id === selectedBaggage,
+  );
+
   const baseCost = useMemo(() => {
     let cost = 0;
-    
+
     // Add outbound flight cost
     if (selectedOutboundFlight) {
-      const outboundPrice = typeof selectedOutboundFlight.price === "string"
-        ? parseFloat(selectedOutboundFlight.price)
-        : selectedOutboundFlight.price || 0;
+      const outboundPrice =
+        typeof selectedOutboundFlight.price === "string"
+          ? parseFloat(selectedOutboundFlight.price)
+          : selectedOutboundFlight.price || 0;
       cost += outboundPrice * passengerCount;
     }
-    
+
     // Add return flight cost for round trip
     if (tripType === "roundTrip" && selectedReturnFlight) {
-      const returnPrice = typeof selectedReturnFlight.price === "string"
-        ? parseFloat(selectedReturnFlight.price)
-        : selectedReturnFlight.price || 0;
+      const returnPrice =
+        typeof selectedReturnFlight.price === "string"
+          ? parseFloat(selectedReturnFlight.price)
+          : selectedReturnFlight.price || 0;
       cost += returnPrice * passengerCount;
     }
-    
+
     return cost;
   }, [selectedOutboundFlight, selectedReturnFlight, tripType, passengerCount]);
 
   const bundleCost = useMemo(() => {
-    return (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0);
+    return (
+      (selectedSeatOption?.price || 0) + (selectedBaggageOption?.price || 0)
+    );
   }, [selectedSeatOption, selectedBaggageOption]);
 
   const totalCost = useMemo(() => {
@@ -1039,7 +1058,9 @@ export default function FlightSearchBundle() {
               <Text className="font-medium text-xs">
                 {formatFlightTime(flight.departureTime)}
               </Text>
-              <Text className="block text-xs text-gray-500">{flight.origin}</Text>
+              <Text className="block text-xs text-gray-500">
+                {flight.origin}
+              </Text>
             </div>
             <div className="flex items-center mx-4">
               <div className="w-12 h-px bg-gray-300"></div>
@@ -1869,7 +1890,10 @@ export default function FlightSearchBundle() {
             type="primary"
             size="large"
             onClick={handleContinue}
-            disabled={!selectedOutboundFlight || (tripType === "roundTrip" && !selectedReturnFlight)}
+            disabled={
+              !selectedOutboundFlight ||
+              (tripType === "roundTrip" && !selectedReturnFlight)
+            }
             className="infiniti-btn-primary px-8"
           >
             Continue to Services
