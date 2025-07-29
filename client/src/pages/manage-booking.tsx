@@ -28,6 +28,7 @@ const { Title, Text } = Typography;
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
   const navigate = useNavigate();
+  const adminMode = window.location.pathname.includes("/admin/");
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -88,7 +89,7 @@ export default function ManageBooking() {
       message.success(`Booking found! ${passengerCount} confirmed passengers`);
 
       // Navigate to the booking details page with the retrieved data
-      navigate(`/manage-booking/${bookingId}`);
+      navigate(adminMode ? `/admin/manage-booking/${bookingId}` : `/manage-booking/${bookingId}`);
     } catch (error) {
       console.error("Error fetching booking:", error);
       message.error("Error fetching booking details. Please try again.");
@@ -96,7 +97,7 @@ export default function ManageBooking() {
   };
 
   const handleManageBooking = (booking: Booking) => {
-    navigate(`/manage-booking/${booking.id}`);
+    navigate(adminMode ? `/admin/manage-booking/${bookingId}` : `/manage-booking/${bookingId}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -118,9 +119,9 @@ export default function ManageBooking() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      {!adminMode ? <Header /> : null}
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className={`${adminMode ? 'w-full' : 'max-w-7xl px-6 py-6'} mx-auto`}>
         {/* Page Header */}
         <div className="mb-8">
           <Title level={2} className="!mb-2 text-gray-900">
@@ -285,7 +286,9 @@ export default function ManageBooking() {
                     type="primary"
                     className="w-full infiniti-btn-primary"
                     onClick={() =>
-                      navigate(`/booking-details/${booking.bookingReference}`)
+                      navigate(
+                        adminMode ? `/admin/booking-details/${booking.bookingReference}` : `/booking-details/${booking.bookingReference}`,
+                      )
                     }
                   >
                     View Details
@@ -315,7 +318,8 @@ export default function ManageBooking() {
                   <Button
                     type="primary"
                     className="infiniti-btn-primary mt-4"
-                    onClick={() => navigate("/new-booking")}
+                    onClick={() => navigate(adminMode ? "/admin/bookings" : "/new-booking")}
+
                   >
                     Create New Booking
                   </Button>
@@ -345,6 +349,6 @@ export default function ManageBooking() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }

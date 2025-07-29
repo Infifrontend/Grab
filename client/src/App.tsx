@@ -14,7 +14,7 @@ import BookingDetails from "@/pages/booking-details";
 import Settings from "@/pages/settings";
 import AdminLogin from "@/pages/admin/admin-login";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
-import AdminBookingDetails from "@/pages/admin/bookings";
+import AdminBookingDetails from "@/pages/admin/booking-details";
 import AdminFlightSearchResults from "@/pages/admin/flight-search-results";
 import AdminFlightSearchBundle from "@/pages/admin/flight-search-bundle";
 import AdminAddServicesBundles from "./pages/admin/add-services-bundles";
@@ -23,6 +23,7 @@ import AdminPassengerInfo from "./pages/admin/passenger-info";
 import AdminPaymentOptions from "@/pages/admin/payment-options";
 import AdminReviewConfirmation from "@/pages/admin/review-confirmation";
 import AdminDownloadItinerary from "./pages/admin/download-itinerary";
+import AdminManageBookingDetail from "@/pages/admin/manage-booking-detail";
 
 import BidManagement from "@/pages/admin/bid-management";
 import OfferManagement from "@/pages/admin/offer-management";
@@ -72,6 +73,7 @@ function App() {
               <Route path="/admin/cms" element={<CMS />} />
               <Route path="/admin/admin-settings" element={<AdminSettings />} />
               <Route path="/admin/reports" element={<Reports />} />
+              <Route path="/admin/manage-booking/:id" element={<AdminManageBookingDetail />} />
 
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
