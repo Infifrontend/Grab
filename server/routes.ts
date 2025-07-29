@@ -961,14 +961,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bids/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const bid = await storage.getBidById(parseInt(id));
-      if (!bid) {
-        return res.status(404).json({ message: "Bid not found" });
+      const bidId = parseInt(id);
+      
+      console.log(`Looking up bid with ID: ${bidId}`);
+      
+      if (isNaN(bidId) || bidId <= 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Invalid bid ID: ${id}` 
+        });
       }
-      res.json(bid);
+      
+      const bid = await storage.getBidById(bidId);
+      
+      if (!bid) {
+        console.log(`Bid not found with ID: ${bidId}`);
+        return res.status(404).json({ 
+          success: false, 
+          message: `Bid not found with ID: ${bidId}` 
+        });
+      }
+      
+      console.log(`Successfully found bid ${bidId}`);
+      res.json({
+        success: true,
+        ...bid
+      });
     } catch (error) {
       console.error("Error fetching bid details:", error);
-      res.status(500).json({ message: "Failed to fetch bid details" });
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch bid details",
+        error: error.message 
+      });
     }
   });
 

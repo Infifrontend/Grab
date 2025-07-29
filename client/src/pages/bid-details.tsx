@@ -229,26 +229,19 @@ export default function BidDetails() {
   const handleContinueToPayment = () => {
     // Store bid participation data for payment
     const bidParticipationData = {
-      bidId: transformedBidData.bidId,
-      passengerCount: passengers,
+      totalBid: bidAmount * passengers,
       bidAmount: bidAmount,
-      totalBid: passengers * bidAmount,
-      depositRequired: passengers * bidAmount * 0.1,
+      passengerCount: passengers,
       configData: {
-        title: transformedBidData.groupName,
+        title: transformedBidData.title,
         route: transformedBidData.route,
-        travelDate: transformedBidData.departureDate,
-      },
+        travelDate: transformedBidData.travelDate
+      }
     };
 
-    // Store in localStorage for payment page
-    localStorage.setItem(
-      "bidParticipationData",
-      JSON.stringify(bidParticipationData),
-    );
-
-    // Navigate to payment page
-    navigate(`/payment-details/${transformedBidData.bidId}`);
+    console.log("Storing bid participation data:", bidParticipationData);
+    localStorage.setItem("bidParticipationData", JSON.stringify(bidParticipationData));
+    navigate(`/payment-details/${params.id}`);
   };
 
   return (

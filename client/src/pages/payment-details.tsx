@@ -85,7 +85,7 @@ export default function PaymentDetails() {
       // First, verify the bid exists and is in a valid state for payment
       let bidCheckResponse;
       let bidData;
-      
+
       try {
         bidCheckResponse = await fetch(`/api/bids/${bidId}`);
         if (!bidCheckResponse.ok) {
@@ -94,7 +94,7 @@ export default function PaymentDetails() {
         }
         bidData = await bidCheckResponse.json();
         console.log("Bid data:", bidData);
-        
+
         if (!bidData || !bidData.bid) {
           throw new Error("Invalid bid data received");
         }
@@ -127,15 +127,15 @@ export default function PaymentDetails() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          bidId: parseInt(bidId),
-          bookingId: parseInt(bidId), // Use bid ID as booking reference for now
-          amount: bidParticipationData.depositRequired.toString(),
-          currency: "INR",
-          paymentMethod: paymentMethod,
-          paymentStatus: "completed",
-          paymentType: "deposit",
-          cardDetails: paymentMethod === "creditCard" ? formValues : null,
-        }),
+            bidId: parseInt(bidId),
+            bookingId: parseInt(bidId), // Use bid ID as booking reference for now
+            amount: bidParticipationData.totalBid.toString(),
+            currency: "USD",
+            paymentMethod: paymentMethod,
+            paymentStatus: "completed",
+            paymentType: "full_payment",
+            cardDetails: paymentMethod === "creditCard" ? formValues : null,
+          }),
       });
 
       if (!paymentResponse.ok) {
