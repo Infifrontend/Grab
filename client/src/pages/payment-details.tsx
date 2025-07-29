@@ -28,8 +28,7 @@ const { Title, Text } = Typography;
 export default function PaymentDetails() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  // const [, params] = useRoute("/payment-details/:bidId");
-  const params = useParams();
+  const params = useParams<{ id: string }>();
 
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bidParticipationData, setBidParticipationData] = useState<any>(null);
@@ -47,6 +46,7 @@ export default function PaymentDetails() {
       } else {
         // If no localStorage data, try to fetch from API and create participation data
         const bidId = params.id;
+        console.log("Bid ID from params:", bidId, "Full params:", params);
         if (bidId) {
           try {
             console.log(
@@ -128,10 +128,11 @@ export default function PaymentDetails() {
 
     // Get the bid ID from the URL params
     const bidId = params.id;
-    console.log(params?.id);
+    console.log("Bid ID from params:", bidId, "Full params object:", params);
     if (!bidId) {
+      console.error("Bid ID is undefined. Params:", params);
       message.error("Bid ID not found");
-      // navigate("/bids");
+      navigate("/bids");
       return;
     }
 
