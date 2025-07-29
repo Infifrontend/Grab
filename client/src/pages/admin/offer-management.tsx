@@ -62,7 +62,48 @@ export default function OfferManagement() {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [policyModalStep, setPolicyModalStep] = useState(0);
-
+  const loyaltyOptions = [
+    {
+      value: "bronze",
+      label: "Bronze",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+      hover: "hover:border-amber-300",
+      text: "text-amber-800",
+    },
+    {
+      value: "silver",
+      label: "Silver",
+      bg: "bg-gray-50",
+      border: "border-gray-200",
+      hover: "hover:border-gray-300",
+      text: "text-gray-700",
+    },
+    {
+      value: "gold",
+      label: "Gold",
+      bg: "bg-yellow-50",
+      border: "border-yellow-200",
+      hover: "hover:border-yellow-300",
+      text: "text-yellow-800",
+    },
+    {
+      value: "platinum",
+      label: "Platinum",
+      bg: "bg-slate-50",
+      border: "border-slate-200",
+      hover: "hover:border-slate-300",
+      text: "text-slate-700",
+    },
+    {
+      value: "diamond",
+      label: "Diamond",
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+      hover: "hover:border-blue-300",
+      text: "text-blue-800",
+    },
+  ];
   useEffect(() => {
     // Check if admin is logged in
     const isAdminLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -924,7 +965,9 @@ export default function OfferManagement() {
                       <Col xs={24} lg={12}>
                         <Card size="small">
                           <div className="flex justify-between items-center mb-3">
-                            <Text className="font-semibold">                              Sustainable Travel Preference
+                            <Text className="font-semibold">
+                              {" "}
+                              Sustainable Travel Preference
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
                               High Impact
@@ -2403,14 +2446,16 @@ export default function OfferManagement() {
             </Title>
             {activeTab === "policies" && (
               <Text className="text-gray-600 text-base">
-                Configure comprehensive policy rules including refund/change policies, eligibility criteria, 
-                stacking rules, blackout dates, and compliance constraints
+                Configure comprehensive policy rules including refund/change
+                policies, eligibility criteria, stacking rules, blackout dates,
+                and compliance constraints
               </Text>
             )}
             {activeTab === "ancillaries" && (
               <Text className="text-gray-600 text-base">
-                Configure comprehensive ancillary details including product definitions, pricing rules, 
-                availability logic, bundle options, and categories
+                Configure comprehensive ancillary details including product
+                definitions, pricing rules, availability logic, bundle options,
+                and categories
               </Text>
             )}
           </div>
@@ -2423,12 +2468,12 @@ export default function OfferManagement() {
           form.resetFields();
         }}
         footer={null}
-        width={activeTab === "policies" || activeTab === "ancillaries" ? 1000 : 600}
+        width={
+          activeTab === "policies" || activeTab === "ancillaries" ? 1000 : 600
+        }
         className="custom-modal"
         bodyStyle={{ padding: "24px 32px 32px" }}
       >
-        
-
         <Form
           form={form}
           layout="vertical"
@@ -2480,7 +2525,8 @@ export default function OfferManagement() {
                       Basic Information
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Configure the fundamental details of your policy including name, priority, and description.
+                      Configure the fundamental details of your policy including
+                      name, priority, and description.
                     </Text>
 
                     <Row gutter={16}>
@@ -2489,7 +2535,10 @@ export default function OfferManagement() {
                           label="Policy Name"
                           name="policyName"
                           rules={[
-                            { required: true, message: "Please enter policy name" },
+                            {
+                              required: true,
+                              message: "Please enter policy name",
+                            },
                           ]}
                         >
                           <Input
@@ -2518,7 +2567,10 @@ export default function OfferManagement() {
                       </Col>
                     </Row>
 
-                    <Form.Item label="Policy Description" name="policyDescription">
+                    <Form.Item
+                      label="Policy Description"
+                      name="policyDescription"
+                    >
                       <Input.TextArea
                         rows={4}
                         placeholder="Describe the policy purpose and scope..."
@@ -2543,7 +2595,8 @@ export default function OfferManagement() {
                       Refund/Change Rules
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Define the refund and change policies including deadlines, percentages, and fees.
+                      Define the refund and change policies including deadlines,
+                      percentages, and fees.
                     </Text>
 
                     <Row gutter={24}>
@@ -2584,7 +2637,10 @@ export default function OfferManagement() {
                               </Form.Item>
                             </Col>
                             <Col span={12}>
-                              <Form.Item label="Refund Fee ($)" name="refundFee">
+                              <Form.Item
+                                label="Refund Fee ($)"
+                                name="refundFee"
+                              >
                                 <InputNumber
                                   placeholder="0"
                                   className="w-full"
@@ -2643,8 +2699,9 @@ export default function OfferManagement() {
                         Eligibility Configuration
                       </Title>
                       <Text className="text-gray-600 text-lg max-w-4xl mx-auto leading-relaxed">
-                        Define comprehensive criteria for policy eligibility including loyalty status, 
-                        passenger demographics, age restrictions, and booking channel preferences.
+                        Define comprehensive criteria for policy eligibility
+                        including loyalty status, passenger demographics, age
+                        restrictions, and booking channel preferences.
                       </Text>
                     </div>
 
@@ -2661,7 +2718,8 @@ export default function OfferManagement() {
                               Loyalty & Membership
                             </Title>
                             <Text className="text-gray-600 text-base">
-                              Configure tier-based access and corporate customer restrictions
+                              Configure tier-based access and corporate customer
+                              restrictions
                             </Text>
                           </div>
                         </div>
@@ -2678,7 +2736,8 @@ export default function OfferManagement() {
                                   Loyalty Program Tiers
                                 </Text>
                                 <Text className="text-gray-600 text-sm">
-                                  Select eligible membership levels for this discount
+                                  Select eligible membership levels for this
+                                  discount
                                 </Text>
                               </div>
                             </div>
@@ -2686,29 +2745,30 @@ export default function OfferManagement() {
                               Multi-Select
                             </Badge>
                           </div>
-                          <Form.Item name="loyaltyTiers" className="!mb-0">
+                          <Form.Item
+                            name="loyaltyTiers"
+                            className="!mb-6"
+                            label="Loyalty Program Tiers"
+                          >
                             <Checkbox.Group className="w-full">
-                              <div className="grid grid-cols-5 gap-4">
-                                <div className="flex items-center space-x-3 p-4 bg-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
-                                  <Checkbox value="bronze" className="scale-110" />
-                                  <Text className="font-medium text-amber-800">🥉 Bronze</Text>
-                                </div>
-                                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-                                  <Checkbox value="silver" className="scale-110" />
-                                  <Text className="font-medium text-gray-700">🥈 Silver</Text>
-                                </div>
-                                <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
-                                  <Checkbox value="gold" className="scale-110" />
-                                  <Text className="font-medium text-yellow-800">🥇 Gold</Text>
-                                </div>
-                                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-                                  <Checkbox value="platinum" className="scale-110" />
-                                  <Text className="font-medium text-slate-700">💍 Platinum</Text>
-                                </div>
-                                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
-                                  <Checkbox value="diamond" className="scale-110" />
-                                  <Text className="font-medium text-blue-800">💎 Diamond</Text>
-                                </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                                {loyaltyOptions.map((item) => (
+                                  <div
+                                    key={item.value}
+                                    className={`flex items-center space-x-3 p-4 rounded-xl border transition-colors 
+                                    ${item.bg} ${item.border} ${item.hover}`}
+                                  >
+                                    <Checkbox
+                                      value={item.value}
+                                      className="scale-110"
+                                    />
+                                    <Text
+                                      className={`font-semibold ${item.text}`}
+                                    >
+                                      {item.label}
+                                    </Text>
+                                  </div>
+                                ))}
                               </div>
                             </Checkbox.Group>
                           </Form.Item>
@@ -2724,11 +2784,18 @@ export default function OfferManagement() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
                                 <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                                  <span className="text-blue-600 text-2xl">🏢</span>
+                                  <span className="text-blue-600 text-2xl">
+                                    🏢
+                                  </span>
                                 </div>
                                 <div>
-                                  <Text className="font-semibold text-gray-900 text-lg block">Corporate Customers Only</Text>
-                                  <Text className="text-gray-600 text-base">Restrict access to business accounts and corporate travelers</Text>
+                                  <Text className="font-semibold text-gray-900 text-lg block">
+                                    Corporate Customers Only
+                                  </Text>
+                                  <Text className="text-gray-600 text-base">
+                                    Restrict access to business accounts and
+                                    corporate travelers
+                                  </Text>
                                 </div>
                               </div>
                               <Switch size="large" className="ml-6" />
@@ -2748,7 +2815,8 @@ export default function OfferManagement() {
                               Demographics & Age
                             </Title>
                             <Text className="text-gray-600 text-base">
-                              Define passenger categories and age-based restrictions
+                              Define passenger categories and age-based
+                              restrictions
                             </Text>
                           </div>
                         </div>
@@ -2767,21 +2835,75 @@ export default function OfferManagement() {
                             <Checkbox.Group className="w-full">
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[
-                                  { value: "adult", label: "Adult", icon: "👨", desc: "18+ years", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
-                                  { value: "child", label: "Child", icon: "👧", desc: "2-17 years", bgColor: "bg-purple-50", borderColor: "border-purple-200" },
-                                  { value: "infant", label: "Infant", icon: "👶", desc: "0-2 years", bgColor: "bg-pink-50", borderColor: "border-pink-200" },
-                                  { value: "senior", label: "Senior", icon: "👴", desc: "65+ years", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
-                                  { value: "student", label: "Student", icon: "🎓", desc: "With valid ID", bgColor: "bg-indigo-50", borderColor: "border-indigo-200" },
-                                  { value: "military", label: "Military", icon: "🪖", desc: "Active/Veteran", bgColor: "bg-emerald-50", borderColor: "border-emerald-200" }
+                                  {
+                                    value: "adult",
+                                    label: "Adult",
+                                    icon: "👨",
+                                    desc: "18+ years",
+                                    bgColor: "bg-blue-50",
+                                    borderColor: "border-blue-200",
+                                  },
+                                  {
+                                    value: "child",
+                                    label: "Child",
+                                    icon: "👧",
+                                    desc: "2-17 years",
+                                    bgColor: "bg-purple-50",
+                                    borderColor: "border-purple-200",
+                                  },
+                                  {
+                                    value: "infant",
+                                    label: "Infant",
+                                    icon: "👶",
+                                    desc: "0-2 years",
+                                    bgColor: "bg-pink-50",
+                                    borderColor: "border-pink-200",
+                                  },
+                                  {
+                                    value: "senior",
+                                    label: "Senior",
+                                    icon: "👴",
+                                    desc: "65+ years",
+                                    bgColor: "bg-orange-50",
+                                    borderColor: "border-orange-200",
+                                  },
+                                  {
+                                    value: "student",
+                                    label: "Student",
+                                    icon: "🎓",
+                                    desc: "With valid ID",
+                                    bgColor: "bg-indigo-50",
+                                    borderColor: "border-indigo-200",
+                                  },
+                                  {
+                                    value: "military",
+                                    label: "Military",
+                                    icon: "🪖",
+                                    desc: "Active/Veteran",
+                                    bgColor: "bg-emerald-50",
+                                    borderColor: "border-emerald-200",
+                                  },
                                 ].map((type) => (
-                                  <div key={type.value} className={`group/passenger p-5 ${type.bgColor} rounded-xl border-2 ${type.borderColor} hover:border-green-300 hover:shadow-md transition-all duration-200 cursor-pointer`}>
+                                  <div
+                                    key={type.value}
+                                    className={`group/passenger p-5 ${type.bgColor} rounded-xl border-2 ${type.borderColor} hover:border-green-300 hover:shadow-md transition-all duration-200 cursor-pointer`}
+                                  >
                                     <div className="flex items-center space-x-4 mb-2">
-                                      <Checkbox value={type.value} className="scale-125" />
-                                      <span className="text-2xl">{type.icon}</span>
+                                      <Checkbox
+                                        value={type.value}
+                                        className="scale-125"
+                                      />
+                                      <span className="text-2xl">
+                                        {type.icon}
+                                      </span>
                                     </div>
                                     <div className="ml-8">
-                                      <Text className="font-semibold text-gray-900 text-base">{type.label}</Text>
-                                      <Text className="text-gray-500 text-sm">{type.desc}</Text>
+                                      <Text className="font-semibold text-gray-900 text-base">
+                                        {type.label}
+                                      </Text>
+                                      <Text className="text-gray-500 text-sm">
+                                        {type.desc}
+                                      </Text>
                                     </div>
                                   </div>
                                 ))}
@@ -2802,7 +2924,15 @@ export default function OfferManagement() {
                           </div>
                           <Row gutter={24} className="mb-6">
                             <Col span={12}>
-                              <Form.Item label={<span className="font-medium text-gray-700 text-base">Minimum Age</span>} name="minAge" className="!mb-4">
+                              <Form.Item
+                                label={
+                                  <span className="font-medium text-gray-700 text-base">
+                                    Minimum Age
+                                  </span>
+                                }
+                                name="minAge"
+                                className="!mb-4"
+                              >
                                 <InputNumber
                                   placeholder="0"
                                   className="w-full rounded-lg"
@@ -2814,7 +2944,15 @@ export default function OfferManagement() {
                               </Form.Item>
                             </Col>
                             <Col span={12}>
-                              <Form.Item label={<span className="font-medium text-gray-700 text-base">Maximum Age</span>} name="maxAge" className="!mb-4">
+                              <Form.Item
+                                label={
+                                  <span className="font-medium text-gray-700 text-base">
+                                    Maximum Age
+                                  </span>
+                                }
+                                name="maxAge"
+                                className="!mb-4"
+                              >
                                 <InputNumber
                                   placeholder="100"
                                   className="w-full rounded-lg"
@@ -2836,8 +2974,13 @@ export default function OfferManagement() {
                               <div className="flex items-center space-x-4">
                                 <span className="text-2xl">👨‍👩‍👧‍👦</span>
                                 <div>
-                                  <Text className="font-medium text-gray-900 text-base">Requires Adult Supervision</Text>
-                                  <Text className="text-gray-600 text-sm">Apply to minors traveling alone without adult supervision</Text>
+                                  <Text className="font-medium text-gray-900 text-base">
+                                    Requires Adult Supervision
+                                  </Text>
+                                  <Text className="text-gray-600 text-sm">
+                                    Apply to minors traveling alone without
+                                    adult supervision
+                                  </Text>
                                 </div>
                               </div>
                               <Checkbox className="ml-4 scale-125" />
@@ -2857,7 +3000,8 @@ export default function OfferManagement() {
                               Booking Channels
                             </Title>
                             <Text className="text-gray-600 text-base">
-                              Control which booking channels can access this policy
+                              Control which booking channels can access this
+                              policy
                             </Text>
                           </div>
                         </div>
@@ -2874,21 +3018,68 @@ export default function OfferManagement() {
                           <Checkbox.Group className="w-full">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               {[
-                                { value: "website", label: "Website", icon: "🌐", desc: "Desktop & mobile web platforms", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
-                                { value: "mobile", label: "Mobile App", icon: "📱", desc: "iOS & Android native applications", bgColor: "bg-green-50", borderColor: "border-green-200" },
-                                { value: "callcenter", label: "Call Center", icon: "☎️", desc: "Phone bookings and customer service", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
-                                { value: "agent", label: "Travel Agent", icon: "🏢", desc: "Third-party travel agencies", bgColor: "bg-indigo-50", borderColor: "border-indigo-200" },
-                                { value: "airport", label: "Airport Counter", icon: "✈️", desc: "Airport check-in and kiosks", bgColor: "bg-red-50", borderColor: "border-red-200" }
+                                {
+                                  value: "website",
+                                  label: "Website",
+                                  icon: "🌐",
+                                  desc: "Desktop & mobile web platforms",
+                                  bgColor: "bg-blue-50",
+                                  borderColor: "border-blue-200",
+                                },
+                                {
+                                  value: "mobile",
+                                  label: "Mobile App",
+                                  icon: "📱",
+                                  desc: "iOS & Android native applications",
+                                  bgColor: "bg-green-50",
+                                  borderColor: "border-green-200",
+                                },
+                                {
+                                  value: "callcenter",
+                                  label: "Call Center",
+                                  icon: "☎️",
+                                  desc: "Phone bookings and customer service",
+                                  bgColor: "bg-orange-50",
+                                  borderColor: "border-orange-200",
+                                },
+                                {
+                                  value: "agent",
+                                  label: "Travel Agent",
+                                  icon: "🏢",
+                                  desc: "Third-party travel agencies",
+                                  bgColor: "bg-indigo-50",
+                                  borderColor: "border-indigo-200",
+                                },
+                                {
+                                  value: "airport",
+                                  label: "Airport Counter",
+                                  icon: "✈️",
+                                  desc: "Airport check-in and kiosks",
+                                  bgColor: "bg-red-50",
+                                  borderColor: "border-red-200",
+                                },
                               ].map((channel) => (
-                                <div key={channel.value} className={`group/channel p-6 ${channel.bgColor} rounded-xl border-2 ${channel.borderColor} hover:border-purple-300 hover:shadow-md transition-all duration-200 cursor-pointer`}>
+                                <div
+                                  key={channel.value}
+                                  className={`group/channel p-6 ${channel.bgColor} rounded-xl border-2 ${channel.borderColor} hover:border-purple-300 hover:shadow-md transition-all duration-200 cursor-pointer`}
+                                >
                                   <div className="flex items-start space-x-4">
-                                    <Checkbox value={channel.value} className="scale-125 mt-1" />
+                                    <Checkbox
+                                      value={channel.value}
+                                      className="scale-125 mt-1"
+                                    />
                                     <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                                      <span className="text-2xl">{channel.icon}</span>
+                                      <span className="text-2xl">
+                                        {channel.icon}
+                                      </span>
                                     </div>
                                     <div className="flex-1">
-                                      <Text className="font-semibold text-gray-900 text-base block mb-1">{channel.label}</Text>
-                                      <Text className="text-gray-600 text-sm leading-relaxed">{channel.desc}</Text>
+                                      <Text className="font-semibold text-gray-900 text-base block mb-1">
+                                        {channel.label}
+                                      </Text>
+                                      <Text className="text-gray-600 text-sm leading-relaxed">
+                                        {channel.desc}
+                                      </Text>
                                     </div>
                                   </div>
                                 </div>
@@ -2906,28 +3097,45 @@ export default function OfferManagement() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-4">
-                              <Title level={4} className="!mb-0 text-gray-900">Eligibility Configuration Summary</Title>
+                              <Title level={4} className="!mb-0 text-gray-900">
+                                Eligibility Configuration Summary
+                              </Title>
                               <Badge className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium border border-blue-200">
                                 Auto-Generated Rules
                               </Badge>
                             </div>
                             <Text className="text-gray-700 leading-relaxed text-base mb-6">
-                              Configure the above criteria to define comprehensive eligibility rules. All selected conditions will be evaluated 
-                              using <span className="font-semibold text-blue-600">AND logic</span> to determine final policy access. 
-                              <span className="font-semibold">Real-time validation</span> ensures consistent policy enforcement across all booking channels.
+                              Configure the above criteria to define
+                              comprehensive eligibility rules. All selected
+                              conditions will be evaluated using{" "}
+                              <span className="font-semibold text-blue-600">
+                                AND logic
+                              </span>{" "}
+                              to determine final policy access.
+                              <span className="font-semibold">
+                                Real-time validation
+                              </span>{" "}
+                              ensures consistent policy enforcement across all
+                              booking channels.
                             </Text>
                             <div className="flex flex-wrap gap-6">
                               <div className="flex items-center text-gray-600">
                                 <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
-                                <Text className="font-medium">Auto-validation enabled</Text>
+                                <Text className="font-medium">
+                                  Auto-validation enabled
+                                </Text>
                               </div>
                               <div className="flex items-center text-gray-600">
                                 <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
-                                <Text className="font-medium">Multi-criteria support</Text>
+                                <Text className="font-medium">
+                                  Multi-criteria support
+                                </Text>
                               </div>
                               <div className="flex items-center text-gray-600">
                                 <span className="w-3 h-3 bg-purple-500 rounded-full mr-3"></span>
-                                <Text className="font-medium">Real-time enforcement</Text>
+                                <Text className="font-medium">
+                                  Real-time enforcement
+                                </Text>
                               </div>
                             </div>
                           </div>
@@ -2944,7 +3152,8 @@ export default function OfferManagement() {
                       Discount Stacking & Blackout Dates
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Configure how this policy interacts with other offers and define any blackout periods.
+                      Configure how this policy interacts with other offers and
+                      define any blackout periods.
                     </Text>
 
                     {/* Discount Stacking Section */}
@@ -3017,14 +3226,20 @@ export default function OfferManagement() {
                         </Text>
                       </div>
 
-                      <Form.Item name="hasBlackoutDates" valuePropName="checked">
+                      <Form.Item
+                        name="hasBlackoutDates"
+                        valuePropName="checked"
+                      >
                         <Switch />
                         <span className="ml-2">Has Blackout Dates</span>
                       </Form.Item>
 
                       <Row gutter={16} className="mt-4">
                         <Col span={12}>
-                          <Form.Item label="Blackout Start Date" name="blackoutStartDate">
+                          <Form.Item
+                            label="Blackout Start Date"
+                            name="blackoutStartDate"
+                          >
                             <DatePicker
                               size="large"
                               className="w-full"
@@ -3034,7 +3249,10 @@ export default function OfferManagement() {
                           </Form.Item>
                         </Col>
                         <Col span={12}>
-                          <Form.Item label="Blackout End Date" name="blackoutEndDate">
+                          <Form.Item
+                            label="Blackout End Date"
+                            name="blackoutEndDate"
+                          >
                             <DatePicker
                               size="large"
                               className="w-full"
@@ -3059,7 +3277,8 @@ export default function OfferManagement() {
                         Validity Period
                       </Title>
                       <Text className="text-gray-600 text-base">
-                        Set the active period for this policy including start date, end date, and timezone.
+                        Set the active period for this policy including start
+                        date, end date, and timezone.
                       </Text>
                     </div>
 
@@ -3069,7 +3288,10 @@ export default function OfferManagement() {
                           label="Valid From"
                           name="validFrom"
                           rules={[
-                            { required: true, message: "Please select start date" },
+                            {
+                              required: true,
+                              message: "Please select start date",
+                            },
                           ]}
                         >
                           <DatePicker
@@ -3088,7 +3310,10 @@ export default function OfferManagement() {
                           label="Valid To"
                           name="validTo"
                           rules={[
-                            { required: true, message: "Please select end date" },
+                            {
+                              required: true,
+                              message: "Please select end date",
+                            },
                           ]}
                         >
                           <DatePicker
@@ -3141,7 +3366,9 @@ export default function OfferManagement() {
                                     </Checkbox>
                                   </Col>
                                   <Col span={12}>
-                                    <Checkbox value="middle-east">Middle East</Checkbox>
+                                    <Checkbox value="middle-east">
+                                      Middle East
+                                    </Checkbox>
                                   </Col>
                                   <Col span={12}>
                                     <Checkbox value="africa">Africa</Checkbox>
@@ -3153,7 +3380,10 @@ export default function OfferManagement() {
 
                           <Space direction="vertical" className="w-full">
                             <div>
-                              <Form.Item name="gdprCompliant" valuePropName="checked">
+                              <Form.Item
+                                name="gdprCompliant"
+                                valuePropName="checked"
+                              >
                                 <Switch />
                                 <span className="ml-2">
                                   GDPR/Data Protection Compliant
@@ -3162,7 +3392,10 @@ export default function OfferManagement() {
                             </div>
 
                             <div>
-                              <Form.Item name="adaCompliant" valuePropName="checked">
+                              <Form.Item
+                                name="adaCompliant"
+                                valuePropName="checked"
+                              >
                                 <Switch />
                                 <span className="ml-2">
                                   ADA/Accessibility Compliant
@@ -3207,11 +3440,14 @@ export default function OfferManagement() {
                               />
                             </Form.Item>
 
-                          <Form.Item name="requiresApproval" valuePropName="checked">
-                            <Switch />
-                            <span className="ml-2">Requires Approval</span>
-                          </Form.Item>
-                        </div>
+                            <Form.Item
+                              name="requiresApproval"
+                              valuePropName="checked"
+                            >
+                              <Switch />
+                              <span className="ml-2">Requires Approval</span>
+                            </Form.Item>
+                          </div>
                         </Col>
                       </Row>
                     </div>
@@ -3261,16 +3497,25 @@ export default function OfferManagement() {
                       Basic Information
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Configure the fundamental details of your discount including name, code, and description.
+                      Configure the fundamental details of your discount
+                      including name, code, and description.
                     </Text>
 
                     <Row gutter={16}>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-medium">Discount Name <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Discount Name{" "}
+                              <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="discountName"
                           rules={[
-                            { required: true, message: "Please enter discount name" },
+                            {
+                              required: true,
+                              message: "Please enter discount name",
+                            },
                           ]}
                         >
                           <Input
@@ -3282,10 +3527,18 @@ export default function OfferManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-medium">Discount Code <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Discount Code{" "}
+                              <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="discountCode"
                           rules={[
-                            { required: true, message: "Please enter discount code" },
+                            {
+                              required: true,
+                              message: "Please enter discount code",
+                            },
                           ]}
                         >
                           <Input
@@ -3311,24 +3564,48 @@ export default function OfferManagement() {
                     <Row gutter={16}>
                       <Col span={8}>
                         <Form.Item
-                          label={<span className="font-medium">Discount Type <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Discount Type{" "}
+                              <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="discountType"
                           rules={[
-                            { required: true, message: "Please select discount type" },
+                            {
+                              required: true,
+                              message: "Please select discount type",
+                            },
                           ]}
                         >
-                          <Select placeholder="Percentage (%)" size="large" className="rounded-lg">
-                            <Select.Option value="percentage">Percentage (%)</Select.Option>
-                            <Select.Option value="fixed">Fixed Amount</Select.Option>
+                          <Select
+                            placeholder="Percentage (%)"
+                            size="large"
+                            className="rounded-lg"
+                          >
+                            <Select.Option value="percentage">
+                              Percentage (%)
+                            </Select.Option>
+                            <Select.Option value="fixed">
+                              Fixed Amount
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
                       <Col span={8}>
                         <Form.Item
-                          label={<span className="font-medium">Discount Value <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Discount Value{" "}
+                              <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="discountValue"
                           rules={[
-                            { required: true, message: "Please enter discount value" },
+                            {
+                              required: true,
+                              message: "Please enter discount value",
+                            },
                           ]}
                         >
                           <InputNumber
@@ -3346,9 +3623,15 @@ export default function OfferManagement() {
                           name="status"
                           initialValue="active"
                         >
-                          <Select placeholder="Active" size="large" className="rounded-lg">
+                          <Select
+                            placeholder="Active"
+                            size="large"
+                            className="rounded-lg"
+                          >
                             <Select.Option value="active">Active</Select.Option>
-                            <Select.Option value="inactive">Inactive</Select.Option>
+                            <Select.Option value="inactive">
+                              Inactive
+                            </Select.Option>
                             <Select.Option value="draft">Draft</Select.Option>
                           </Select>
                         </Form.Item>
@@ -3368,32 +3651,60 @@ export default function OfferManagement() {
                     </Text>
 
                     <div className="space-y-4 mb-6">
-                      <Form.Item name="targetApplication" initialValue="baseFareOnly">
+                      <Form.Item
+                        name="targetApplication"
+                        initialValue="baseFareOnly"
+                      >
                         <div className="space-y-3">
                           <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
                             <div className="flex items-center">
-                              <input type="radio" value="baseFareOnly" className="mr-3" />
+                              <input
+                                type="radio"
+                                value="baseFareOnly"
+                                className="mr-3"
+                              />
                               <div>
-                                <Text className="font-semibold text-blue-900">Base Fare Only</Text>
-                                <Text className="text-blue-700 text-sm block">Apply discount to base fare/ticket price</Text>
+                                <Text className="font-semibold text-blue-900">
+                                  Base Fare Only
+                                </Text>
+                                <Text className="text-blue-700 text-sm block">
+                                  Apply discount to base fare/ticket price
+                                </Text>
                               </div>
                             </div>
                           </div>
                           <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                             <div className="flex items-center">
-                              <input type="radio" value="ancillariesOnly" className="mr-3" />
+                              <input
+                                type="radio"
+                                value="ancillariesOnly"
+                                className="mr-3"
+                              />
                               <div>
-                                <Text className="font-semibold">Ancillaries Only</Text>
-                                <Text className="text-gray-600 text-sm block">Apply discount to selected ancillary services</Text>
+                                <Text className="font-semibold">
+                                  Ancillaries Only
+                                </Text>
+                                <Text className="text-gray-600 text-sm block">
+                                  Apply discount to selected ancillary services
+                                </Text>
                               </div>
                             </div>
                           </div>
                           <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                             <div className="flex items-center">
-                              <input type="radio" value="both" className="mr-3" />
+                              <input
+                                type="radio"
+                                value="both"
+                                className="mr-3"
+                              />
                               <div>
-                                <Text className="font-semibold">Both Base Fare & Ancillaries</Text>
-                                <Text className="text-gray-600 text-sm block">Apply discount to both fare and selected services</Text>
+                                <Text className="font-semibold">
+                                  Both Base Fare & Ancillaries
+                                </Text>
+                                <Text className="text-gray-600 text-sm block">
+                                  Apply discount to both fare and selected
+                                  services
+                                </Text>
                               </div>
                             </div>
                           </div>
@@ -3404,7 +3715,11 @@ export default function OfferManagement() {
                     <Row gutter={24}>
                       <Col span={8}>
                         <Form.Item
-                          label={<span className="font-medium">Total Usage Limit</span>}
+                          label={
+                            <span className="font-medium">
+                              Total Usage Limit
+                            </span>
+                          }
                           name="totalUsageLimit"
                         >
                           <InputNumber
@@ -3417,7 +3732,9 @@ export default function OfferManagement() {
                       </Col>
                       <Col span={8}>
                         <Form.Item
-                          label={<span className="font-medium">Per User Limit</span>}
+                          label={
+                            <span className="font-medium">Per User Limit</span>
+                          }
                           name="perUserLimit"
                         >
                           <InputNumber
@@ -3430,7 +3747,11 @@ export default function OfferManagement() {
                       </Col>
                       <Col span={8}>
                         <Form.Item
-                          label={<span className="font-medium">Maximum Discount Cap ($)</span>}
+                          label={
+                            <span className="font-medium">
+                              Maximum Discount Cap ($)
+                            </span>
+                          }
                           name="maxDiscountCap"
                         >
                           <InputNumber
@@ -3453,18 +3774,23 @@ export default function OfferManagement() {
                         Eligibility Criteria
                       </Title>
                       <Text className="text-gray-600 text-base">
-                        Define who can access this discount based on loyalty status, location, and spending requirements.
+                        Define who can access this discount based on loyalty
+                        status, location, and spending requirements.
                       </Text>
                     </div>
 
                     {/* Loyalty Program Tiers */}
                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                       <div className="mb-6">
-                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                        <Title
+                          level={5}
+                          className="!mb-2 text-gray-900 font-semibold"
+                        >
                           Loyalty Program Tiers
                         </Title>
                         <Text className="text-gray-600 text-sm">
-                          Select which loyalty tiers are eligible for this discount
+                          Select which loyalty tiers are eligible for this
+                          discount
                         </Text>
                       </div>
                       <Form.Item name="loyaltyTiers" className="!mb-0">
@@ -3473,27 +3799,40 @@ export default function OfferManagement() {
                             <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
                               <Checkbox value="bronze" className="scale-110" />
                               <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
-                              <Text className="font-medium text-amber-800">Bronze</Text>
+                              <Text className="font-medium text-amber-800">
+                                Bronze
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="silver" className="scale-110" />
                               <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                              <Text className="font-medium text-gray-700">Silver</Text>
+                              <Text className="font-medium text-gray-700">
+                                Silver
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
                               <Checkbox value="gold" className="scale-110" />
                               <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                              <Text className="font-medium text-yellow-800">Gold</Text>
+                              <Text className="font-medium text-yellow-800">
+                                Gold
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-                              <Checkbox value="platinum" className="scale-110" />
+                              <Checkbox
+                                value="platinum"
+                                className="scale-110"
+                              />
                               <div className="w-4 h-4 bg-slate-400 rounded-full"></div>
-                              <Text className="font-medium text-slate-700">Platinum</Text>
+                              <Text className="font-medium text-slate-700">
+                                Platinum
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
                               <Checkbox value="diamond" className="scale-110" />
                               <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                              <Text className="font-medium text-blue-800">Diamond</Text>
+                              <Text className="font-medium text-blue-800">
+                                Diamond
+                              </Text>
                             </div>
                           </div>
                         </Checkbox.Group>
@@ -3503,11 +3842,15 @@ export default function OfferManagement() {
                     {/* Geographic Eligibility */}
                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                       <div className="mb-6">
-                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                        <Title
+                          level={5}
+                          className="!mb-2 text-gray-900 font-semibold"
+                        >
                           Geographic Eligibility
                         </Title>
                         <Text className="text-gray-600 text-sm">
-                          Select which countries/regions are eligible for this discount
+                          Select which countries/regions are eligible for this
+                          discount
                         </Text>
                       </div>
                       <Form.Item name="geographicEligibility" className="!mb-0">
@@ -3515,35 +3858,51 @@ export default function OfferManagement() {
                           <div className="grid grid-cols-4 gap-4">
                             <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
                               <Checkbox value="US" className="scale-110" />
-                              <Text className="font-medium text-blue-800">🇺🇸 US</Text>
+                              <Text className="font-medium text-blue-800">
+                                🇺🇸 US
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-red-50 rounded-lg border border-red-200 hover:border-red-300 transition-colors">
                               <Checkbox value="CA" className="scale-110" />
-                              <Text className="font-medium text-red-800">🇨🇦 CA</Text>
+                              <Text className="font-medium text-red-800">
+                                🇨🇦 CA
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
                               <Checkbox value="MX" className="scale-110" />
-                              <Text className="font-medium text-green-800">🇲🇽 MX</Text>
+                              <Text className="font-medium text-green-800">
+                                🇲🇽 MX
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
                               <Checkbox value="UK" className="scale-110" />
-                              <Text className="font-medium text-purple-800">🇬🇧 UK</Text>
+                              <Text className="font-medium text-purple-800">
+                                🇬🇧 UK
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
                               <Checkbox value="AU" className="scale-110" />
-                              <Text className="font-medium text-orange-800">🇦🇺 AU</Text>
+                              <Text className="font-medium text-orange-800">
+                                🇦🇺 AU
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
                               <Checkbox value="DE" className="scale-110" />
-                              <Text className="font-medium text-yellow-800">🇩🇪 DE</Text>
+                              <Text className="font-medium text-yellow-800">
+                                🇩🇪 DE
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-indigo-50 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-colors">
                               <Checkbox value="FR" className="scale-110" />
-                              <Text className="font-medium text-indigo-800">🇫🇷 FR</Text>
+                              <Text className="font-medium text-indigo-800">
+                                🇫🇷 FR
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-pink-50 rounded-lg border border-pink-200 hover:border-pink-300 transition-colors">
                               <Checkbox value="JP" className="scale-110" />
-                              <Text className="font-medium text-pink-800">🇯🇵 JP</Text>
+                              <Text className="font-medium text-pink-800">
+                                🇯🇵 JP
+                              </Text>
                             </div>
                           </div>
                         </Checkbox.Group>
@@ -3553,11 +3912,15 @@ export default function OfferManagement() {
                     {/* Route Restrictions */}
                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                       <div className="mb-6">
-                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                        <Title
+                          level={5}
+                          className="!mb-2 text-gray-900 font-semibold"
+                        >
                           Route Restrictions
                         </Title>
                         <Text className="text-gray-600 text-sm">
-                          Limit discount to specific flight routes (leave empty for all routes)
+                          Limit discount to specific flight routes (leave empty
+                          for all routes)
                         </Text>
                       </div>
                       <Form.Item name="routeRestrictions" className="!mb-0">
@@ -3565,27 +3928,39 @@ export default function OfferManagement() {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="LAX-JFK" className="scale-110" />
-                              <Text className="font-medium text-gray-700">LAX-JFK</Text>
+                              <Text className="font-medium text-gray-700">
+                                LAX-JFK
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="ORD-SFO" className="scale-110" />
-                              <Text className="font-medium text-gray-700">ORD-SFO</Text>
+                              <Text className="font-medium text-gray-700">
+                                ORD-SFO
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="MIA-DEN" className="scale-110" />
-                              <Text className="font-medium text-gray-700">MIA-DEN</Text>
+                              <Text className="font-medium text-gray-700">
+                                MIA-DEN
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="ATL-SEA" className="scale-110" />
-                              <Text className="font-medium text-gray-700">ATL-SEA</Text>
+                              <Text className="font-medium text-gray-700">
+                                ATL-SEA
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="DEN-BOS" className="scale-110" />
-                              <Text className="font-medium text-gray-700">DEN-BOS</Text>
+                              <Text className="font-medium text-gray-700">
+                                DEN-BOS
+                              </Text>
                             </div>
                             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                               <Checkbox value="LAX-ORD" className="scale-110" />
-                              <Text className="font-medium text-gray-700">LAX-ORD</Text>
+                              <Text className="font-medium text-gray-700">
+                                LAX-ORD
+                              </Text>
                             </div>
                           </div>
                         </Checkbox.Group>
@@ -3595,11 +3970,15 @@ export default function OfferManagement() {
                     {/* Minimum Spend Threshold */}
                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                       <div className="mb-6">
-                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                        <Title
+                          level={5}
+                          className="!mb-2 text-gray-900 font-semibold"
+                        >
                           Minimum Spend Threshold ($)
                         </Title>
                         <Text className="text-gray-600 text-sm">
-                          Set a minimum purchase amount required to use this discount
+                          Set a minimum purchase amount required to use this
+                          discount
                         </Text>
                       </div>
                       <Form.Item name="minSpendThreshold" className="!mb-0">
@@ -3609,12 +3988,16 @@ export default function OfferManagement() {
                           className="w-full rounded-lg"
                           min={0}
                           defaultValue={100}
-                          formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                          parser={(value) => value?.replace(/\$\s?|(,*)/g, '') || ''}
-                          style={{ 
-                            fontSize: '16px',
-                            padding: '12px 16px',
-                            borderRadius: '8px'
+                          formatter={(value) =>
+                            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) =>
+                            value?.replace(/\$\s?|(,*)/g, "") || ""
+                          }
+                          style={{
+                            fontSize: "16px",
+                            padding: "12px 16px",
+                            borderRadius: "8px",
                           }}
                         />
                       </Form.Item>
@@ -3629,16 +4012,24 @@ export default function OfferManagement() {
                       Date Windows & Validity
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Set the validity period and any blackout dates for this discount.
+                      Set the validity period and any blackout dates for this
+                      discount.
                     </Text>
 
                     <Row gutter={16} className="mb-8">
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-medium">Valid From <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Valid From <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="validFrom"
                           rules={[
-                            { required: true, message: "Please select start date" },
+                            {
+                              required: true,
+                              message: "Please select start date",
+                            },
                           ]}
                         >
                           <DatePicker
@@ -3654,10 +4045,18 @@ export default function OfferManagement() {
                       </Col>
                       <Col span={12}>
                         <Form.Item
-                          label={<span className="font-medium">Valid Until <span className="text-red-500">*</span></span>}
+                          label={
+                            <span className="font-medium">
+                              Valid Until{" "}
+                              <span className="text-red-500">*</span>
+                            </span>
+                          }
                           name="validTo"
                           rules={[
-                            { required: true, message: "Please select end date" },
+                            {
+                              required: true,
+                              message: "Please select end date",
+                            },
                           ]}
                         >
                           <DatePicker
@@ -3696,7 +4095,8 @@ export default function OfferManagement() {
                       Promo Code Combinability
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Configure how this discount interacts with promotional codes.
+                      Configure how this discount interacts with promotional
+                      codes.
                     </Text>
 
                     <div className="p-6 border border-gray-200 rounded-lg bg-gray-50">
@@ -3712,7 +4112,8 @@ export default function OfferManagement() {
                               Allow Combination with Promo Codes
                             </Text>
                             <Text className="text-gray-600">
-                              This discount can be used together with promotional codes
+                              This discount can be used together with
+                              promotional codes
                             </Text>
                           </div>
                         </div>
@@ -3752,7 +4153,9 @@ export default function OfferManagement() {
                       Basic Information
                     </Title>
                     <Text className="text-gray-600 block mb-6">
-                      Configure comprehensive ancillary details including product definitions, pricing rules, availability logic, bundle options, and categories.
+                      Configure comprehensive ancillary details including
+                      product definitions, pricing rules, availability logic,
+                      bundle options, and categories.
                     </Text>
 
                     <Row gutter={16}>
@@ -3761,7 +4164,10 @@ export default function OfferManagement() {
                           label="Ancillary Name"
                           name="ancillaryName"
                           rules={[
-                            { required: true, message: "Please enter ancillary name" },
+                            {
+                              required: true,
+                              message: "Please enter ancillary name",
+                            },
                           ]}
                         >
                           <Input
@@ -3775,7 +4181,10 @@ export default function OfferManagement() {
                           label="Category"
                           name="category"
                           rules={[
-                            { required: true, message: "Please select category" },
+                            {
+                              required: true,
+                              message: "Please select category",
+                            },
                           ]}
                         >
                           <Select placeholder="Select category" size="large">
@@ -3783,8 +4192,12 @@ export default function OfferManagement() {
                             <Select.Option value="food-beverage">
                               Food & Beverage
                             </Select.Option>
-                            <Select.Option value="service">Service</Select.Option>
-                            <Select.Option value="baggage">Baggage</Select.Option>
+                            <Select.Option value="service">
+                              Service
+                            </Select.Option>
+                            <Select.Option value="baggage">
+                              Baggage
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
@@ -3800,8 +4213,12 @@ export default function OfferManagement() {
                           ]}
                         >
                           <Select placeholder="Select type" size="large">
-                            <Select.Option value="mandatory">Mandatory</Select.Option>
-                            <Select.Option value="optional">Optional</Select.Option>
+                            <Select.Option value="mandatory">
+                              Mandatory
+                            </Select.Option>
+                            <Select.Option value="optional">
+                              Optional
+                            </Select.Option>
                             <Select.Option value="bundle">Bundle</Select.Option>
                           </Select>
                         </Form.Item>
@@ -3814,17 +4231,16 @@ export default function OfferManagement() {
                         >
                           <Select placeholder="Select status" size="large">
                             <Select.Option value="active">Active</Select.Option>
-                            <Select.Option value="inactive">Inactive</Select.Option>
+                            <Select.Option value="inactive">
+                              Inactive
+                            </Select.Option>
                             <Select.Option value="draft">Draft</Select.Option>
                           </Select>
                         </Form.Item>
                       </Col>
                     </Row>
 
-                    <Form.Item
-                      label="Description"
-                      name="description"
-                    >
+                    <Form.Item label="Description" name="description">
                       <Input.TextArea
                         rows={4}
                         placeholder="Describe the ancillary service..."
@@ -4099,7 +4515,9 @@ export default function OfferManagement() {
               {activeTab === "policies" && (
                 <>
                   <Button
-                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
+                    onClick={() =>
+                      setPolicyModalStep(Math.max(0, policyModalStep - 1))
+                    }
                     disabled={policyModalStep === 0}
                     size="large"
                   >
@@ -4108,7 +4526,9 @@ export default function OfferManagement() {
                   {policyModalStep < 4 ? (
                     <Button
                       type="primary"
-                      onClick={() => setPolicyModalStep(Math.min(4, policyModalStep + 1))}
+                      onClick={() =>
+                        setPolicyModalStep(Math.min(4, policyModalStep + 1))
+                      }
                       className="bg-blue-600 hover:bg-blue-700"
                       size="large"
                     >
@@ -4130,7 +4550,9 @@ export default function OfferManagement() {
               {activeTab === "ancillaries" && (
                 <>
                   <Button
-                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
+                    onClick={() =>
+                      setPolicyModalStep(Math.max(0, policyModalStep - 1))
+                    }
                     disabled={policyModalStep === 0}
                     size="large"
                   >
@@ -4164,7 +4586,9 @@ export default function OfferManagement() {
               {activeTab === "discounts" && (
                 <>
                   <Button
-                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
+                    onClick={() =>
+                      setPolicyModalStep(Math.max(0, policyModalStep - 1))
+                    }
                     disabled={policyModalStep === 0}
                     size="large"
                   >
@@ -4173,7 +4597,9 @@ export default function OfferManagement() {
                   {policyModalStep < 4 ? (
                     <Button
                       type="primary"
-                      onClick={() => setPolicyModalStep(Math.min(4, policyModalStep + 1))}
+                      onClick={() =>
+                        setPolicyModalStep(Math.min(4, policyModalStep + 1))
+                      }
                       className="bg-blue-600 hover:bg-blue-700"
                       size="large"
                     >
@@ -4192,18 +4618,20 @@ export default function OfferManagement() {
                 </>
               )}
 
-              {activeTab !== "policies" && activeTab !== "ancillaries" && activeTab !== "discounts" && (
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  size="large"
-                >
-                  {activeTab === "promocodes"
-                    ? "Create Promo Code"
-                    : "Create"}
-                </Button>
-              )}
+              {activeTab !== "policies" &&
+                activeTab !== "ancillaries" &&
+                activeTab !== "discounts" && (
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    size="large"
+                  >
+                    {activeTab === "promocodes"
+                      ? "Create Promo Code"
+                      : "Create"}
+                  </Button>
+                )}
             </div>
           </div>
         </Form>
@@ -4303,13 +4731,17 @@ export default function OfferManagement() {
           color: #374151;
         }
 
-        .ant-input, .ant-select-selector, .ant-input-number {
+        .ant-input,
+        .ant-select-selector,
+        .ant-input-number {
           border-radius: 6px;
           border-color: #d1d5db;
           transition: all 0.2s ease;
         }
 
-        .ant-input:focus, .ant-select-focused .ant-select-selector, .ant-input-number:focus {
+        .ant-input:focus,
+        .ant-select-focused .ant-select-selector,
+        .ant-input-number:focus {
           border-color: #3b82f6;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
