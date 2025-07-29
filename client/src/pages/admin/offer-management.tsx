@@ -2761,13 +2761,19 @@ export default function OfferManagement() {
                                       value={item.value}
                                       className="scale-110"
                                     />
-                                    <div className={`w-4 h-4 rounded-full ${
-                                      item.value === 'bronze' ? 'bg-amber-600' :
-                                      item.value === 'silver' ? 'bg-gray-400' :
-                                      item.value === 'gold' ? 'bg-yellow-500' :
-                                      item.value === 'platinum' ? 'bg-slate-400' :
-                                      'bg-blue-500'
-                                    }`}></div>
+                                    <div
+                                      className={`w-4 h-4 rounded-full ${
+                                        item.value === "bronze"
+                                          ? "bg-amber-600"
+                                          : item.value === "silver"
+                                            ? "bg-gray-400"
+                                            : item.value === "gold"
+                                              ? "bg-yellow-500"
+                                              : item.value === "platinum"
+                                                ? "bg-slate-400"
+                                                : "bg-blue-500"
+                                      }`}
+                                    ></div>
                                     <Text className="font-medium text-gray-700">
                                       {item.label}
                                     </Text>
@@ -3785,7 +3791,7 @@ export default function OfferManagement() {
 
                     {/* Loyalty Program Tiers */}
                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <Title
                           level={5}
                           className="!mb-2 text-gray-900 font-semibold"
@@ -3798,46 +3804,41 @@ export default function OfferManagement() {
                         </Text>
                       </div>
                       <Form.Item name="loyaltyTiers" className="!mb-0">
-                        <Checkbox.Group className="w-full">
-                          <div className="grid grid-cols-5 gap-4">
-                            <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
-                              <Checkbox value="bronze" className="scale-110" />
-                              <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
-                              <Text className="font-medium text-amber-800">
-                                Bronze
-                              </Text>
-                            </div>
-                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-                              <Checkbox value="silver" className="scale-110" />
-                              <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                              <Text className="font-medium text-gray-700">
-                                Silver
-                              </Text>
-                            </div>
-                            <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
-                              <Checkbox value="gold" className="scale-110" />
-                              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                              <Text className="font-medium text-yellow-800">
-                                Gold
-                              </Text>
-                            </div>
-                            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-                              <Checkbox
-                                value="platinum"
-                                className="scale-110"
-                              />
-                              <div className="w-4 h-4 bg-slate-400 rounded-full"></div>
-                              <Text className="font-medium text-slate-700">
-                                Platinum
-                              </Text>
-                            </div>
-                            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
-                              <Checkbox value="diamond" className="scale-110" />
-                              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                              <Text className="font-medium text-blue-800">
-                                Diamond
-                              </Text>
-                            </div>
+                        <Checkbox.Group className="block">
+                          <div className="p-1 flex gap-2 items-center">
+                            <Checkbox value="bronze" className="scale-110" />
+                            <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
+                            <Text className="font-medium text-amber-800">
+                              Bronze
+                            </Text>
+                          </div>
+                          <div className="p-1 flex gap-2 items-center">
+                            <Checkbox value="silver" className="scale-110" />
+                            <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                            <Text className="font-medium text-gray-700">
+                              Silver
+                            </Text>
+                          </div>
+                          <div className="p-1 flex gap-2 items-center">
+                            <Checkbox value="gold" className="scale-110" />
+                            <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                            <Text className="font-medium text-yellow-800">
+                              Gold
+                            </Text>
+                          </div>
+                          <div className="p-1 flex gap-2 items-center">
+                            <Checkbox value="platinum" className="scale-110" />
+                            <div className="w-4 h-4 bg-slate-400 rounded-full"></div>
+                            <Text className="font-medium text-slate-700">
+                              Platinum
+                            </Text>
+                          </div>
+                          <div className="p-1 flex gap-2 items-center">
+                            <Checkbox value="diamond" className="scale-110" />
+                            <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                            <Text className="font-medium text-blue-800">
+                              Diamond
+                            </Text>
                           </div>
                         </Checkbox.Group>
                       </Form.Item>
