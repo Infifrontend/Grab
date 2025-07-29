@@ -3438,118 +3438,175 @@ export default function OfferManagement() {
 
                 {/* Step 3: Eligibility */}
                 {policyModalStep === 2 && (
-                  <div>
-                    <div className="mb-6">
-                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
-                        Loyalty Program Tiers
+                  <div className="space-y-8">
+                    <div className="text-center mb-8">
+                      <Title level={4} className="!mb-4 text-blue-600">
+                        Eligibility Criteria
                       </Title>
-                      <Form.Item name="loyaltyTiers">
-                        <Checkbox.Group className="w-full">
-                          <Row gutter={[16, 16]}>
-                            <Col span={8}>
-                              <Checkbox value="bronze">Bronze</Checkbox>
-                            </Col>
-                            <Col span={8}>
-                              <Checkbox value="silver">Silver</Checkbox>
-                            </Col>
-                            <Col span={8}>
-                              <Checkbox value="gold">Gold</Checkbox>
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]} className="mt-3">
-                            <Col span={8}>
-                              <Checkbox value="platinum">Platinum</Checkbox>
-                            </Col>
-                            <Col span={8}>
-                              <Checkbox value="diamond">Diamond</Checkbox>
-                            </Col>
-                          </Row>
-                        </Checkbox.Group>
-                      </Form.Item>
-                    </div>
-
-                    <div className="mb-6">
-                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
-                        Geographic Eligibility
-                      </Title>
-                      <Form.Item name="geographicEligibility">
-                        <Checkbox.Group className="w-full">
-                          <Row gutter={[16, 16]}>
-                            <Col span={6}>
-                              <Checkbox value="US">US</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="CA">CA</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="MX">MX</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="UK">UK</Checkbox>
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]} className="mt-3">
-                            <Col span={6}>
-                              <Checkbox value="AU">AU</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="DE">DE</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="FR">FR</Checkbox>
-                            </Col>
-                            <Col span={6}>
-                              <Checkbox value="JP">JP</Checkbox>
-                            </Col>
-                          </Row>
-                        </Checkbox.Group>
-                      </Form.Item>
-                    </div>
-
-                    <div className="mb-6">
-                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
-                        Route Restrictions
-                      </Title>
-                      <Form.Item name="routeRestrictions">
-                        <Checkbox.Group className="w-full">
-                          <Row gutter={[16, 16]}>
-                            <Col span={12}>
-                              <Checkbox value="LAX-JFK">LAX-JFK</Checkbox>
-                            </Col>
-                            <Col span={12}>
-                              <Checkbox value="ORD-SFO">ORD-SFO</Checkbox>
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]} className="mt-3">
-                            <Col span={12}>
-                              <Checkbox value="MIA-DEN">MIA-DEN</Checkbox>
-                            </Col>
-                            <Col span={12}>
-                              <Checkbox value="ATL-SEA">ATL-SEA</Checkbox>
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]} className="mt-3">
-                            <Col span={12}>
-                              <Checkbox value="DEN-BOS">DEN-BOS</Checkbox>
-                            </Col>
-                            <Col span={12}>
-                              <Checkbox value="LAX-ORD">LAX-ORD</Checkbox>
-                            </Col>
-                          </Row>
-                        </Checkbox.Group>
-                      </Form.Item>
-                    </div>
-
-                    <div>
-                      <Text className="font-semibold text-gray-800 block mb-3">
-                        Minimum Spend Threshold ($)
+                      <Text className="text-gray-600 text-base">
+                        Define who can access this discount based on loyalty status, location, and spending requirements.
                       </Text>
-                      <Form.Item name="minSpendThreshold">
+                    </div>
+
+                    {/* Loyalty Program Tiers */}
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                      <div className="mb-6">
+                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                          Loyalty Program Tiers
+                        </Title>
+                        <Text className="text-gray-600 text-sm">
+                          Select which loyalty tiers are eligible for this discount
+                        </Text>
+                      </div>
+                      <Form.Item name="loyaltyTiers" className="!mb-0">
+                        <Checkbox.Group className="w-full">
+                          <div className="grid grid-cols-5 gap-4">
+                            <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
+                              <Checkbox value="bronze" className="scale-110" />
+                              <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
+                              <Text className="font-medium text-amber-800">Bronze</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="silver" className="scale-110" />
+                              <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                              <Text className="font-medium text-gray-700">Silver</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
+                              <Checkbox value="gold" className="scale-110" />
+                              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                              <Text className="font-medium text-yellow-800">Gold</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                              <Checkbox value="platinum" className="scale-110" />
+                              <div className="w-4 h-4 bg-slate-400 rounded-full"></div>
+                              <Text className="font-medium text-slate-700">Platinum</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
+                              <Checkbox value="diamond" className="scale-110" />
+                              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                              <Text className="font-medium text-blue-800">Diamond</Text>
+                            </div>
+                          </div>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    {/* Geographic Eligibility */}
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                      <div className="mb-6">
+                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                          Geographic Eligibility
+                        </Title>
+                        <Text className="text-gray-600 text-sm">
+                          Select which countries/regions are eligible for this discount
+                        </Text>
+                      </div>
+                      <Form.Item name="geographicEligibility" className="!mb-0">
+                        <Checkbox.Group className="w-full">
+                          <div className="grid grid-cols-4 gap-4">
+                            <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
+                              <Checkbox value="US" className="scale-110" />
+                              <Text className="font-medium text-blue-800">🇺🇸 US</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-red-50 rounded-lg border border-red-200 hover:border-red-300 transition-colors">
+                              <Checkbox value="CA" className="scale-110" />
+                              <Text className="font-medium text-red-800">🇨🇦 CA</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
+                              <Checkbox value="MX" className="scale-110" />
+                              <Text className="font-medium text-green-800">🇲🇽 MX</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
+                              <Checkbox value="UK" className="scale-110" />
+                              <Text className="font-medium text-purple-800">🇬🇧 UK</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
+                              <Checkbox value="AU" className="scale-110" />
+                              <Text className="font-medium text-orange-800">🇦🇺 AU</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
+                              <Checkbox value="DE" className="scale-110" />
+                              <Text className="font-medium text-yellow-800">🇩🇪 DE</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-indigo-50 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-colors">
+                              <Checkbox value="FR" className="scale-110" />
+                              <Text className="font-medium text-indigo-800">🇫🇷 FR</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-pink-50 rounded-lg border border-pink-200 hover:border-pink-300 transition-colors">
+                              <Checkbox value="JP" className="scale-110" />
+                              <Text className="font-medium text-pink-800">🇯🇵 JP</Text>
+                            </div>
+                          </div>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    {/* Route Restrictions */}
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                      <div className="mb-6">
+                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                          Route Restrictions
+                        </Title>
+                        <Text className="text-gray-600 text-sm">
+                          Limit discount to specific flight routes (leave empty for all routes)
+                        </Text>
+                      </div>
+                      <Form.Item name="routeRestrictions" className="!mb-0">
+                        <Checkbox.Group className="w-full">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="LAX-JFK" className="scale-110" />
+                              <Text className="font-medium text-gray-700">LAX-JFK</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="ORD-SFO" className="scale-110" />
+                              <Text className="font-medium text-gray-700">ORD-SFO</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="MIA-DEN" className="scale-110" />
+                              <Text className="font-medium text-gray-700">MIA-DEN</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="ATL-SEA" className="scale-110" />
+                              <Text className="font-medium text-gray-700">ATL-SEA</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="DEN-BOS" className="scale-110" />
+                              <Text className="font-medium text-gray-700">DEN-BOS</Text>
+                            </div>
+                            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                              <Checkbox value="LAX-ORD" className="scale-110" />
+                              <Text className="font-medium text-gray-700">LAX-ORD</Text>
+                            </div>
+                          </div>
+                        </Checkbox.Group>
+                      </Form.Item>
+                    </div>
+
+                    {/* Minimum Spend Threshold */}
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                      <div className="mb-6">
+                        <Title level={5} className="!mb-2 text-gray-900 font-semibold">
+                          Minimum Spend Threshold ($)
+                        </Title>
+                        <Text className="text-gray-600 text-sm">
+                          Set a minimum purchase amount required to use this discount
+                        </Text>
+                      </div>
+                      <Form.Item name="minSpendThreshold" className="!mb-0">
                         <InputNumber
                           placeholder="100"
                           size="large"
                           className="w-full rounded-lg"
                           min={0}
+                          defaultValue={100}
+                          formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, '') || ''}
+                          style={{ 
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            borderRadius: '8px'
+                          }}
                         />
                       </Form.Item>
                     </div>
