@@ -54,6 +54,7 @@ export default function PaymentDetails() {
             
             if (response.ok) {
               const bidData = await response.json();
+              console.log("Received bid data for participation:", bidData);
               
               if (bidData.success && bidData.bid) {
                 // Parse configuration data from notes
@@ -79,6 +80,8 @@ export default function PaymentDetails() {
                 console.log("Created participation data from bid:", participationData);
                 setBidParticipationData(participationData);
                 return;
+              } else {
+                console.error("Bid data response missing success or bid:", bidData);
               }
             }
           } catch (error) {
@@ -139,10 +142,11 @@ export default function PaymentDetails() {
           throw new Error(`Bid not found (ID: ${bidId})`);
         }
         bidData = await bidCheckResponse.json();
-        console.log("Bid data:", bidData);
+        console.log("Bid data for payment verification:", bidData);
 
-        if (!bidData || !bidData.success) {
-          throw new Error("Invalid bid data received");
+        if (!bidData || !bidData.success || !bidData.bid) {
+          console.error("Invalid bid data structure:", bidData);
+          throw new Error(`Bid ID ${bidId} not found or invalid`);
         }
       } catch (fetchError) {
         console.error("Error fetching bid:", fetchError);

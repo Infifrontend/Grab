@@ -942,10 +942,22 @@ export class DatabaseStorage implements IStorage {
 
       if (bid.length === 0) {
         console.log(`No bid found with ID: ${id}`);
+        
+        // Debug: Show what bids actually exist
+        const allBids = await db.select({ id: bids.id, bidAmount: bids.bidAmount, bidStatus: bids.bidStatus }).from(bids);
+        console.log(`Existing bids in database:`, allBids);
+        
         return null;
       }
 
-      console.log(`Found bid ${id} successfully`);
+      console.log(`Found bid ${id} successfully:`, {
+        bidId: bid[0].bids?.id,
+        bidAmount: bid[0].bids?.bidAmount,
+        bidStatus: bid[0].bids?.bidStatus,
+        hasUser: !!bid[0].users,
+        hasFlight: !!bid[0].flights
+      });
+      
       return {
         bid: bid[0].bids,
         user: bid[0].users,

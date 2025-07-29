@@ -957,6 +957,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check all bids
+  app.get("/api/debug/bids", async (req, res) => {
+    try {
+      const allBids = await storage.getBids();
+      res.json({
+        success: true,
+        totalBids: allBids.length,
+        bids: allBids.map(bid => ({
+          id: bid.id,
+          bidAmount: bid.bidAmount,
+          bidStatus: bid.bidStatus,
+          userId: bid.userId,
+          flightId: bid.flightId
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching debug bids:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch debug bid data",
+        error: error.message 
+      });
+    }
+  });
+
   // Get bid details by ID
   app.get("/api/bids/:id", async (req, res) => {
     try {
@@ -976,7 +1001,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bid = await storage.getBidById(bidId);
       
       if (!bid) {
-        console.log(`Bid not found with ID: ${bidId}. Available bids:`, await storage.getBids());
+        const allBids = await storage.getBids();
+        console.log(`Bid not found with ID: ${bidId}`);
+        console.log(`Total bids in database: ${allBids.length}`);
+        console.log(`Available bid IDs: [${allBids.map(b => b.id).join(', ')}]`);
         return res.status(404).json({ 
           success: false, 
           message: `Bid not found with ID: ${bidId}` 
