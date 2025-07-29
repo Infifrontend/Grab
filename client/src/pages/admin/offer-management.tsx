@@ -2627,83 +2627,173 @@ export default function OfferManagement() {
 
                 {/* Step 3: Eligibility Rules */}
                 {policyModalStep === 2 && (
-                  <div>
-                    <Title level={4} className="!mb-4 text-blue-600">
-                      Eligibility Rules
-                    </Title>
-                    <Text className="text-gray-600 block mb-6">
-                      Set criteria for who can use this policy based on loyalty status, passenger type, age, and booking channel.
-                    </Text>
+                  <div className="space-y-8">
+                    {/* Header Section */}
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <UserOutlined className="text-2xl text-blue-600" />
+                      </div>
+                      <Title level={3} className="!mb-2 text-gray-900">
+                        Eligibility Rules
+                      </Title>
+                      <Text className="text-gray-600 text-base max-w-2xl mx-auto">
+                        Define comprehensive criteria for policy eligibility including loyalty status, 
+                        passenger demographics, age restrictions, and booking channel preferences.
+                      </Text>
+                    </div>
 
-                    <Row gutter={24}>
-                      <Col span={8}>
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Loyalty & Membership Section */}
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+                        <div className="flex items-center mb-5">
+                          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <TrophyOutlined className="text-white text-sm" />
+                          </div>
+                          <Text className="font-semibold text-blue-900 text-lg">
+                            Loyalty & Membership
+                          </Text>
+                        </div>
+
+                        {/* Loyalty Tiers */}
                         <div className="mb-6">
-                          <Text className="font-medium block mb-3">
+                          <Text className="font-medium text-blue-800 block mb-4">
                             Loyalty Tiers
                           </Text>
-                          <Form.Item name="loyaltyTiers">
-                            <Checkbox.Group>
-                              <Space direction="vertical">
-                                <Checkbox value="bronze">Bronze</Checkbox>
-                                <Checkbox value="silver">Silver</Checkbox>
-                                <Checkbox value="gold">Gold</Checkbox>
-                                <Checkbox value="platinum">Platinum</Checkbox>
-                                <Checkbox value="diamond">Diamond</Checkbox>
-                              </Space>
+                          <Form.Item name="loyaltyTiers" className="!mb-0">
+                            <Checkbox.Group className="w-full">
+                              <div className="space-y-3">
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors">
+                                  <Checkbox value="bronze" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-amber-600 rounded-full mr-2"></div>
+                                    <Text>Bronze</Text>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors">
+                                  <Checkbox value="silver" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                                    <Text>Silver</Text>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors">
+                                  <Checkbox value="gold" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                                    <Text>Gold</Text>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors">
+                                  <Checkbox value="platinum" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-gray-300 rounded-full mr-2"></div>
+                                    <Text>Platinum</Text>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors">
+                                  <Checkbox value="diamond" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                    <Text>Diamond</Text>
+                                  </div>
+                                </div>
+                              </div>
                             </Checkbox.Group>
                           </Form.Item>
                         </div>
 
-                        <div className="mb-4">
-                          <Text className="font-medium block mb-3">
-                            Passenger Types
-                          </Text>
-                          <Form.Item name="passengerTypes">
-                            <Checkbox.Group>
-                              <Space direction="vertical">
-                                <Checkbox value="adult">Adult</Checkbox>
-                                <Checkbox value="child">Child</Checkbox>
-                                <Checkbox value="infant">Infant</Checkbox>
-                                <Checkbox value="senior">Senior</Checkbox>
-                                <Checkbox value="student">Student</Checkbox>
-                                <Checkbox value="military">Military</Checkbox>
-                              </Space>
-                            </Checkbox.Group>
-                          </Form.Item>
-                        </div>
-                      </Col>
-
-                      <Col span={8}>
-                        <div className="mb-4">
+                        {/* Corporate Customers */}
+                        <div className="p-4 bg-white rounded-lg border border-blue-100">
                           <Form.Item
                             name="corporateCustomersOnly"
                             valuePropName="checked"
+                            className="!mb-0"
                           >
-                            <Switch />
-                            <span className="ml-2">Corporate Customers Only</span>
+                            <div className="flex items-center">
+                              <Switch className="mr-3" />
+                              <div>
+                                <Text className="font-medium block">Corporate Customers Only</Text>
+                                <Text className="text-gray-500 text-sm">Restrict to business accounts</Text>
+                              </div>
+                            </div>
+                          </Form.Item>
+                        </div>
+                      </div>
+
+                      {/* Demographics & Age Section */}
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100">
+                        <div className="flex items-center mb-5">
+                          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                            <span className="text-white text-sm">👥</span>
+                          </div>
+                          <Text className="font-semibold text-green-900 text-lg">
+                            Demographics & Age
+                          </Text>
+                        </div>
+
+                        {/* Passenger Types */}
+                        <div className="mb-6">
+                          <Text className="font-medium text-green-800 block mb-4">
+                            Passenger Categories
+                          </Text>
+                          <Form.Item name="passengerTypes" className="!mb-0">
+                            <Checkbox.Group className="w-full">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="adult" className="mr-2" />
+                                  <Text className="text-sm">Adult</Text>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="child" className="mr-2" />
+                                  <Text className="text-sm">Child</Text>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="infant" className="mr-2" />
+                                  <Text className="text-sm">Infant</Text>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="senior" className="mr-2" />
+                                  <Text className="text-sm">Senior</Text>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="student" className="mr-2" />
+                                  <Text className="text-sm">Student</Text>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                                  <Checkbox value="military" className="mr-2" />
+                                  <Text className="text-sm">Military</Text>
+                                </div>
+                              </div>
+                            </Checkbox.Group>
                           </Form.Item>
                         </div>
 
-                        <div className="mb-4">
-                          <Text className="font-medium block mb-3">
+                        {/* Age Restrictions */}
+                        <div className="bg-white p-4 rounded-lg border border-green-100">
+                          <Text className="font-medium text-green-800 block mb-4">
                             Age Restrictions
                           </Text>
-                          <Row gutter={12}>
+                          <Row gutter={12} className="mb-4">
                             <Col span={12}>
-                              <Form.Item label="Min Age" name="minAge">
+                              <Form.Item label="Minimum Age" name="minAge" className="!mb-3">
                                 <InputNumber
                                   placeholder="0"
                                   className="w-full"
                                   min={0}
+                                  max={120}
+                                  size="large"
                                 />
                               </Form.Item>
                             </Col>
                             <Col span={12}>
-                              <Form.Item label="Max Age" name="maxAge">
+                              <Form.Item label="Maximum Age" name="maxAge" className="!mb-3">
                                 <InputNumber
                                   placeholder="100"
                                   className="w-full"
                                   min={0}
+                                  max={120}
+                                  size="large"
                                 />
                               </Form.Item>
                             </Col>
@@ -2712,31 +2802,115 @@ export default function OfferManagement() {
                           <Form.Item
                             name="requiresAdultSupervision"
                             valuePropName="checked"
+                            className="!mb-0"
                           >
-                            <Checkbox>Requires Adult Supervision</Checkbox>
+                            <div className="flex items-center">
+                              <Checkbox className="mr-3" />
+                              <div>
+                                <Text className="font-medium">Requires Adult Supervision</Text>
+                                <Text className="text-gray-500 text-sm block">For minors traveling alone</Text>
+                              </div>
+                            </div>
                           </Form.Item>
                         </div>
-                      </Col>
+                      </div>
 
-                      <Col span={8}>
-                        <div className="mb-4">
-                          <Text className="font-medium block mb-3">
+                      {/* Booking Channels Section */}
+                      <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-100">
+                        <div className="flex items-center mb-5">
+                          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                            <span className="text-white text-sm">📱</span>
+                          </div>
+                          <Text className="font-semibold text-purple-900 text-lg">
                             Booking Channels
                           </Text>
-                          <Form.Item name="bookingChannels">
-                            <Checkbox.Group>
-                              <Space direction="vertical">
-                                <Checkbox value="website">Website</Checkbox>
-                                <Checkbox value="mobile">Mobile App</Checkbox>
-                                <Checkbox value="callcenter">Call Center</Checkbox>
-                                <Checkbox value="agent">Travel Agent</Checkbox>
-                                <Checkbox value="airport">Airport</Checkbox>
-                              </Space>
+                        </div>
+
+                        <div>
+                          <Text className="font-medium text-purple-800 block mb-4">
+                            Allowed Channels
+                          </Text>
+                          <Form.Item name="bookingChannels" className="!mb-0">
+                            <Checkbox.Group className="w-full">
+                              <div className="space-y-3">
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors">
+                                  <Checkbox value="website" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center mr-3">
+                                      <span className="text-blue-600 text-xs">🌐</span>
+                                    </div>
+                                    <div>
+                                      <Text className="font-medium">Website</Text>
+                                      <Text className="text-gray-500 text-xs block">Desktop & mobile web</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors">
+                                  <Checkbox value="mobile" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-6 h-6 bg-green-100 rounded flex items-center justify-center mr-3">
+                                      <span className="text-green-600 text-xs">📱</span>
+                                    </div>
+                                    <div>
+                                      <Text className="font-medium">Mobile App</Text>
+                                      <Text className="text-gray-500 text-xs block">iOS & Android apps</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors">
+                                  <Checkbox value="callcenter" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-6 h-6 bg-orange-100 rounded flex items-center justify-center mr-3">
+                                      <span className="text-orange-600 text-xs">☎️</span>
+                                    </div>
+                                    <div>
+                                      <Text className="font-medium">Call Center</Text>
+                                      <Text className="text-gray-500 text-xs block">Phone bookings</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors">
+                                  <Checkbox value="agent" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-6 h-6 bg-indigo-100 rounded flex items-center justify-center mr-3">
+                                      <span className="text-indigo-600 text-xs">🏢</span>
+                                    </div>
+                                    <div>
+                                      <Text className="font-medium">Travel Agent</Text>
+                                      <Text className="text-gray-500 text-xs block">Third-party agents</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors">
+                                  <Checkbox value="airport" className="mr-3" />
+                                  <div className="flex items-center">
+                                    <div className="w-6 h-6 bg-red-100 rounded flex items-center justify-center mr-3">
+                                      <span className="text-red-600 text-xs">✈️</span>
+                                    </div>
+                                    <div>
+                                      <Text className="font-medium">Airport Counter</Text>
+                                      <Text className="text-gray-500 text-xs block">Airport check-in</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </Checkbox.Group>
                           </Form.Item>
                         </div>
-                      </Col>
-                    </Row>
+                      </div>
+                    </div>
+
+                    {/* Summary Section */}
+                    <div className="mt-8 p-4 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center mb-3">
+                        <span className="text-gray-600 mr-2">📋</span>
+                        <Text className="font-medium text-gray-700">Eligibility Summary</Text>
+                      </div>
+                      <Text className="text-gray-600 text-sm">
+                        Configure the above criteria to define who can access and use this policy. 
+                        All selected conditions will be evaluated to determine eligibility.
+                      </Text>
+                    </div>
                   </div>
                 )}
 
