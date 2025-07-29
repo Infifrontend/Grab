@@ -441,11 +441,6 @@ export default function Bids() {
       key: "bidAmount",
     },
     {
-      title: "Deposit",
-      dataIndex: "deposit",
-      key: "deposit",
-    },
-    {
       title: "Status",
       dataIndex: "status",
       key: "status",
