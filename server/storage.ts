@@ -878,8 +878,48 @@ export class DatabaseStorage implements IStorage {
       console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
-      console.error("Error creating bid:", error);
-      throw error;
+      // If we get a sequence error, try to fix it
+      if (error.message.includes('null value in column "id"') || error.message.includes('bids_id_seq')) {
+        console.log('Fixing bids sequence...');
+        
+        try {
+          // Create the sequence if it doesn't exist
+          await db.execute(`
+            CREATE SEQUENCE IF NOT EXISTS bids_id_seq;
+          `);
+          
+          // Set the sequence to the correct value
+          await db.execute(`
+            SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false);
+          `);
+          
+          // Alter the table to use the sequence
+          await db.execute(`
+            ALTER TABLE bids ALTER COLUMN id SET DEFAULT nextval('bids_id_seq');
+          `);
+          
+          console.log('Bids sequence fixed, retrying bid creation...');
+          
+          // Try the insert again
+          const [bid] = await db
+            .insert(bids)
+            .values({
+              ...bidData,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            })
+            .returning();
+
+          console.log("Bid created successfully after sequence fix:", bid);
+          return bid;
+        } catch (sequenceError) {
+          console.error("Error fixing sequence:", sequenceError);
+          throw error; // Throw original error
+        }
+      } else {
+        console.error("Error creating bid:", error);
+        throw error;
+      }
     }
   }
 
@@ -1064,31 +1104,44 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log('Fixing database sequences...');
       
-      // Fix search_requests sequence
-      await db.execute(`
-        SELECT setval('search_requests_id_seq', COALESCE((SELECT MAX(id) FROM search_requests), 0) + 1, false)
-      `);
-      
-      // Fix other sequences that might have similar issues
-      await db.execute(`
-        SELECT setval('flights_id_seq', COALESCE((SELECT MAX(id) FROM flights), 0) + 1, false)
-      `);
-      
-      await db.execute(`
-        SELECT setval('flight_bookings_id_seq', COALESCE((SELECT MAX(id) FROM flight_bookings), 0) + 1, false)
-      `);
-      
-      await db.execute(`
-        SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false)
-      `);
-      
-      await db.execute(`
-        SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false)
-      `);
-      
-      await db.execute(`
-        SELECT setval('passengers_id_seq', COALESCE((SELECT MAX(id) FROM passengers), 0) + 1, false)
-      `);
+      const sequences = [
+        { name: 'search_requests_id_seq', table: 'search_requests' },
+        { name: 'flights_id_seq', table: 'flights' },
+        { name: 'flight_bookings_id_seq', table: 'flight_bookings' },
+        { name: 'bids_id_seq', table: 'bids' },
+        { name: 'payments_id_seq', table: 'payments' },
+        { name: 'passengers_id_seq', table: 'passengers' },
+        { name: 'users_id_seq', table: 'users' },
+        { name: 'deals_id_seq', table: 'deals' },
+        { name: 'packages_id_seq', table: 'packages' },
+        { name: 'bookings_id_seq', table: 'bookings' },
+        { name: 'refunds_id_seq', table: 'refunds' },
+        { name: 'notifications_id_seq', table: 'notifications' }
+      ];
+
+      for (const seq of sequences) {
+        try {
+          // Create the sequence if it doesn't exist
+          await db.execute(`
+            CREATE SEQUENCE IF NOT EXISTS ${seq.name};
+          `);
+          
+          // Set the sequence to the correct value
+          await db.execute(`
+            SELECT setval('${seq.name}', COALESCE((SELECT MAX(id) FROM ${seq.table}), 0) + 1, false);
+          `);
+          
+          // Ensure the table uses the sequence
+          await db.execute(`
+            ALTER TABLE ${seq.table} ALTER COLUMN id SET DEFAULT nextval('${seq.name}');
+          `);
+          
+          console.log(`Fixed sequence: ${seq.name}`);
+        } catch (seqError) {
+          console.log(`Could not fix sequence ${seq.name}:`, seqError.message);
+          // Continue with other sequences
+        }
+      }
       
       console.log('Database sequences fixed successfully');
     } catch (error) {
