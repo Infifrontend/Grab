@@ -190,12 +190,12 @@ export class DatabaseStorage implements IStorage {
       // If we get a duplicate key error, try to fix the sequence
       if (error.code === '23505' && error.constraint === 'search_requests_pkey') {
         console.log('Fixing search_requests sequence...');
-        
+
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
           SELECT setval('search_requests_id_seq', COALESCE((SELECT MAX(id) FROM search_requests), 0) + 1, false)
         `);
-        
+
         // Try the insert again
         await db.insert(searchRequests).values({
           origin: request.origin,
@@ -304,12 +304,12 @@ export class DatabaseStorage implements IStorage {
       // If we get a duplicate key error, try to fix the sequence
       if (error.code === '23505' && error.constraint === 'flight_bookings_pkey') {
         console.log('Fixing flight_bookings sequence...');
-        
+
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
           SELECT setval('flight_bookings_id_seq', COALESCE((SELECT MAX(id) FROM flight_bookings), 0) + 1, false)
         `);
-        
+
         // Try the insert again
         const [newBooking] = await db.insert(flightBookings).values(booking).returning();
         return newBooking;
@@ -356,12 +356,12 @@ export class DatabaseStorage implements IStorage {
       // If we get a duplicate key error, try to fix the sequence
       if (error.code === '23505' && error.constraint === 'passengers_pkey') {
         console.log('Fixing passengers sequence...');
-        
+
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
           SELECT setval('passengers_id_seq', COALESCE((SELECT MAX(id) FROM passengers), 0) + 1, false)
         `);
-        
+
         // Try the insert again
         const [newPassenger] = await db.insert(passengers).values(passenger).returning();
         return newPassenger;
@@ -703,15 +703,15 @@ export class DatabaseStorage implements IStorage {
       // If we get a duplicate key error, try to fix the sequence
       if (error.code === '23505' && error.constraint === 'payments_pkey') {
         console.log('Fixing payments sequence...');
-        
+
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
-          SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false)
+          SELECT setval('payments_id_seq', COALESCE((SELECT MAX(id) FROM payments), 0) + 1, false);
         `);
-        
+
         // Try the insert again
         const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
-        
+
         const [payment] = await db.insert(payments).values({
           bookingId: paymentData.bookingId || null,
           userId: paymentData.userId || 1,
@@ -881,25 +881,25 @@ export class DatabaseStorage implements IStorage {
       // If we get a sequence error, try to fix it
       if (error.message.includes('null value in column "id"') || error.message.includes('bids_id_seq')) {
         console.log('Fixing bids sequence...');
-        
+
         try {
           // Create the sequence if it doesn't exist
           await db.execute(`
             CREATE SEQUENCE IF NOT EXISTS bids_id_seq;
           `);
-          
+
           // Set the sequence to the correct value
           await db.execute(`
             SELECT setval('bids_id_seq', COALESCE((SELECT MAX(id) FROM bids), 0) + 1, false);
           `);
-          
+
           // Alter the table to use the sequence
           await db.execute(`
             ALTER TABLE bids ALTER COLUMN id SET DEFAULT nextval('bids_id_seq');
           `);
-          
+
           console.log('Bids sequence fixed, retrying bid creation...');
-          
+
           // Try the insert again
           const [bid] = await db
             .insert(bids)
@@ -923,24 +923,37 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBidById(bidId: number) {
+  async getBidById(id: number) {
     try {
-      const [result] = await db
-        .select({
-          bid: bids,
-          flight: flights,
-          user: users
-        })
+      console.log(`Looking up bid with ID: ${id}`);
+
+      if (!id || isNaN(id) || id <= 0) {
+        console.error(`Invalid bid ID provided: ${id}`);
+        return null;
+      }
+
+      const bid = await db
+        .select()
         .from(bids)
-        .leftJoin(flights, eq(bids.flightId, flights.id))
         .leftJoin(users, eq(bids.userId, users.id))
-        .where(eq(bids.id, bidId))
+        .leftJoin(flights, eq(bids.flightId, flights.id))
+        .where(eq(bids.id, id))
         .limit(1);
 
-      return result || null;
+      if (bid.length === 0) {
+        console.log(`No bid found with ID: ${id}`);
+        return null;
+      }
+
+      console.log(`Found bid ${id} successfully`);
+      return {
+        bid: bid[0].bids,
+        user: bid[0].users,
+        flight: bid[0].flights,
+      };
     } catch (error) {
-      console.error("Error getting bid by ID:", error);
-      throw error;
+      console.error(`Error fetching bid ${id}:`, error);
+      return null;
     }
   }
 
@@ -1103,7 +1116,7 @@ export class DatabaseStorage implements IStorage {
   async fixDatabaseSequences() {
     try {
       console.log('Fixing database sequences...');
-      
+
       const sequences = [
         { name: 'search_requests_id_seq', table: 'search_requests' },
         { name: 'flights_id_seq', table: 'flights' },
@@ -1125,24 +1138,24 @@ export class DatabaseStorage implements IStorage {
           await db.execute(`
             CREATE SEQUENCE IF NOT EXISTS ${seq.name};
           `);
-          
+
           // Set the sequence to the correct value
           await db.execute(`
             SELECT setval('${seq.name}', COALESCE((SELECT MAX(id) FROM ${seq.table}), 0) + 1, false);
           `);
-          
+
           // Ensure the table uses the sequence
           await db.execute(`
             ALTER TABLE ${seq.table} ALTER COLUMN id SET DEFAULT nextval('${seq.name}');
           `);
-          
+
           console.log(`Fixed sequence: ${seq.name}`);
         } catch (seqError) {
           console.log(`Could not fix sequence ${seq.name}:`, seqError.message);
           // Continue with other sequences
         }
       }
-      
+
       console.log('Database sequences fixed successfully');
     } catch (error) {
       console.error('Error fixing database sequences:', error);

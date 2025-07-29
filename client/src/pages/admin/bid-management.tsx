@@ -1101,8 +1101,25 @@ export default function BidManagement() {
     try {
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
-      // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1")
-      const numericBidId = bidId.replace("BID", "").replace(/^0+/, "") || bidId;
+      // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1", "BID3" -> "3")
+      let numericBidId = bidId;
+      if (typeof bidId === 'string') {
+        // Remove "BID" prefix and leading zeros, but keep the actual number
+        numericBidId = bidId.replace(/^BID0*/, '') || bidId;
+        // If it's still not a number, try to extract just the numeric part
+        const match = bidId.match(/\d+/);
+        if (match) {
+          numericBidId = match[0];
+        }
+      }
+      
+      console.log(`Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`);
+      
+      // Validate that we have a valid numeric ID
+      if (!numericBidId || isNaN(parseInt(numericBidId))) {
+        message.error(`Invalid bid ID format: ${bidId}`);
+        return;
+      }
 
       const response = await apiRequest(
         "PUT",

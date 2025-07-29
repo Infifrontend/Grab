@@ -1576,12 +1576,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId = 1; // Default fallback
       if (bidId) {
         try {
-          const bidDetails = await storage.getBidById(parseInt(bidId));
-          if (bidDetails?.bid?.userId) {
+          const parsedBidId = parseInt(bidId);
+          if (isNaN(parsedBidId)) {
+            throw new Error(`Invalid bid ID format: ${bidId}`);
+          }
+          
+          const bidDetails = await storage.getBidById(parsedBidId);
+          if (!bidDetails || !bidDetails.bid) {
+            throw new Error(`Bid not found with ID: ${bidId}`);
+          }
+          
+          if (bidDetails.bid.userId) {
             userId = bidDetails.bid.userId;
           }
+          
+          console.log(`Found bid ${bidId} for user ${userId}`);
         } catch (error) {
-          console.log("Could not get user ID from bid, using default:", error.message);
+          console.error("Error validating bid for payment:", error.message);
+          return res.status(400).json({
+            success: false,
+            message: `Invalid bid ID: ${error.message}`
+          });
         }
       }
 

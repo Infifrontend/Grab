@@ -83,13 +83,25 @@ export default function PaymentDetails() {
       console.log(`Processing payment for bid ID: ${bidId}`);
 
       // First, verify the bid exists and is in a valid state for payment
-      const bidCheckResponse = await fetch(`/api/bids/${bidId}`);
-      if (!bidCheckResponse.ok) {
-        throw new Error("Bid not found");
+      let bidCheckResponse;
+      let bidData;
+      
+      try {
+        bidCheckResponse = await fetch(`/api/bids/${bidId}`);
+        if (!bidCheckResponse.ok) {
+          console.error(`Bid check failed with status: ${bidCheckResponse.status}`);
+          throw new Error(`Bid not found (ID: ${bidId})`);
+        }
+        bidData = await bidCheckResponse.json();
+        console.log("Bid data:", bidData);
+        
+        if (!bidData || !bidData.bid) {
+          throw new Error("Invalid bid data received");
+        }
+      } catch (fetchError) {
+        console.error("Error fetching bid:", fetchError);
+        throw new Error(`Unable to verify bid ${bidId}. Please check if the bid exists.`);
       }
-
-      const bidData = await bidCheckResponse.json();
-      console.log("Bid data:", bidData);
 
       // Check if payment has already been completed
       if (bidData.bid?.bidStatus === "completed") {
