@@ -3203,534 +3203,162 @@ export default function OfferManagement() {
               </div>
             </>
           ) : activeTab === "discounts" ? (
-            // Discount Form Fields - Multi-step with enhanced design
+            // Discount Form Fields
             <>
-              {/* Modern Steps Navigation */}
-              <div className="mb-8">
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
-                    {[
-                      { title: "Basic Info", icon: "ℹ️", color: "blue" },
-                      { title: "Discount Rules", icon: "⚙️", color: "green" },
-                      { title: "Eligibility", icon: "👥", color: "purple" },
-                      { title: "Date Windows", icon: "📅", color: "orange" },
-                      { title: "Combinability", icon: "🔗", color: "pink" }
-                    ].map((step, index) => (
-                      <div key={index} className="flex flex-col items-center relative">
-                        <div 
-                          className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold transition-all duration-300 ${
-                            index === policyModalStep 
-                              ? `bg-${step.color}-600 text-white shadow-lg` 
-                              : index < policyModalStep 
-                                ? `bg-${step.color}-100 text-${step.color}-600 border-2 border-${step.color}-300`
-                                : 'bg-gray-100 text-gray-400 border-2 border-gray-200'
-                          }`}
-                        >
-                          {index < policyModalStep ? '✓' : step.icon}
-                        </div>
-                        <Text className={`mt-2 text-sm font-medium text-center max-w-20 ${
-                          index === policyModalStep ? `text-${step.color}-600` : 'text-gray-500'
-                        }`}>
-                          {step.title}
-                        </Text>
-                        {index < 4 && (
-                          <div className={`absolute top-6 left-12 w-24 h-0.5 ${
-                            index < policyModalStep ? `bg-${step.color}-300` : 'bg-gray-200'
-                          }`} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <Row gutter={16}>
+                <Col span={16}>
+                  <Form.Item
+                    label="Discount Name"
+                    name="discountName"
+                    rules={[
+                      { required: true, message: "Please enter discount name" },
+                    ]}
+                  >
+                    <Input placeholder="Enter discount name" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="Discount Code"
+                    name="discountCode"
+                    rules={[
+                      { required: true, message: "Please enter discount code" },
+                    ]}
+                  >
+                    <Input placeholder="e.g. SAVE20" size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-              {/* Enhanced Step Content */}
-              <div style={{ minHeight: "500px" }} className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6">
-                {/* Step 1: Basic Info - Enhanced */}
-                {policyModalStep === 0 && (
-                  <div className="space-y-6">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">ℹ️</span>
-                      </div>
-                      <Title level={3} className="!mb-2 text-gray-900">
-                        Basic Information
-                      </Title>
-                      <Text className="text-gray-600 text-base">
-                        Set up the fundamental details of your discount
-                      </Text>
-                    </div>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Discount Type"
+                    name="discountType"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select discount type",
+                      },
+                    ]}
+                  >
+                    <Select placeholder="Select type" size="large">
+                      <Select.Option value="percentage">
+                        Percentage
+                      </Select.Option>
+                      <Select.Option value="fixed">Fixed Amount</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Discount Value"
+                    name="discountValue"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please enter discount value",
+                      },
+                    ]}
+                  >
+                    <InputNumber
+                      placeholder="0"
+                      size="large"
+                      className="w-full"
+                      min={0}
+                      max={100}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-semibold">Discount Name</span>}
-                          name="discountName"
-                          rules={[
-                            { required: true, message: "Please enter discount name" },
-                          ]}
-                        >
-                          <Input
-                            placeholder="e.g., Early Bird Special"
-                            size="large"
-                            className="rounded-lg"
-                          />
-                        </Form.Item>
-                      </div>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Target"
+                    name="target"
+                    rules={[
+                      { required: true, message: "Please select target" },
+                    ]}
+                  >
+                    <Select placeholder="Select target" size="large">
+                      <Select.Option value="ancillaries">
+                        Ancillaries
+                      </Select.Option>
+                      <Select.Option value="offers">Offers</Select.Option>
+                      <Select.Option value="both">Both</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Usage Limit"
+                    name="usageLimit"
+                    rules={[
+                      { required: true, message: "Please enter usage limit" },
+                    ]}
+                  >
+                    <InputNumber
+                      placeholder="e.g. 5000"
+                      size="large"
+                      className="w-full"
+                      min={1}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-semibold">Discount Code</span>}
-                          name="discountCode"
-                          rules={[
-                            { required: true, message: "Please enter discount code" },
-                          ]}
-                        >
-                          <Input 
-                            placeholder="e.g., EARLY20" 
-                            size="large" 
-                            className="rounded-lg"
-                            style={{ fontFamily: 'monospace', fontWeight: 'bold' }}
-                          />
-                        </Form.Item>
-                      </div>
-                    </div>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid From"
+                    name="validFrom"
+                    rules={[
+                      { required: true, message: "Please select start date" },
+                    ]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Valid To"
+                    name="validTo"
+                    rules={[
+                      { required: true, message: "Please select end date" },
+                    ]}
+                  >
+                    <DatePicker
+                      size="large"
+                      className="w-full"
+                      format="MMM DD, YYYY"
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                      <Form.Item
-                        label={<span className="text-gray-700 font-semibold">Description</span>}
-                        name="description"
-                      >
-                        <Input.TextArea
-                          rows={4}
-                          placeholder="Describe what this discount offers and any special conditions..."
-                          className="rounded-lg"
-                        />
-                      </Form.Item>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-semibold">Discount Type</span>}
-                          name="discountType"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select discount type",
-                            },
-                          ]}
-                        >
-                          <Select placeholder="Select type" size="large" className="w-full">
-                            <Select.Option value="percentage">
-                              <div className="flex items-center">
-                                <span className="mr-2">%</span>
-                                Percentage
-                              </div>
-                            </Select.Option>
-                            <Select.Option value="fixed">
-                              <div className="flex items-center">
-                                <span className="mr-2">$</span>
-                                Fixed Amount
-                              </div>
-                            </Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </div>
-
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-semibold">Discount Value</span>}
-                          name="discountValue"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter discount value",
-                            },
-                          ]}
-                        >
-                          <InputNumber
-                            placeholder="20"
-                            size="large"
-                            className="w-full rounded-lg"
-                            min={0}
-                            max={100}
-                          />
-                        </Form.Item>
-                      </div>
-
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-semibold">Status</span>}
-                          name="status"
-                          initialValue="active"
-                        >
-                          <Select placeholder="Active" size="large" className="w-full">
-                            <Select.Option value="active">
-                              <div className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                Active
-                              </div>
-                            </Select.Option>
-                            <Select.Option value="inactive">
-                              <div className="flex items-center">
-                                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                                Inactive
-                              </div>
-                            </Select.Option>
-                            <Select.Option value="draft">
-                              <div className="flex items-center">
-                                <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
-                                Draft
-                              </div>
-                            </Select.Option>
-                          </Select>
-                        </Form.Item>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Discount Rules - Enhanced */}
-                {policyModalStep === 1 && (
-                  <div className="space-y-8">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">⚙️</span>
-                      </div>
-                      <Title level={3} className="!mb-2 text-gray-900">
-                        Target Application
-                      </Title>
-                      <Text className="text-gray-600 text-base">
-                        Define what this discount applies to and usage limits
-                      </Text>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                      <Text className="font-semibold text-gray-800 block mb-6 text-lg">Application Scope</Text>
-                      <Form.Item name="targetApplication" initialValue="baseFareOnly">
-                        <div className="grid grid-cols-1 gap-4">
-                          <div className="p-6 border-2 border-green-200 rounded-xl bg-green-50 cursor-pointer hover:bg-green-100 transition-colors">
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 bg-green-600 rounded-full mr-4"></div>
-                              <div>
-                                <Text className="font-semibold text-green-800 block mb-1">Base Fare Only</Text>
-                                <Text className="text-green-700 text-sm">Apply discount to base fare/ticket price only</Text>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="p-6 border-2 border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 border-2 border-gray-400 rounded-full mr-4"></div>
-                              <div>
-                                <Text className="font-semibold text-gray-700 block mb-1">Ancillaries Only</Text>
-                                <Text className="text-gray-600 text-sm">Apply discount to selected ancillary services</Text>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-6 border-2 border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 border-2 border-gray-400 rounded-full mr-4"></div>
-                              <div>
-                                <Text className="font-semibold text-gray-700 block mb-1">Both Base Fare & Ancillaries</Text>
-                                <Text className="text-gray-600 text-sm">Apply discount to both fare and selected services</Text>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Form.Item>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                      <Text className="font-semibold text-gray-800 block mb-6 text-lg">Usage Limitations</Text>
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div>
-                          <Form.Item
-                            label={<span className="text-gray-700 font-medium">Total Usage Limit</span>}
-                            name="totalUsageLimit"
-                          >
-                            <InputNumber
-                              placeholder="1000"
-                              size="large"
-                              className="w-full rounded-lg"
-                              min={1}
-                              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
-                        </div>
-                        <div>
-                          <Form.Item
-                            label={<span className="text-gray-700 font-medium">Per User Limit</span>}
-                            name="perUserLimit"
-                          >
-                            <InputNumber
-                              placeholder="1"
-                              size="large"
-                              className="w-full rounded-lg"
-                              min={1}
-                            />
-                          </Form.Item>
-                        </div>
-                        <div>
-                          <Form.Item
-                            label={<span className="text-gray-700 font-medium">Maximum Discount Cap ($)</span>}
-                            name="maxDiscountCap"
-                          >
-                            <InputNumber
-                              placeholder="100"
-                              size="large"
-                              className="w-full rounded-lg"
-                              min={0}
-                              formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Eligibility - Enhanced */}
-                {policyModalStep === 2 && (
-                  <div className="space-y-8">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">👥</span>
-                      </div>
-                      <Title level={3} className="!mb-2 text-gray-900">
-                        Customer Eligibility
-                      </Title>
-                      <Text className="text-gray-600 text-base">
-                        Define who can access and use this discount
-                      </Text>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {/* Loyalty Program Tiers */}
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center mb-4">
-                          <span className="text-lg mr-3">🏆</span>
-                          <Text className="font-semibold text-gray-800 text-lg">Loyalty Program Tiers</Text>
-                        </div>
-                        <Form.Item name="loyaltyTiers">
-                          <Checkbox.Group className="w-full">
-                            <div className="grid grid-cols-1 gap-3">
-                              {[
-                                { value: "bronze", label: "Bronze", color: "amber-600" },
-                                { value: "silver", label: "Silver", color: "gray-400" },
-                                { value: "gold", label: "Gold", color: "yellow-500" },
-                                { value: "platinum", label: "Platinum", color: "gray-300" },
-                                { value: "diamond", label: "Diamond", color: "blue-500" }
-                              ].map((tier) => (
-                                <div key={tier.value} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                  <Checkbox value={tier.value} className="mr-3" />
-                                  <div className={`w-3 h-3 bg-${tier.color} rounded-full mr-3`}></div>
-                                  <Text className="font-medium">{tier.label}</Text>
-                                </div>
-                              ))}
-                            </div>
-                          </Checkbox.Group>
-                        </Form.Item>
-                      </div>
-
-                      {/* Geographic Eligibility */}
-                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center mb-4">
-                          <span className="text-lg mr-3">🌍</span>
-                          <Text className="font-semibold text-gray-800 text-lg">Geographic Eligibility</Text>
-                        </div>
-                        <Form.Item name="geographicEligibility">
-                          <Checkbox.Group className="w-full">
-                            <div className="grid grid-cols-2 gap-3">
-                              {[
-                                { value: "US", flag: "🇺🇸" },
-                                { value: "CA", flag: "🇨🇦" },
-                                { value: "MX", flag: "🇲🇽" },
-                                { value: "UK", flag: "🇬🇧" },
-                                { value: "AU", flag: "🇦🇺" },
-                                { value: "DE", flag: "🇩🇪" },
-                                { value: "FR", flag: "🇫🇷" },
-                                { value: "JP", flag: "🇯🇵" }
-                              ].map((country) => (
-                                <div key={country.value} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                  <Checkbox value={country.value} className="mr-3" />
-                                  <span className="mr-2">{country.flag}</span>
-                                  <Text className="font-medium">{country.value}</Text>
-                                </div>
-                              ))}
-                            </div>
-                          </Checkbox.Group>
-                        </Form.Item>
-                      </div>
-                    </div>
-
-                    {/* Route Restrictions */}
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                      <div className="flex items-center mb-4">
-                        <span className="text-lg mr-3">✈️</span>
-                        <Text className="font-semibold text-gray-800 text-lg">Route Restrictions</Text>
-                      </div>
-                      <Form.Item name="routeRestrictions">
-                        <Checkbox.Group className="w-full">
-                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                            {[
-                              "LAX-JFK", "ORD-SFO", "MIA-DEN", 
-                              "ATL-SEA", "DEN-BOS", "LAX-ORD"
-                            ].map((route) => (
-                              <div key={route} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <Checkbox value={route} className="mr-3" />
-                                <Text className="font-medium font-mono">{route}</Text>
-                              </div>
-                            ))}
-                          </div>
-                        </Checkbox.Group>
-                      </Form.Item>
-                    </div>
-
-                    {/* Minimum Spend Threshold */}
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                      <div className="flex items-center mb-4">
-                        <span className="text-lg mr-3">💰</span>
-                        <Text className="font-semibold text-gray-800 text-lg">Minimum Spend Threshold</Text>
-                      </div>
-                      <Form.Item name="minimumSpendThreshold">
-                        <InputNumber
-                          placeholder="100"
-                          size="large"
-                          className="w-full rounded-lg"
-                          min={0}
-                          formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                        />
-                      </Form.Item>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Date Windows - Enhanced */}
-                {policyModalStep === 3 && (
-                  <div className="space-y-8">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">📅</span>
-                      </div>
-                      <Title level={3} className="!mb-2 text-gray-900">
-                        Validity Period
-                      </Title>
-                      <Text className="text-gray-600 text-base">
-                        Set the active period and any blackout dates for this discount
-                      </Text>
-                    </div>
-
-                    <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-                      <div className="flex items-center mb-6">
-                        <span className="text-lg mr-3">🗓️</span>
-                        <Text className="font-semibold text-gray-800 text-lg">Active Period</Text>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Form.Item
-                          label={<span className="text-gray-700 font-medium">Valid From</span>}
-                          name="validFrom"
-                          rules={[
-                            { required: true, message: "Please select start date" },
-                          ]}
-                        >
-                          <DatePicker
-                            size="large"
-                            className="w-full rounded-lg"
-                            placeholder="Select start date"
-                            format="MMM DD, YYYY"
-                            disabledDate={(current) =>
-                              current && current.isBefore(new Date(), "day")
-                            }
-                          />
-                        </Form.Item>
-                        <Form.Item
-                          label={<span className="text-gray-700 font-medium">Valid Until</span>}
-                          name="validTo"
-                          rules={[
-                            { required: true, message: "Please select end date" },
-                          ]}
-                        >
-                          <DatePicker
-                            size="large"
-                            className="w-full rounded-lg"
-                            placeholder="Select end date"
-                            format="MMM DD, YYYY"
-                            disabledDate={(current) =>
-                              current && current.isBefore(new Date(), "day")
-                            }
-                          />
-                        </Form.Item>
-                      </div>
-                    </div>
-
-                    {/* Blackout Dates */}
-                    <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-                      <div className="flex items-center mb-6">
-                        <span className="text-lg mr-3">🚫</span>
-                        <Text className="font-semibold text-gray-800 text-lg">Blackout Dates</Text>
-                      </div>
-                      <Text className="text-gray-600 mb-4">
-                        Select dates when this discount should not be available
-                      </Text>
-                      <Form.Item name="blackoutDates">
-                        <DatePicker
-                          size="large"
-                          className="w-full rounded-lg"
-                          placeholder="Select blackout dates"
-                          format="DD-MM-YYYY"
-                        />
-                      </Form.Item>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 5: Combinability - Enhanced */}
-                {policyModalStep === 4 && (
-                  <div className="space-y-8">
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">🔗</span>
-                      </div>
-                      <Title level={3} className="!mb-2 text-gray-900">
-                        Promo Code Combinability
-                      </Title>
-                      <Text className="text-gray-600 text-base">
-                        Configure how this discount interacts with other promotional codes
-                      </Text>
-                    </div>
-
-                    <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-                      <Form.Item
-                        name="allowCombinationWithPromoCodes"
-                        valuePropName="checked"
-                        className="!mb-0"
-                      >
-                        <div className="flex items-start p-6 border-2 border-pink-200 rounded-xl bg-pink-50">
-                          <Switch className="mr-4 mt-1" size="default" />
-                          <div>
-                            <Text className="font-semibold text-pink-800 block mb-2 text-lg">Allow Combination with Promo Codes</Text>
-                            <Text className="text-pink-700">
-                              When enabled, customers can use this discount together with other promotional codes. 
-                              This can increase conversion rates but may reduce profit margins.
-                            </Text>
-                            <div className="mt-4 p-4 bg-pink-100 rounded-lg">
-                              <Text className="text-pink-800 text-sm">
-                                <strong>Note:</strong> If disabled, this discount will be mutually exclusive with other promo codes.
-                              </Text>
-                            </div>
-                          </div>
-                        </div>
-                      </Form.Item>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[
+                  { required: true, message: "Please enter description" },
+                ]}
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter discount description..."
+                />
+              </Form.Item>
             </>
           ) : activeTab === "ancillaries" ? (
             // Ancillary Form Fields - Multi-step
@@ -4137,40 +3765,6 @@ export default function OfferManagement() {
                 </>
               )}
 
-              {activeTab === "discounts" && (
-                <>
-                  <Button
-                    onClick={() => setPolicyModalStep(Math.max(0, policyModalStep - 1))}
-                    disabled={policyModalStep === 0}
-                    size="large"
-                  >
-                    Previous
-                  </Button>
-                  {policyModalStep < 4 ? (
-                    <Button
-                      type="primary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setPolicyModalStep(Math.min(4, policyModalStep + 1));
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      size="large"
-                    >
-                      Next
-                    </Button>
-                  ) : (
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      className="bg-green-600 hover:bg-green-700"
-                      size="large"
-                    >
-                      Create Discount
-                    </Button>
-                  )}
-                </>
-              )}
-
               {activeTab === "ancillaries" && (
                 <>
                   <Button
@@ -4205,16 +3799,18 @@ export default function OfferManagement() {
                 </>
               )}
 
-              {activeTab !== "policies" && activeTab !== "ancillaries" && activeTab !== "discounts" && (
+              {activeTab !== "policies" && activeTab !== "ancillaries" && (
                 <Button
                   type="primary"
                   htmlType="submit"
                   className="bg-blue-600 hover:bg-blue-700"
                   size="large"
                 >
-                  {activeTab === "promocodes"
-                    ? "Create Promo Code"
-                    : "Create"}
+                  {activeTab === "discounts"
+                    ? "Create Discount"
+                    : activeTab === "promocodes"
+                      ? "Create Promo Code"
+                      : "Create"}
                 </Button>
               )}
             </div>
