@@ -22,6 +22,7 @@ import {
   Breadcrumb,
   Avatar,
   Badge,
+  Checkbox,
 } from "antd";
 import {
   PlusOutlined,
@@ -926,7 +927,7 @@ export default function OfferManagement() {
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
                               High Impact
-                                                        </Badge>
+                            </Badge>
                           </div>
                           <Text className="text-gray-600 text-sm mb-3">
                             Increasing customer demand for eco-friendly travel
@@ -2410,11 +2411,13 @@ export default function OfferManagement() {
         {activeTab === "policies" && (
           <div className="mb-6">
             <Text className="text-gray-600">
-              Configure comprehensive policy rules including refund/change policies, eligibility criteria, stacking rules, blackout dates, and compliance constraints
+              Configure comprehensive policy rules including refund/change
+              policies, eligibility criteria, stacking rules, blackout dates,
+              and compliance constraints
             </Text>
           </div>
         )}
-        
+
         <Form
           form={form}
           layout="vertical"
@@ -2432,7 +2435,7 @@ export default function OfferManagement() {
                 <Title level={4} className="!mb-4">
                   Basic Information
                 </Title>
-                
+
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
@@ -2442,7 +2445,10 @@ export default function OfferManagement() {
                         { required: true, message: "Please enter policy name" },
                       ]}
                     >
-                      <Input placeholder="e.g., Premium Member Re..." size="large" />
+                      <Input
+                        placeholder="e.g., Premium Member Re..."
+                        size="large"
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -2450,7 +2456,10 @@ export default function OfferManagement() {
                       label="Priority Level"
                       name="priorityLevel"
                       rules={[
-                        { required: true, message: "Please select priority level" },
+                        {
+                          required: true,
+                          message: "Please select priority level",
+                        },
                       ]}
                     >
                       <Select placeholder="Select priority" size="large">
@@ -2469,7 +2478,11 @@ export default function OfferManagement() {
                   />
                 </Form.Item>
 
-                <Form.Item name="policyEnabled" valuePropName="checked" initialValue={true}>
+                <Form.Item
+                  name="policyEnabled"
+                  valuePropName="checked"
+                  initialValue={true}
+                >
                   <Switch />
                   <span className="ml-2">Policy Enabled</span>
                 </Form.Item>
@@ -2487,48 +2500,82 @@ export default function OfferManagement() {
                 <Row gutter={24}>
                   <Col span={12}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Refund Policy</Text>
-                      <Form.Item name="allowRefunds" valuePropName="checked" className="!mb-2">
+                      <Text className="font-medium block mb-2">
+                        Refund Policy
+                      </Text>
+                      <Form.Item
+                        name="allowRefunds"
+                        valuePropName="checked"
+                        className="!mb-2"
+                      >
                         <Switch />
                         <span className="ml-2">Allow Refunds</span>
                       </Form.Item>
-                      
+
                       <Row gutter={12}>
                         <Col span={12}>
-                          <Form.Item label="Refund Deadline (hours before departure)" name="refundDeadline">
+                          <Form.Item
+                            label="Refund Deadline (hours before departure)"
+                            name="refundDeadline"
+                          >
                             <InputNumber placeholder="24" className="w-full" />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
-                          <Form.Item label="Refund Percentage (%)" name="refundPercentage">
-                            <InputNumber placeholder="100" className="w-full" min={0} max={100} />
+                          <Form.Item
+                            label="Refund Percentage (%)"
+                            name="refundPercentage"
+                          >
+                            <InputNumber
+                              placeholder="100"
+                              className="w-full"
+                              min={0}
+                              max={100}
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
 
                       <Form.Item label="Refund Fee ($)" name="refundFee">
-                        <InputNumber placeholder="0" className="w-full" min={0} />
+                        <InputNumber
+                          placeholder="0"
+                          className="w-full"
+                          min={0}
+                        />
                       </Form.Item>
                     </div>
                   </Col>
 
                   <Col span={12}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Change Policy</Text>
-                      <Form.Item name="allowChanges" valuePropName="checked" className="!mb-2">
+                      <Text className="font-medium block mb-2">
+                        Change Policy
+                      </Text>
+                      <Form.Item
+                        name="allowChanges"
+                        valuePropName="checked"
+                        className="!mb-2"
+                      >
                         <Switch />
                         <span className="ml-2">Allow Changes</span>
                       </Form.Item>
 
                       <Row gutter={12}>
                         <Col span={12}>
-                          <Form.Item label="Change Deadline (hours before departure)" name="changeDeadline">
+                          <Form.Item
+                            label="Change Deadline (hours before departure)"
+                            name="changeDeadline"
+                          >
                             <InputNumber placeholder="24" className="w-full" />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
                           <Form.Item label="Change Fee ($)" name="changeFee">
-                            <InputNumber placeholder="0" className="w-full" min={0} />
+                            <InputNumber
+                              placeholder="0"
+                              className="w-full"
+                              min={0}
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
@@ -2549,7 +2596,9 @@ export default function OfferManagement() {
                 <Row gutter={24}>
                   <Col span={8}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Loyalty Tiers</Text>
+                      <Text className="font-medium block mb-2">
+                        Loyalty Tiers
+                      </Text>
                       <Form.Item name="loyaltyTiers">
                         <Space direction="vertical">
                           <Checkbox value="bronze">Bronze</Checkbox>
@@ -2562,7 +2611,9 @@ export default function OfferManagement() {
                     </div>
 
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Passenger Types</Text>
+                      <Text className="font-medium block mb-2">
+                        Passenger Types
+                      </Text>
                       <Form.Item name="passengerTypes">
                         <Space direction="vertical">
                           <Checkbox value="adult">Adult</Checkbox>
@@ -2578,28 +2629,44 @@ export default function OfferManagement() {
 
                   <Col span={8}>
                     <div className="mb-4">
-                      <Form.Item name="corporateCustomersOnly" valuePropName="checked">
+                      <Form.Item
+                        name="corporateCustomersOnly"
+                        valuePropName="checked"
+                      >
                         <Switch />
                         <span className="ml-2">Corporate Customers Only</span>
                       </Form.Item>
                     </div>
 
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Age Restrictions</Text>
+                      <Text className="font-medium block mb-2">
+                        Age Restrictions
+                      </Text>
                       <Row gutter={12}>
                         <Col span={12}>
                           <Form.Item label="Min Age" name="minAge">
-                            <InputNumber placeholder="0" className="w-full" min={0} />
+                            <InputNumber
+                              placeholder="0"
+                              className="w-full"
+                              min={0}
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
                           <Form.Item label="Max Age" name="maxAge">
-                            <InputNumber placeholder="100" className="w-full" min={0} />
+                            <InputNumber
+                              placeholder="100"
+                              className="w-full"
+                              min={0}
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
 
-                      <Form.Item name="requiresAdultSupervision" valuePropName="checked">
+                      <Form.Item
+                        name="requiresAdultSupervision"
+                        valuePropName="checked"
+                      >
                         <Checkbox>Requires Adult Supervision</Checkbox>
                       </Form.Item>
                     </div>
@@ -2607,7 +2674,9 @@ export default function OfferManagement() {
 
                   <Col span={8}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Booking Channels</Text>
+                      <Text className="font-medium block mb-2">
+                        Booking Channels
+                      </Text>
                       <Form.Item name="bookingChannels">
                         <Space direction="vertical">
                           <Checkbox value="website">Website</Checkbox>
@@ -2631,29 +2700,47 @@ export default function OfferManagement() {
                   </Title>
                 </div>
 
-                <Form.Item name="allowDiscountStacking" valuePropName="checked" className="mb-4">
+                <Form.Item
+                  name="allowDiscountStacking"
+                  valuePropName="checked"
+                  className="mb-4"
+                >
                   <Switch />
                   <span className="ml-2">Allow Discount Stacking</span>
                 </Form.Item>
 
                 <div>
-                  <Text className="font-medium block mb-2">Conflicting Offers (Cannot be combined)</Text>
+                  <Text className="font-medium block mb-2">
+                    Conflicting Offers (Cannot be combined)
+                  </Text>
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item name="conflictingOffers1">
                         <Space direction="vertical" className="w-full">
-                          <Checkbox value="comfort-plus">Comfort Plus Offer</Checkbox>
-                          <Checkbox value="early-bird">Early Bird Discount</Checkbox>
-                          <Checkbox value="baggage-fixed">Baggage Fixed Discount</Checkbox>
+                          <Checkbox value="comfort-plus">
+                            Comfort Plus Offer
+                          </Checkbox>
+                          <Checkbox value="early-bird">
+                            Early Bird Discount
+                          </Checkbox>
+                          <Checkbox value="baggage-fixed">
+                            Baggage Fixed Discount
+                          </Checkbox>
                         </Space>
                       </Form.Item>
                     </Col>
                     <Col span={12}>
                       <Form.Item name="conflictingOffers2">
                         <Space direction="vertical" className="w-full">
-                          <Checkbox value="business-traveler">Business Traveler Offer</Checkbox>
-                          <Checkbox value="meal-service">Meal Service Discount</Checkbox>
-                          <Checkbox value="summer-travel">Summer Travel Promo</Checkbox>
+                          <Checkbox value="business-traveler">
+                            Business Traveler Offer
+                          </Checkbox>
+                          <Checkbox value="meal-service">
+                            Meal Service Discount
+                          </Checkbox>
+                          <Checkbox value="summer-travel">
+                            Summer Travel Promo
+                          </Checkbox>
                         </Space>
                       </Form.Item>
                     </Col>
@@ -2688,15 +2775,35 @@ export default function OfferManagement() {
                 <Row gutter={24}>
                   <Col span={12}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Applicable Regions</Text>
+                      <Text className="font-medium block mb-2">
+                        Applicable Regions
+                      </Text>
                       <Form.Item name="applicableRegions">
                         <Row gutter={[12, 8]}>
-                          <Col span={12}><Checkbox value="north-america">North America</Checkbox></Col>
-                          <Col span={12}><Checkbox value="europe">Europe</Checkbox></Col>
-                          <Col span={12}><Checkbox value="asia-pacific">Asia Pacific</Checkbox></Col>
-                          <Col span={12}><Checkbox value="latin-america">Latin America</Checkbox></Col>
-                          <Col span={12}><Checkbox value="middle-east">Middle East</Checkbox></Col>
-                          <Col span={12}><Checkbox value="africa">Africa</Checkbox></Col>
+                          <Col span={12}>
+                            <Checkbox value="north-america">
+                              North America
+                            </Checkbox>
+                          </Col>
+                          <Col span={12}>
+                            <Checkbox value="europe">Europe</Checkbox>
+                          </Col>
+                          <Col span={12}>
+                            <Checkbox value="asia-pacific">
+                              Asia Pacific
+                            </Checkbox>
+                          </Col>
+                          <Col span={12}>
+                            <Checkbox value="latin-america">
+                              Latin America
+                            </Checkbox>
+                          </Col>
+                          <Col span={12}>
+                            <Checkbox value="middle-east">Middle East</Checkbox>
+                          </Col>
+                          <Col span={12}>
+                            <Checkbox value="africa">Africa</Checkbox>
+                          </Col>
                         </Row>
                       </Form.Item>
                     </div>
@@ -2704,19 +2811,27 @@ export default function OfferManagement() {
                     <div className="mb-4">
                       <Form.Item name="gdprCompliant" valuePropName="checked">
                         <Switch />
-                        <span className="ml-2">GDPR/Data Protection Compliant</span>
+                        <span className="ml-2">
+                          GDPR/Data Protection Compliant
+                        </span>
                       </Form.Item>
                     </div>
 
                     <div className="mb-4">
                       <Form.Item name="adaCompliant" valuePropName="checked">
                         <Switch />
-                        <span className="ml-2">ADA/Accessibility Compliant</span>
+                        <span className="ml-2">
+                          ADA/Accessibility Compliant
+                        </span>
                       </Form.Item>
                     </div>
 
                     <div className="mb-4">
-                      <Form.Item name="enableAuditTrail" valuePropName="checked" initialValue={true}>
+                      <Form.Item
+                        name="enableAuditTrail"
+                        valuePropName="checked"
+                        initialValue={true}
+                      >
                         <Switch />
                         <span className="ml-2">Enable Audit Trail</span>
                       </Form.Item>
@@ -2725,7 +2840,9 @@ export default function OfferManagement() {
 
                   <Col span={12}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Tax Implications</Text>
+                      <Text className="font-medium block mb-2">
+                        Tax Implications
+                      </Text>
                       <Form.Item name="taxImplications">
                         <Input.TextArea
                           rows={3}
@@ -2735,7 +2852,9 @@ export default function OfferManagement() {
                     </div>
 
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">Regulatory Notes</Text>
+                      <Text className="font-medium block mb-2">
+                        Regulatory Notes
+                      </Text>
                       <Form.Item name="regulatoryNotes">
                         <Input.TextArea
                           rows={3}
@@ -2772,7 +2891,9 @@ export default function OfferManagement() {
                         className="w-full"
                         placeholder="Pick start date"
                         format="MMM DD, YYYY"
-                        disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                        disabledDate={(current) =>
+                          current && current.isBefore(new Date(), "day")
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -2789,7 +2910,9 @@ export default function OfferManagement() {
                         className="w-full"
                         placeholder="Pick end date"
                         format="MMM DD, YYYY"
-                        disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                        disabledDate={(current) =>
+                          current && current.isBefore(new Date(), "day")
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -2915,7 +3038,9 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
@@ -2931,7 +3056,9 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
@@ -3068,8 +3195,9 @@ export default function OfferManagement() {
                         required: true,
                         message: "Please enter promo code name",
                       },
-                    ]}                  >
-                                        <Input placeholder="Enter promo code name" size="large" />
+                    ]}
+                  >
+                    <Input placeholder="Enter promo code name" size="large" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -3173,7 +3301,9 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
@@ -3189,7 +3319,9 @@ export default function OfferManagement() {
                       size="large"
                       className="w-full"
                       format="MMM DD, YYYY"
-                      disabledDate={(current) => current && current.isBefore(new Date(), 'day')}
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
@@ -3231,9 +3363,9 @@ export default function OfferManagement() {
             >
               Cancel
             </Button>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
+            <Button
+              type="primary"
+              htmlType="submit"
               className="bg-blue-600 hover:bg-blue-700"
               size="large"
             >
