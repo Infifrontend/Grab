@@ -3442,7 +3442,7 @@ export default function OfferManagement() {
                             <Select.Option value="optional">Optional</Select.Option>
                             <Select.Option value="bundle">Bundle</Select.Option>
                           </Select>
-                        </Select>
+                        </Form.Item>
                       </Col>
                       <Col span={12}>
                         <Form.Item
