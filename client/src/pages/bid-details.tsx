@@ -235,12 +235,15 @@ export default function BidDetails() {
       configData: {
         title: transformedBidData.title,
         route: transformedBidData.route,
-        travelDate: transformedBidData.travelDate
-      }
+        travelDate: transformedBidData.travelDate,
+      },
     };
 
     console.log("Storing bid participation data:", bidParticipationData);
-    localStorage.setItem("bidParticipationData", JSON.stringify(bidParticipationData));
+    localStorage.setItem(
+      "bidParticipationData",
+      JSON.stringify(bidParticipationData),
+    );
     navigate(`/payment-details/${params.id}`);
   };
 

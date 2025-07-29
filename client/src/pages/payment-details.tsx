@@ -41,7 +41,7 @@ export default function PaymentDetails() {
     const loadBidData = async () => {
       // Load bid participation data from localStorage
       const storedData = localStorage.getItem("bidParticipationData");
-      
+
       if (storedData) {
         setBidParticipationData(JSON.parse(storedData));
       } else {
@@ -49,51 +49,70 @@ export default function PaymentDetails() {
         const bidId = params.id;
         if (bidId) {
           try {
-            console.log(`No localStorage data, fetching bid ${bidId} to create participation data`);
+            console.log(
+              `No localStorage data, fetching bid ${bidId} to create participation data`,
+            );
             const response = await fetch(`/api/bids/${bidId}`);
-            
+
             if (response.ok) {
               const bidData = await response.json();
               console.log("Received bid data for participation:", bidData);
-              
+
               if (bidData.success && bidData.bid) {
                 // Parse configuration data from notes
                 let configData = {};
                 try {
-                  configData = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
+                  configData = bidData.bid.notes
+                    ? JSON.parse(bidData.bid.notes)
+                    : {};
                 } catch (e) {
                   console.log("Could not parse bid notes:", e);
                 }
-                
+
                 // Create participation data from bid
                 const participationData = {
-                  totalBid: parseFloat(bidData.bid.bidAmount) * (bidData.bid.passengerCount || 1),
+                  totalBid:
+                    parseFloat(bidData.bid.bidAmount) *
+                    (bidData.bid.passengerCount || 1),
                   bidAmount: parseFloat(bidData.bid.bidAmount),
                   passengerCount: bidData.bid.passengerCount || 1,
                   configData: {
-                    title: configData.title || bidData.bid.notes || "Bid Payment",
+                    title:
+                      configData.title || bidData.bid.notes || "Bid Payment",
                     route: `${configData.origin || bidData.flight?.origin || "Unknown"} → ${configData.destination || bidData.flight?.destination || "Unknown"}`,
-                    travelDate: configData.travelDate || (bidData.flight?.departureTime ? new Date(bidData.flight.departureTime).toISOString().split('T')[0] : "Unknown")
-                  }
+                    travelDate:
+                      configData.travelDate ||
+                      (bidData.flight?.departureTime
+                        ? new Date(bidData.flight.departureTime)
+                            .toISOString()
+                            .split("T")[0]
+                        : "Unknown"),
+                  },
                 };
-                
-                console.log("Created participation data from bid:", participationData);
+
+                console.log(
+                  "Created participation data from bid:",
+                  participationData,
+                );
                 setBidParticipationData(participationData);
                 return;
               } else {
-                console.error("Bid data response missing success or bid:", bidData);
+                console.error(
+                  "Bid data response missing success or bid:",
+                  bidData,
+                );
               }
             }
           } catch (error) {
             console.error("Error fetching bid data for participation:", error);
           }
         }
-        
+
         // If all else fails, redirect back to bids
         navigate("/bids");
       }
     };
-    
+
     loadBidData();
   }, [navigate, params.id]);
 
@@ -109,10 +128,10 @@ export default function PaymentDetails() {
 
     // Get the bid ID from the URL params
     const bidId = params.id;
-
+    console.log(params?.id);
     if (!bidId) {
       message.error("Bid ID not found");
-      navigate("/bids");
+      // navigate("/bids");
       return;
     }
 
@@ -138,7 +157,9 @@ export default function PaymentDetails() {
       try {
         bidCheckResponse = await fetch(`/api/bids/${bidId}`);
         if (!bidCheckResponse.ok) {
-          console.error(`Bid check failed with status: ${bidCheckResponse.status}`);
+          console.error(
+            `Bid check failed with status: ${bidCheckResponse.status}`,
+          );
           throw new Error(`Bid not found (ID: ${bidId})`);
         }
         bidData = await bidCheckResponse.json();
@@ -150,7 +171,9 @@ export default function PaymentDetails() {
         }
       } catch (fetchError) {
         console.error("Error fetching bid:", fetchError);
-        throw new Error(`Unable to verify bid ${bidId}. Please check if the bid exists.`);
+        throw new Error(
+          `Unable to verify bid ${bidId}. Please check if the bid exists.`,
+        );
       }
 
       // Check if payment has already been completed
@@ -177,15 +200,15 @@ export default function PaymentDetails() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            bidId: parseInt(bidId),
-            bookingId: parseInt(bidId), // Use bid ID as booking reference for now
-            amount: bidParticipationData.totalBid.toString(),
-            currency: "USD",
-            paymentMethod: paymentMethod,
-            paymentStatus: "completed",
-            paymentType: "full_payment",
-            cardDetails: paymentMethod === "creditCard" ? formValues : null,
-          }),
+          bidId: parseInt(bidId),
+          bookingId: parseInt(bidId), // Use bid ID as booking reference for now
+          amount: bidParticipationData.totalBid.toString(),
+          currency: "USD",
+          paymentMethod: paymentMethod,
+          paymentStatus: "completed",
+          paymentType: "full_payment",
+          cardDetails: paymentMethod === "creditCard" ? formValues : null,
+        }),
       });
 
       if (!paymentResponse.ok) {
