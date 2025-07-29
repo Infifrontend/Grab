@@ -2688,102 +2688,27 @@ export default function OfferManagement() {
                           </div>
                           <Form.Item name="loyaltyTiers" className="!mb-0">
                             <Checkbox.Group className="w-full">
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                                {[
-                                  { 
-                                    value: "bronze", 
-                                    label: "Bronze", 
-                                    icon: "🥉",
-                                    gradient: "from-amber-400 to-amber-600",
-                                    bgGradient: "from-amber-50 to-orange-50",
-                                    borderColor: "border-amber-300",
-                                    textColor: "text-amber-800",
-                                    benefits: ["Basic perks", "Standard support"],
-                                    members: "2.5M"
-                                  },
-                                  { 
-                                    value: "silver", 
-                                    label: "Silver", 
-                                    icon: "🥈",
-                                    gradient: "from-gray-400 to-gray-600",
-                                    bgGradient: "from-gray-50 to-slate-50",
-                                    borderColor: "border-gray-300",
-                                    textColor: "text-gray-800",
-                                    benefits: ["Priority check-in", "Extra baggage"],
-                                    members: "1.8M"
-                                  },
-                                  { 
-                                    value: "gold", 
-                                    label: "Gold", 
-                                    icon: "🥇",
-                                    gradient: "from-yellow-400 to-yellow-600",
-                                    bgGradient: "from-yellow-50 to-amber-50",
-                                    borderColor: "border-yellow-300",
-                                    textColor: "text-yellow-800",
-                                    benefits: ["Lounge access", "Free upgrades"],
-                                    members: "950K"
-                                  },
-                                  { 
-                                    value: "platinum", 
-                                    label: "Platinum", 
-                                    icon: "💎",
-                                    gradient: "from-slate-400 to-slate-600",
-                                    bgGradient: "from-slate-50 to-gray-50",
-                                    borderColor: "border-slate-300",
-                                    textColor: "text-slate-800",
-                                    benefits: ["Concierge service", "Guaranteed seats"],
-                                    members: "425K"
-                                  },
-                                  { 
-                                    value: "diamond", 
-                                    label: "Diamond", 
-                                    icon: "💠",
-                                    gradient: "from-blue-500 to-indigo-600",
-                                    bgGradient: "from-blue-50 to-indigo-50",
-                                    borderColor: "border-blue-300",
-                                    textColor: "text-blue-800",
-                                    benefits: ["VIP treatment", "Unlimited perks"],
-                                    members: "125K"
-                                  }
-                                ].map((tier) => (
-                                  <div key={tier.value} className={`group/tier relative overflow-hidden bg-gradient-to-br ${tier.bgGradient} rounded-2xl border-2 ${tier.borderColor} hover:border-blue-400 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1`}>
-                                    {/* Gradient Header */}
-                                    <div className={`bg-gradient-to-r ${tier.gradient} p-4 text-center`}>
-                                      <div className="text-3xl mb-2">{tier.icon}</div>
-                                      <Text className="font-bold text-white text-lg">{tier.label}</Text>
-                                      <Text className="text-white/80 text-xs">{tier.members} members</Text>
-                                    </div>
-                                    
-                                    {/* Content */}
-                                    <div className="p-5">
-                                      <div className="flex items-center justify-center mb-4">
-                                        <Checkbox 
-                                          value={tier.value} 
-                                          className="scale-150 custom-checkbox"
-                                        />
-                                      </div>
-                                      
-                                      <div className="space-y-2">
-                                        {tier.benefits.map((benefit, index) => (
-                                          <div key={index} className="flex items-center space-x-2">
-                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                            <Text className="text-gray-700 text-xs">{benefit}</Text>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Selection Indicator */}
-                                    <div className="absolute top-3 right-3 opacity-0 group-hover/tier:opacity-100 transition-all duration-200">
-                                      <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                                        <span className="text-green-500 text-sm font-bold">✓</span>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Hover Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover/tier:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                  </div>
-                                ))}
+                              <div className="grid grid-cols-5 gap-4">
+                                <div className="flex items-center space-x-3 p-4 bg-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
+                                  <Checkbox value="bronze" className="scale-110" />
+                                  <Text className="font-medium text-amber-800">🥉 Bronze</Text>
+                                </div>
+                                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                                  <Checkbox value="silver" className="scale-110" />
+                                  <Text className="font-medium text-gray-700">🥈 Silver</Text>
+                                </div>
+                                <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
+                                  <Checkbox value="gold" className="scale-110" />
+                                  <Text className="font-medium text-yellow-800">🥇 Gold</Text>
+                                </div>
+                                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                                  <Checkbox value="platinum" className="scale-110" />
+                                  <Text className="font-medium text-slate-700">💍 Platinum</Text>
+                                </div>
+                                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
+                                  <Checkbox value="diamond" className="scale-110" />
+                                  <Text className="font-medium text-blue-800">💎 Diamond</Text>
+                                </div>
                               </div>
                             </Checkbox.Group>
                           </Form.Item>
