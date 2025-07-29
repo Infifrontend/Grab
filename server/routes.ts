@@ -966,6 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Looking up bid with ID: ${bidId}`);
       
       if (isNaN(bidId) || bidId <= 0) {
+        console.log(`Invalid bid ID format: ${id} -> ${bidId}`);
         return res.status(400).json({ 
           success: false, 
           message: `Invalid bid ID: ${id}` 
@@ -975,14 +976,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bid = await storage.getBidById(bidId);
       
       if (!bid) {
-        console.log(`Bid not found with ID: ${bidId}`);
+        console.log(`Bid not found with ID: ${bidId}. Available bids:`, await storage.getBids());
         return res.status(404).json({ 
           success: false, 
           message: `Bid not found with ID: ${bidId}` 
         });
       }
       
-      console.log(`Successfully found bid ${bidId}`);
+      console.log(`Successfully found bid ${bidId}:`, {
+        bidId: bid.bid?.id,
+        bidAmount: bid.bid?.bidAmount,
+        bidStatus: bid.bid?.bidStatus,
+        userId: bid.bid?.userId
+      });
+      
       res.json({
         success: true,
         ...bid

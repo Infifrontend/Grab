@@ -38,15 +38,61 @@ export default function PaymentDetails() {
   const [paymentReference, setPaymentReference] = useState("");
 
   useEffect(() => {
-    // Load bid participation data from localStorage
-    const storedData = localStorage.getItem("bidParticipationData");
-    if (storedData) {
-      setBidParticipationData(JSON.parse(storedData));
-    } else {
-      // If no data, redirect back to bids
-      navigate("/bids");
-    }
-  }, [navigate]);
+    const loadBidData = async () => {
+      // Load bid participation data from localStorage
+      const storedData = localStorage.getItem("bidParticipationData");
+      
+      if (storedData) {
+        setBidParticipationData(JSON.parse(storedData));
+      } else {
+        // If no localStorage data, try to fetch from API and create participation data
+        const bidId = params.id;
+        if (bidId) {
+          try {
+            console.log(`No localStorage data, fetching bid ${bidId} to create participation data`);
+            const response = await fetch(`/api/bids/${bidId}`);
+            
+            if (response.ok) {
+              const bidData = await response.json();
+              
+              if (bidData.success && bidData.bid) {
+                // Parse configuration data from notes
+                let configData = {};
+                try {
+                  configData = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
+                } catch (e) {
+                  console.log("Could not parse bid notes:", e);
+                }
+                
+                // Create participation data from bid
+                const participationData = {
+                  totalBid: parseFloat(bidData.bid.bidAmount) * (bidData.bid.passengerCount || 1),
+                  bidAmount: parseFloat(bidData.bid.bidAmount),
+                  passengerCount: bidData.bid.passengerCount || 1,
+                  configData: {
+                    title: configData.title || bidData.bid.notes || "Bid Payment",
+                    route: `${configData.origin || bidData.flight?.origin || "Unknown"} → ${configData.destination || bidData.flight?.destination || "Unknown"}`,
+                    travelDate: configData.travelDate || (bidData.flight?.departureTime ? new Date(bidData.flight.departureTime).toISOString().split('T')[0] : "Unknown")
+                  }
+                };
+                
+                console.log("Created participation data from bid:", participationData);
+                setBidParticipationData(participationData);
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching bid data for participation:", error);
+          }
+        }
+        
+        // If all else fails, redirect back to bids
+        navigate("/bids");
+      }
+    };
+    
+    loadBidData();
+  }, [navigate, params.id]);
 
   const handleBack = () => {
     navigate(`/bid-details/${params.id}`);
@@ -95,7 +141,7 @@ export default function PaymentDetails() {
         bidData = await bidCheckResponse.json();
         console.log("Bid data:", bidData);
 
-        if (!bidData || !bidData.bid) {
+        if (!bidData || !bidData.success) {
           throw new Error("Invalid bid data received");
         }
       } catch (fetchError) {
