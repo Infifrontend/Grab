@@ -3439,165 +3439,101 @@ export default function OfferManagement() {
                 {/* Step 3: Eligibility */}
                 {policyModalStep === 2 && (
                   <div>
-                    <Title level={4} className="!mb-4 text-purple-600">
-                      Eligibility Criteria
-                    </Title>
-                    <Text className="text-gray-600 block mb-6">
-                      Define who can use this discount based on loyalty status, location, and travel routes.
-                    </Text>
-
-                    <div className="mb-8">
-                      <Title level={5} className="!mb-4">
+                    <div className="mb-6">
+                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
                         Loyalty Program Tiers
                       </Title>
                       <Form.Item name="loyaltyTiers">
                         <Checkbox.Group className="w-full">
                           <Row gutter={[16, 16]}>
-                            <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="bronze" className="mb-2" />
-                                <Text className="block font-medium">Bronze</Text>
-                              </div>
+                            <Col span={8}>
+                              <Checkbox value="bronze">Bronze</Checkbox>
                             </Col>
-                            <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="silver" className="mb-2" />
-                                <Text className="block font-medium">Silver</Text>
-                              </div>
+                            <Col span={8}>
+                              <Checkbox value="silver">Silver</Checkbox>
                             </Col>
-                            <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="gold" className="mb-2" />
-                                <Text className="block font-medium">Gold</Text>
-                              </div>
-                            </Col>
-                            <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="platinum" className="mb-2" />
-                                <Text className="block font-medium">Platinum</Text>
-                              </div>
+                            <Col span={8}>
+                              <Checkbox value="gold">Gold</Checkbox>
                             </Col>
                           </Row>
-                          <Row gutter={[16, 16]} className="mt-4">
-                            <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="diamond" className="mb-2" />
-                                <Text className="block font-medium">Diamond</Text>
-                              </div>
+                          <Row gutter={[16, 16]} className="mt-3">
+                            <Col span={8}>
+                              <Checkbox value="platinum">Platinum</Checkbox>
+                            </Col>
+                            <Col span={8}>
+                              <Checkbox value="diamond">Diamond</Checkbox>
                             </Col>
                           </Row>
                         </Checkbox.Group>
                       </Form.Item>
                     </div>
 
-                    <div className="mb-8">
-                      <Title level={5} className="!mb-4">
+                    <div className="mb-6">
+                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
                         Geographic Eligibility
                       </Title>
                       <Form.Item name="geographicEligibility">
                         <Checkbox.Group className="w-full">
                           <Row gutter={[16, 16]}>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="US" className="mb-2" />
-                                <Text className="block font-medium">US</Text>
-                              </div>
+                              <Checkbox value="US">US</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="CA" className="mb-2" />
-                                <Text className="block font-medium">CA</Text>
-                              </div>
+                              <Checkbox value="CA">CA</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="MX" className="mb-2" />
-                                <Text className="block font-medium">MX</Text>
-                              </div>
+                              <Checkbox value="MX">MX</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="UK" className="mb-2" />
-                                <Text className="block font-medium">UK</Text>
-                              </div>
+                              <Checkbox value="UK">UK</Checkbox>
                             </Col>
                           </Row>
-                          <Row gutter={[16, 16]} className="mt-4">
+                          <Row gutter={[16, 16]} className="mt-3">
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="AU" className="mb-2" />
-                                <Text className="block font-medium">AU</Text>
-                              </div>
+                              <Checkbox value="AU">AU</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="DE" className="mb-2" />
-                                <Text className="block font-medium">DE</Text>
-                              </div>
+                              <Checkbox value="DE">DE</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="FR" className="mb-2" />
-                                <Text className="block font-medium">FR</Text>
-                              </div>
+                              <Checkbox value="FR">FR</Checkbox>
                             </Col>
                             <Col span={6}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="JP" className="mb-2" />
-                                <Text className="block font-medium">JP</Text>
-                              </div>
+                              <Checkbox value="JP">JP</Checkbox>
                             </Col>
                           </Row>
                         </Checkbox.Group>
                       </Form.Item>
                     </div>
 
-                    <div className="mb-8">
-                      <Title level={5} className="!mb-4">
+                    <div className="mb-6">
+                      <Title level={5} className="!mb-4 font-semibold text-gray-800">
                         Route Restrictions
                       </Title>
                       <Form.Item name="routeRestrictions">
                         <Checkbox.Group className="w-full">
                           <Row gutter={[16, 16]}>
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="LAX-JFK" className="mb-2" />
-                                <Text className="block font-medium">LAX-JFK</Text>
-                              </div>
+                              <Checkbox value="LAX-JFK">LAX-JFK</Checkbox>
                             </Col>
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="ORD-SFO" className="mb-2" />
-                                <Text className="block font-medium">ORD-SFO</Text>
-                              </div>
+                              <Checkbox value="ORD-SFO">ORD-SFO</Checkbox>
                             </Col>
                           </Row>
-                          <Row gutter={[16, 16]} className="mt-4">
+                          <Row gutter={[16, 16]} className="mt-3">
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="MIA-DEN" className="mb-2" />
-                                <Text className="block font-medium">MIA-DEN</Text>
-                              </div>
+                              <Checkbox value="MIA-DEN">MIA-DEN</Checkbox>
                             </Col>
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="ATL-SEA" className="mb-2" />
-                                <Text className="block font-medium">ATL-SEA</Text>
-                              </div>
+                              <Checkbox value="ATL-SEA">ATL-SEA</Checkbox>
                             </Col>
                           </Row>
-                          <Row gutter={[16, 16]} className="mt-4">
+                          <Row gutter={[16, 16]} className="mt-3">
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="DEN-BOS" className="mb-2" />
-                                <Text className="block font-medium">DEN-BOS</Text>
-                              </div>
+                              <Checkbox value="DEN-BOS">DEN-BOS</Checkbox>
                             </Col>
                             <Col span={12}>
-                              <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
-                                <Checkbox value="LAX-ORD" className="mb-2" />
-                                <Text className="block font-medium">LAX-ORD</Text>
-                              </div>
+                              <Checkbox value="LAX-ORD">LAX-ORD</Checkbox>
                             </Col>
                           </Row>
                         </Checkbox.Group>
@@ -3605,10 +3541,10 @@ export default function OfferManagement() {
                     </div>
 
                     <div>
-                      <Form.Item
-                        label={<span className="font-medium">Minimum Spend Threshold ($)</span>}
-                        name="minSpendThreshold"
-                      >
+                      <Text className="font-semibold text-gray-800 block mb-3">
+                        Minimum Spend Threshold ($)
+                      </Text>
+                      <Form.Item name="minSpendThreshold">
                         <InputNumber
                           placeholder="100"
                           size="large"
