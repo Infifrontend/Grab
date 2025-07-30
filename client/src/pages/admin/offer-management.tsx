@@ -5553,7 +5553,7 @@ export default function OfferManagement() {
                                   <div><Checkbox value="international">International routes</Checkbox></div>
                                   <div><Checkbox value="weekend">Weekend travel</Checkbox></div>
                                   <div><Checkbox value="vacation">Vacation destinations</Checkbox></div>
-                                  <div><Checkbox value="short-flights">Short flights < 3hrs</Checkbox></div>
+                                  <div><Checkbox value="short-flights">Short flights &lt; 3hrs</Checkbox></div>
                                   <div><Checkbox value="domestic">Domestic routes</Checkbox></div>
                                   <div><Checkbox value="business-hours">Business hours</Checkbox></div>
                                 </div>
