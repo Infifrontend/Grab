@@ -2419,12 +2419,179 @@ export default function OfferManagement() {
             </div>
           )}
           {activeTab === "offers" && (
-            <Card>
-              <Title level={4}>Offers Management</Title>
-              <Text>
-                Design comprehensive offer packages combining multiple services.
-              </Text>
-            </Card>
+            <div>
+              {/* Header with Search and Create Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <Input
+                  placeholder="Search offers..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  className="max-w-md"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="large"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Create Offers
+                </Button>
+              </div>
+
+              <Card>
+                <div className="mb-6">
+                  <Title level={4} className="!mb-1">
+                    Offers Management
+                  </Title>
+                  <Text className="text-gray-500">
+                    Design comprehensive offer packages combining multiple services.
+                  </Text>
+                </div>
+
+                <Table
+                  dataSource={[
+                    {
+                      key: "1",
+                      offerName: "Business Traveler Package",
+                      code: "BTP001",
+                      description: "Complete business travel solution with premium amenities",
+                      services: "Priority Boarding, Extra Legroom, Premium Meal",
+                      price: "$220",
+                      adoption: "34%",
+                      revenue: "$134,000",
+                      status: "Active",
+                    },
+                    {
+                      key: "2",
+                      offerName: "Family Fun Bundle",
+                      code: "FFB002",
+                      description: "Value package designed for family travelers",
+                      services: "Family Seating, Kids Entertainment, Family Meal",
+                      price: "$135",
+                      adoption: "28%",
+                      revenue: "$98,000",
+                      status: "Active",
+                    },
+                  ]}
+                  columns={[
+                    {
+                      title: "Offer Details",
+                      dataIndex: "offerName",
+                      key: "offerName",
+                      width: "25%",
+                      render: (text, record) => (
+                        <div>
+                          <Text className="font-semibold text-gray-900 block">
+                            {text}
+                          </Text>
+                          <Text className="text-blue-600 text-sm font-medium block">
+                            Code: {record.code}
+                          </Text>
+                          <Text className="text-gray-600 text-sm">
+                            {record.description}
+                          </Text>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Included Services",
+                      dataIndex: "services",
+                      key: "services",
+                      width: "20%",
+                      render: (services) => (
+                        <div className="space-y-1">
+                          {services.split(", ").map((service, index) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <Text className="text-sm text-gray-700">{service}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Price",
+                      dataIndex: "price",
+                      key: "price",
+                      width: "10%",
+                      render: (price) => (
+                        <Text className="font-bold text-lg text-green-600">
+                          {price}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: "Adoption",
+                      dataIndex: "adoption",
+                      key: "adoption",
+                      width: "12%",
+                      render: (adoption) => (
+                        <div>
+                          <Text className="font-semibold block">{adoption}</Text>
+                          <Progress
+                            percent={parseInt(adoption)}
+                            strokeColor="#1890ff"
+                            showInfo={false}
+                            size="small"
+                          />
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Revenue",
+                      dataIndex: "revenue",
+                      key: "revenue",
+                      width: "12%",
+                      render: (revenue) => (
+                        <Text className="font-bold text-green-600">{revenue}</Text>
+                      ),
+                    },
+                    {
+                      title: "Status",
+                      dataIndex: "status",
+                      key: "status",
+                      width: "8%",
+                      render: (status) => (
+                        <Tag color="blue" className="rounded-md">
+                          {status}
+                        </Tag>
+                      ),
+                    },
+                    {
+                      title: "Actions",
+                      key: "actions",
+                      width: "13%",
+                      render: (_, record) => (
+                        <Space>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setEditingOffer(record);
+                              setIsModalVisible(true);
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            className="text-gray-600 hover:text-gray-700"
+                          />
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            className="text-red-600 hover:text-red-700"
+                          />
+                        </Space>
+                      ),
+                    },
+                  ]}
+                  pagination={false}
+                  className="custom-table"
+                />
+              </Card>
+            </div>
           )}
         </div>
       </div>
