@@ -51,6 +51,10 @@ import { useNavigate } from "react-router-dom";
 import AdminHeader from "./admin-header";
 import AdminSidebar from "./admin-sidebar";
 import CreateOfferModal from "../../components/admin/create-offer-modal";
+import CreatePolicyModal from "../../components/admin/create-policy-modal";
+import CreateAncillaryModal from "../../components/admin/create-ancillary-modal";
+import CreateDiscountModal from "../../components/admin/create-discount-modal";
+import CreatePromoCodeModal from "../../components/admin/create-promocode-modal";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
