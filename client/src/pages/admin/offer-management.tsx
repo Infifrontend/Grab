@@ -5549,7 +5549,7 @@ export default function OfferManagement() {
                             <Form.Item name="contextFactors">
                               <Checkbox.Group>
                                 <div className="space-y-2">
-                                  <div><Checkbox value="flight-duration">Flight duration  4hrs</Checkbox></div>
+                                  <div><Checkbox value="flight-duration">Flight duration &gt; 4hrs</Checkbox></div>
                                   <div><Checkbox value="international">International routes</Checkbox></div>
                                   <div><Checkbox value="weekend">Weekend travel</Checkbox></div>
                                   <div><Checkbox value="vacation">Vacation destinations</Checkbox></div>
