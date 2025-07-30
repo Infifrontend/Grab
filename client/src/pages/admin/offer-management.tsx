@@ -5792,7 +5792,8 @@ export default function OfferManagement() {
               {activeTab !== "policies" &&
                 activeTab !== "ancillaries" &&
                 activeTab !== "discounts" &&
-                activeTab !== "promocodes" && (
+                activeTab !== "promocodes" && 
+                activeTab !== "offers" && (
                   <Button
                     type="primary"
                     htmlType="submit"
