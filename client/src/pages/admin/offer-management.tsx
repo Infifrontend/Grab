@@ -9,21 +9,11 @@ import {
   Tag,
   Space,
   Input,
-  Select,
-  DatePicker,
-  Modal,
-  Form,
-  InputNumber,
-  Switch,
-  Dropdown,
-  Statistic,
   Progress,
   Tabs,
   Breadcrumb,
-  Avatar,
   Badge,
-  Checkbox,
-  Steps,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -31,21 +21,12 @@ import {
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
-  MoreOutlined,
   GiftOutlined,
   DollarOutlined,
   PercentageOutlined,
-  CalendarOutlined,
   HomeOutlined,
-  BellOutlined,
-  UserOutlined,
   RiseOutlined,
-  FallOutlined,
   BarChartOutlined,
-  LineChartOutlined,
-  PieChartOutlined,
-  TrophyOutlined,
-  LogoutOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import AdminHeader from "./admin-header";
@@ -55,16 +36,138 @@ import CreatePolicyModal from "../../components/admin/create-policy-modal";
 import CreateAncillaryModal from "../../components/admin/create-ancillary-modal";
 import CreateDiscountModal from "../../components/admin/create-discount-modal";
 import CreatePromoCodeModal from "../../components/admin/create-promocode-modal";
-
+import dayjs from "dayjs";
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 export default function OfferManagement() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
-  const [form] = Form.useForm();
+  const [policyTableData, setPolicyTableData] = useState([
+    {
+      policyName: "check",
+      policyEnabled: true,
+      allowRefunds: true,
+      allowChanges: true,
+      priorityLevel: "high",
+      policyDescription: "check",
+      refundDeadline: 24,
+      refundPercentage: 100,
+      refundFee: 10,
+      changeDeadline: 24,
+      changeFee: 10,
+      corporateCustomersOnly: true,
+      loyaltyTiers: ["gold"],
+      passengerTypes: ["child", "adult"],
+      minAge: 18,
+      maxAge: 62,
+      requiresAdultSupervision: true,
+      bookingChannels: ["website", "mobile"],
+      allowDiscountStacking: true,
+      hasBlackoutDates: true,
+      conflictingOffers1: ["comfort-plus"],
+      blackoutStartDate: "2025-07-31T18:30:00.000Z",
+      blackoutEndDate: "2025-08-06T18:30:00.000Z",
+      validFrom: "2025-07-31T18:30:00.000Z",
+      validTo: "2025-08-10T18:30:00.000Z",
+    },
+  ]);
+  const [ancillaryTableData, setAncillaryTableData] = useState<any>([
+    {
+      ancillaryName: "check",
+      category: "food-beverage",
+      ancillaryType: "optional",
+      status: "active",
+      refundable: true,
+      changeable: true,
+      transferable: true,
+    },
+  ]);
+  const [discountTableData, setDiscountTableData] = useState<any>([
+    {
+      discountName: "Loyalty Member Discount",
+      discountCode: "LOYALTY15",
+      description: "Exclusive discount for premium members",
+      discountType: "percentage",
+      discountValue: 10,
+      status: "active",
+      targetApplication: "ancillariesOnly",
+      totalUsageLimit: 1000,
+      perUserLimit: 1,
+      maxDiscountCap: 1,
+      loyaltyTiers: ["gold"],
+      geographicEligibility: ["US"],
+      routeRestrictions: ["LAX-JFK"],
+      validFrom: "2025-07-31T18:30:00.000Z",
+      validTo: "2025-07-31T18:30:00.000Z",
+      blackoutDates: "2025-07-31T18:30:00.000Z",
+      allowPromoCodeCombination: true,
+    },
+  ]);
+  const [promoCodeTableData, setPromoCodeTableData] = useState<any>([
+    {
+      promoName: "Promo",
+      promoCode: "PROMO10",
+      description: "Get discounts",
+      discountType: "percentage",
+      discountValue: 25,
+      status: "active",
+      generationType: "manual",
+      prefix: "PROMO",
+      codeLength: 8,
+      quantity: 1,
+      discountRule: "fixed-50",
+      allowStacking: true,
+      minPurchase: 0,
+      maxDiscount: 100,
+      totalUsageLimit: 1000,
+      perUserLimit: 1,
+      availableChannels: ["web", "mobile"],
+      customerSegments: ["all"],
+      startDate: "2025-07-31T18:30:00.000Z",
+      endDate: "2025-08-30T18:30:00.000Z",
+    },
+  ]);
+  const [offersTableData, setOffersCodeTableData] = useState<any>([
+    {
+      offerName: "Offer",
+      offerCode: "OFFER10",
+      description: "offer 10%",
+      status: "draft",
+      basePrice: 0,
+      startDate: "2025-07-31T18:30:00.000Z",
+      endDate: "2025-08-08T18:30:00.000Z",
+      ancillaryServices: [
+        "extra-legroom",
+        "premium-meal",
+        "extra-baggage",
+        "priority-boarding",
+      ],
+      customerSegments: ["business"],
+      behaviorTriggers: ["previous-premium"],
+      contextFactors: ["flight-duration"],
+      enableDynamicPricing: true,
+      promoCodes: ["BUSINESS25", "PREMIUM15"],
+      loyaltyDiscount: 10,
+      bundleDiscount: 10,
+      allowDiscountStacking: true,
+      enableWebsite: true,
+      enableMobile: true,
+      mobileOptimized: true,
+      enableAPI: true,
+      enableDNC: true,
+    },
+  ]);
+
+  console.log(
+    policyTableData,
+    ancillaryTableData,
+    discountTableData,
+    promoCodeTableData,
+    offersTableData
+  );
+
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
@@ -1368,7 +1471,7 @@ export default function OfferManagement() {
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
-            className="mb-6"
+            className="mb-3"
             items={[
               {
                 key: "dashboard",
@@ -1419,7 +1522,9 @@ export default function OfferManagement() {
                 key: "offers",
                 label: (
                   <span>
-                    <GiftOutlined />
+                    <span className="mr-2">
+                      <GiftOutlined />
+                    </span>
                     Offers
                   </span>
                 ),
@@ -1462,89 +1567,84 @@ export default function OfferManagement() {
                 </div>
 
                 <Table
-                  dataSource={[
-                    {
-                      key: "1",
-                      policyName: "Premium Member Refund Policy",
-                      type: "Refund",
-                      target: "Ancillary: Premium Seats",
-                      priceEffect: "0%",
-                      status: "Active",
-                    },
-                    {
-                      key: "2",
-                      policyName: "Holiday Surge Pricing",
-                      type: "Pricing",
-                      target: "Offer: All Offers\nRoutes: LAX-JFK, ORD-LHR",
-                      priceEffect: "+25%",
-                      status: "Active",
-                    },
-                  ]}
+                  dataSource={policyTableData}
                   columns={[
                     {
                       title: "Policy Name",
                       dataIndex: "policyName",
                       key: "policyName",
                       render: (text) => (
-                        <Text className="font-medium">{text}</Text>
-                      ),
-                    },
-                    {
-                      title: "Type",
-                      dataIndex: "type",
-                      key: "type",
-                      render: (type) => (
-                        <Tag
-                          color={type === "Refund" ? "blue" : "green"}
-                          className="rounded-md"
-                        >
-                          {type}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Target",
-                      dataIndex: "target",
-                      key: "target",
-                      render: (text) => (
-                        <div className="text-sm">
-                          {text.split("\n").map((line, index) => (
-                            <div key={index} className="text-gray-600">
-                              {line}
-                            </div>
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Price Effect",
-                      dataIndex: "priceEffect",
-                      key: "priceEffect",
-                      render: (effect) => (
-                        <Text
-                          className={
-                            effect === "0%" ? "text-green-600" : "text-red-600"
-                          }
-                          strong
-                        >
-                          {effect}
+                        <Text className="font-medium">
+                          {text?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Text>
                       ),
                     },
                     {
-                      title: "Status",
-                      dataIndex: "status",
-                      key: "status",
-                      render: (status) => (
-                        <Tag color="blue" className="rounded-md">
-                          {status}
+                      title: "Priority level",
+                      dataIndex: "priorityLevel",
+                      key: "priorityLevel",
+                      render: (priorityLevel) => (
+                        <Tag
+                          color={
+                            priorityLevel === "high"
+                              ? "red"
+                              : priorityLevel === "medium"
+                              ? "blue"
+                              : "green"
+                          }
+                          className="rounded-md"
+                        >
+                          {priorityLevel?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Tag>
                       ),
                     },
                     {
+                      title: "Booking channels",
+                      dataIndex: "bookingChannels",
+                      key: "bookingChannels",
+                      render: (bookingChannels) =>
+                        bookingChannels
+                          ?.map((item: string) =>
+                            item
+                              .trim()
+                              .replace(/^./, (char) => char.toUpperCase())
+                          )
+                          .join(" | "),
+                    },
+                    {
+                      title: "Effective Date",
+                      dataIndex: "validFrom",
+                      key: "validFrom",
+                      render: (validFrom) =>
+                        dayjs(validFrom).format("DD MMM, YYYY"),
+                    },
+                    {
+                      title: "Discontinue Date",
+                      dataIndex: "validTo",
+                      key: "validTo",
+                      render: (validTo) =>
+                        dayjs(validTo).format("DD MMM, YYYY"),
+                    },
+                    {
+                      title: "Status",
+                      dataIndex: "policyEnabled",
+                      key: "policyEnabled",
+                      render: (policyEnabled) => {
+                        return (
+                          <Tag color={policyEnabled ? "green" : "red"} className="rounded-md">
+                            {policyEnabled ? "Active" : "In-active"}
+                          </Tag>
+                        );
+                      },
+                    },
+                    {
                       title: "Actions",
                       key: "actions",
-                      render: (_, record) => (
+                      render: (_, record: any) => (
                         <Space>
                           <Button
                             type="text"
@@ -1602,364 +1702,88 @@ export default function OfferManagement() {
                   </Text>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Extra Leg Room Seat */}
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Title level={4} className="!mb-0">
-                            Extra Leg Room Seat
-                          </Title>
-                          <Tag color="blue" className="rounded-md">
-                            Seat
-                          </Tag>
-                          <Tag color="default" className="rounded-md">
-                            optional
-                          </Tag>
-                          <Tag color="blue" className="rounded-md">
-                            Active
-                          </Tag>
-                        </div>
-                        <Text className="text-gray-600 block mb-4">
-                          Additional 6 inches of legroom for enhanced comfort
-                          during your flight.
+                <Table
+                  dataSource={ancillaryTableData}
+                  columns={[
+                    {
+                      title: "Ancillary Name",
+                      dataIndex: "ancillaryName",
+                      key: "ancillaryName",
+                      render: (ancillaryName) => (
+                        <Text className="font-medium">
+                          {ancillaryName?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Text>
-                      </div>
-                      <Space>
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
-                          className="text-blue-600 hover:text-blue-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined />}
-                          className="text-gray-600 hover:text-gray-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          className="text-red-600 hover:text-red-700"
-                        />
-                      </Space>
-                    </div>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Base Price
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $45
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Availability
-                          </Text>
-                          <Text className="font-medium">Flight dependent</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Bundle Compatible
-                          </Text>
-                          <Text className="font-medium">Yes</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Conversion Rate
-                          </Text>
-                          <Text className="text-blue-600 font-bold">45.2%</Text>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Total Bookings
-                          </Text>
-                          <Text className="font-bold text-lg">15,420</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Revenue
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $693,900
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Growth
-                          </Text>
-                          <div className="flex items-center space-x-1">
-                            <RiseOutlined className="text-green-600 text-sm" />
-                            <Text className="text-green-600 font-bold">
-                              +22.7%
-                            </Text>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="text-sm text-gray-500">
-                      <Text>Created: Jan 15, 2024</Text>
-                      <Text className="ml-6">Last Modified: Feb 28, 2024</Text>
-                    </div>
-                  </div>
-
-                  {/* Premium Meal Service */}
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Title level={4} className="!mb-0">
-                            Premium Meal Service
-                          </Title>
-                          <Tag color="orange" className="rounded-md">
-                            Food & Beverage
+                      ),
+                    },
+                    {
+                      title: "Ancillary type",
+                      dataIndex: "ancillaryType",
+                      key: "ancillaryType",
+                      render: (ancillaryType) =>
+                        ancillaryType?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        ), // capitalize the first character
+                    },
+                    {
+                      title: "Category",
+                      dataIndex: "category",
+                      key: "category",
+                      render: (category) =>
+                        category
+                          ?.split("-")
+                          ?.join(" ")
+                          ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
+                          ?.replace(/^./, (char: any) => char.toUpperCase()), // capitalize the first character
+                    },
+                    {
+                      title: "Terms and conditions",
+                      dataIndex: "refundable",
+                      key: "refundable",
+                      render: (refundable, data: any) =>
+                        `${refundable && "Refundable"}${
+                          data?.transferable ? " | Transferable" : ""
+                        }${data?.changeable ? " | Changeable" : ""}`,
+                    },
+                    {
+                      title: "Status",
+                      dataIndex: "policyEnabled",
+                      key: "policyEnabled",
+                      render: (policyEnabled) => {
+                        return (
+                          <Tag color={policyEnabled ? "green" : "red"} className="rounded-md">
+                            {policyEnabled ? "Active" : "In-active"}
                           </Tag>
-                          <Tag color="default" className="rounded-md">
-                            optional
-                          </Tag>
-                          <Tag color="blue" className="rounded-md">
-                            Active
-                          </Tag>
-                        </div>
-                        <Text className="text-gray-600 block mb-4">
-                          Gourmet meal prepared by renowned chefs with dietary
-                          options available.
-                        </Text>
-                      </div>
-                      <Space>
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
-                          className="text-blue-600 hover:text-blue-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined />}
-                          className="text-gray-600 hover:text-gray-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          className="text-red-600 hover:text-red-700"
-                        />
-                      </Space>
-                    </div>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Base Price
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $28
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Availability
-                          </Text>
-                          <Text className="font-medium">All flights</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Bundle Compatible
-                          </Text>
-                          <Text className="font-medium">Yes</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Conversion Rate
-                          </Text>
-                          <Text className="text-blue-600 font-bold">38.7%</Text>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Total Bookings
-                          </Text>
-                          <Text className="font-bold text-lg">23,450</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Revenue
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $657,260
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Growth
-                          </Text>
-                          <div className="flex items-center space-x-1">
-                            <RiseOutlined className="text-green-600 text-sm" />
-                            <Text className="text-green-600 font-bold">
-                              +18.3%
-                            </Text>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="text-sm text-gray-500">
-                      <Text>Created: Jan 10, 2024</Text>
-                      <Text className="ml-6">Last Modified: Mar 01, 2024</Text>
-                    </div>
-                  </div>
-
-                  {/* Priority Boarding */}
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Title level={4} className="!mb-0">
-                            Priority Boarding
-                          </Title>
-                          <Tag color="purple" className="rounded-md">
-                            Service
-                          </Tag>
-                          <Tag color="default" className="rounded-md">
-                            optional
-                          </Tag>
-                          <Tag color="blue" className="rounded-md">
-                            Active
-                          </Tag>
-                        </div>
-                        <Text className="text-gray-600 block mb-4">
-                          Board the aircraft in the first group to secure
-                          overhead bin space.
-                        </Text>
-                      </div>
-                      <Space>
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
-                          className="text-blue-600 hover:text-blue-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined />}
-                          className="text-gray-600 hover:text-gray-700"
-                        />
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          className="text-red-600 hover:text-red-700"
-                        />
-                      </Space>
-                    </div>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Base Price
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $15
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Availability
-                          </Text>
-                          <Text className="font-medium">All flights</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Bundle Compatible
-                          </Text>
-                          <Text className="font-medium">Yes</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Conversion Rate
-                          </Text>
-                          <Text className="text-blue-600 font-bold">42.8%</Text>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row gutter={[32, 16]} className="mb-4">
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Total Bookings
-                          </Text>
-                          <Text className="font-bold text-lg">34,560</Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Revenue
-                          </Text>
-                          <Text className="text-green-600 font-bold text-lg">
-                            $518,400
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <div>
-                          <Text className="text-gray-500 text-sm block">
-                            Growth
-                          </Text>
-                          <div className="flex items-center space-x-1">
-                            <RiseOutlined className="text-green-600 text-sm" />
-                            <Text className="text-green-600 font-bold">
-                              +15.9%
-                            </Text>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <div className="text-sm text-gray-500">
-                      <Text>Created: Jan 08, 2024</Text>
-                      <Text className="ml-6">Last Modified: Feb 15, 2024</Text>
-                    </div>
-                  </div>
-                </div>
+                        );
+                      },
+                    },
+                    {
+                      title: "Actions",
+                      key: "actions",
+                      render: (_, record) => (
+                        <Space>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setEditingOffer(record);
+                              setIsModalVisible(true);
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            className="text-red-600 hover:text-red-700"
+                          />
+                        </Space>
+                      ),
+                    },
+                  ]}
+                  pagination={false}
+                  className="custom-table"
+                />
               </Card>
             </div>
           )}
@@ -1997,52 +1821,22 @@ export default function OfferManagement() {
                 </div>
 
                 <Table
-                  dataSource={[
-                    {
-                      key: "1",
-                      discountName: "Early Bird Special",
-                      code: "EARLY20",
-                      description: "Book 30 days in advance and save 20%",
-                      type: "Percentage",
-                      value: "20%",
-                      target: "Ancillaries",
-                      targetDetails:
-                        "Extra Leg Room Seat, Premium Meal Service",
-                      usage: "1247/5000",
-                      usagePercentage: 25,
-                      validFrom: "Jan 01, 2024",
-                      validTo: "Dec 31, 2024",
-                      status: "Active",
-                    },
-                    {
-                      key: "2",
-                      discountName: "Loyalty Member Discount",
-                      code: "LOYALTY15",
-                      description: "Exclusive discount for premium members",
-                      type: "Percentage",
-                      value: "15%",
-                      target: "Both",
-                      targetDetails: "All Services",
-                      usage: "892/3000",
-                      usagePercentage: 30,
-                      validFrom: "Jan 01, 2024",
-                      validTo: "Dec 31, 2024",
-                      status: "Active",
-                    },
-                  ]}
+                  dataSource={discountTableData}
                   columns={[
                     {
                       title: "Discount Details",
                       dataIndex: "discountName",
                       key: "discountName",
                       width: "25%",
-                      render: (text, record) => (
+                      render: (text, record: any) => (
                         <div>
                           <Text className="font-semibold text-gray-900 block">
-                            {text}
+                            {text?.replace(/^./, (char: any) =>
+                              char.toUpperCase()
+                            )}
                           </Text>
                           <Text className="text-blue-600 text-sm font-medium block">
-                            Code: {record.code}
+                            Code: {record.discountCode}
                           </Text>
                           <Text className="text-gray-600 text-sm">
                             {record.description}
@@ -2058,11 +1852,11 @@ export default function OfferManagement() {
                         <div className="text-center">
                           <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg mb-2">
                             <Text className="font-bold text-lg">
-                              {record.value}
+                              {record.discountValue}
                             </Text>
                           </div>
                           <Text className="text-gray-600 text-sm">
-                            {record.type}
+                            {record.discountType}
                           </Text>
                         </div>
                       ),
@@ -2072,23 +1866,13 @@ export default function OfferManagement() {
                       key: "target",
                       width: "15%",
                       render: (_, record) => (
-                        <div>
-                          <Tag
-                            color={
-                              record.target === "Ancillaries"
-                                ? "blue"
-                                : record.target === "Both"
-                                  ? "purple"
-                                  : "green"
-                            }
-                            className="rounded-md mb-2"
-                          >
-                            {record.target}
-                          </Tag>
-                          <Text className="text-gray-600 text-xs block">
-                            {record.targetDetails}
-                          </Text>
-                        </div>
+                        <Text className="text-gray-600 text-sm block">
+                          {
+                            record?.targetApplication
+                              ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
+                              ?.replace(/^./, (char: any) => char.toUpperCase()) // capitalize the first character
+                          }
+                        </Text>
                       ),
                     },
                     {
@@ -2098,17 +1882,17 @@ export default function OfferManagement() {
                       render: (_, record) => (
                         <div>
                           <Text className="font-semibold block">
-                            {record.usage}
+                            10/{record.totalUsageLimit}
                           </Text>
                           <Progress
-                            percent={record.usagePercentage}
+                            percent={10}
                             strokeColor="#1890ff"
                             showInfo={false}
                             size="small"
                             className="mb-1"
                           />
                           <Text className="text-gray-500 text-xs">
-                            {record.usagePercentage}% used
+                            {10/(record.totalUsageLimit || 100)}% used
                           </Text>
                         </div>
                       ),
@@ -2121,11 +1905,15 @@ export default function OfferManagement() {
                         <div className="text-sm">
                           <div className="mb-1">
                             <Text className="text-gray-500 text-xs">From:</Text>
-                            <Text className="block">{record.validFrom}</Text>
+                            <Text className="block">
+                              {dayjs(record.validFrom).format("DD MMM, YYYY")}
+                            </Text>
                           </div>
                           <div>
                             <Text className="text-gray-500 text-xs">To:</Text>
-                            <Text className="block">{record.validTo}</Text>
+                            <Text className="block">
+                              {dayjs(record.validTo).format("DD MMM, YYYY")}
+                            </Text>
                           </div>
                         </div>
                       ),
@@ -2136,8 +1924,10 @@ export default function OfferManagement() {
                       key: "status",
                       width: "8%",
                       render: (status) => (
-                        <Tag color="blue" className="rounded-md">
-                          {status}
+                        <Tag color={status === "active" ? "green" : "red"} className="rounded-md">
+                          {status?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Tag>
                       ),
                     },
@@ -2209,65 +1999,29 @@ export default function OfferManagement() {
                 </div>
 
                 <Table
-                  dataSource={[
-                    {
-                      key: "1",
-                      code: "SUMMER2024",
-                      name: "Summer Vacation Deal",
-                      description:
-                        "Special summer promotion for vacation packages",
-                      type: "Percentage",
-                      value: "25%",
-                      maxValue: "$100",
-                      usage: "456/2000",
-                      usagePercentage: 23,
-                      performance: "$89,400",
-                      redemptionRate: "23% redemption",
-                      status: "Active",
-                    },
-                    {
-                      key: "2",
-                      code: "BIZ15",
-                      name: "Business Traveler Promo",
-                      description: "Corporate discount for business travelers",
-                      type: "Percentage",
-                      value: "15%",
-                      maxValue: "$75",
-                      usage: "234/1500",
-                      usagePercentage: 16,
-                      performance: "$45,600",
-                      redemptionRate: "16% redemption",
-                      status: "Active",
-                    },
-                  ]}
+                  dataSource={promoCodeTableData}
                   columns={[
                     {
                       title: "Code",
-                      dataIndex: "code",
-                      key: "code",
-                      width: "12%",
-                      render: (text) => (
+                      dataIndex: "promoCode",
+                      key: "promoCode",
+                      width: 130,
+                      render: (promoCode) => (
                         <div className="flex items-center space-x-2">
-                          <Text className="font-mono bg-gray-100 px-2 py-1 rounded font-semibold">
-                            {text}
+                          <Text className="font-mono text-xs bg-gray-100 px-2 py-1 rounded font-semibold">
+                            {promoCode}
                           </Text>
-                          <Button
-                            type="text"
-                            size="small"
-                            icon={<span className="text-gray-400">📋</span>}
-                            className="hover:bg-gray-50"
-                          />
                         </div>
                       ),
                     },
                     {
                       title: "Name",
-                      key: "name",
-                      width: "20%",
-                      render: (_, record) => (
+                      key: "promoName",
+                      width: 150,
+                      render: (_, record: any) => (
                         <div>
                           <Text className="font-semibold text-gray-900 block">
-                            {record.name}
+                            {record.promoName}
                           </Text>
                           <Text className="text-gray-600 text-sm">
                             {record.description}
@@ -2277,79 +2031,64 @@ export default function OfferManagement() {
                     },
                     {
                       title: "Type",
-                      dataIndex: "type",
-                      key: "type",
+                      dataIndex: "discountType",
+                      key: "discountType",
                       width: "10%",
-                      render: (type) => (
-                        <Tag color="blue" className="rounded-md">
-                          {type}
+                      render: (discountType) => (
+                        <Tag color="orange" className="rounded-md">
+                          {discountType?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Tag>
                       ),
                     },
                     {
                       title: "Value",
-                      key: "value",
+                      key: "discountValue",
                       width: "12%",
                       render: (_, record) => (
-                        <div className="text-center">
+                        <div>
                           <Text className="font-bold text-lg block">
-                            {record.value}
+                            {record.discountValue}
                           </Text>
                           <Text className="text-gray-500 text-xs">
-                            Max: {record.maxValue}
+                            Max: {record.maxDiscount}
                           </Text>
                         </div>
                       ),
                     },
                     {
-                      title: "Usage",
-                      key: "usage",
-                      width: "15%",
-                      render: (_, record) => (
-                        <div>
-                          <Text className="font-semibold block">
-                            {record.usage} used
-                          </Text>
-                          <Progress
-                            percent={record.usagePercentage}
-                            strokeColor="#1890ff"
-                            showInfo={false}
-                            size="small"
-                            className="mb-1"
-                          />
-                        </div>
-                      ),
+                      title: "Effective Date",
+                      dataIndex: "startDate",
+                      key: "startDate",
+                      width: 130,
+                      render: (startDate) =>
+                        dayjs(startDate).format("DD MMM, YYYY"),
                     },
                     {
-                      title: "Performance",
-                      key: "performance",
-                      width: "15%",
-                      render: (_, record) => (
-                        <div>
-                          <Text className="font-bold text-lg text-green-600 block">
-                            {record.performance}
-                          </Text>
-                          <Text className="text-gray-500 text-sm">
-                            {record.redemptionRate}
-                          </Text>
-                        </div>
-                      ),
+                      title: "Discontinue Date",
+                      dataIndex: "endDate",
+                      key: "endDate",
+                      width: 137,
+                      render: (endDate) =>
+                        dayjs(endDate).format("DD MMM, YYYY"),
                     },
                     {
                       title: "Status",
                       dataIndex: "status",
                       key: "status",
-                      width: "8%",
                       render: (status) => (
-                        <Tag color="blue" className="rounded-md">
-                          {status}
+                        <Tag color={status === "active" ? "green" : "red"} className="rounded-md">
+                          {status?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Tag>
                       ),
                     },
                     {
                       title: "Actions",
                       key: "actions",
-                      width: "8%",
+                      width: "6%",
                       render: (_, record) => (
                         <Space>
                           <Button
@@ -2414,47 +2153,20 @@ export default function OfferManagement() {
                 </div>
 
                 <Table
-                  dataSource={[
-                    {
-                      key: "1",
-                      offerName: "Business Traveler Package",
-                      code: "BTP001",
-                      description:
-                        "Complete business travel solution with premium amenities",
-                      services:
-                        "Priority Boarding, Extra Legroom, Premium Meal",
-                      price: "$220",
-                      adoption: "34%",
-                      revenue: "$134,000",
-                      status: "Active",
-                    },
-                    {
-                      key: "2",
-                      offerName: "Family Fun Bundle",
-                      code: "FFB002",
-                      description:
-                        "Value package designed for family travelers",
-                      services:
-                        "Family Seating, Kids Entertainment, Family Meal",
-                      price: "$135",
-                      adoption: "28%",
-                      revenue: "$98,000",
-                      status: "Active",
-                    },
-                  ]}
+                  dataSource={offersTableData}
                   columns={[
                     {
                       title: "Offer Details",
                       dataIndex: "offerName",
                       key: "offerName",
-                      width: "25%",
-                      render: (text, record) => (
+                      width: 210,
+                      render: (text, record:any) => (
                         <div>
                           <Text className="font-semibold text-gray-900 block">
                             {text}
                           </Text>
                           <Text className="text-blue-600 text-sm font-medium block">
-                            Code: {record.code}
+                            Code: {record.offerCode}
                           </Text>
                           <Text className="text-gray-600 text-sm">
                             {record.description}
@@ -2463,66 +2175,50 @@ export default function OfferManagement() {
                       ),
                     },
                     {
-                      title: "Included Services",
-                      dataIndex: "services",
-                      key: "services",
-                      width: "20%",
-                      render: (services) => (
+                      title: "Ancillary Services",
+                      dataIndex: "ancillaryServices",
+                      key: "ancillaryServices",
+                      width: 200,
+                      render: (ancillaryServices) => (
                         <div className="space-y-1">
-                          {services.split(", ").map((service, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center space-x-2"
-                            >
-                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                              <Text className="text-sm text-gray-700">
-                                {service}
-                              </Text>
-                            </div>
-                          ))}
+                          {ancillaryServices?.map(
+                            (service: any, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center space-x-2"
+                              >
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                <Text className="text-sm text-gray-700">
+                                  {service
+                                    .split("-")
+                                    .map(
+                                      (word: any) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1)
+                                    )
+                                    .join(" ")}
+                                </Text>
+                              </div>
+                            )
+                          )}
                         </div>
                       ),
                     },
                     {
-                      title: "Price",
-                      dataIndex: "price",
-                      key: "price",
-                      width: "10%",
-                      render: (price) => (
-                        <Text className="font-bold text-lg text-green-600">
-                          {price}
-                        </Text>
-                      ),
+                      title: "Effective Date",
+                      dataIndex: "startDate",
+                      key: "startDate",
+                      width: 150,
+                      render: (startDate) =>
+                        dayjs(startDate).format("DD MMM, YYYY"),
                     },
                     {
-                      title: "Adoption",
-                      dataIndex: "adoption",
-                      key: "adoption",
-                      width: "12%",
-                      render: (adoption) => (
-                        <div>
-                          <Text className="font-semibold block">
-                            {adoption}
-                          </Text>
-                          <Progress
-                            percent={parseInt(adoption)}
-                            strokeColor="#1890ff"
-                            showInfo={false}
-                            size="small"
-                          />
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Revenue",
-                      dataIndex: "revenue",
-                      key: "revenue",
-                      width: "12%",
-                      render: (revenue) => (
-                        <Text className="font-bold text-green-600">
-                          {revenue}
-                        </Text>
-                      ),
+                      title: "Discontinue Date",
+                      dataIndex: "endDate",
+                      key: "endDate",
+                      width: 150,
+                      render: (endDate) =>
+                        dayjs(endDate).format("DD MMM, YYYY"),
                     },
                     {
                       title: "Status",
@@ -2530,16 +2226,17 @@ export default function OfferManagement() {
                       key: "status",
                       width: "8%",
                       render: (status) => (
-                        <Tag color="blue" className="rounded-md">
-                          {status}
+                        <Tag color={status === "active" ? "green" : status === "draft" ? "orange" : "red"} className="rounded-md">
+                          {status?.replace(/^./, (char: any) =>
+                            char.toUpperCase()
+                          )}
                         </Tag>
                       ),
                     },
                     {
                       title: "Actions",
                       key: "actions",
-                      width: "13%",
-                      render: (_, record) => (
+                      render: (_, record: any) => (
                         <Space>
                           <Button
                             type="text"
@@ -2572,86 +2269,161 @@ export default function OfferManagement() {
           )}
         </div>
       </div>
-      {/* Create Modal (Dynamic based on active tab) */}
 
-      <CreatePolicyModal
-        activeTab={activeTab}
-        isModalVisible={isModalVisible}
-        setIsModalVisible={setIsModalVisible}
-        setEditingOffer={setEditingOffer}
-      />
-      {/* Create Offer Modal - Separate Component */}
-      <CreateOfferModal
-        visible={isModalVisible && activeTab === "offers"}
-        onCancel={() => {
-          setIsModalVisible(false);
-          setEditingOffer(null);
-        }}
-        onSubmit={(values) => {
-          console.log("Offer values:", values);
-          setIsModalVisible(false);
-        }}
-        editingOffer={editingOffer}
-      />
+      {activeTab === "policies" && (
+        /* Create policy Modal */
+        <CreatePolicyModal
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+          editingData={editingOffer}
+          setEditingOffer={setEditingOffer}
+          setPolicyTableData={(values) => {
+            setPolicyTableData(
+              policyTableData?.length
+                  ? [...policyTableData, values]
+                  : [values]
+            );
+            message.success("Policy created successfully");
+          }}
+        />
+      )}
 
-      <style jsx global>{`
-        .ant-tabs-nav-list {
-          display: flex;
-          width: 100%;
-        }
+      {activeTab === "ancillaries" && (
+        /* Create ancillary Modal */
+        <CreateAncillaryModal
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+          editingData={editingOffer}
+          setEditingOffer={setEditingOffer}
+          setAncillaryTableData={(values) => {
+            setAncillaryTableData(
+              ancillaryTableData?.length
+                ? [...ancillaryTableData, values]
+                : [values]
+            );
+            message.success("Ancillaries created successfully");
+          }}
+        />
+      )}
 
-        .ant-tabs-tab {
-          padding: 12px 20px;
-          font-weight: 500;
-          flex: 1;
-          display: flex;
-          justify-content: center;
-          text-align: center;
-        }
+      {activeTab === "discounts" && (
+        /* Create ancillary Modal */
+        <CreateDiscountModal
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+          editingData={editingOffer}
+          setEditingOffer={setEditingOffer}
+          setDiscountTableData={(values) => {
+            setDiscountTableData(
+              discountTableData?.length
+                ? [...discountTableData, values]
+                : [values]
+            );
+            message.success("Discounts created successfully");
+          }}
+        />
+      )}
 
-        .ant-tabs-tab .ant-tabs-tab-btn {
-          width: 100%;
-          text-align: center;
-        }
+      {activeTab === "promocodes" && (
+        /* Create ancillary Modal */
+        <CreatePromoCodeModal
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+          editingData={editingOffer}
+          setEditingOffer={setEditingOffer}
+          setPromoCodeTableData={(values) => {
+            setPromoCodeTableData(
+              promoCodeTableData?.length
+                ? [...promoCodeTableData, values]
+                : [values]
+            );
+            message.success("Promo code created successfully");
+          }}
+        />
+      )}
 
-        .ant-tabs-tab-active {
-          background-color: #f8fafc;
-          border-bottom: 2px solid #3b82f6;
-        }
+      {activeTab === "offers" && (
+        /* Create Offer Modal - Separate Component */
+        <CreateOfferModal
+          visible={isModalVisible}
+          onCancel={() => {
+            setIsModalVisible(false);
+            setEditingOffer(null);
+          }}
+          setIsModalVisible={setIsModalVisible}
+          editingData={editingOffer}
+          setOffersCodeTableData={(values) => {
+            setOffersCodeTableData(
+              offersTableData?.length
+                ? [...offersTableData, values]
+                : [values]
+            );
+            message.success("Offer created successfully");
+          }}
+        />
+      )}
 
-        .ant-card {
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          border: 1px solid #f1f5f9;
-        }
+      <style jsx global>
+        {`
+          .ant-tabs-nav-list {
+            display: flex;
+            width: 100%;
+          }
 
-        .ant-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+          .ant-tabs-tab {
+            padding: 12px 20px;
+            font-weight: 500;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            text-align: center;
+          }
 
-        .ant-progress-bg {
-          border-radius: 4px;
-        }
+          .ant-tabs-tab .ant-tabs-tab-btn {
+            width: 100%;
+            text-align: center;
+          }
 
-        .ant-progress-inner {
-          border-radius: 4px;
-          background-color: #f1f5f9;
-        }
+          .ant-tabs-tab-active {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #3b82f6;
+          }
 
-        .custom-table .ant-table-thead > tr > th {
-          background-color: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-          font-weight: 600;
-        }
+          .ant-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f5f9;
+          }
 
-        .custom-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #f1f5f9;
-        }
+          .ant-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
 
-        .custom-table .ant-table-tbody > tr:hover > td {
-          background-color: #f8fafc;
-        }
-      `}</style>
+          .ant-progress-bg {
+            border-radius: 4px;
+          }
+
+          .ant-progress-inner {
+            border-radius: 4px;
+            background-color: #f1f5f9;
+          }
+
+          .custom-table .ant-table-thead > tr > th {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+          }
+
+          .custom-table .ant-table-tbody > tr > td {
+            border-bottom: 1px solid #f1f5f9;
+          }
+
+          .custom-table .ant-table-tbody > tr:hover > td {
+            background-color: #f8fafc;
+          }
+        `}
+      </style>
+
       <style jsx>{`
         .custom-modal .ant-modal-header {
           border-bottom: none;

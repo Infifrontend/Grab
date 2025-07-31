@@ -1,5 +1,3 @@
-
-import { useState } from "react";
 import {
   Modal,
   Form,
@@ -7,103 +5,146 @@ import {
   Select,
   DatePicker,
   InputNumber,
-  Switch,
   Checkbox,
   Row,
   Col,
   Button,
   Typography,
-  Progress,
 } from "antd";
-import { RiseOutlined } from "@ant-design/icons";
-
+import { useModalLogic } from "./use-modal-logic";
 const { Title, Text } = Typography;
 
-interface CreateDiscountModalProps {
-  visible: boolean;
-  onCancel: () => void;
-  onSubmit: (values: any) => void;
-  editingDiscount?: any;
+interface DiscountModalProps {
+  isModalVisible: boolean;
+  editingData?: any;
+  setIsModalVisible: (value: boolean) => void;
+  setEditingOffer: (value: any) => void;
+  setDiscountTableData: (value: any) => void;
 }
 
-export default function CreateDiscountModal({
-  visible,
-  onCancel,
-  onSubmit,
-  editingDiscount,
-}: CreateDiscountModalProps) {
+const steps = [
+  { title: "Basic Information" },
+  { title: "Target Application" },
+  { title: "Eligibility Criteria" },
+  { title: "Date Windows & Validity" },
+  { title: "Promo Code Combinability" },
+];
+
+export default function DiscountModal({
+  isModalVisible,
+  editingData,
+  setIsModalVisible,
+  setEditingOffer,
+  setDiscountTableData,
+}: DiscountModalProps) {
   const [form] = Form.useForm();
-  const [discountModalStep, setDiscountModalStep] = useState(0);
-
-  const loyaltyOptions = [
-    { value: "bronze", label: "Bronze" },
-    { value: "silver", label: "Silver" },
-    { value: "gold", label: "Gold" },
-    { value: "platinum", label: "Platinum" },
-    { value: "diamond", label: "Diamond" },
-  ];
-
-  const handleCancel = () => {
-    setDiscountModalStep(0);
-    form.resetFields();
-    onCancel();
-  };
-
-  const handleSubmit = (values: any) => {
-    console.log("Discount values:", values);
-    onSubmit(values);
-    setDiscountModalStep(0);
-    form.resetFields();
-  };
+  const {
+    formValues,
+    setFormValues,
+    policyModalStep,
+    setPolicyModalStep,
+    handleFormData,
+  } = useModalLogic({ editingData, isModalVisible, form });
 
   return (
     <Modal
+      style={{ top: 50 }}
       title={
         <div className="border-b border-gray-200 pb-4 mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
             Create New Discount
           </Title>
-          <Text className="text-gray-600 text-base">
-            Configure discount rules with advanced targeting and
-            combinability options
-          </Text>
         </div>
       }
-      visible={visible}
-      onCancel={handleCancel}
+      visible={isModalVisible}
+      onCancel={() => {
+        setIsModalVisible(false);
+        setEditingOffer(null);
+        setPolicyModalStep(0);
+        form.resetFields();
+      }}
       footer={null}
-      width={600}
+      width={1000}
       className="custom-modal"
-      bodyStyle={{ padding: "24px 32px 32px" }}
+      bodyStyle={{ padding: "0 32px 32px" }}
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={(values) => {
+          console.log("Discount values:", values);
+          setDiscountTableData({ ...formValues, ...form.getFieldsValue() });
+          setIsModalVisible(false);
+        }}
+      >
+        {/* Steps Navigation */}
+        <div className="relative mb-8">
+          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+          <div
+            className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
+            style={{
+              width: `${(policyModalStep / (steps.length - 1)) * 100}%`,
+            }}
+          ></div>
+          <div className="relative flex justify-between z-20">
+            {steps.map((step, index) => (
+              <div key={step.title} className="flex flex-col items-center">
+                <div
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
+                    ${
+                      index < policyModalStep
+                        ? "bg-green-500 border-green-500 text-white"
+                        : index === policyModalStep
+                          ? "bg-blue-500 border-blue-500 text-white"
+                          : "bg-white border-gray-300 text-gray-500"
+                    }
+                  `}
+                >
+                  {index < policyModalStep ? (
+                    <span className="text-sm">✓</span>
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <div className="mt-2 text-center max-w-[100px]">
+                  <Text
+                    className={`text-xs font-medium ${
+                      index <= policyModalStep
+                        ? "text-gray-800"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {step.title}
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ minHeight: "400px" }}>
-          {/* Step 1: Basic Info */}
-          {discountModalStep === 0 && (
+          {/* Step 1: Basic Information */}
+          {policyModalStep === 0 && (
             <div>
               <Title level={4} className="!mb-4 text-blue-600">
                 Basic Information
               </Title>
               <Text className="text-gray-600 block mb-6">
-                Configure the fundamental details of your discount
-                including name, code, and description.
+                Configure the fundamental details of your discount including
+                name, code, and description.
               </Text>
-
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
                     label={
                       <span className="font-medium">
-                        Discount Name{" "}
-                        <span className="text-red-500">*</span>
+                        Discount Name <span className="text-red-500">*</span>
                       </span>
                     }
                     name="discountName"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please enter discount name",
-                      },
+                      { required: true, message: "Please enter discount name" },
                     ]}
                   >
                     <Input
@@ -117,16 +158,12 @@ export default function CreateDiscountModal({
                   <Form.Item
                     label={
                       <span className="font-medium">
-                        Discount Code{" "}
-                        <span className="text-red-500">*</span>
+                        Discount Code <span className="text-red-500">*</span>
                       </span>
                     }
                     name="discountCode"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please enter discount code",
-                      },
+                      { required: true, message: "Please enter discount code" },
                     ]}
                   >
                     <Input
@@ -137,7 +174,6 @@ export default function CreateDiscountModal({
                   </Form.Item>
                 </Col>
               </Row>
-
               <Form.Item
                 label={<span className="font-medium">Description</span>}
                 name="description"
@@ -148,14 +184,12 @@ export default function CreateDiscountModal({
                   className="rounded-lg"
                 />
               </Form.Item>
-
               <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item
                     label={
                       <span className="font-medium">
-                        Discount Type{" "}
-                        <span className="text-red-500">*</span>
+                        Discount Type <span className="text-red-500">*</span>
                       </span>
                     }
                     name="discountType"
@@ -174,9 +208,7 @@ export default function CreateDiscountModal({
                       <Select.Option value="percentage">
                         Percentage (%)
                       </Select.Option>
-                      <Select.Option value="fixed">
-                        Fixed Amount
-                      </Select.Option>
+                      <Select.Option value="fixed">Fixed Amount</Select.Option>
                     </Select>
                   </Form.Item>
                 </Col>
@@ -184,8 +216,7 @@ export default function CreateDiscountModal({
                   <Form.Item
                     label={
                       <span className="font-medium">
-                        Discount Value{" "}
-                        <span className="text-red-500">*</span>
+                        Discount Value <span className="text-red-500">*</span>
                       </span>
                     }
                     name="discountValue"
@@ -227,7 +258,7 @@ export default function CreateDiscountModal({
           )}
 
           {/* Step 2: Target Application */}
-          {discountModalStep === 1 && (
+          {policyModalStep === 1 && (
             <div>
               <Title level={4} className="!mb-4 text-green-600">
                 Target Application
@@ -235,12 +266,8 @@ export default function CreateDiscountModal({
               <Text className="text-gray-600 block mb-6">
                 Define how and where this discount should be applied.
               </Text>
-
               <div className="space-y-4 mb-6">
-                <Form.Item
-                  name="targetApplication"
-                  initialValue="baseFareOnly"
-                >
+                <Form.Item name="targetApplication" initialValue="baseFareOnly">
                   <div className="space-y-3">
                     <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
                       <div className="flex items-center">
@@ -278,18 +305,13 @@ export default function CreateDiscountModal({
                     </div>
                     <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                       <div className="flex items-center">
-                        <input
-                          type="radio"
-                          value="both"
-                          className="mr-3"
-                        />
+                        <input type="radio" value="both" className="mr-3" />
                         <div>
                           <Text className="font-semibold">
                             Both Base Fare & Ancillaries
                           </Text>
                           <Text className="text-gray-600 text-sm block">
-                            Apply discount to both fare and selected
-                            services
+                            Apply discount to both fare and selected services
                           </Text>
                         </div>
                       </div>
@@ -297,14 +319,11 @@ export default function CreateDiscountModal({
                   </div>
                 </Form.Item>
               </div>
-
               <Row gutter={24}>
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="font-medium">
-                        Total Usage Limit
-                      </span>
+                      <span className="font-medium">Total Usage Limit</span>
                     }
                     name="totalUsageLimit"
                   >
@@ -318,9 +337,7 @@ export default function CreateDiscountModal({
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    label={
-                      <span className="font-medium">Per User Limit</span>
-                    }
+                    label={<span className="font-medium">Per User Limit</span>}
                     name="perUserLimit"
                   >
                     <InputNumber
@@ -352,19 +369,18 @@ export default function CreateDiscountModal({
             </div>
           )}
 
-          {/* Step 3: Eligibility */}
-          {discountModalStep === 2 && (
+          {/* Step 3: Eligibility Criteria */}
+          {policyModalStep === 2 && (
             <div className="space-y-8">
               <div className="text-center mb-8">
                 <Title level={4} className="!mb-4 text-blue-600">
                   Eligibility Criteria
                 </Title>
                 <Text className="text-gray-600 text-base">
-                  Define who can access this discount based on loyalty
-                  status, location, and spending requirements.
+                  Define who can access this discount based on loyalty status,
+                  location, and spending requirements.
                 </Text>
               </div>
-
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                 <div className="mb-4">
                   <Title
@@ -374,49 +390,184 @@ export default function CreateDiscountModal({
                     Loyalty Program Tiers
                   </Title>
                   <Text className="text-gray-600 text-sm">
-                    Select which loyalty tiers are eligible for this
-                    discount
+                    Select which loyalty tiers are eligible for this discount
                   </Text>
                 </div>
                 <Form.Item name="loyaltyTiers" className="!mb-0">
                   <Checkbox.Group className="block">
-                    {loyaltyOptions.map((tier) => (
-                      <div key={tier.value} className="p-1 flex gap-2 items-center">
-                        <Checkbox value={tier.value} className="scale-110" />
-                        <div
-                          className={`w-4 h-4 rounded-full ${
-                            tier.value === "bronze"
-                              ? "bg-amber-600"
-                              : tier.value === "silver"
-                                ? "bg-gray-400"
-                                : tier.value === "gold"
-                                  ? "bg-yellow-500"
-                                  : tier.value === "platinum"
-                                    ? "bg-slate-400"
-                                    : "bg-blue-500"
-                          }`}
-                        ></div>
-                        <Text
-                          className={`font-medium ${
-                            tier.value === "bronze"
-                              ? "text-amber-800"
-                              : tier.value === "silver"
-                                ? "text-gray-700"
-                                : tier.value === "gold"
-                                  ? "text-yellow-800"
-                                  : tier.value === "platinum"
-                                    ? "text-slate-700"
-                                    : "text-blue-800"
-                          }`}
-                        >
-                          {tier.label}
-                        </Text>
-                      </div>
-                    ))}
+                    {["bronze", "silver", "gold", "platinum", "diamond"].map(
+                      (tier) => (
+                        <div key={tier} className="p-1 flex gap-2 items-center">
+                          <Checkbox value={tier} className="scale-110" />
+                          <div
+                            className={`w-4 h-4 rounded-full ${
+                              tier === "bronze"
+                                ? "bg-amber-600"
+                                : tier === "silver"
+                                  ? "bg-gray-400"
+                                  : tier === "gold"
+                                    ? "bg-yellow-500"
+                                    : tier === "platinum"
+                                      ? "bg-slate-400"
+                                      : "bg-blue-500"
+                            }`}
+                          ></div>
+                          <Text
+                            className={`font-medium ${
+                              tier === "bronze"
+                                ? "text-amber-800"
+                                : tier === "silver"
+                                  ? "text-gray-700"
+                                  : tier === "gold"
+                                    ? "text-yellow-800"
+                                    : tier === "platinum"
+                                      ? "text-slate-700"
+                                      : "text-blue-800"
+                            }`}
+                          >
+                            {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                          </Text>
+                        </div>
+                      ),
+                    )}
                   </Checkbox.Group>
                 </Form.Item>
               </div>
-
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="mb-6">
+                  <Title
+                    level={5}
+                    className="!mb-2 text-gray-900 font-semibold"
+                  >
+                    Geographic Eligibility
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Select which countries/regions are eligible for this
+                    discount
+                  </Text>
+                </div>
+                <Form.Item name="geographicEligibility" className="!mb-0">
+                  <Checkbox.Group className="w-full">
+                    <div className="grid grid-cols-4 gap-4">
+                      {["US", "CA", "MX", "UK", "AU", "DE", "FR", "JP"].map(
+                        (country) => (
+                          <div
+                            key={country}
+                            className={`flex items-center space-x-3 p-4 rounded-lg border hover:border-${
+                              country === "US"
+                                ? "blue-300"
+                                : country === "CA"
+                                  ? "red-300"
+                                  : country === "MX"
+                                    ? "green-300"
+                                    : country === "UK"
+                                      ? "purple-300"
+                                      : country === "AU"
+                                        ? "orange-300"
+                                        : country === "DE"
+                                          ? "yellow-300"
+                                          : country === "FR"
+                                            ? "indigo-300"
+                                            : "pink-300"
+                            } transition-colors ${
+                              country === "US"
+                                ? "bg-blue-50 border-blue-200"
+                                : country === "CA"
+                                  ? "bg-red-50 border-red-200"
+                                  : country === "MX"
+                                    ? "bg-green-50 border-green-200"
+                                    : country === "UK"
+                                      ? "bg-purple-50 border-purple-200"
+                                      : country === "AU"
+                                        ? "bg-orange-50 border-orange-200"
+                                        : country === "DE"
+                                          ? "bg-yellow-50 border-yellow-200"
+                                          : country === "FR"
+                                            ? "bg-indigo-50 border-indigo-200"
+                                            : "bg-pink-50 border-pink-200"
+                            }`}
+                          >
+                            <Checkbox value={country} className="scale-110" />
+                            <Text
+                              className={`font-medium ${
+                                country === "US"
+                                  ? "text-blue-800"
+                                  : country === "CA"
+                                    ? "text-red-800"
+                                    : country === "MX"
+                                      ? "text-green-800"
+                                      : country === "UK"
+                                        ? "text-purple-800"
+                                        : country === "AU"
+                                          ? "text-orange-800"
+                                          : country === "DE"
+                                            ? "text-yellow-800"
+                                            : country === "FR"
+                                              ? "text-indigo-800"
+                                              : "text-pink-800"
+                              }`}
+                            >
+                              {country === "US"
+                                ? "🇺🇸 US"
+                                : country === "CA"
+                                  ? "🇨🇦 CA"
+                                  : country === "MX"
+                                    ? "🇲🇽 MX"
+                                    : country === "UK"
+                                      ? "🇬🇧 UK"
+                                      : country === "AU"
+                                        ? "🇦🇺 AU"
+                                        : country === "DE"
+                                          ? "🇩🇪 DE"
+                                          : country === "FR"
+                                            ? "🇫🇷 FR"
+                                            : "🇯🇵 JP"}
+                            </Text>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </Checkbox.Group>
+                </Form.Item>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="mb-6">
+                  <Title
+                    level={5}
+                    className="!mb-2 text-gray-900 font-semibold"
+                  >
+                    Route Restrictions
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Limit discount to specific flight routes (leave empty for
+                    all routes)
+                  </Text>
+                </div>
+                <Form.Item name="routeRestrictions" className="!mb-0">
+                  <Checkbox.Group className="w-full">
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        "LAX-JFK",
+                        "ORD-SFO",
+                        "MIA-DEN",
+                        "ATL-SEA",
+                        "DEN-BOS",
+                        "LAX-ORD",
+                      ].map((route) => (
+                        <div
+                          key={route}
+                          className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                        >
+                          <Checkbox value={route} className="scale-110" />
+                          <Text className="font-medium text-gray-700">
+                            {route}
+                          </Text>
+                        </div>
+                      ))}
+                    </div>
+                  </Checkbox.Group>
+                </Form.Item>
+              </div>
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                 <div className="mb-6">
                   <Title
@@ -426,8 +577,7 @@ export default function CreateDiscountModal({
                     Minimum Spend Threshold ($)
                   </Title>
                   <Text className="text-gray-600 text-sm">
-                    Set a minimum purchase amount required to use this
-                    discount
+                    Set a minimum purchase amount required to use this discount
                   </Text>
                 </div>
                 <Form.Item name="minSpendThreshold" className="!mb-0">
@@ -440,17 +590,20 @@ export default function CreateDiscountModal({
                     formatter={(value) =>
                       `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                     }
-                    parser={(value) =>
-                      value?.replace(/\$\s?|(,*)/g, "") || ""
-                    }
+                    parser={(value) => value?.replace(/\$\s?|(,*)/g, "") || ""}
+                    style={{
+                      fontSize: "16px",
+                      padding: "12px 16px",
+                      borderRadius: "8px",
+                    }}
                   />
                 </Form.Item>
               </div>
             </div>
           )}
 
-          {/* Step 4: Date Windows */}
-          {discountModalStep === 3 && (
+          {/* Step 4: Date Windows & Validity */}
+          {policyModalStep === 3 && (
             <div>
               <Title level={4} className="!mb-4 text-orange-600">
                 Date Windows & Validity
@@ -459,7 +612,6 @@ export default function CreateDiscountModal({
                 Set the validity period and any blackout dates for this
                 discount.
               </Text>
-
               <Row gutter={16} className="mb-8">
                 <Col span={12}>
                   <Form.Item
@@ -470,10 +622,7 @@ export default function CreateDiscountModal({
                     }
                     name="validFrom"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please select start date",
-                      },
+                      { required: true, message: "Please select start date" },
                     ]}
                   >
                     <DatePicker
@@ -481,6 +630,9 @@ export default function CreateDiscountModal({
                       size="large"
                       className="w-full rounded-lg"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
@@ -488,16 +640,12 @@ export default function CreateDiscountModal({
                   <Form.Item
                     label={
                       <span className="font-medium">
-                        Valid Until{" "}
-                        <span className="text-red-500">*</span>
+                        Valid Until <span className="text-red-500">*</span>
                       </span>
                     }
                     name="validTo"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please select end date",
-                      },
+                      { required: true, message: "Please select end date" },
                     ]}
                   >
                     <DatePicker
@@ -505,18 +653,20 @@ export default function CreateDiscountModal({
                       size="large"
                       className="w-full rounded-lg"
                       format="MMM DD, YYYY"
+                      disabledDate={(current) =>
+                        current && current.isBefore(new Date(), "day")
+                      }
                     />
                   </Form.Item>
                 </Col>
               </Row>
-
               <div className="mb-6">
                 <Title level={5} className="!mb-4">
                   Blackout Dates
                 </Title>
                 <Form.Item name="blackoutDates">
                   <DatePicker
-                    placeholder="Select blackout dates"
+                    placeholder="dd-----yyyy"
                     size="large"
                     className="w-full rounded-lg"
                     format="MMM DD, YYYY"
@@ -527,14 +677,13 @@ export default function CreateDiscountModal({
           )}
 
           {/* Step 5: Combinability */}
-          {discountModalStep === 4 && (
+          {policyModalStep === 4 && (
             <div>
               <Title level={4} className="!mb-4 text-pink-600">
                 Promo Code Combinability
               </Title>
               <Text className="text-gray-600 block mb-6">
-                Configure how this discount interacts with promotional
-                codes.
+                Configure how this discount interacts with promotional codes.
               </Text>
 
               <div className="p-6 border border-gray-200 rounded-lg bg-gray-50">
@@ -542,6 +691,12 @@ export default function CreateDiscountModal({
                   name="allowPromoCodeCombination"
                   valuePropName="checked"
                   className="!mb-4"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please choose",
+                    },
+                  ]}
                 >
                   <div className="flex items-start">
                     <Checkbox className="mr-4 mt-1" />
@@ -550,8 +705,8 @@ export default function CreateDiscountModal({
                         Allow Combination with Promo Codes
                       </Text>
                       <Text className="text-gray-600">
-                        This discount can be used together with
-                        promotional codes
+                        This discount can be used together with promotional
+                        codes
                       </Text>
                     </div>
                   </div>
@@ -561,27 +716,36 @@ export default function CreateDiscountModal({
           )}
         </div>
 
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-          <Button onClick={handleCancel} size="large">
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+          <Button
+            onClick={() => {
+              setIsModalVisible(false);
+              setEditingOffer(null);
+              setPolicyModalStep(0);
+              form.resetFields();
+            }}
+            size="large"
+          >
             Cancel
           </Button>
-
           <div className="flex space-x-3">
             <Button
               onClick={() =>
-                setDiscountModalStep(Math.max(0, discountModalStep - 1))
+                setPolicyModalStep(Math.max(0, policyModalStep - 1))
               }
-              disabled={discountModalStep === 0}
+              disabled={policyModalStep === 0}
               size="large"
             >
               Previous
             </Button>
-            {discountModalStep < 4 ? (
+            {policyModalStep < 4 ? (
               <Button
                 type="primary"
-                onClick={() =>
-                  setDiscountModalStep(Math.min(4, discountModalStep + 1))
-                }
+                onClick={() => {
+                  setPolicyModalStep(Math.min(4, policyModalStep + 1));
+                  handleFormData();
+                }}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
               >

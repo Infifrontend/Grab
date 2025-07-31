@@ -1,5 +1,3 @@
-
-import { useState } from "react";
 import {
   Modal,
   Form,
@@ -13,43 +11,72 @@ import {
   Col,
   Button,
   Typography,
-  Tabs,
 } from "antd";
-import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
+import { CalendarOutlined } from "@ant-design/icons";
+import { useModalLogic } from "./use-modal-logic";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
 interface CreateOfferModalProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: any) => void;
-  editingOffer?: any;
+  setIsModalVisible: (values: any) => void;
+  setOffersCodeTableData: (values: any) => void;
+  editingData?: any;
 }
+
+const steps = [
+  { title: "Basic Information" },
+  { title: "Template" },
+  { title: "Ancillaries" },
+  { title: "Personalization" },
+  { title: "Dynamic Pricing" },
+  { title: "Output Channels" },
+];
 
 export default function CreateOfferModal({
   visible,
   onCancel,
-  onSubmit,
-  editingOffer,
+  setIsModalVisible,
+  setOffersCodeTableData,
+  editingData,
 }: CreateOfferModalProps) {
   const [form] = Form.useForm();
-  const [offersModalTab, setOffersModalTab] = useState("basicInfo");
+  const {
+    formValues,
+    setFormValues,
+    policyModalStep: offerModalStep,
+    setPolicyModalStep: setOfferModalStep,
+    handleFormData,
+  } = useModalLogic({
+    editingData: editingData,
+    isModalVisible: visible,
+    form,
+  });
+
+  // Handle "Next" button click with validation
+  const handleNext = async () => {
+    try {
+      if (offerModalStep === 0) {
+        await form.validateFields(["offerName", "offerCode"]);
+      }
+      handleFormData();
+      setOfferModalStep(Math.min(5, offerModalStep + 1));
+    } catch (error) {
+      console.error("Validation failed:", error);
+    }
+  };
 
   const handleCancel = () => {
-    setOffersModalTab("basicInfo");
+    setOfferModalStep(0);
     form.resetFields();
     onCancel();
   };
 
-  const handleSubmit = (values: any) => {
-    console.log("Offer values:", values);
-    onSubmit(values);
-    setOffersModalTab("basicInfo");
-    form.resetFields();
-  };
-
   return (
     <Modal
+      style={{ top: 50 }}
       title={
         <div className="border-b border-gray-200 pb-4 mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
@@ -60,57 +87,75 @@ export default function CreateOfferModal({
           </Text>
         </div>
       }
-      visible={visible}
+      open={visible}
       onCancel={handleCancel}
       footer={null}
-      width={1000}
+      width={900}
       className="custom-modal"
       bodyStyle={{ padding: "24px 32px 32px" }}
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        {/* Tabs for Offers Modal */}
-        <Tabs
-          activeKey={offersModalTab}
-          onChange={setOffersModalTab}
-          className="mb-6"
-          items={[
-            {
-              key: "basicInfo",
-              label: "Basic Info",
-            },
-            {
-              key: "template",
-              label: "Template",
-            },
-            {
-              key: "ancillaries",
-              label: "Ancillaries",
-            },
-            {
-              key: "personalization",
-              label: "Personalization",
-            },
-            {
-              key: "dynamicPricing",
-              label: "Dynamic Pricing",
-            },
-            {
-              key: "outputChannels",
-              label: "Output Channels",
-            },
-          ]}
-        />
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={() => {
+          setOffersCodeTableData({ ...formValues, ...form.getFieldsValue() });
+          setIsModalVisible(false);
+        }}
+      >
+        {/* Steps Navigation */}
+        <div className="relative mb-8">
+          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+          <div
+            className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
+            style={{
+              width: `${(offerModalStep / (steps.length - 1)) * 100}%`,
+            }}
+          ></div>
+          <div className="relative flex justify-between z-20">
+            {steps.map((step, index) => (
+              <div key={step.title} className="flex flex-col items-center">
+                <div
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
+                    ${
+                      index < offerModalStep
+                        ? "bg-green-500 border-green-500 text-white"
+                        : index === offerModalStep
+                          ? "bg-blue-500 border-blue-500 text-white"
+                          : "bg-white border-gray-300 text-gray-500"
+                    }
+                  `}
+                >
+                  {index < offerModalStep ? (
+                    <span className="text-sm">✓</span>
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <div className="mt-2 text-center max-w-[120px]">
+                  <Text
+                    className={`text-xs font-medium ${
+                      index <= offerModalStep
+                        ? "text-gray-800"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {step.title}
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        {/* Tab Content for Offers */}
         <div style={{ minHeight: "400px" }}>
-          {/* Basic Info Tab */}
-          {offersModalTab === "basicInfo" && (
+          {/* Step 1: Basic Information */}
+          {offerModalStep === 0 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4">
+                <Title level={4} className="!mb-4 text-blue-600">
                   Basic Information
                 </Title>
-
                 <Row gutter={16} className="mb-4">
                   <Col span={12}>
                     <Form.Item
@@ -130,6 +175,7 @@ export default function CreateOfferModal({
                       <Input
                         placeholder="e.g., Premium Business Package"
                         size="large"
+                        className="rounded-lg"
                       />
                     </Form.Item>
                   </Col>
@@ -148,11 +194,14 @@ export default function CreateOfferModal({
                         },
                       ]}
                     >
-                      <Input placeholder="e.g., PBP001" size="large" />
+                      <Input
+                        placeholder="e.g., PBP001"
+                        size="large"
+                        className="rounded-lg"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
-
                 <Form.Item
                   label={<span className="font-medium">Description</span>}
                   name="description"
@@ -161,9 +210,9 @@ export default function CreateOfferModal({
                   <Input.TextArea
                     rows={3}
                     placeholder="Describe the offer package"
+                    className="rounded-lg"
                   />
                 </Form.Item>
-
                 <Row gutter={16} className="mb-4">
                   <Col span={8}>
                     <Form.Item
@@ -171,7 +220,7 @@ export default function CreateOfferModal({
                       name="status"
                       initialValue="draft"
                     >
-                      <Select size="large">
+                      <Select size="large" className="rounded-lg">
                         <Select.Option value="draft">Draft</Select.Option>
                         <Select.Option value="active">Active</Select.Option>
                         <Select.Option value="inactive">Inactive</Select.Option>
@@ -189,14 +238,13 @@ export default function CreateOfferModal({
                       <InputNumber
                         placeholder="0.00"
                         size="large"
-                        className="w-full"
+                        className="w-full rounded-lg"
                         min={0}
                         step={0.01}
                       />
                     </Form.Item>
                   </Col>
                 </Row>
-
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
@@ -206,7 +254,10 @@ export default function CreateOfferModal({
                       <DatePicker
                         placeholder="Select date"
                         size="large"
-                        className="w-full"
+                        className="w-full rounded-lg"
+                        suffixIcon={
+                          <CalendarOutlined className="text-gray-400" />
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -218,7 +269,10 @@ export default function CreateOfferModal({
                       <DatePicker
                         placeholder="Select date"
                         size="large"
-                        className="w-full"
+                        className="w-full rounded-lg"
+                        suffixIcon={
+                          <CalendarOutlined className="text-gray-400" />
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -227,13 +281,13 @@ export default function CreateOfferModal({
             </div>
           )}
 
-          {/* Template Tab */}
-          {offersModalTab === "template" && (
+          {/* Step 2: Template */}
+          {offerModalStep === 1 && (
             <div className="space-y-6">
               <div>
                 <div className="flex items-center mb-4">
                   <span className="text-yellow-500 mr-2">⭐</span>
-                  <Title level={4} className="!mb-2">
+                  <Title level={4} className="!mb-2 text-green-600">
                     Offer Templates
                   </Title>
                 </div>
@@ -241,7 +295,6 @@ export default function CreateOfferModal({
                   Choose a template that defines the offer structure and target
                   market
                 </Text>
-
                 <Form.Item name="selectedTemplate" className="mb-6">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg cursor-pointer">
@@ -258,7 +311,6 @@ export default function CreateOfferModal({
                         <li>• Standard targeting</li>
                       </ul>
                     </div>
-
                     <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg cursor-pointer">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
@@ -273,7 +325,6 @@ export default function CreateOfferModal({
                         <li>• Broad market appeal</li>
                       </ul>
                     </div>
-
                     <div className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
                       <div className="flex items-center mb-3">
                         <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
@@ -290,31 +341,29 @@ export default function CreateOfferModal({
                     </div>
                   </div>
                 </Form.Item>
-
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <Text className="font-medium text-blue-900 block mb-2">
                     Selected Template: Value
                   </Text>
                   <Text className="text-blue-700 text-sm">
-                    Perfect for travelers who want a good balance of features and
-                    price.
+                    Perfect for travelers who want a good balance of features
+                    and price.
                   </Text>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Ancillaries Tab */}
-          {offersModalTab === "ancillaries" && (
+          {/* Step 3: Ancillaries */}
+          {offerModalStep === 2 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4">
+                <Title level={4} className="!mb-4 text-orange-600">
                   Ancillaries
                 </Title>
                 <Text className="text-gray-600 block mb-6">
                   Select ancillary services to include in this offer
                 </Text>
-
                 <Form.Item name="ancillaryServices">
                   <Checkbox.Group className="w-full">
                     <div className="grid grid-cols-2 gap-4">
@@ -340,14 +389,15 @@ export default function CreateOfferModal({
                           </div>
                         </div>
                       </div>
-
                       <div className="space-y-3">
                         <Text className="font-medium text-gray-900">
                           Food & Beverage
                         </Text>
                         <div className="space-y-2">
                           <div>
-                            <Checkbox value="premium-meal">Premium Meal</Checkbox>
+                            <Checkbox value="premium-meal">
+                              Premium Meal
+                            </Checkbox>
                           </div>
                           <div>
                             <Checkbox value="special-meal">
@@ -361,7 +411,6 @@ export default function CreateOfferModal({
                           </div>
                         </div>
                       </div>
-
                       <div className="space-y-3">
                         <Text className="font-medium text-gray-900">
                           Services
@@ -384,7 +433,6 @@ export default function CreateOfferModal({
                           </div>
                         </div>
                       </div>
-
                       <div className="space-y-3">
                         <Text className="font-medium text-gray-900">
                           Baggage
@@ -414,17 +462,16 @@ export default function CreateOfferModal({
             </div>
           )}
 
-          {/* Personalization Tab */}
-          {offersModalTab === "personalization" && (
+          {/* Step 4: Personalization */}
+          {offerModalStep === 3 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4">
+                <Title level={4} className="!mb-4 text-purple-600">
                   Personalization
                 </Title>
                 <Text className="text-gray-600 block mb-6">
                   Configure targeting criteria for this offer
                 </Text>
-
                 <Row gutter={24}>
                   <Col span={8}>
                     <div className="space-y-4">
@@ -456,7 +503,9 @@ export default function CreateOfferModal({
                               </Checkbox>
                             </div>
                             <div>
-                              <Checkbox value="family">Family Travelers</Checkbox>
+                              <Checkbox value="family">
+                                Family Travelers
+                              </Checkbox>
                             </div>
                             <div>
                               <Checkbox value="price-sensitive">
@@ -473,7 +522,6 @@ export default function CreateOfferModal({
                       </Form.Item>
                     </div>
                   </Col>
-
                   <Col span={8}>
                     <div className="space-y-4">
                       <div className="flex items-center mb-3">
@@ -518,7 +566,6 @@ export default function CreateOfferModal({
                       </Form.Item>
                     </div>
                   </Col>
-
                   <Col span={8}>
                     <div className="space-y-4">
                       <div className="flex items-center mb-3">
@@ -539,7 +586,9 @@ export default function CreateOfferModal({
                               </Checkbox>
                             </div>
                             <div>
-                              <Checkbox value="weekend">Weekend travel</Checkbox>
+                              <Checkbox value="weekend">
+                                Weekend travel
+                              </Checkbox>
                             </div>
                             <div>
                               <Checkbox value="vacation">
@@ -552,7 +601,9 @@ export default function CreateOfferModal({
                               </Checkbox>
                             </div>
                             <div>
-                              <Checkbox value="domestic">Domestic routes</Checkbox>
+                              <Checkbox value="domestic">
+                                Domestic routes
+                              </Checkbox>
                             </div>
                             <div>
                               <Checkbox value="business-hours">
@@ -569,20 +620,19 @@ export default function CreateOfferModal({
             </div>
           )}
 
-          {/* Dynamic Pricing Tab */}
-          {offersModalTab === "dynamicPricing" && (
+          {/* Step 5: Dynamic Pricing */}
+          {offerModalStep === 4 && (
             <div className="space-y-6">
               <div>
                 <div className="flex items-center mb-4">
                   <span className="text-yellow-600 mr-2">⚡</span>
-                  <Title level={4} className="!mb-2">
+                  <Title level={4} className="!mb-2 text-yellow-600">
                     Dynamic Pricing Configuration
                   </Title>
                 </div>
                 <Text className="text-gray-600 block mb-6">
                   Configure real-time fare integration and pricing multipliers
                 </Text>
-
                 <div className="bg-gray-50 p-4 rounded-lg mb-6">
                   <Form.Item
                     name="enableDynamicPricing"
@@ -590,12 +640,20 @@ export default function CreateOfferModal({
                     className="!mb-0"
                   >
                     <div className="flex items-center justify-between">
-                      <Text className="font-medium">Enable Dynamic Pricing</Text>
-                      <Switch />
+                      <Text className="font-medium">
+                        Enable Dynamic Pricing
+                      </Text>
+                      <Switch
+                        onChange={(value) =>
+                          setFormValues((prev: any) => ({
+                            ...prev,
+                            enableDynamicPricing: value,
+                          }))
+                        }
+                      />
                     </div>
                   </Form.Item>
                 </div>
-
                 <div className="mb-8">
                   <div className="flex items-center mb-4">
                     <span className="text-blue-600 mr-2">%</span>
@@ -604,10 +662,9 @@ export default function CreateOfferModal({
                     </Text>
                   </div>
                   <Text className="text-gray-600 text-sm mb-4">
-                    Configure applicable discounts and promotional codes for this
-                    offer
+                    Configure applicable discounts and promotional codes for
+                    this offer
                   </Text>
-
                   <div className="mb-4">
                     <Text className="font-medium text-sm mb-3">
                       Applicable Promo Codes
@@ -643,7 +700,6 @@ export default function CreateOfferModal({
                       </Checkbox.Group>
                     </Form.Item>
                   </div>
-
                   <Row gutter={16} className="mb-4">
                     <Col span={8}>
                       <Form.Item
@@ -652,7 +708,7 @@ export default function CreateOfferModal({
                         initialValue={0}
                       >
                         <InputNumber
-                          className="w-full"
+                          className="w-full rounded-lg"
                           min={0}
                           max={100}
                           placeholder="0"
@@ -666,7 +722,7 @@ export default function CreateOfferModal({
                         initialValue={0}
                       >
                         <InputNumber
-                          className="w-full"
+                          className="w-full rounded-lg"
                           min={0}
                           max={100}
                           placeholder="0"
@@ -690,17 +746,16 @@ export default function CreateOfferModal({
             </div>
           )}
 
-          {/* Output Channels Tab */}
-          {offersModalTab === "outputChannels" && (
+          {/* Step 6: Output Channels */}
+          {offerModalStep === 5 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4">
+                <Title level={4} className="!mb-4 text-pink-600">
                   Output Channels
                 </Title>
                 <Text className="text-gray-600 block mb-6">
                   Configure distribution channels for this offer
                 </Text>
-
                 <Row gutter={24}>
                   <Col span={12}>
                     <div className="bg-white border rounded-lg p-6 mb-6">
@@ -714,9 +769,23 @@ export default function CreateOfferModal({
                         name="enableWebsite"
                         valuePropName="checked"
                         className="mb-4"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please choose",
+                          },
+                        ]}
                       >
                         <div className="flex items-center">
-                          <Switch className="mr-3" />
+                          <Switch
+                            className="mr-3"
+                            onChange={(value) =>
+                              setFormValues((prev: any) => ({
+                                ...prev,
+                                enableWebsite: value,
+                              }))
+                            }
+                          />
                           <Text>Enable Website Distribution</Text>
                         </div>
                       </Form.Item>
@@ -725,20 +794,24 @@ export default function CreateOfferModal({
                           Display Mode
                         </Text>
                         <Form.Item name="websiteDisplayMode" className="!mb-0">
-                          <Select defaultValue="standard" className="w-full">
+                          <Select
+                            defaultValue="standard"
+                            className="w-full rounded-lg"
+                          >
                             <Select.Option value="standard">
                               Standard
                             </Select.Option>
                             <Select.Option value="featured">
                               Featured
                             </Select.Option>
-                            <Select.Option value="premium">Premium</Select.Option>
+                            <Select.Option value="premium">
+                              Premium
+                            </Select.Option>
                           </Select>
                         </Form.Item>
                       </div>
                     </div>
                   </Col>
-
                   <Col span={12}>
                     <div className="bg-white border rounded-lg p-6 mb-6">
                       <div className="flex items-center mb-4">
@@ -753,7 +826,15 @@ export default function CreateOfferModal({
                         className="mb-4"
                       >
                         <div className="flex items-center">
-                          <Switch className="mr-3" />
+                          <Switch
+                            className="mr-3"
+                            onChange={(value) =>
+                              setFormValues((prev: any) => ({
+                                ...prev,
+                                enableMobile: value,
+                              }))
+                            }
+                          />
                           <Text>Enable Mobile Distribution</Text>
                         </div>
                       </Form.Item>
@@ -763,13 +844,20 @@ export default function CreateOfferModal({
                         className="!mb-0"
                       >
                         <div className="flex items-center">
-                          <Switch className="mr-3" />
+                          <Switch
+                            className="mr-3"
+                            onChange={(value) =>
+                              setFormValues((prev: any) => ({
+                                ...prev,
+                                mobileOptimized: value,
+                              }))
+                            }
+                          />
                           <Text>Mobile Optimized Display</Text>
                         </div>
                       </Form.Item>
                     </div>
                   </Col>
-
                   <Col span={12}>
                     <div className="bg-white border rounded-lg p-6">
                       <div className="flex items-center mb-4">
@@ -784,13 +872,20 @@ export default function CreateOfferModal({
                         className="!mb-0"
                       >
                         <div className="flex items-center">
-                          <Switch className="mr-3" />
+                          <Switch
+                            className="mr-3"
+                            onChange={(value) =>
+                              setFormValues((prev: any) => ({
+                                ...prev,
+                                enableDNC: value,
+                              }))
+                            }
+                          />
                           <Text>Enable NDC Distribution</Text>
                         </div>
                       </Form.Item>
                     </div>
                   </Col>
-
                   <Col span={12}>
                     <div className="bg-white border rounded-lg p-6">
                       <div className="flex items-center mb-4">
@@ -805,7 +900,15 @@ export default function CreateOfferModal({
                         className="!mb-0"
                       >
                         <div className="flex items-center">
-                          <Switch className="mr-3" />
+                          <Switch
+                            className="mr-3"
+                            onChange={(value) =>
+                              setFormValues((prev: any) => ({
+                                ...prev,
+                                enableAPI: value,
+                              }))
+                            }
+                          />
                           <Text>Enable API Access</Text>
                         </div>
                       </Form.Item>
@@ -817,19 +920,39 @@ export default function CreateOfferModal({
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
           <Button onClick={handleCancel} size="large">
             Cancel
           </Button>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="bg-blue-600 hover:bg-blue-700"
-            size="large"
-          >
-            Create Offer
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => setOfferModalStep(Math.max(0, offerModalStep - 1))}
+              disabled={offerModalStep === 0}
+              size="large"
+            >
+              Previous
+            </Button>
+            {offerModalStep < 5 ? (
+              <Button
+                type="primary"
+                onClick={handleNext}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="large"
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="bg-green-600 hover:bg-green-700"
+                size="large"
+              >
+                Create Offer
+              </Button>
+            )}
+          </div>
         </div>
       </Form>
     </Modal>
