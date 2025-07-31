@@ -1,140 +1,109 @@
+
+import { useState } from "react";
 import {
   Modal,
   Form,
   Input,
   Select,
+  DatePicker,
   InputNumber,
+  Switch,
   Checkbox,
   Row,
   Col,
   Button,
   Typography,
-  Space,
-  DatePicker,
-  Switch,
+  Steps,
 } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
-import { useModalLogic } from "./use-modal-logic";
 
 const { Title, Text } = Typography;
+const { Step } = Steps;
 
-interface PromoModalProps {
-  isModalVisible: boolean;
-  editingData?: any;
-  setIsModalVisible: (value: boolean) => void;
-  setEditingOffer: (value: any) => void;
-  setPromoCodeTableData: (value: any) => void;
+interface CreatePromoCodeModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onSubmit: (values: any) => void;
+  editingPromoCode?: any;
 }
 
-const steps = [
-  { title: "Basic Information" },
-  { title: "Code Generation" },
-  { title: "Usage Limits & Channel Restrictions" },
-  { title: "Target Segments & Validity Period" },
-];
-
-export default function PromoModal({
-  isModalVisible,
-  editingData,
-  setIsModalVisible,
-  setEditingOffer,
-  setPromoCodeTableData,
-}: PromoModalProps) {
+export default function CreatePromoCodeModal({
+  visible,
+  onCancel,
+  onSubmit,
+  editingPromoCode,
+}: CreatePromoCodeModalProps) {
   const [form] = Form.useForm();
-  const {
-    formValues,
-    setFormValues,
-    policyModalStep,
-    setPolicyModalStep,
-    handleFormData,
-  } = useModalLogic({ editingData, isModalVisible, form });
+  const [promoModalStep, setPromoModalStep] = useState(0);
+
+  const handleCancel = () => {
+    setPromoModalStep(0);
+    form.resetFields();
+    onCancel();
+  };
+
+  const handleSubmit = (values: any) => {
+    console.log("Promo Code values:", values);
+    onSubmit(values);
+    setPromoModalStep(0);
+    form.resetFields();
+  };
 
   return (
     <Modal
-      style={{ top: 50 }}
       title={
         <div className="border-b border-gray-200 pb-4 mb-6">
           <Title level={3} className="!mb-2 text-gray-900">
-            Create New Promo Code
+            {editingPromoCode ? "Edit Promo Code" : "Create New Promo Code"}
           </Title>
+          <Text className="text-gray-600 text-base">
+            Manage promotional codes for marketing campaigns
+          </Text>
         </div>
       }
-      open={isModalVisible}
-      onCancel={() => {
-        setIsModalVisible(false);
-        setEditingOffer(null);
-        setPolicyModalStep(0);
-        form.resetFields();
-      }}
+      visible={visible}
+      onCancel={handleCancel}
       footer={null}
       width={800}
       className="custom-modal"
-      bodyStyle={{ padding: "0 32px 32px" }}
+      bodyStyle={{ padding: "24px 32px 32px" }}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={(values) => {
-          console.log("Promo code values:", values);
-          setPromoCodeTableData({ ...formValues, ...form.getFieldsValue() });
-          setIsModalVisible(false);
-        }}
-      >
-        {/* Steps Navigation */}
-        <div className="relative mb-8">
-          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
-          <div
-            className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
-            style={{
-              width: `${(policyModalStep / (steps.length - 1)) * 100}%`,
-            }}
-          ></div>
-          <div className="relative flex justify-between z-20">
-            {steps.map((step, index) => (
-              <div key={step.title} className="flex flex-col items-center">
-                <div
-                  className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-3
-                    ${
-                      index < policyModalStep
-                        ? "bg-green-500 border-green-500 text-white"
-                        : index === policyModalStep
-                          ? "bg-blue-500 border-blue-500 text-white"
-                          : "bg-white border-gray-300 text-gray-500"
-                    }
-                  `}
-                >
-                  {index < policyModalStep ? (
-                    <span className="text-sm">✓</span>
-                  ) : (
-                    <span>{index + 1}</span>
-                  )}
-                </div>
-                <div className="mt-2 text-center max-w-[120px]">
-                  <Text
-                    className={`text-xs font-medium ${
-                      index <= policyModalStep
-                        ? "text-gray-800"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {step.title}
-                  </Text>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Steps Navigation */}
+      <div className="mb-8">
+        <Steps 
+          current={promoModalStep} 
+          className="custom-steps"
+          items={[
+            {
+              title: "Basic Info",
+              description: "Code details",
+            },
+            {
+              title: "Generation",
+              description: "Code settings",
+            },
+            {
+              title: "Usage Limits",
+              description: "Restrictions",
+            },
+            {
+              title: "Targeting",
+              description: "Segments & dates",
+            },
+          ]}
+        />
+      </div>
 
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div style={{ minHeight: "400px" }}>
           {/* Step 1: Basic Information */}
-          {policyModalStep === 0 && (
+          {promoModalStep === 0 && (
             <div>
               <Title level={4} className="!mb-4 text-blue-600">
                 Basic Information
               </Title>
               <Text className="text-gray-600 block mb-6">
-                Create a new promo in the system
+                Set up the fundamental details of your promotional code
               </Text>
 
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -151,7 +120,7 @@ export default function PromoModal({
                       ]}
                     >
                       <Input
-                        placeholder="Enter promo name"
+                        placeholder="e.g., Summer Vacation Deal"
                         size="large"
                         className="rounded-lg"
                       />
@@ -170,15 +139,20 @@ export default function PromoModal({
                     >
                       <div className="flex">
                         <Input
-                          placeholder="Enter promo code"
+                          placeholder="e.g., SUMMER2024"
                           size="large"
                           className="rounded-lg flex-1"
+                          style={{ textTransform: 'uppercase' }}
                         />
                         <Button
                           type="text"
                           icon={<span className="text-gray-400">🎲</span>}
                           className="ml-2"
                           size="large"
+                          onClick={() => {
+                            const randomCode = 'PROMO' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                            form.setFieldsValue({ promoCode: randomCode });
+                          }}
                         />
                       </div>
                     </Form.Item>
@@ -192,7 +166,7 @@ export default function PromoModal({
                 >
                   <Input.TextArea
                     rows={3}
-                    placeholder="Describe the promotional offer"
+                    placeholder="Describe the promotional offer..."
                     className="rounded-lg"
                   />
                 </Form.Item>
@@ -203,24 +177,24 @@ export default function PromoModal({
                       label={<span className="font-medium">Discount Type</span>}
                       name="discountType"
                       initialValue="percentage"
+                      rules={[{ required: true, message: "Please select type" }]}
                     >
                       <Select size="large" className="rounded-lg">
                         <Select.Option value="percentage">
-                          Percentage
+                          Percentage (%)
                         </Select.Option>
                         <Select.Option value="fixed">
-                          Fixed Amount
+                          Fixed Amount ($)
                         </Select.Option>
                       </Select>
                     </Form.Item>
                   </Col>
                   <Col span={8}>
                     <Form.Item
-                      label={
-                        <span className="font-medium">Discount Value</span>
-                      }
+                      label={<span className="font-medium">Discount Value</span>}
                       name="discountValue"
                       initialValue={25}
+                      rules={[{ required: true, message: "Please enter value" }]}
                     >
                       <InputNumber
                         placeholder="25"
@@ -250,10 +224,10 @@ export default function PromoModal({
           )}
 
           {/* Step 2: Code Generation */}
-          {policyModalStep === 1 && (
+          {promoModalStep === 1 && (
             <div>
               <Title level={4} className="!mb-4 text-green-600">
-                Code Generation
+                Code Generation & Rules
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Configure how promo codes are generated and managed
@@ -266,20 +240,34 @@ export default function PromoModal({
                   </Text>
                   <Form.Item name="generationType" initialValue="manual">
                     <div className="space-y-3">
-                      <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                        <input type="radio" value="manual" className="mr-3" />
-                        <Text className="font-medium">Manual Entry</Text>
+                      <div className="flex items-center p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
+                        <input
+                          type="radio"
+                          value="manual"
+                          name="generationType"
+                          className="mr-3"
+                          defaultChecked
+                        />
+                        <div>
+                          <Text className="font-medium text-blue-900">Manual Entry</Text>
+                          <Text className="text-blue-700 text-sm block">
+                            Use the code entered above
+                          </Text>
+                        </div>
                       </div>
-                      <div className="flex items-center p-3 border-2 border-blue-500 bg-blue-50 rounded-lg">
+                      <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                         <input
                           type="radio"
                           value="auto"
+                          name="generationType"
                           className="mr-3"
-                          checked
                         />
-                        <Text className="font-medium text-blue-900">
-                          Auto Generator
-                        </Text>
+                        <div>
+                          <Text className="font-medium">Auto Generator</Text>
+                          <Text className="text-gray-600 text-sm block">
+                            Generate multiple codes automatically
+                          </Text>
+                        </div>
                       </div>
                     </div>
                   </Form.Item>
@@ -352,7 +340,12 @@ export default function PromoModal({
                     <Select.Option value="fixed-50">
                       $50 Off Bookings
                     </Select.Option>
-                    <Select.Option value="bogo">Buy One Get One</Select.Option>
+                    <Select.Option value="bogo">
+                      Buy One Get One
+                    </Select.Option>
+                    <Select.Option value="first-time">
+                      First-Time Customer Discount
+                    </Select.Option>
                   </Select>
                 </Form.Item>
               </div>
@@ -360,7 +353,7 @@ export default function PromoModal({
           )}
 
           {/* Step 3: Usage Limits & Channel Restrictions */}
-          {policyModalStep === 2 && (
+          {promoModalStep === 2 && (
             <div>
               <Title level={4} className="!mb-4 text-orange-600">
                 Usage Limits & Channel Restrictions
@@ -376,11 +369,7 @@ export default function PromoModal({
                 <Row gutter={16} className="mb-4">
                   <Col span={12}>
                     <Form.Item
-                      label={
-                        <span className="font-medium">
-                          Minimum Purchase ($)
-                        </span>
-                      }
+                      label={<span className="font-medium">Minimum Purchase ($)</span>}
                       name="minPurchase"
                       initialValue={0}
                     >
@@ -400,11 +389,7 @@ export default function PromoModal({
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      label={
-                        <span className="font-medium">
-                          Maximum Discount ($)
-                        </span>
-                      }
+                      label={<span className="font-medium">Maximum Discount ($)</span>}
                       name="maxDiscount"
                       initialValue={100}
                     >
@@ -427,11 +412,7 @@ export default function PromoModal({
                 <Row gutter={16} className="mb-6">
                   <Col span={12}>
                     <Form.Item
-                      label={
-                        <span className="font-medium">
-                          Total Usage Limit (Max Redemptions)
-                        </span>
-                      }
+                      label={<span className="font-medium">Total Usage Limit</span>}
                       name="totalUsageLimit"
                       initialValue={1000}
                     >
@@ -445,9 +426,7 @@ export default function PromoModal({
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      label={
-                        <span className="font-medium">Per User Limit</span>
-                      }
+                      label={<span className="font-medium">Per User Limit</span>}
                       name="perUserLimit"
                       initialValue={1}
                     >
@@ -467,15 +446,7 @@ export default function PromoModal({
                   className="!mb-0"
                 >
                   <div className="flex items-center">
-                    <Switch
-                      className="mr-3"
-                      onChange={(value) => {
-                        setFormValues((prev: any) => ({
-                          ...prev,
-                          allowStacking: value,
-                        }));
-                      }}
-                    />
+                    <Switch className="mr-3" />
                     <Text className="font-medium">
                       Allow stacking with other discounts
                     </Text>
@@ -499,7 +470,9 @@ export default function PromoModal({
                           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                             <span className="text-blue-600">🌐</span>
                           </div>
-                          <Text className="font-medium text-blue-800">Web</Text>
+                          <Text className="font-medium text-blue-800">
+                            Website
+                          </Text>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
                           <Checkbox value="mobile" className="scale-110" />
@@ -516,7 +489,7 @@ export default function PromoModal({
                             <span className="text-purple-600">💬</span>
                           </div>
                           <Text className="font-medium text-purple-800">
-                            NDC
+                            NDC API
                           </Text>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
@@ -525,7 +498,7 @@ export default function PromoModal({
                             <span className="text-orange-600">📞</span>
                           </div>
                           <Text className="font-medium text-orange-800">
-                            Phone
+                            Call Center
                           </Text>
                         </div>
                       </div>
@@ -537,7 +510,7 @@ export default function PromoModal({
           )}
 
           {/* Step 4: Target Segments & Validity Period */}
-          {policyModalStep === 3 && (
+          {promoModalStep === 3 && (
             <div>
               <Title level={4} className="!mb-4 text-purple-600">
                 Target Segments & Validity Period
@@ -548,18 +521,20 @@ export default function PromoModal({
 
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
                 <Text className="font-semibold text-lg block mb-4">
-                  Target Segments
+                  Target Customer Segments
                 </Text>
                 <div className="mb-4">
                   <Text className="font-medium block mb-3">
-                    Customer Segments
+                    Customer Categories
                   </Text>
                   <Form.Item name="customerSegments" className="!mb-0">
                     <Checkbox.Group className="w-full">
                       <div className="grid grid-cols-3 gap-4">
                         <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                           <Checkbox value="all" className="scale-110" />
-                          <Text className="font-medium text-gray-700">All</Text>
+                          <Text className="font-medium text-gray-700">
+                            All Customers
+                          </Text>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
                           <Checkbox value="new" className="scale-110" />
@@ -570,7 +545,7 @@ export default function PromoModal({
                         <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
                           <Checkbox value="vip" className="scale-110" />
                           <Text className="font-medium text-yellow-800">
-                            VIP
+                            VIP Members
                           </Text>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
@@ -588,13 +563,7 @@ export default function PromoModal({
                         <div className="flex items-center space-x-3 p-4 bg-indigo-50 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-colors">
                           <Checkbox value="family" className="scale-110" />
                           <Text className="font-medium text-indigo-800">
-                            Family
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
-                          <Checkbox value="platinum" className="scale-110" />
-                          <Text className="font-medium text-orange-800">
-                            Platinum
+                            Family Travelers
                           </Text>
                         </div>
                       </div>
@@ -605,7 +574,7 @@ export default function PromoModal({
 
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                 <Text className="font-semibold text-lg block mb-4">
-                  Validity Period (Start/End Date)
+                  Validity Period
                 </Text>
                 <Row gutter={16}>
                   <Col span={12}>
@@ -664,36 +633,27 @@ export default function PromoModal({
           )}
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-          <Button
-            onClick={() => {
-              setIsModalVisible(false);
-              setEditingOffer(null);
-              setPolicyModalStep(0);
-              form.resetFields();
-            }}
-            size="large"
-          >
+        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+          <Button onClick={handleCancel} size="large">
             Cancel
           </Button>
+
           <div className="flex space-x-3">
             <Button
               onClick={() =>
-                setPolicyModalStep(Math.max(0, policyModalStep - 1))
+                setPromoModalStep(Math.max(0, promoModalStep - 1))
               }
-              disabled={policyModalStep === 0}
+              disabled={promoModalStep === 0}
               size="large"
             >
               Previous
             </Button>
-            {policyModalStep < 3 ? (
+            {promoModalStep < 3 ? (
               <Button
                 type="primary"
-                onClick={() => {
-                  handleFormData();
-                  setPolicyModalStep(Math.min(3, policyModalStep + 1));
-                }}
+                onClick={() =>
+                  setPromoModalStep(Math.min(3, promoModalStep + 1))
+                }
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
               >
@@ -712,6 +672,62 @@ export default function PromoModal({
           </div>
         </div>
       </Form>
+
+      <style jsx>{`
+        .custom-modal .ant-modal-header {
+          border-bottom: none;
+          padding: 24px 32px 0;
+        }
+
+        .custom-modal .ant-modal-title {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .custom-steps .ant-steps-item-title {
+          font-weight: 500;
+          font-size: 14px;
+        }
+
+        .custom-steps .ant-steps-item-description {
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        .custom-steps .ant-steps-item-finish .ant-steps-item-icon {
+          background-color: #10b981;
+          border-color: #10b981;
+        }
+
+        .custom-steps .ant-steps-item-process .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+
+        .ant-form-item-label > label {
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .ant-input,
+        .ant-select-selector,
+        .ant-input-number {
+          border-radius: 6px;
+          border-color: #d1d5db;
+          transition: all 0.2s ease;
+        }
+
+        .ant-input:focus,
+        .ant-select-focused .ant-select-selector,
+        .ant-input-number:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .ant-switch-checked {
+          background-color: #10b981;
+        }
+      `}</style>
     </Modal>
   );
 }
