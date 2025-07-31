@@ -624,6 +624,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Expire old bids cleanup endpoint
+  app.post("/api/bids/expire-old", async (req, res) => {
+    try {
+      const { expireOldBids } = await import("./expire-old-bids.js");
+      const result = await expireOldBids();
+      res.json(result);
+    } catch (error) {
+      console.error("Error running expired bids cleanup:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to run expired bids cleanup",
+        error: error.message 
+      });
+    }
+  });
+
   // Update bid payment status
   app.put("/api/bids/:id/payment-status", async (req, res) => {
     try {

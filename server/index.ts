@@ -65,6 +65,27 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    console.log(`Server running on ${host}:${port}`);
+
+    // Schedule expired bids cleanup to run every hour
+    setInterval(async () => {
+      try {
+        const { scheduleExpiredBidsCleanup } = await import("./expire-old-bids.js");
+        await scheduleExpiredBidsCleanup();
+      } catch (error) {
+        console.error("Scheduled expired bids cleanup failed:", error);
+      }
+    }, 60 * 60 * 1000); // Run every hour
+
+    // Run initial cleanup on server start
+    setTimeout(async () => {
+      try {
+        const { scheduleExpiredBidsCleanup } = await import("./expire-old-bids.js");
+        console.log("Running initial expired bids cleanup...");
+        await scheduleExpiredBidsCleanup();
+      } catch (error) {
+        console.error("Initial expired bids cleanup failed:", error);
+      }
+    }, 5000); // Wait 5 seconds after server start
   });
 })();

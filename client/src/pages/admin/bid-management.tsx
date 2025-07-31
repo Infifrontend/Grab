@@ -541,13 +541,41 @@ export default function BidManagement() {
     return (
       <div>
         {/* Active Bids Header */}
-        <div className="mb-6">
-          <Title level={4} className="!mb-1">
-            All Bids Requiring Attention ({activeBids.length})
-          </Title>
-          <Text className="text-gray-500">
-            Monitor and respond to all passenger upgrade bids
-          </Text>
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <Title level={4} className="!mb-1">
+              All Bids Requiring Attention ({activeBids.length})
+            </Title>
+            <Text className="text-gray-500">
+              Monitor and respond to all passenger upgrade bids
+            </Text>
+          </div>
+          <Button
+            type="default"
+            icon={<span>🕐</span>}
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/bids/expire-old', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+                if (result.success) {
+                  message.success(`Expired ${result.updatedCount} old bids`);
+                  // Refresh the page data
+                  window.location.reload();
+                } else {
+                  message.error('Failed to expire old bids');
+                }
+              } catch (error) {
+                message.error('Error expiring old bids');
+              }
+            }}
+            className="bg-orange-50 border-orange-200 hover:bg-orange-100"
+          >
+            Expire Old Bids
+          </Button>
+        </div>
         </div>
 
         {/* Search and Filter */}
