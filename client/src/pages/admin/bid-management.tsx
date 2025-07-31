@@ -720,9 +720,13 @@ export default function BidManagement() {
                               ${
                                 user.status === "approved"
                                   ? "border-green-500 bg-green-50"
-                                  : user.bidAmount === highestBidAmount
-                                    ? "border-yellow-500 bg-yellow-50"
-                                    : "bg-white border"
+                                  : user.status === "refunded"
+                                    ? "border-orange-500 bg-orange-50"
+                                    : user.status === "open"
+                                      ? "border-blue-500 bg-blue-50"
+                                      : user.bidAmount === highestBidAmount
+                                        ? "border-yellow-500 bg-yellow-50"
+                                        : "bg-white border"
                               }
                             `}
                           >
@@ -768,7 +772,11 @@ export default function BidManagement() {
                                     ? "green"
                                     : user.status === "rejected"
                                       ? "red"
-                                      : "orange"
+                                      : user.status === "refunded"
+                                        ? "orange"
+                                        : user.status === "open"
+                                          ? "blue"
+                                          : "purple"
                                 }
                               >
                                 {user.status.replace("_", " ").toUpperCase()}
