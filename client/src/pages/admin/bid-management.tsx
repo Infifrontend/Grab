@@ -576,7 +576,6 @@ export default function BidManagement() {
             Expire Old Bids
           </Button>
         </div>
-        </div>
 
         {/* Search and Filter */}
         <div className="mb-6 flex items-center justify-between">
