@@ -138,9 +138,19 @@ export default function CMS() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status === "Published" ? "green" : "orange"}>{status}</Tag>
-      ),
+      render: (status) => {
+        const isPublished = status === "Published";
+        return (
+
+          <Tag style={{
+            color: isPublished ? "var(--textGreen600)" : "var(--textOrange600)",
+            backgroundColor: isPublished ? "var(--textGreen50)" : "var(--textOrange50)",
+            borderColor: isPublished ? "var(--textGreen200)" : "var(--textOrange200)",
+          }}>
+            {status}
+          </Tag>
+        )
+      }
     },
     {
       title: "Last Modified",
@@ -195,9 +205,18 @@ export default function CMS() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status === "Active" ? "green" : "red"}>{status}</Tag>
-      ),
+      render: (status) => {
+        const isActive = status === "Active"
+        return (
+          <Tag style={{
+            color: isActive ? "var(--textGreen600)" : "var(--textRed600)",
+            backgroundColor: isActive ? "var(--textGreen50)" : "var(--textRed50)",
+            borderColor: isActive ? "var(--textGreen200)" : "var(--textRed200)",
+          }}>
+            {status}
+          </Tag>
+        )
+      }
     },
     {
       title: "Last Modified",

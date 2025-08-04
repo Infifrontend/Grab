@@ -12,6 +12,7 @@ import {
   Space,
   DatePicker,
   Switch,
+  Radio,
 } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import { useModalLogic } from "./use-modal-logic";
@@ -22,7 +23,7 @@ interface PromoModalProps {
   isModalVisible: boolean;
   editingData?: any;
   setIsModalVisible: (value: boolean) => void;
-  setEditingOffer: (value: any) => void;
+  setEditingData: (value: any) => void;
   setPromoCodeTableData: (value: any) => void;
 }
 
@@ -37,7 +38,7 @@ export default function PromoModal({
   isModalVisible,
   editingData,
   setIsModalVisible,
-  setEditingOffer,
+  setEditingData,
   setPromoCodeTableData,
 }: PromoModalProps) {
   const [form] = Form.useForm();
@@ -62,7 +63,7 @@ export default function PromoModal({
       open={isModalVisible}
       onCancel={() => {
         setIsModalVisible(false);
-        setEditingOffer(null);
+        setEditingData(null);
         setPolicyModalStep(0);
         form.resetFields();
       }}
@@ -78,10 +79,11 @@ export default function PromoModal({
           console.log("Promo code values:", values);
           setPromoCodeTableData({ ...formValues, ...form.getFieldsValue() });
           setIsModalVisible(false);
+          setEditingData(null);
         }}
       >
         {/* Steps Navigation */}
-        <div className="relative mb-8">
+        <div className="relative">
           <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
           <div
             className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
@@ -99,8 +101,8 @@ export default function PromoModal({
                       index < policyModalStep
                         ? "bg-green-500 border-green-500 text-white"
                         : index === policyModalStep
-                          ? "bg-blue-500 border-blue-500 text-white"
-                          : "bg-white border-gray-300 text-gray-500"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white border-gray-300 text-gray-500"
                     }
                   `}
                 >
@@ -130,15 +132,15 @@ export default function PromoModal({
           {/* Step 1: Basic Information */}
           {policyModalStep === 0 && (
             <div>
-              <Title level={4} className="!mb-4 text-blue-600">
+              <Title level={4} className="!mb-2 text-blue-600">
                 Basic Information
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Create a new promo in the system
               </Text>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <Row gutter={16} className="mb-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-6">
+                <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
                       label={<span className="font-medium">Promo Name</span>}
@@ -252,36 +254,47 @@ export default function PromoModal({
           {/* Step 2: Code Generation */}
           {policyModalStep === 1 && (
             <div>
-              <Title level={4} className="!mb-4 text-green-600">
+              <Title level={4} className="!mb-2 mt-4 text-green-600">
                 Code Generation
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Configure how promo codes are generated and managed
               </Text>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-6">
                 <div className="mb-6">
                   <Text className="font-semibold text-lg block mb-4">
                     Generation Type
                   </Text>
-                  <Form.Item name="generationType" initialValue="manual">
-                    <div className="space-y-3">
-                      <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                        <input type="radio" value="manual" className="mr-3" />
-                        <Text className="font-medium">Manual Entry</Text>
+                  <Form.Item name="generationType" initialValue="auto">
+                    <Radio.Group className="w-full">
+                      <div className="space-y-3">
+                        {/* Manual Entry Option */}
+                        <div className="p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                          <Radio value="manual" className="w-full">
+                            <div className="flex items-center">
+                              <div className="ml-3">
+                                <Text className="font-semibold has-[:checked]:text-blue-900">
+                                  Manual Entry
+                                </Text>
+                              </div>
+                            </div>
+                          </Radio>
+                        </div>
+                        {/* Auto Generator Option */}
+                        <div className="p-3 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                          <Radio value="auto" className="w-full">
+                            <div className="flex items-center">
+                              <div className="ml-3">
+                                <Text className="font-semibold has-[:checked]:text-blue-900">
+                                  Auto Generator
+                                </Text>
+                              </div>
+                            </div>
+                          </Radio>
+                        </div>
                       </div>
-                      <div className="flex items-center p-3 border-2 border-blue-500 bg-blue-50 rounded-lg">
-                        <input
-                          type="radio"
-                          value="auto"
-                          className="mr-3"
-                          checked
-                        />
-                        <Text className="font-medium text-blue-900">
-                          Auto Generator
-                        </Text>
-                      </div>
-                    </div>
+                    </Radio.Group>
                   </Form.Item>
                 </div>
 
@@ -332,8 +345,8 @@ export default function PromoModal({
                 </Row>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <Text className="font-semibold text-lg block mb-4">
+              <div className="bg-white rounded-2xl border border-gray-200 pt-5 px-5 mb-6 shadow-sm">
+                <Text className="font-semibold text-lg block mb-2">
                   Associated Discount Rule
                 </Text>
                 <Form.Item
@@ -361,19 +374,19 @@ export default function PromoModal({
 
           {/* Step 3: Usage Limits & Channel Restrictions */}
           {policyModalStep === 2 && (
-            <div>
-              <Title level={4} className="!mb-4 text-orange-600">
+            <div className="mb-6">
+              <Title level={4} className="!mb-2 text-orange-600">
                 Usage Limits & Channel Restrictions
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Configure usage constraints and channel availability
               </Text>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-6">
                 <Text className="font-semibold text-lg block mb-4">
                   Usage Limits
                 </Text>
-                <Row gutter={16} className="mb-4">
+                <Row gutter={16} className="mb-2">
                   <Col span={12}>
                     <Form.Item
                       label={
@@ -392,7 +405,7 @@ export default function PromoModal({
                         formatter={(value) =>
                           `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }
-                        parser={(value) =>
+                        parser={(value:any) =>
                           value?.replace(/\$\s?|(,*)/g, "") || ""
                         }
                       />
@@ -416,15 +429,14 @@ export default function PromoModal({
                         formatter={(value) =>
                           `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }
-                        parser={(value) =>
+                        parser={(value:any) =>
                           value?.replace(/\$\s?|(,*)/g, "") || ""
                         }
                       />
                     </Form.Item>
                   </Col>
                 </Row>
-
-                <Row gutter={16} className="mb-6">
+                <Row gutter={16} className="mb-2">
                   <Col span={12}>
                     <Form.Item
                       label={
@@ -483,51 +495,55 @@ export default function PromoModal({
                 </Form.Item>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <Text className="font-semibold text-lg block mb-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <Text className="font-semibold text-lg block">
                   Channel Restrictions
                 </Text>
-                <div className="mb-4">
-                  <Text className="font-medium block mb-3">
+                <div>
+                  <Text className="font-medium block mb-4">
                     Available Channels
                   </Text>
                   <Form.Item name="availableChannels" className="!mb-0">
                     <Checkbox.Group className="w-full">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
-                          <Checkbox value="web" className="scale-110" />
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <div className="grid grid-cols-4 gap-4">
+                        <Checkbox value="web" className="scale-110">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
                             <span className="text-blue-600">🌐</span>
                           </div>
                           <Text className="font-medium text-blue-800">Web</Text>
                         </div>
-                        <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
-                          <Checkbox value="mobile" className="scale-110" />
-                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                            <span className="text-green-600">📱</span>
+                        </Checkbox>
+                        <Checkbox value="mobile" className="scale-110">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+                              <span className="text-green-600">📱</span>
+                            </div>
+                            <Text className="font-medium text-green-800">
+                              Mobile App
+                            </Text>
                           </div>
-                          <Text className="font-medium text-green-800">
-                            Mobile App
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
-                          <Checkbox value="ndc" className="scale-110" />
-                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <span className="text-purple-600">💬</span>
+                        </Checkbox>
+                        <Checkbox value="ndc" className="scale-110">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <span className="text-purple-600">💬</span>
+                            </div>
+                            <Text className="font-medium text-purple-800">
+                              NDC
+                            </Text>
                           </div>
-                          <Text className="font-medium text-purple-800">
-                            NDC
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
-                          <Checkbox value="phone" className="scale-110" />
-                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <span className="text-orange-600">📞</span>
+                        </Checkbox>
+                        <Checkbox value="phone" className="scale-110">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                              <span className="text-orange-600">📞</span>
+                            </div>
+                            <Text className="font-medium text-orange-800">
+                              Phone
+                            </Text>
                           </div>
-                          <Text className="font-medium text-orange-800">
-                            Phone
-                          </Text>
-                        </div>
+                        </Checkbox>
                       </div>
                     </Checkbox.Group>
                   </Form.Item>
@@ -539,15 +555,15 @@ export default function PromoModal({
           {/* Step 4: Target Segments & Validity Period */}
           {policyModalStep === 3 && (
             <div>
-              <Title level={4} className="!mb-4 text-purple-600">
+              <Title level={4} className="!mb-2 text-purple-600">
                 Target Segments & Validity Period
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Define target customer segments and validity dates
               </Text>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
-                <Text className="font-semibold text-lg block mb-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-6">
+                <Text className="font-semibold text-lg block">
                   Target Segments
                 </Text>
                 <div className="mb-4">
@@ -556,54 +572,61 @@ export default function PromoModal({
                   </Text>
                   <Form.Item name="customerSegments" className="!mb-0">
                     <Checkbox.Group className="w-full">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-                          <Checkbox value="all" className="scale-110" />
-                          <Text className="font-medium text-gray-700">All</Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200 hover:border-green-300 transition-colors">
-                          <Checkbox value="new" className="scale-110" />
-                          <Text className="font-medium text-green-800">
-                            New Customers
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
-                          <Checkbox value="vip" className="scale-110" />
-                          <Text className="font-medium text-yellow-800">
-                            VIP
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
-                          <Checkbox value="premium" className="scale-110" />
-                          <Text className="font-medium text-purple-800">
-                            Premium
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
-                          <Checkbox value="business" className="scale-110" />
-                          <Text className="font-medium text-blue-800">
-                            Business
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-indigo-50 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-colors">
-                          <Checkbox value="family" className="scale-110" />
-                          <Text className="font-medium text-indigo-800">
-                            Family
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-colors">
-                          <Checkbox value="platinum" className="scale-110" />
-                          <Text className="font-medium text-orange-800">
-                            Platinum
-                          </Text>
-                        </div>
+                      <div className="grid grid-cols-4 gap-4">
+                        <Checkbox value="all">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-gray-700">All</Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="new">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-green-800">
+                              New Customers
+                            </Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="vip">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-yellow-800">
+                              VIP
+                            </Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="premium">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-purple-800">
+                              Premium
+                            </Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="business">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-blue-800">
+                              Business
+                            </Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="family">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-indigo-800">
+                              Family
+                            </Text>
+                          </div>
+                        </Checkbox>
+                        <Checkbox value="platinum">
+                          <div className="flex items-center space-x-3">
+                            <Text className="font-medium text-orange-800">
+                              Platinum
+                            </Text>
+                          </div>
+                        </Checkbox>
                       </div>
                     </Checkbox.Group>
                   </Form.Item>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-6">
                 <Text className="font-semibold text-lg block mb-4">
                   Validity Period (Start/End Date)
                 </Text>
@@ -669,7 +692,7 @@ export default function PromoModal({
           <Button
             onClick={() => {
               setIsModalVisible(false);
-              setEditingOffer(null);
+              setEditingData(null);
               setPolicyModalStep(0);
               form.resetFields();
             }}
@@ -692,7 +715,9 @@ export default function PromoModal({
                 type="primary"
                 onClick={() => {
                   handleFormData();
-                  setPolicyModalStep(Math.min(3, policyModalStep + 1));
+                  setTimeout(() => {
+                    setPolicyModalStep(Math.min(3, policyModalStep + 1));
+                  }, 100);
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
@@ -706,7 +731,7 @@ export default function PromoModal({
                 className="bg-green-600 hover:bg-green-700"
                 size="large"
               >
-                Create Promo Code
+                {(editingData && Object.keys(editingData)?.length) ? "Update " : "Create "} Promo Code
               </Button>
             )}
           </div>

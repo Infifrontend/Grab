@@ -32,6 +32,8 @@ import { apiRequest } from "@/lib/queryClient";
 // import { navigate } from "wouter/use-browser-location";
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import AccessibilityHeader from "../ui/accessibility-header";
+import { Theme } from "../Theme/Theme";
 const { Title, Text } = Typography;
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
@@ -185,6 +187,38 @@ export default function Header() {
     navigate('/login');
   };
 
+    // For Focus issue fix - accessibility section
+  const changeFocus = (e: React.KeyboardEvent) => {
+    const currElement = e.target as HTMLElement;
+    e.key === "Tab" &&
+      !(e.key === "Tab" && e.shiftKey) &&
+      !!document.querySelectorAll(".cls-accessibility-popover")[0] &&
+      !document
+        .querySelectorAll(".cls-accessibility-popover")[0]
+        .classList.contains("ant-popover-hidden") &&
+      e.preventDefault();
+    setTimeout(() => {
+      if (
+        !!document.querySelectorAll(".cls-accessibility-popover")[0] &&
+        !document
+          .querySelectorAll(".cls-accessibility-popover")[0]
+          .classList.contains("ant-popover-hidden")
+      ) {
+        const element = document.querySelectorAll(
+          ".cls-accessibility-popover .cls-default"
+        )[0] as HTMLElement;
+        (e.key === "Enter" || e.key === "Space") &&
+          element.clientWidth &&
+          element.focus();
+        e.key === "Tab" &&
+          !(e.key === "Tab" && e.shiftKey) &&
+          element.clientWidth &&
+          element.focus();
+      } else {
+        (e.key === "Enter" || e.key === "Space") && currElement.focus();
+      }
+    }, 300);
+  };
 
   return (
     <header className="infiniti-header">
@@ -201,7 +235,7 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden lg:flex space-x-8">
+          <nav className="hidden lg:flex space-x-6">
             {navigationItems.map((item) => (
               <Link
                 key={item.key}
@@ -214,7 +248,7 @@ export default function Header() {
           </nav>
 
           {/* User Profile */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <Popover
               content={
                 <div className="w-80 max-w-sm">
@@ -307,6 +341,25 @@ export default function Header() {
                 <BellOutlined className="text-lg text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
               </Badge>
             </Popover>
+
+            <Popover
+              trigger="click"
+              className="cls-accessibility-popover"
+              placement="bottom"
+              content={<AccessibilityHeader />
+              }
+              title={null}
+            >
+              <Button
+                type="link"
+                className="cls-accessibility"
+                onKeyDown={changeFocus}
+              >
+                {"Accessibility"}
+              </Button>
+            </Popover>
+
+            <Theme />
 
             <Dropdown
               placement="bottomRight"
@@ -482,7 +535,7 @@ export default function Header() {
           top: 0;
           bottom: 0;
           width: 3px;
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          background: linear-gradient(135deg, var(--textBlue500), #1d4ed8);
           border-radius: 0 2px 2px 0;
         }
 

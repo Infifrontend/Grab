@@ -16,7 +16,7 @@ interface AncillaryModalProps {
   isModalVisible: boolean;
   editingData?: any;
   setIsModalVisible: (value: boolean) => void;
-  setEditingOffer: (value: any) => void;
+  setEditingData: (value: any) => void;
   setAncillaryTableData: (value: any) => void;
 }
 
@@ -29,7 +29,7 @@ export default function AncillaryModal({
   isModalVisible,
   editingData,
   setIsModalVisible,
-  setEditingOffer,
+  setEditingData,
   setAncillaryTableData,
 }: AncillaryModalProps) {
   const [form] = Form.useForm();
@@ -54,7 +54,7 @@ export default function AncillaryModal({
       open={isModalVisible}
       onCancel={() => {
         setIsModalVisible(false);
-        setEditingOffer(null);
+        setEditingData(null);
         setPolicyModalStep(0);
         form.resetFields();
       }}
@@ -74,6 +74,7 @@ export default function AncillaryModal({
             "ancillaryType",
           ]);
           if (check) {
+            setEditingData(null);
             setIsModalVisible(false);
           }
         }}
@@ -257,7 +258,7 @@ export default function AncillaryModal({
                 </Title>
               </div>
               <div className="mb-6">
-                <div className="flex items-center space-x-4 mb-4">
+                <div className="flex space-x-4 mb-2">
                   <Form.Item
                     name="refundable"
                     valuePropName="checked"
@@ -348,7 +349,7 @@ export default function AncillaryModal({
           <Button
             onClick={() => {
               setIsModalVisible(false);
-              setEditingOffer(null);
+              setEditingData(null);
               setPolicyModalStep(0);
               form.resetFields();
             }}
@@ -370,8 +371,10 @@ export default function AncillaryModal({
               <Button
                 type="primary"
                 onClick={() => {
-                  setPolicyModalStep(Math.min(1, policyModalStep + 1));
                   handleFormData();
+                  setTimeout(() => {
+                    setPolicyModalStep(Math.min(1, policyModalStep + 1));
+                  }, 100);
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
@@ -385,7 +388,7 @@ export default function AncillaryModal({
                 className="bg-green-600 hover:bg-green-700"
                 size="large"
               >
-                Create Ancillary
+                {(editingData && Object.keys(editingData)?.length) ? "Update " : "Create "} Ancillary
               </Button>
             )}
           </div>

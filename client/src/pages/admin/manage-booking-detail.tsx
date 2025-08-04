@@ -84,7 +84,7 @@ export default function ManageBookingDetail() {
   React.useEffect(() => {
     if (bookingDetails?.passengers && bookingDetails.passengers.length > 0) {
       setPassengers(
-        bookingDetails.passengers.map((p) => ({
+        bookingDetails.passengers.map((p:any) => ({
           firstName: p.firstName || "",
           lastName: p.lastName || "",
         })),
@@ -142,11 +142,9 @@ export default function ManageBookingDetail() {
       <div className="min-h-screen bg-gray-50">
         {/* Admin Header */}
         <AdminHeader />
-
         <div className="flex">
           {/* Sidebar */}
           <AdminSidebar activeMenu="Booking Management" />
-
           {/* Main Content */}
           <div className="max-w-3/4 mx-auto px-6 py-6 flex justify-center items-center">
             <Spin size="large" />
@@ -162,11 +160,9 @@ export default function ManageBookingDetail() {
       <div className="min-h-screen bg-gray-50">
         {/* Admin Header */}
         <AdminHeader />
-
         <div className="flex">
           {/* Sidebar */}
           <AdminSidebar activeMenu="Booking Management" />
-
           {/* Main Content */}
           <div className="w-3/4 mx-auto px-6 py-6">
             <Alert
@@ -305,7 +301,7 @@ export default function ManageBookingDetail() {
 
     // Add current passenger data if available
     if (passengers && passengers.length > 0) {
-      passengers.forEach((passenger, index) => {
+      passengers.forEach((passenger:any, index) => {
         const firstName = passenger.firstName || `Passenger${index + 1}`;
         const lastName = passenger.lastName || "";
         const dateOfBirth = passenger.dateOfBirth || "";

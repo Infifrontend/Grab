@@ -55,10 +55,6 @@ export default function Home() {
           icon={<InfoCircleOutlined />}
           showIcon
           className="mb-6 border-l-4 border-orange-500"
-          style={{
-            backgroundColor: "#FFF4E6",
-            borderColor: "#FFE7D1",
-          }}
         />
 
         {/* Main Content Grid */}

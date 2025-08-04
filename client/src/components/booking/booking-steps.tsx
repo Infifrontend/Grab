@@ -41,7 +41,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
       <Steps
         current={currentStep}
         size={size}
-        items={steps.map((step, index) => ({
+        items={steps?.map((step:any, index:number) => ({
           title: step.title,
           description: step.description,
           status:
@@ -56,7 +56,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
 
       <style jsx>{`
         .booking-steps {
-          background: white;
+          background: var(--bgGray50);
           padding: 24px;
           border-radius: 12px;
           border: 1px solid #e5e7eb;

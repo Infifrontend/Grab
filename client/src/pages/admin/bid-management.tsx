@@ -183,7 +183,7 @@ export default function BidManagement() {
             ? `${configData.origin} → ${configData.destination}`
             : "Route not specified";
         activityType = "Bid configuration created";
-        color = "#1890ff";
+        color = "var(--infiniti-lighter-blue)";
       } else {
         // Regular bid activity
         title = `Bid #${bid.id}`;
@@ -200,12 +200,12 @@ export default function BidManagement() {
                 : "Bid created";
         color =
           bid.bidStatus === "active"
-            ? "#52c41a"
+            ? "var(--ant-color-success)"
             : bid.bidStatus === "accepted"
-              ? "#00b96b"
+              ? "var(--infiniti-lighter-green)"
               : bid.bidStatus === "rejected"
-                ? "#ff4d4f"
-                : "#1890ff";
+                ? "var(--ant-color-error)"
+                : "var(--infiniti-lighter-blue)";
       }
 
       return {
@@ -2281,7 +2281,7 @@ export default function BidManagement() {
               title="Total Transactions"
               value={6}
               suffix="This month"
-              valueStyle={{ color: "#1890ff" }}
+              valueStyle={{ color: "var(--infiniti-lighter-blue)" }}
             />
           </Card>
         </Col>
@@ -2292,7 +2292,7 @@ export default function BidManagement() {
               value={678.3}
               prefix="$"
               suffix="Net amount"
-              valueStyle={{ color: "#52c41a" }}
+              valueStyle={{ color: "var(--ant-color-success)" }}
             />
           </Card>
         </Col>
@@ -2302,7 +2302,7 @@ export default function BidManagement() {
               title="Pending Refunds"
               value={1}
               suffix="Require processing"
-              valueStyle={{ color: "#faad14" }}
+              valueStyle={{ color: "var(--ant-color-warning)" }}
             />
           </Card>
         </Col>
@@ -2312,7 +2312,7 @@ export default function BidManagement() {
               title="Failed Payments"
               value={1}
               suffix="Need attention"
-              valueStyle={{ color: "#ff4d4f" }}
+              valueStyle={{ color: "var(--ant-color-error)" }}
             />
           </Card>
         </Col>
@@ -3187,7 +3187,7 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">63.4%</Text>
                             </div>
-                            <Progress percent={63.4} strokeColor="#3b82f6" />
+                            <Progress percent={63.4} strokeColor="var(--textBlue500)" />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -3240,7 +3240,7 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">72.2%</Text>
                             </div>
-                            <Progress percent={72.2} strokeColor="#1890ff" />
+                            <Progress percent={72.2} strokeColor="var(--infiniti-lighter-blue)" />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -3293,7 +3293,7 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">56.3%</Text>
                             </div>
-                            <Progress percent={56.3} strokeColor="#f5222d" />
+                            <Progress percent={56.3} strokeColor="var(--textRed600)" />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -4221,13 +4221,13 @@ export default function BidManagement() {
 
         .ant-tabs-tab-active {
           background-color: #f8fafc;
-          border-bottom: 2px solid #3b82f6;
+          border-bottom: 2px solid var(--textBlue500);
         }
 
         .ant-card {
           border-radius: 12px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          border: 1px solid #f1f5f9;
+          border: 1px solid var(--ant-border-color);
         }
 
         .ant-card:hover {
@@ -4244,8 +4244,8 @@ export default function BidManagement() {
         }
 
         .ant-steps-item-process .ant-steps-item-icon {
-          background-color: #3b82f6;
-          border-color: #3b82f6;
+          background-color: var(--textBlue500);
+          border-color: var(--textBlue500);
         }
 
         .modern-modal .ant-modal-content {
@@ -4304,7 +4304,7 @@ export default function BidManagement() {
 
         .ant-radio-wrapper-checked {
           background-color: #eff6ff;
-          border-color: #3b82f6;
+          border-color: var(--textBlue500);
         }
 
         .ant-checkbox-wrapper {
@@ -4324,7 +4324,7 @@ export default function BidManagement() {
 
         .ant-checkbox-wrapper-checked {
           background-color: #eff6ff;
-          border-color: #3b82f6;
+          border-color: var(--textBlue500);
         }
 
         .ant-form-item-label > label {
@@ -4344,14 +4344,14 @@ export default function BidManagement() {
         .ant-picker:hover,
         .ant-input-number:hover,
         .ant-input:hover {
-          border-color: #3b82f6 !important;
+          border-color: var(--textBlue500) !important;
         }
 
         .ant-select-focused .ant-select-selector,
         .ant-picker-focused,
         .ant-input-number-focused,
         .ant-input-focused {
-          border-color: #3b82f6 !important;
+          border-color: var(--textBlue500) !important;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
         .search-input {

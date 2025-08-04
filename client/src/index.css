@@ -24,13 +24,6 @@
   --ring: #2a0a22;
   --radius: 0.5rem;
 
-  /* Custom airline booking colors */
-  --infiniti-primary: #80206a;
-  --infiniti-secondary: #a12885;
-  --infiniti-orange: hsl(18, 100%, 62%);
-  --infiniti-success: hsl(102, 69%, 49%);
-  --infiniti-light-blue: hsl(201, 100%, 96%);
-  --infiniti-light-green: hsl(120, 100%, 96%);
 }
 
 .dark {
@@ -181,7 +174,7 @@
 
   .section-header {
     @apply p-6;
-    background-color: var(--infiniti-primary);
+    background-color: var(--infiniti-primary-header);
     color: white;
   }
 
@@ -213,17 +206,6 @@
     color: var(--infiniti-orange);
   }
 
-  .infiniti-btn-primary {
-    background: linear-gradient(135deg, #2a0a22 0%, #4a1a42 100%);
-    border: none;
-    box-shadow: 0 4px 12px rgba(42, 10, 34, 0.3);
-  }
-
-  .infiniti-btn-primary:hover {
-    background: linear-gradient(135deg, #3a1a32 0%, #5a2a52 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(42, 10, 34, 0.4);
-  }
 
   .flight-result-card {
     border: 1px solid #e5e7eb;
@@ -276,4 +258,262 @@
   .deal-card ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
+}
+
+.ant-tag.ant-tag-blue {
+  color: var(--textBlue700);
+  background: var(--bgBlue50);
+  border-color: var(--borderBlue200);
+}
+
+.ant-tag.ant-tag-green {
+  color: var(--textGreen600);
+  background: var(--bgGreen50);
+  border-color: var(--borderGreen200);
+}
+
+.ant-tag.ant-tag-red {
+  color: var(--textRed600);
+  background: var(--bgBlue50);
+  border-color: var(--borderBlue200);
+}
+
+.ant-tag.ant-tag-orange {
+  color: var(--textOrange600);
+  background: var(--bgOrange50);
+  border-color: var(--borderOrange200);
+}
+
+.ant-tag.ant-tag-purple {
+  color: var(--textPurple600);
+  background: var(--bgPurple50);
+  border-color: var(--borderPurple200);
+}
+
+.ant-tag.ant-tag-yellow {
+  color: var(--textYellow600);
+  background: var(--bgYellow50);
+  border-color: var(--borderYellow200);
+}
+
+.ant-tag.ant-tag-cyan {
+  color: var(--textCyan600);
+  background: var(--bgCyan50);
+  border-color: var(--borderCyan200);
+}
+
+/* nav {
+  div {
+    &:hover {
+      article {
+        color: #f1f1f1;
+      }
+    }
+  }
+} */
+
+.ant-popover .AccessibilityHeader {
+  display: block;
+}
+
+.AccessibilityHeader {
+  display: none;
+}
+
+.AccessibilityHeader .cls-default {
+  background: var(--t-accessiblity-btn-bg);
+  color: var(--t-color-black);
+  border-radius: 3px 0px 0px 3px;
+  display: inline-block;
+  border: 0px;
+  padding: 4px 10px;
+  font-size: 14px;
+  height: 25px;
+}
+
+.AccessibilityHeader .cls-contrast,
+.AccessibilityHeader .cls-fsize {
+  display: flex;
+  align-items: center;
+  background: var(--t-accessiblity-btn-bg);
+  margin-block-start: 7px;
+  border: 1px solid var(--t-common-grey-color);
+  line-height: unset;
+}
+
+.AccessibilityHeader .cls-contrast button.active,
+.AccessibilityHeader .cls-fsize button.active {
+  background-color: var(--t-accessiblity-active-bg);
+  color: var(--t-accessiblity-active-text-color);
+  border-radius: unset;
+  padding-block: 1px;
+}
+
+.AccessibilityHeader .cls-contrast button.active:hover,
+.AccessibilityHeader .cls-fsize button.active:hover {
+  background-color: var(--t-accessiblity-active-bg);
+  color: var(--t-accessiblity-active-text-color);
+}
+
+.AccessibilityHeader .cls-bw,
+.AccessibilityHeader .cls-by,
+.AccessibilityHeader .cls-yb {
+  border-radius: unset;
+}
+
+.AccessibilityHeader .cls-bw span,
+.AccessibilityHeader .cls-by span,
+.AccessibilityHeader .cls-yb span {
+  width: 16px;
+  height: 17px;
+  padding: 0px;
+  margin: 0 9px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.AccessibilityHeader .cls-bw span {
+  background-color: black;
+  color: white;
+  border: 1px solid white;
+}
+
+.AccessibilityHeader .cls-by span {
+  background-color: black;
+  color: yellow;
+  border: 1px solid white;
+}
+
+.AccessibilityHeader .cls-yb span {
+  background-color: yellow;
+  color: black;
+  border: 1px solid white;
+}
+
+.AccessibilityHeader a {
+  color: #00a7ff;
+  border-inline-end: 1px solid var(--t-color-black);
+}
+
+.AccessibilityHeader .cls-fsize {
+  color: var(--t-color-black);
+  width: max-content;
+}
+
+.AccessibilityHeader .cls-fsize .text-dark {
+  height: unset;
+  padding: 0px 8px;
+  font-size: 14px;
+  color: #333333;
+}
+
+.AccessibilityHeader .cls-fsize .cls-default {
+  padding-block: 2px 1px;
+}
+
+.AccessibilityHeader .cls-contrast-cont {
+  padding: 0px 3px;
+}
+
+.AccessibilityHeader .cls-contrast-cont button:not(.rounded) {
+  padding: 0px;
+  line-height: unset;
+  text-align: center;
+  height: 25px;
+}
+
+.AccessibilityHeader .cls-contrast-cont button:not(.rounded):hover {
+  color: var(--t-color-black);
+}
+
+.AccessibilityHeader .cls-contrast-cont button:not(.rounded).cls-default {
+  padding-inline: 10px;
+}
+
+.AccessibilityHeader .cls-contrast-cont button:not(.rounded).active {
+  background-color: var(--t-accessiblity-active-bg);
+  color: var(--t-btn-primary-color);
+}
+
+.AccessibilityHeader .cls-fsize-cont {
+  display: block;
+  margin-block-start: 22px;
+  padding-inline: 3px;
+}
+
+.AccessibilityHeader.cls-horizontal {
+  position: relative;
+  display: flex;
+  background: var(--t-color-black);
+  padding: 0px 10px 7px;
+  z-index: 1000;
+}
+
+.AccessibilityHeader.cls-horizontal .cls-fsize-cont {
+  margin: 0px 0px 0px 20px;
+}
+
+.AccessibilityHeader.cls-horizontal .cls-contrast-cont,
+.AccessibilityHeader.cls-horizontal .cls-fsize-cont {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  color: var(--t-color-white);
+}
+
+/* Home Layout overrides */
+.Home .cls-horizontal,
+.HomeHorizontal .cls-horizontal {
+  position: fixed;
+  width: 100%;
+}
+
+.Home .cls-horizontal + .cls-header,
+.HomeHorizontal .cls-horizontal + .cls-header {
+  position: sticky;
+  inset-block-start: 41px;
+}
+
+.Home .cls-horizontal + .cls-header + .cls-layout-plan-b .cls-planB-container,
+.HomeHorizontal .cls-horizontal + .cls-header + .cls-layout-plan-b .cls-planB-container {
+  margin-block-start: 0px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider,
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider {
+  margin-block-start: 35px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu),
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) {
+  padding-block-start: 120px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer),
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer) {
+  inset-block-start: 120px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) ~ .cls-submenu,
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) ~ .cls-submenu {
+  margin-block-start: 6px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu,
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu {
+  inset-block-start: 110px;
+}
+
+.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu + .layout,
+.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu + .layout {
+  margin-block-start: 40px;
+}
+
+.Home .cls-horizontal .cls-bw span,
+.Home .cls-horizontal .cls-by span,
+.Home .cls-horizontal .cls-yb span,
+.HomeHorizontal .cls-horizontal .cls-bw span,
+.HomeHorizontal .cls-horizontal .cls-by span,
+.HomeHorizontal .cls-horizontal .cls-yb span {
+  padding-block: 2px;
 }

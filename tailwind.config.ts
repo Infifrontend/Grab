@@ -16,6 +16,8 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        white: "var(--whiteText)",
+        black:"var(--blackText)",
         card: {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",
@@ -63,6 +65,69 @@ export default {
           "accent-foreground": "var(--sidebar-accent-foreground)",
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
+        },
+        green: {
+          50: "var(--bgGreen50)",
+          100: "var(--bgGreen100)",
+          200: "var(--borderGreen200)",
+          500: "var(--textGreen500)",
+          600: "var(--textGreen600)",
+          800:"var(--textGreen800)",
+        },
+        gray: {
+          50: "var(--bgGray50)",
+          100: "var(--bgGray100)",
+          200:"var(--borderGray200)",
+          400: "var(--textGray400)",
+          500: "var(--textGray500)",
+          600: "var(--textGray600)",
+          700: "var(--textGray700)",
+          800: "var(--textGray800)",
+          900: "var(--textGray900)"
+        },
+        blue: {
+          50: "var(--bgBlue50)",
+          100: "var(--bgBlue100)",
+          200: "var(--borderBlue200)",
+          500: "var(--textBlue500)",
+          600: "var(--textBlue600)",
+          700: "var(--textBlue700)",
+        },
+        red: {
+          50: "var(--bgRed50)",
+          100: "var(--bgRed100)",
+          200: "var(--borderRed200)",
+          600: "var(--textRed600)",
+          700: "var(--textRed700)",
+        },
+        orange: {
+          50: "var(--bgOrange50)",
+          100: "var(--bgOrange100)",
+          500: "var(--textOrange500)",
+          600: "var(--textOrange600)",
+        },
+        purple: {
+          50: "var(--bgPurple50)",
+          100: "var(--bgPurple100)",
+          500: "var(--textPurple500)",
+          600: "var(--textPurple600)",
+        },
+        yellow: {
+          50: "var(--bgYellow50)",
+          200: "var(--borderYellow200)",
+          100: "var(--bgYellow100)",
+          600: "var(--textYellow600)",
+          700: "var(--textYellow700)"
+        },
+        cyan: {
+          50: "var(--bgCyan50)",
+          100: "var(--bgCyan100)",
+          200: "var(--borderCyan200)",
+          600: "var(--textCyan600)",
+        },
+        slate: {
+          800: 'var(--slate800)', // optional override
+          900: 'var(--slate900)', // optional override
         },
       },
       keyframes: {

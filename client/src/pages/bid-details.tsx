@@ -303,7 +303,7 @@ export default function BidDetails() {
           showIcon
           className="mb-6 border-l-4 border-blue-500"
           style={{
-            backgroundColor: "#f0f9ff",
+            backgroundColor: "var(--ant-color-warning-bg)",
             borderColor: "#e0f2fe",
           }}
         />
@@ -346,7 +346,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -364,7 +364,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -397,7 +397,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -415,7 +415,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -433,7 +433,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -454,7 +454,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -472,7 +472,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -490,7 +490,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -567,7 +567,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -599,7 +599,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -617,7 +617,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -635,7 +635,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />
@@ -653,7 +653,7 @@ export default function BidDetails() {
                       className="rounded-md"
                       readOnly
                       style={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: "var(--ant-color-warning-bg)",
                         cursor: "not-allowed",
                       }}
                     />

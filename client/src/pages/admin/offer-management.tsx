@@ -43,7 +43,7 @@ export default function OfferManagement() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingOffer, setEditingOffer] = useState(null);
+  const [editingData, setEditingData] = useState<any>(null);
   const [policyTableData, setPolicyTableData] = useState([
     {
       policyName: "check",
@@ -129,7 +129,7 @@ export default function OfferManagement() {
       endDate: "2025-08-30T18:30:00.000Z",
     },
   ]);
-  const [offersTableData, setOffersCodeTableData] = useState<any>([
+  const [offersTableData, setOffersTableData] = useState<any>([
     {
       offerName: "Offer",
       offerCode: "OFFER10",
@@ -177,12 +177,6 @@ export default function OfferManagement() {
       navigate("/admin/login");
     }
   }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
-    localStorage.removeItem("adminUsername");
-    navigate("/admin/login");
-  };
 
   const renderDashboardContent = () => (
     <>
@@ -332,7 +326,7 @@ export default function OfferManagement() {
                                   </Text>
                                   <Progress
                                     percent={45}
-                                    strokeColor="#1890ff"
+                                    strokeColor="var(--infiniti-lighter-blue)"
                                     showInfo={false}
                                     size="small"
                                   />
@@ -388,7 +382,7 @@ export default function OfferManagement() {
                                   </Text>
                                   <Progress
                                     percent={39}
-                                    strokeColor="#1890ff"
+                                    strokeColor="var(--infiniti-lighter-blue)"
                                     showInfo={false}
                                     size="small"
                                   />
@@ -444,7 +438,7 @@ export default function OfferManagement() {
                                   </Text>
                                   <Progress
                                     percent={43}
-                                    strokeColor="#1890ff"
+                                    strokeColor="var(--infiniti-lighter-blue)"
                                     showInfo={false}
                                     size="small"
                                   />
@@ -527,7 +521,7 @@ export default function OfferManagement() {
                                   </Text>
                                   <Progress
                                     percent={96}
-                                    strokeColor="#52c41a"
+                                    strokeColor="var(--ant-color-success)"
                                     showInfo={false}
                                     size="small"
                                   />
@@ -602,7 +596,7 @@ export default function OfferManagement() {
                                   </Text>
                                   <Progress
                                     percent={86}
-                                    strokeColor="#52c41a"
+                                    strokeColor="var(--ant-color-success)"
                                     showInfo={false}
                                     size="small"
                                   />
@@ -1032,7 +1026,6 @@ export default function OfferManagement() {
                         <Card size="small">
                           <div className="flex justify-between items-center mb-3">
                             <Text className="font-semibold">
-                              {" "}
                               Sustainable Travel Preference
                             </Text>
                             <Badge className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
@@ -1477,7 +1470,7 @@ export default function OfferManagement() {
                 key: "dashboard",
                 label: (
                   <span>
-                    <BarChartOutlined />
+                    <BarChartOutlined className="pr-1"/>
                     Dashboard
                   </span>
                 ),
@@ -1504,7 +1497,7 @@ export default function OfferManagement() {
                 key: "discounts",
                 label: (
                   <span>
-                    <PercentageOutlined />
+                    <PercentageOutlined className="pr-1" />
                     Discounts
                   </span>
                 ),
@@ -1644,14 +1637,15 @@ export default function OfferManagement() {
                     {
                       title: "Actions",
                       key: "actions",
-                      render: (_, record: any) => (
+                      render: (_, record: any, index) => (
                         <Space>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => {
-                              setEditingOffer(record);
+                              record.id = index;
+                              setEditingData(record);
                               setIsModalVisible(true);
                             }}
                           />
@@ -1659,6 +1653,7 @@ export default function OfferManagement() {
                             type="text"
                             icon={<DeleteOutlined />}
                             className="text-red-600 hover:text-red-700"
+                            onClick={() => setPolicyTableData(prev => prev.filter((_, i) => i !== index))}
                           />
                         </Space>
                       ),
@@ -1761,14 +1756,15 @@ export default function OfferManagement() {
                     {
                       title: "Actions",
                       key: "actions",
-                      render: (_, record) => (
+                      render: (_, record, index) => (
                         <Space>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => {
-                              setEditingOffer(record);
+                              record.id = index;
+                              setEditingData(record);
                               setIsModalVisible(true);
                             }}
                           />
@@ -1776,6 +1772,7 @@ export default function OfferManagement() {
                             type="text"
                             icon={<DeleteOutlined />}
                             className="text-red-600 hover:text-red-700"
+                            onClick={() => setAncillaryTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
                           />
                         </Space>
                       ),
@@ -1886,13 +1883,13 @@ export default function OfferManagement() {
                           </Text>
                           <Progress
                             percent={10}
-                            strokeColor="#1890ff"
+                            strokeColor="var(--infiniti-lighter-blue)"
                             showInfo={false}
                             size="small"
                             className="mb-1"
                           />
                           <Text className="text-gray-500 text-xs">
-                            {10/(record.totalUsageLimit || 100)}% used
+                            {`${(10/(record.totalUsageLimit || 100)).toFixed(2)}`} % used
                           </Text>
                         </div>
                       ),
@@ -1935,26 +1932,23 @@ export default function OfferManagement() {
                       title: "Actions",
                       key: "actions",
                       width: "10%",
-                      render: (_, record) => (
+                      render: (_, record, index) => (
                         <Space>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => {
-                              setEditingOffer(record);
+                              record.id = index;
+                              setEditingData(record);
                               setIsModalVisible(true);
                             }}
                           />
                           <Button
                             type="text"
-                            icon={<EyeOutlined />}
-                            className="text-gray-600 hover:text-gray-700"
-                          />
-                          <Button
-                            type="text"
                             icon={<DeleteOutlined />}
                             className="text-red-600 hover:text-red-700"
+                            onClick={() => setDiscountTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
                           />
                         </Space>
                       ),
@@ -2089,26 +2083,23 @@ export default function OfferManagement() {
                       title: "Actions",
                       key: "actions",
                       width: "6%",
-                      render: (_, record) => (
+                      render: (_, record, index) => (
                         <Space>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => {
-                              setEditingOffer(record);
+                              record.id = index;
+                              setEditingData(record);
                               setIsModalVisible(true);
                             }}
                           />
                           <Button
                             type="text"
-                            icon={<EyeOutlined />}
-                            className="text-gray-600 hover:text-gray-700"
-                          />
-                          <Button
-                            type="text"
                             icon={<DeleteOutlined />}
                             className="text-red-600 hover:text-red-700"
+                            onClick={() => setPromoCodeTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
                           />
                         </Space>
                       ),
@@ -2178,7 +2169,7 @@ export default function OfferManagement() {
                       title: "Ancillary Services",
                       dataIndex: "ancillaryServices",
                       key: "ancillaryServices",
-                      width: 200,
+                      width: 220,
                       render: (ancillaryServices) => (
                         <div className="space-y-1">
                           {ancillaryServices?.map(
@@ -2208,7 +2199,7 @@ export default function OfferManagement() {
                       title: "Effective Date",
                       dataIndex: "startDate",
                       key: "startDate",
-                      width: 150,
+                      width: 175,
                       render: (startDate) =>
                         dayjs(startDate).format("DD MMM, YYYY"),
                     },
@@ -2216,7 +2207,7 @@ export default function OfferManagement() {
                       title: "Discontinue Date",
                       dataIndex: "endDate",
                       key: "endDate",
-                      width: 150,
+                      width: 175,
                       render: (endDate) =>
                         dayjs(endDate).format("DD MMM, YYYY"),
                     },
@@ -2236,26 +2227,23 @@ export default function OfferManagement() {
                     {
                       title: "Actions",
                       key: "actions",
-                      render: (_, record: any) => (
+                      render: (_, record: any, index) => (
                         <Space>
                           <Button
                             type="text"
                             icon={<EditOutlined />}
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => {
-                              setEditingOffer(record);
+                              record.id = index;
+                              setEditingData(record);
                               setIsModalVisible(true);
                             }}
                           />
                           <Button
                             type="text"
-                            icon={<EyeOutlined />}
-                            className="text-gray-600 hover:text-gray-700"
-                          />
-                          <Button
-                            type="text"
                             icon={<DeleteOutlined />}
                             className="text-red-600 hover:text-red-700"
+                            onClick={() => setOffersTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
                           />
                         </Space>
                       ),
@@ -2275,15 +2263,21 @@ export default function OfferManagement() {
         <CreatePolicyModal
           isModalVisible={isModalVisible}
           setIsModalVisible={setIsModalVisible}
-          editingData={editingOffer}
-          setEditingOffer={setEditingOffer}
+          editingData={editingData}
+          setEditingData={setEditingData}
           setPolicyTableData={(values) => {
-            setPolicyTableData(
-              policyTableData?.length
-                  ? [...policyTableData, values]
-                  : [values]
-            );
-            message.success("Policy created successfully");
+            setPolicyTableData((prev:any) => {
+              if(editingData && Object.keys(editingData)?.length) {
+                let temp = JSON.parse(JSON.stringify(prev));
+                temp[editingData?.id] = values;
+                return temp;
+              } else {
+                return ( 
+                  prev?.length ? [...prev, values] : [values]
+                )
+              }
+            });
+            message.success(`Policy ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
           }}
         />
       )}
@@ -2293,15 +2287,21 @@ export default function OfferManagement() {
         <CreateAncillaryModal
           isModalVisible={isModalVisible}
           setIsModalVisible={setIsModalVisible}
-          editingData={editingOffer}
-          setEditingOffer={setEditingOffer}
+          editingData={editingData}
+          setEditingData={setEditingData}
           setAncillaryTableData={(values) => {
-            setAncillaryTableData(
-              ancillaryTableData?.length
-                ? [...ancillaryTableData, values]
-                : [values]
-            );
-            message.success("Ancillaries created successfully");
+            setAncillaryTableData((prev:any) => {
+              if(editingData && Object.keys(editingData)?.length) {
+                let temp = JSON.parse(JSON.stringify(prev));
+                temp[editingData?.id] = values;
+                return temp;
+              } else {
+                return ( 
+                  prev?.length ? [...prev, values] : [values]
+                )
+              }
+            });
+            message.success(`Ancillaries ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
           }}
         />
       )}
@@ -2311,15 +2311,21 @@ export default function OfferManagement() {
         <CreateDiscountModal
           isModalVisible={isModalVisible}
           setIsModalVisible={setIsModalVisible}
-          editingData={editingOffer}
-          setEditingOffer={setEditingOffer}
+          editingData={editingData}
+          setEditingData={setEditingData}
           setDiscountTableData={(values) => {
-            setDiscountTableData(
-              discountTableData?.length
-                ? [...discountTableData, values]
-                : [values]
-            );
-            message.success("Discounts created successfully");
+            setDiscountTableData((prev:any) => {
+              if(editingData && Object.keys(editingData)?.length) {
+                let temp = JSON.parse(JSON.stringify(prev));
+                temp[editingData?.id] = values;
+                return temp;
+              } else {
+                return ( 
+                  prev?.length ? [...prev, values] : [values]
+                )
+              }
+            });
+            message.success(`Discounts ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
           }}
         />
       )}
@@ -2329,15 +2335,21 @@ export default function OfferManagement() {
         <CreatePromoCodeModal
           isModalVisible={isModalVisible}
           setIsModalVisible={setIsModalVisible}
-          editingData={editingOffer}
-          setEditingOffer={setEditingOffer}
+          editingData={editingData}
+          setEditingData={setEditingData}
           setPromoCodeTableData={(values) => {
-            setPromoCodeTableData(
-              promoCodeTableData?.length
-                ? [...promoCodeTableData, values]
-                : [values]
-            );
-            message.success("Promo code created successfully");
+            setPromoCodeTableData((prev:any) => {
+              if(editingData && Object.keys(editingData)?.length) {
+                let temp = JSON.parse(JSON.stringify(prev));
+                temp[editingData?.id] = values;
+                return temp;
+              } else {
+                return ( 
+                  prev?.length ? [...prev, values] : [values]
+                )
+              }
+            });
+            message.success(`Promo code ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
           }}
         />
       )}
@@ -2348,20 +2360,29 @@ export default function OfferManagement() {
           visible={isModalVisible}
           onCancel={() => {
             setIsModalVisible(false);
-            setEditingOffer(null);
+            setEditingData(null);
           }}
           setIsModalVisible={setIsModalVisible}
-          editingData={editingOffer}
-          setOffersCodeTableData={(values) => {
-            setOffersCodeTableData(
-              offersTableData?.length
-                ? [...offersTableData, values]
-                : [values]
-            );
-            message.success("Offer created successfully");
+          editingData={editingData}
+          setOffersTableData={(values) => {
+            setEditingData(null);
+            setOffersTableData((prev:any) => {
+              if(editingData && Object.keys(editingData)?.length) {
+                let temp = JSON.parse(JSON.stringify(prev));
+                temp[editingData?.id] = values;
+                return temp;
+              } else {
+                return ( 
+                  prev?.length ? [...prev, values] : [values]
+                )
+              }
+            });
+            message.success(`Offer ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
           }}
         />
       )}
+
+
 
       <style jsx global>
         {`
@@ -2386,13 +2407,13 @@ export default function OfferManagement() {
 
           .ant-tabs-tab-active {
             background-color: #f8fafc;
-            border-bottom: 2px solid #3b82f6;
+            border-bottom: 2px solid var(--textBlue500);
           }
 
           .ant-card {
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border: 1px solid #f1f5f9;
+            border: 1px solid var(--ant-border-color);
           }
 
           .ant-card:hover {
@@ -2409,7 +2430,7 @@ export default function OfferManagement() {
           }
 
           .custom-table .ant-table-thead > tr > th {
-            background-color: #f8fafc;
+            // background-color: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
             font-weight: 600;
           }

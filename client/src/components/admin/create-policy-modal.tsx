@@ -26,7 +26,7 @@ interface PolicyModalProps {
   isModalVisible: boolean;
   editingData?: any;
   setIsModalVisible: (value: boolean) => void;
-  setEditingOffer: (value: any) => void;
+  setEditingData: (value: any) => void;
   setPolicyTableData: (value: any) => void;
 }
 
@@ -85,7 +85,7 @@ export default function PolicyModal({
   isModalVisible,
   editingData,
   setIsModalVisible,
-  setEditingOffer,
+  setEditingData,
   setPolicyTableData,
 }: PolicyModalProps) {
   const [form] = Form.useForm();
@@ -110,7 +110,7 @@ export default function PolicyModal({
       visible={isModalVisible}
       onCancel={() => {
         setIsModalVisible(false);
-        setEditingOffer(null);
+        setEditingData(null);
         setPolicyModalStep(0);
         form.resetFields();
       }}
@@ -126,6 +126,7 @@ export default function PolicyModal({
           console.log("Policy values:", values);
           setPolicyTableData({ ...formValues, ...form.getFieldsValue() });
           setIsModalVisible(false);
+          setEditingData(null);
         }}
       >
         {/* Steps Navigation */}
@@ -352,7 +353,7 @@ export default function PolicyModal({
                   booking channel preferences.
                 </Text>
               </div>
-              <div className="space-y-8">
+              <div className="space-y-8 mb-8">
                 <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all duration-300">
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
@@ -378,14 +379,14 @@ export default function PolicyModal({
                       <Checkbox.Group className="w-full">
                         <div className="flex items-center space-x-10 ml-5">
                           {loyaltyOptions.map((item) => (
+                            <Checkbox
+                              value={item.value}
+                              className="flex items-center scale-110"
+                            >
                             <div
                               key={item.value}
                               className="flex items-center space-x-3"
                             >
-                              <Checkbox
-                                value={item.value}
-                                className="scale-110"
-                              />
                               <div
                                 className={`w-4 h-4 rounded-full ${
                                   item.value === "bronze"
@@ -398,11 +399,14 @@ export default function PolicyModal({
                                           ? "bg-slate-400"
                                           : "bg-blue-500"
                                 }`}
-                              ></div>
+                              >
+                                
+                              </div>
                               <Text className="font-medium text-gray-700">
                                 {item.label}
                               </Text>
                             </div>
+                            </Checkbox>
                           ))}
                         </div>
                       </Checkbox.Group>
@@ -427,7 +431,6 @@ export default function PolicyModal({
                           </div>
                         </div>
                         <Switch
-                          size="large"
                           className="ml-6"
                           onChange={(value) =>
                             setFormValues((prev: any) => ({
@@ -517,20 +520,19 @@ export default function PolicyModal({
                               key={type.value}
                               className="group/passenger cursor-pointer"
                             >
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  value={type.value}
-                                  className="scale-125"
-                                />
-                                <div>
-                                  <Text className="font-semibold text-gray-900 text-sm pl-2 pr-1">
+                              <Checkbox
+                                value={type.value}
+                                className="scale-100"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <Text className="font-semibold text-gray-900 text-sm pl-2">
                                     {type.label}
                                   </Text>
                                   <Text className="text-gray-500 text-xs">
                                     {type.desc}
                                   </Text>
                                 </div>
-                              </div>
+                              </Checkbox>
                             </div>
                           ))}
                         </div>
@@ -675,27 +677,28 @@ export default function PolicyModal({
                             key={channel.value}
                             className="group/channel cursor-pointer"
                           >
-                            <div className="flex items-start space-x-4">
-                              <Checkbox
-                                value={channel.value}
-                                className="scale-125 mt-1"
-                              />
-                              <div className="flex-1">
-                                <Text className="font-semibold text-gray-900 text-sm block">
-                                  {channel.label}
-                                </Text>
-                                <Text className="text-gray-600 text-xs leading-relaxed">
-                                  {channel.desc}
-                                </Text>
+                            <Checkbox
+                              value={channel.value}
+                              className="scale-100 mt-1"
+                            >
+                              <div className="flex items-start space-x-4 pl-2">
+                                <div className="flex-1">
+                                  <Text className="font-semibold text-gray-900 text-sm block">
+                                    {channel.label}
+                                  </Text>
+                                  <Text className="text-gray-600 text-xs leading-relaxed">
+                                    {channel.desc}
+                                  </Text>
+                                </div>
                               </div>
-                            </div>
+                            </Checkbox>
                           </div>
                         ))}
                       </div>
                     </Checkbox.Group>
                   </Form.Item>
                 </div>
-                <div className="rounded-3xl border p-8">
+                <div className="rounded-3xl border p-6">
                   <div className="flex items-start space-x-6">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-4">
@@ -870,17 +873,16 @@ export default function PolicyModal({
 
           {/* Step 5: Validity Period */}
           {policyModalStep === 4 && (
-            <div className="space-y-6">
-              <div className="mt-2 mb-8">
+            <div className="space-y-4">
+              <div className="mt-2 mb-6">
                 <Title level={3} className="!mb-2 text-gray-900">
                   Validity Period
                 </Title>
                 <Text className="text-gray-600 text-base">
-                  Set the active period for this policy including start date,
-                  end date, and timezone.
+                  Set the active period for this policy including start date, end date, and timezone.
                 </Text>
               </div>
-              <Row gutter={16} className="mb-6">
+              <Row gutter={16} className="mb-2">
                 <Col span={12}>
                   <Form.Item
                     label="Valid From"
@@ -923,17 +925,17 @@ export default function PolicyModal({
               <div className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center mb-4">
                   <span className="text-purple-600 mr-2">📋</span>
-                  <Text className="font-medium text-purple-600">
+                  <Text className="font-bold text-purple-600">
                     Regulatory/Compliance Constraints
                   </Text>
                 </div>
                 <Row gutter={24}>
                   <Col span={12}>
                     <div className="mb-4">
-                      <Text className="font-medium block mb-2">
+                      <Text className="font-bold block mb-2">
                         Applicable Regions
                       </Text>
-                      <Form.Item name="applicableRegions">
+                      <Form.Item name="applicableRegions" className="pl-6 pt-2">
                         <Checkbox.Group>
                           <Row gutter={[12, 8]}>
                             <Col span={12}>
@@ -966,7 +968,7 @@ export default function PolicyModal({
                         </Checkbox.Group>
                       </Form.Item>
                     </div>
-                    <Space direction="vertical" className="w-full">
+                    <Space direction="vertical" className="w-full" style={{ gap: 0 }}>
                       <Form.Item name="gdprCompliant" valuePropName="checked">
                         <Switch
                           onChange={(value) =>
@@ -1059,7 +1061,7 @@ export default function PolicyModal({
           <Button
             onClick={() => {
               setIsModalVisible(false);
-              setEditingOffer(null);
+              setEditingData(null);
               setPolicyModalStep(0);
               form.resetFields();
             }}
@@ -1081,8 +1083,10 @@ export default function PolicyModal({
               <Button
                 type="primary"
                 onClick={() => {
-                  setPolicyModalStep(Math.min(4, policyModalStep + 1));
                   handleFormData();
+                  setTimeout(() => {
+                    setPolicyModalStep(Math.min(4, policyModalStep + 1));
+                  }, 100);
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
@@ -1096,7 +1100,7 @@ export default function PolicyModal({
                 className="bg-green-600 hover:bg-green-700"
                 size="large"
               >
-                Create Policy
+                {(editingData && Object.keys(editingData)?.length) ? "Update " : "Create "} Policy
               </Button>
             )}
           </div>

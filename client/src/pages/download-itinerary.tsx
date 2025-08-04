@@ -552,7 +552,7 @@ Group Airline Booking Team`;
       <style jsx>{`
         .ant-card {
           border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--ant-border-color);
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
 

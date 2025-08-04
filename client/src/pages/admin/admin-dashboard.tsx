@@ -66,9 +66,9 @@ const revenueBookingsData = [
 ];
 
 const bookingStatusData = [
-  { name: "Confirmed", value: 65, color: "#4F46E5" },
-  { name: "Pending", value: 25, color: "#F59E0B" },
-  { name: "Cancelled", value: 10, color: "#EF4444" },
+  { name: "Confirmed", value: 65, color: "var(--infiniti-lightest-blue)" },
+  { name: "Pending", value: 25, color: "var(--infiniti-light-orange)" },
+  { name: "Cancelled", value: 10, color: "var(--infiniti-light-red)" },
 ];
 
 const topRoutesData = [
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
                   <YAxis hide />
                   <Bar
                     dataKey="bookings"
-                    fill="#4F46E5"
+                    fill="var(--infiniti-lightest-blue)"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -459,8 +459,8 @@ export default function AdminDashboard() {
                   <Area
                     type="monotone"
                     dataKey="bookings"
-                    stroke="#4F46E5"
-                    fill="#A5B4FC"
+                    stroke="var(--infiniti-lightest-blue)"
+                    fill="var(--infiniti-lightest-purple)"
                     fillOpacity={0.6}
                     strokeWidth={2}
                   />
@@ -735,11 +735,11 @@ export default function AdminDashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Food & Beverage", value: 35, color: "#4F46E5" },
-                      { name: "Baggage", value: 25, color: "#10B981" },
-                      { name: "Seating", value: 20, color: "#F59E0B" },
-                      { name: "Connectivity", value: 12, color: "#EF4444" },
-                      { name: "Insurance", value: 8, color: "#8B5CF6" },
+                      { name: "Food & Beverage", value: 35, color: "var(--infiniti-lightest-blue)" },
+                      { name: "Baggage", value: 25, color: "var(--infiniti-lighter-green)" },
+                      { name: "Seating", value: 20, color: "var(--infiniti-light-orange)" },
+                      { name: "Connectivity", value: 12, color: "var(--infiniti-light-red)" },
+                      { name: "Insurance", value: 8, color: "var(--infiniti-light-purple)" },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -749,11 +749,11 @@ export default function AdminDashboard() {
                     dataKey="value"
                   >
                     {[
-                      { name: "Food & Beverage", value: 35, color: "#4F46E5" },
-                      { name: "Baggage", value: 25, color: "#10B981" },
-                      { name: "Seating", value: 20, color: "#F59E0B" },
-                      { name: "Connectivity", value: 12, color: "#EF4444" },
-                      { name: "Insurance", value: 8, color: "#8B5CF6" },
+                      { name: "Food & Beverage", value: 35, color: "var(--infiniti-lightest-blue)" },
+                      { name: "Baggage", value: 25, color: "var(--infiniti-lighter-green)" },
+                      { name: "Seating", value: 20, color: "var(--infiniti-light-orange)" },
+                      { name: "Connectivity", value: 12, color: "var(--infiniti-light-red)" },
+                      { name: "Insurance", value: 8, color: "var(--infiniti-light-purple)" },
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -807,9 +807,9 @@ export default function AdminDashboard() {
                   <Line
                     type="monotone"
                     dataKey="performance"
-                    stroke="#8B5CF6"
+                    stroke="var(--infiniti-light-purple)"
                     strokeWidth={3}
-                    dot={{ fill: "#8B5CF6", r: 4 }}
+                    dot={{ fill: "var(--infiniti-light-purple)", r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -1000,7 +1000,7 @@ export default function AdminDashboard() {
                   />
                   <Bar
                     dataKey="bookings"
-                    fill="#4F46E5"
+                    fill="var(--infiniti-lightest-blue)"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -1049,8 +1049,8 @@ export default function AdminDashboard() {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#10B981"
-                    fill="#A7F3D0"
+                    stroke="var(--infiniti-lighter-green)"
+                    fill="var(--infiniti-lightest-green)"
                     fillOpacity={0.6}
                     strokeWidth={2}
                   />

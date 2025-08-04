@@ -11,10 +11,12 @@ import {
   Col,
   Button,
   Typography,
+  Radio,
 } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import { useModalLogic } from "./use-modal-logic";
 import dayjs from "dayjs";
+import { useWatch } from "antd/es/form/Form";
 
 const { Title, Text } = Typography;
 
@@ -22,7 +24,7 @@ interface CreateOfferModalProps {
   visible: boolean;
   onCancel: () => void;
   setIsModalVisible: (values: any) => void;
-  setOffersCodeTableData: (values: any) => void;
+  setOffersTableData: (values: any) => void;
   editingData?: any;
 }
 
@@ -39,7 +41,7 @@ export default function CreateOfferModal({
   visible,
   onCancel,
   setIsModalVisible,
-  setOffersCodeTableData,
+  setOffersTableData,
   editingData,
 }: CreateOfferModalProps) {
   const [form] = Form.useForm();
@@ -55,6 +57,8 @@ export default function CreateOfferModal({
     form,
   });
 
+  const selectedTemplate = useWatch("selectedTemplate", form);
+
   // Handle "Next" button click with validation
   const handleNext = async () => {
     try {
@@ -62,7 +66,9 @@ export default function CreateOfferModal({
         await form.validateFields(["offerName", "offerCode"]);
       }
       handleFormData();
-      setOfferModalStep(Math.min(5, offerModalStep + 1));
+      setTimeout(() => {
+        setOfferModalStep(Math.min(5, offerModalStep + 1));
+      }, 100);
     } catch (error) {
       console.error("Validation failed:", error);
     }
@@ -98,19 +104,19 @@ export default function CreateOfferModal({
         form={form}
         layout="vertical"
         onFinish={() => {
-          setOffersCodeTableData({ ...formValues, ...form.getFieldsValue() });
+          setOffersTableData({ ...formValues, ...form.getFieldsValue() });
           setIsModalVisible(false);
         }}
       >
         {/* Steps Navigation */}
         <div className="relative mb-8">
-          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0"></div>
+          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0" />
           <div
             className="absolute top-5 left-0 h-0.5 bg-blue-500 z-10"
             style={{
               width: `${(offerModalStep / (steps.length - 1)) * 100}%`,
             }}
-          ></div>
+          />
           <div className="relative flex justify-between z-20">
             {steps.map((step, index) => (
               <div key={step.title} className="flex flex-col items-center">
@@ -121,8 +127,8 @@ export default function CreateOfferModal({
                       index < offerModalStep
                         ? "bg-green-500 border-green-500 text-white"
                         : index === offerModalStep
-                          ? "bg-blue-500 border-blue-500 text-white"
-                          : "bg-white border-gray-300 text-gray-500"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white border-gray-300 text-gray-500"
                     }
                   `}
                 >
@@ -156,7 +162,7 @@ export default function CreateOfferModal({
                 <Title level={4} className="!mb-4 text-blue-600">
                   Basic Information
                 </Title>
-                <Row gutter={16} className="mb-4">
+                <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
                       label={
@@ -205,7 +211,7 @@ export default function CreateOfferModal({
                 <Form.Item
                   label={<span className="font-medium">Description</span>}
                   name="description"
-                  className="mb-4"
+                  className="mb-6"
                 >
                   <Input.TextArea
                     rows={3}
@@ -213,7 +219,7 @@ export default function CreateOfferModal({
                     className="rounded-lg"
                   />
                 </Form.Item>
-                <Row gutter={16} className="mb-4">
+                <Row gutter={16}>
                   <Col span={8}>
                     <Form.Item
                       label={<span className="font-medium">Status</span>}
@@ -245,7 +251,7 @@ export default function CreateOfferModal({
                     </Form.Item>
                   </Col>
                 </Row>
-                <Row gutter={16}>
+                <Row gutter={16} className="mb-2">
                   <Col span={12}>
                     <Form.Item
                       label={<span className="font-medium">Start Date</span>}
@@ -285,8 +291,8 @@ export default function CreateOfferModal({
           {offerModalStep === 1 && (
             <div className="space-y-6">
               <div>
-                <div className="flex items-center mb-4">
-                  <span className="text-yellow-500 mr-2">⭐</span>
+                <div className="flex items-center">
+                  <span className="text-yellow-500 !mb-2 mr-2">⭐</span>
                   <Title level={4} className="!mb-2 text-green-600">
                     Offer Templates
                   </Title>
@@ -296,59 +302,105 @@ export default function CreateOfferModal({
                   market
                 </Text>
                 <Form.Item name="selectedTemplate" className="mb-6">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg cursor-pointer">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        <Text className="font-semibold">Basic</Text>
+                  <Radio.Group className="w-full">
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Basic Template */}
+                      <div className="p-4 border-2 border-gray-200 rounded-lg cursor-pointer transition-colors has-[:checked]:border-green-500 has-[:checked]:bg-green-50 hover:border-gray-300">
+                        <Radio value="basic" className="w-full">
+                          <div className="flex items-center mb-1">
+                            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <Text className="font-semibold has-[:checked]:text-green-900">
+                              Basic
+                            </Text>
+                          </div>
+                          <Text className="text-sm text-gray-600 block mb-2 ml-5 has-[:checked]:text-green-700">
+                            Simple upgrade package with essential services
+                          </Text>
+                          <ul className="text-xs text-gray-500 space-y-1 ml-5 has-[:checked]:text-green-600">
+                            <li>• Entry level pricing</li>
+                            <li>• Essential ancillaries</li>
+                            <li>• Standard targeting</li>
+                          </ul>
+                        </Radio>
                       </div>
-                      <Text className="text-sm text-gray-600 mb-2">
-                        Simple upgrade package with essential services
-                      </Text>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        <li>• Entry level pricing</li>
-                        <li>• Essential ancillaries</li>
-                        <li>• Standard targeting</li>
-                      </ul>
-                    </div>
-                    <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg cursor-pointer">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                        <Text className="font-semibold">Value</Text>
+
+                      {/* Value Template */}
+                      <div className="p-4 border-2 border-gray-200 rounded-lg cursor-pointer transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 hover:border-gray-300">
+                        <Radio value="value" className="w-full">
+                          <div className="flex items-center mb-1">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                            <Text className="font-semibold has-[:checked]:text-blue-900">
+                              Value
+                            </Text>
+                          </div>
+                          <Text className="text-sm text-gray-600 block mb-2 ml-5 has-[:checked]:text-blue-700">
+                            Balanced package offering good value for money
+                          </Text>
+                          <ul className="text-xs text-gray-500 space-y-1 ml-5 has-[:checked]:text-blue-600">
+                            <li>• Competitive pricing</li>
+                            <li>• Popular ancillaries</li>
+                            <li>• Broad market appeal</li>
+                          </ul>
+                        </Radio>
                       </div>
-                      <Text className="text-sm text-gray-600 mb-2">
-                        Balanced package offering good value for money
-                      </Text>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        <li>• Competitive pricing</li>
-                        <li>• Popular ancillaries</li>
-                        <li>• Broad market appeal</li>
-                      </ul>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
-                      <div className="flex items-center mb-3">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                        <Text className="font-semibold">Premium</Text>
+
+                      {/* Premium Template */}
+                      <div className="p-4 border-2 border-gray-200 rounded-lg cursor-pointer transition-colors has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 hover:border-gray-300">
+                        <Radio value="premium" className="w-full">
+                          <div className="flex items-center mb-1">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                            <Text className="font-semibold has-[:checked]:text-purple-900">
+                              Premium
+                            </Text>
+                          </div>
+                          <Text className="text-sm text-gray-600 block mb-2 ml-5 has-[:checked]:text-purple-700">
+                            High-end package with luxury services
+                          </Text>
+                          <ul className="text-xs text-gray-500 space-y-1 ml-5 has-[:checked]:text-purple-600">
+                            <li>• Premium pricing</li>
+                            <li>• Luxury ancillaries</li>
+                            <li>• High-value customers</li>
+                          </ul>
+                        </Radio>
                       </div>
-                      <Text className="text-sm text-gray-600 mb-2">
-                        High-end package with luxury services
-                      </Text>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        <li>• Premium pricing</li>
-                        <li>• Luxury ancillaries</li>
-                        <li>• High-value customers</li>
-                      </ul>
                     </div>
-                  </div>
+                  </Radio.Group>
                 </Form.Item>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <Text className="font-medium text-blue-900 block mb-2">
-                    Selected Template: Value
-                  </Text>
-                  <Text className="text-blue-700 text-sm">
-                    Perfect for travelers who want a good balance of features
-                    and price.
-                  </Text>
+                {/* Selected Template Display */}
+                <div className="relative">
+                  {selectedTemplate === "basic" && (
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <Text className="font-medium text-green-900 block mb-2">
+                        Selected Template: Basic
+                      </Text>
+                      <Text className="text-green-700 text-sm">
+                        Perfect for budget-conscious travelers who want
+                        essential upgrades.
+                      </Text>
+                    </div>
+                  )}
+                  {selectedTemplate === "value" && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <Text className="font-medium text-blue-900 block mb-2">
+                        Selected Template: Value
+                      </Text>
+                      <Text className="text-blue-700 text-sm">
+                        Perfect for travelers who want a good balance of
+                        features and price.
+                      </Text>
+                    </div>
+                  )}
+                  {selectedTemplate === "premium" && (
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <Text className="font-medium text-purple-900 block mb-2">
+                        Selected Template: Premium
+                      </Text>
+                      <Text className="text-purple-700 text-sm">
+                        Ideal for luxury travelers seeking premium services and
+                        exclusivity.
+                      </Text>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -358,7 +410,7 @@ export default function CreateOfferModal({
           {offerModalStep === 2 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4 text-orange-600">
+                <Title level={4} className="!mb-2 text-orange-600">
                   Ancillaries
                 </Title>
                 <Text className="text-gray-600 block mb-6">
@@ -366,9 +418,9 @@ export default function CreateOfferModal({
                 </Text>
                 <Form.Item name="ancillaryServices">
                   <Checkbox.Group className="w-full">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-10 w-[75%]">
                       <div className="space-y-3">
-                        <Text className="font-medium text-gray-900">
+                        <Text className="font-bold text-md text-gray-900">
                           Seating
                         </Text>
                         <div className="space-y-2">
@@ -390,7 +442,7 @@ export default function CreateOfferModal({
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Text className="font-medium text-gray-900">
+                        <Text className="font-bold text-md text-gray-900">
                           Food & Beverage
                         </Text>
                         <div className="space-y-2">
@@ -412,7 +464,7 @@ export default function CreateOfferModal({
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Text className="font-medium text-gray-900">
+                        <Text className="font-bold text-md text-gray-900">
                           Services
                         </Text>
                         <div className="space-y-2">
@@ -434,7 +486,7 @@ export default function CreateOfferModal({
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Text className="font-medium text-gray-900">
+                        <Text className="font-bold text-md text-gray-900">
                           Baggage
                         </Text>
                         <div className="space-y-2">
@@ -466,7 +518,7 @@ export default function CreateOfferModal({
           {offerModalStep === 3 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4 text-purple-600">
+                <Title level={4} className="!mb-2 text-purple-600">
                   Personalization
                 </Title>
                 <Text className="text-gray-600 block mb-6">
@@ -477,7 +529,7 @@ export default function CreateOfferModal({
                     <div className="space-y-4">
                       <div className="flex items-center mb-3">
                         <span className="mr-2">👥</span>
-                        <Text className="font-medium">Customer Segments</Text>
+                        <Text className="font-bold">Customer Segments</Text>
                       </div>
                       <Form.Item name="customerSegments">
                         <Checkbox.Group>
@@ -526,7 +578,7 @@ export default function CreateOfferModal({
                     <div className="space-y-4">
                       <div className="flex items-center mb-3">
                         <span className="mr-2">🎯</span>
-                        <Text className="font-medium">Behavior Triggers</Text>
+                        <Text className="font-bold">Behavior Triggers</Text>
                       </div>
                       <Form.Item name="behaviorTriggers">
                         <Checkbox.Group>
@@ -570,7 +622,7 @@ export default function CreateOfferModal({
                     <div className="space-y-4">
                       <div className="flex items-center mb-3">
                         <span className="mr-2">📍</span>
-                        <Text className="font-medium">Context Factors</Text>
+                        <Text className="font-bold">Context Factors</Text>
                       </div>
                       <Form.Item name="contextFactors">
                         <Checkbox.Group>
@@ -624,8 +676,7 @@ export default function CreateOfferModal({
           {offerModalStep === 4 && (
             <div className="space-y-6">
               <div>
-                <div className="flex items-center mb-4">
-                  <span className="text-yellow-600 mr-2">⚡</span>
+                <div className="flex items-center">
                   <Title level={4} className="!mb-2 text-yellow-600">
                     Dynamic Pricing Configuration
                   </Title>
@@ -633,7 +684,7 @@ export default function CreateOfferModal({
                 <Text className="text-gray-600 block mb-6">
                   Configure real-time fare integration and pricing multipliers
                 </Text>
-                <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                <div className="bg-gray-50 p-3 rounded-lg mb-6">
                   <Form.Item
                     name="enableDynamicPricing"
                     valuePropName="checked"
@@ -655,18 +706,17 @@ export default function CreateOfferModal({
                   </Form.Item>
                 </div>
                 <div className="mb-8">
-                  <div className="flex items-center mb-4">
-                    <span className="text-blue-600 mr-2">%</span>
-                    <Text className="font-medium">
+                  <div className="flex items-center mb-2">
+                    <Text className="font-bold text-md">
                       Discount & Promo Evaluation
                     </Text>
                   </div>
-                  <Text className="text-gray-600 text-sm mb-4">
+                  <Text className="text-gray-600 text-sm block mb-4">
                     Configure applicable discounts and promotional codes for
                     this offer
                   </Text>
                   <div className="mb-4">
-                    <Text className="font-medium text-sm mb-3">
+                    <Text className="font-medium text-sm block mb-3">
                       Applicable Promo Codes
                     </Text>
                     <Form.Item name="promoCodes">
@@ -700,7 +750,7 @@ export default function CreateOfferModal({
                       </Checkbox.Group>
                     </Form.Item>
                   </div>
-                  <Row gutter={16} className="mb-4">
+                  <Row gutter={16}>
                     <Col span={8}>
                       <Form.Item
                         label="Loyalty Discount (%)"
@@ -750,7 +800,7 @@ export default function CreateOfferModal({
           {offerModalStep === 5 && (
             <div className="space-y-6">
               <div>
-                <Title level={4} className="!mb-4 text-pink-600">
+                <Title level={4} className="!mb-2 text-pink-600">
                   Output Channels
                 </Title>
                 <Text className="text-gray-600 block mb-6">
@@ -758,9 +808,8 @@ export default function CreateOfferModal({
                 </Text>
                 <Row gutter={24}>
                   <Col span={12}>
-                    <div className="bg-white border rounded-lg p-6 mb-6">
-                      <div className="flex items-center mb-4">
-                        <span className="text-2xl mr-3">🌐</span>
+                    <div className="bg-white border rounded-lg p-4 mb-6">
+                      <div className="flex items-center mb-2">
                         <Text className="font-medium text-lg">
                           Website Integration
                         </Text>
@@ -768,7 +817,7 @@ export default function CreateOfferModal({
                       <Form.Item
                         name="enableWebsite"
                         valuePropName="checked"
-                        className="mb-4"
+                        className="mb-2"
                         rules={[
                           {
                             required: true,
@@ -815,7 +864,6 @@ export default function CreateOfferModal({
                   <Col span={12}>
                     <div className="bg-white border rounded-lg p-6 mb-6">
                       <div className="flex items-center mb-4">
-                        <span className="text-2xl mr-3">📱</span>
                         <Text className="font-medium text-lg">
                           Mobile Application
                         </Text>
@@ -823,7 +871,7 @@ export default function CreateOfferModal({
                       <Form.Item
                         name="enableMobile"
                         valuePropName="checked"
-                        className="mb-4"
+                        className="mb-2"
                       >
                         <div className="flex items-center">
                           <Switch
@@ -859,9 +907,8 @@ export default function CreateOfferModal({
                     </div>
                   </Col>
                   <Col span={12}>
-                    <div className="bg-white border rounded-lg p-6">
-                      <div className="flex items-center mb-4">
-                        <span className="text-2xl mr-3">⚡</span>
+                    <div className="bg-white border rounded-lg p-4">
+                      <div className="flex items-center mb-2">
                         <Text className="font-medium text-lg">
                           NDC Integration
                         </Text>
@@ -887,9 +934,8 @@ export default function CreateOfferModal({
                     </div>
                   </Col>
                   <Col span={12}>
-                    <div className="bg-white border rounded-lg p-6">
-                      <div className="flex items-center mb-4">
-                        <span className="text-2xl mr-3">📊</span>
+                    <div className="bg-white border rounded-lg p-4">
+                      <div className="flex items-center mb-2">
                         <Text className="font-medium text-lg">
                           API Integration
                         </Text>
@@ -949,7 +995,7 @@ export default function CreateOfferModal({
                 className="bg-green-600 hover:bg-green-700"
                 size="large"
               >
-                Create Offer
+                {(editingData && Object.keys(editingData)?.length) ? "Update " : "Create "}  Offer
               </Button>
             )}
           </div>

@@ -58,12 +58,11 @@ export default function BookingDetails() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        {/* Admin Header */}
+        <AdminHeader />
         <div className="flex">
-          {/* Admin Header */}
-          <AdminHeader />
           {/* Sidebar */}
           <AdminSidebar activeMenu="Booking Management" />
-
           {/* Main Content */}
           <div className="max-w-3/4 mx-auto px-6 py-6 flex justify-center items-center">
             <Spin size="large" />

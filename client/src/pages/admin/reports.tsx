@@ -108,9 +108,9 @@ export default function Reports() {
   ];
 
   const bookingStatusData = [
-    { name: "Confirmed", value: 68, color: "#52c41a" },
-    { name: "Pending", value: 22, color: "#faad14" },
-    { name: "Cancelled", value: 10, color: "#ff4d4f" },
+    { name: "Confirmed", value: 68, color: "var(--ant-color-success)" },
+    { name: "Pending", value: 22, color: "var(--ant-color-warning)" },
+    { name: "Cancelled", value: 10, color: "var(--ant-color-error)" },
   ];
 
   const routeColumns = [
@@ -234,7 +234,7 @@ export default function Reports() {
                   value={328500}
                   prefix={<DollarOutlined />}
                   precision={0}
-                  valueStyle={{ color: "#3f8600" }}
+                  valueStyle={{ color: "var(--textGreen600)" }}
                   suffix={
                     <span className="text-sm text-green-600 ml-2">
                       +12.5% ↗
@@ -249,7 +249,7 @@ export default function Reports() {
                   title="Total Bookings"
                   value={459}
                   prefix={<CalendarOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
+                  valueStyle={{ color: "var(--textBlue600)" }}
                   suffix={
                     <span className="text-sm text-blue-600 ml-2">+8.3% ↗</span>
                   }
@@ -262,7 +262,7 @@ export default function Reports() {
                   title="Total Passengers"
                   value={5742}
                   prefix={<UserOutlined />}
-                  valueStyle={{ color: "#722ed1" }}
+                  valueStyle={{ color: "var(--textPurple600)" }}
                   suffix={
                     <span className="text-sm text-purple-600 ml-2">
                       +15.7% ↗
@@ -278,7 +278,7 @@ export default function Reports() {
                   value={716}
                   prefix={<TrophyOutlined />}
                   precision={0}
-                  valueStyle={{ color: "#fa8c16" }}
+                  valueStyle={{ color: "var(--textOrange600)" }}
                   suffix={
                     <span className="text-sm text-orange-600 ml-2">
                       +4.2% ↗
@@ -301,7 +301,7 @@ export default function Reports() {
                           <BarChart data={revenueData}>
                             <XAxis dataKey="month" />
                             <YAxis />
-                            <Bar dataKey="revenue" fill="#1890ff" />
+                            <Bar dataKey="revenue" fill="var(--infiniti-lighter-blue)" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -382,7 +382,7 @@ export default function Reports() {
                                   <Progress
                                     percent={(item.revenue / 70000) * 100}
                                     showInfo={false}
-                                    strokeColor="#52c41a"
+                                    strokeColor="var(--ant-color-success)"
                                   />
                                 </div>
                               </div>
@@ -501,7 +501,7 @@ export default function Reports() {
                                 <Progress
                                   percent={item.percentage}
                                   showInfo={false}
-                                  strokeColor="#1890ff"
+                                  strokeColor="var(--infiniti-lighter-blue)"
                                 />
                               </div>
                               <Text className="text-gray-500 w-12">
@@ -521,10 +521,10 @@ export default function Reports() {
                           {
                             period: "New Customers",
                             rate: 100,
-                            color: "#52c41a",
+                            color: "var(--ant-color-success)",
                           },
-                          { period: "1-6 Months", rate: 75, color: "#1890ff" },
-                          { period: "6-12 Months", rate: 45, color: "#faad14" },
+                          { period: "1-6 Months", rate: 75, color: "var(--infiniti-lighter-blue)" },
+                          { period: "6-12 Months", rate: 45, color: "var(--ant-color-warning)" },
                           { period: "12+ Months", rate: 28, color: "#722ed1" },
                         ].map((item, index) => (
                           <div
@@ -558,25 +558,25 @@ export default function Reports() {
                           <Text>Instant (&lt; 1 min)</Text>
                           <Text strong>67%</Text>
                         </div>
-                        <Progress percent={67} strokeColor="#52c41a" />
+                        <Progress percent={67} strokeColor="var(--ant-color-success)" />
 
                         <div className="flex justify-between">
                           <Text>Fast (1-5 min)</Text>
                           <Text strong>23%</Text>
                         </div>
-                        <Progress percent={23} strokeColor="#1890ff" />
+                        <Progress percent={23} strokeColor="var(--infiniti-lighter-blue)" />
 
                         <div className="flex justify-between">
                           <Text>Normal (5-15 min)</Text>
                           <Text strong>8%</Text>
                         </div>
-                        <Progress percent={8} strokeColor="#faad14" />
+                        <Progress percent={8} strokeColor="var(--ant-color-warning)" />
 
                         <div className="flex justify-between">
                           <Text>Slow (&gt; 15 min)</Text>
                           <Text strong>2%</Text>
                         </div>
-                        <Progress percent={2} strokeColor="#ff4d4f" />
+                        <Progress percent={2} strokeColor="var(--ant-color-error)" />
                       </div>
                     </Card>
                   </Col>
@@ -586,7 +586,7 @@ export default function Reports() {
                       <div className="space-y-6">
                         <div>
                           <Text className="block mb-2">Server Uptime</Text>
-                          <Progress percent={99.8} strokeColor="#52c41a" />
+                          <Progress percent={99.8} strokeColor="var(--ant-color-success)" />
                           <Text type="secondary" className="text-sm">
                             99.8% (Last 30 days)
                           </Text>
@@ -596,7 +596,7 @@ export default function Reports() {
                           <Text className="block mb-2">
                             Average Response Time
                           </Text>
-                          <Progress percent={85} strokeColor="#1890ff" />
+                          <Progress percent={85} strokeColor="var(--infiniti-lighter-blue)" />
                           <Text type="secondary" className="text-sm">
                             245ms average
                           </Text>
@@ -604,7 +604,7 @@ export default function Reports() {
 
                         <div>
                           <Text className="block mb-2">Error Rate</Text>
-                          <Progress percent={2} strokeColor="#ff4d4f" />
+                          <Progress percent={2} strokeColor="var(--ant-color-error)" />
                           <Text type="secondary" className="text-sm">
                             0.2% error rate
                           </Text>

@@ -546,7 +546,7 @@ export default function PassengerInfo() {
           :global(.ant-form-item-label > label[title*="required"]::before) {
           display: inline-block;
           margin-right: 4px;
-          color: #ef4444;
+          color: var(--infiniti-light-red);
           font-size: 14px;
           font-family: inherit;
           line-height: 1;

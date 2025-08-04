@@ -458,7 +458,7 @@ export default function Bookings() {
                       title="Total Bookings"
                       value={totalBookings}
                       prefix={<CalendarOutlined />}
-                      valueStyle={{ color: "#1890ff" }}
+                      valueStyle={{ color: "var(--infiniti-lighter-blue)" }}
                     />
                   </Card>
                 </Col>
@@ -468,7 +468,7 @@ export default function Bookings() {
                       title="Total Passengers"
                       value={totalPassengers}
                       prefix={<UserOutlined />}
-                      valueStyle={{ color: "#52c41a" }}
+                      valueStyle={{ color: "var(--ant-color-success)" }}
                     />
                   </Card>
                 </Col>
@@ -479,7 +479,7 @@ export default function Bookings() {
                       value={totalRevenue}
                       prefix={<DollarOutlined />}
                       precision={0}
-                      valueStyle={{ color: "#faad14" }}
+                      valueStyle={{ color: "var(--ant-color-warning)" }}
                       formatter={(value) => `$${value.toLocaleString()}`}
                     />
                   </Card>
@@ -490,7 +490,7 @@ export default function Bookings() {
                       title="Confirmed Bookings"
                       value={confirmedBookings}
                       prefix={<CheckCircleOutlined />}
-                      valueStyle={{ color: "#722ed1" }}
+                      valueStyle={{ color: "var(--textPurple500)" }}
                     />
                   </Card>
                 </Col>

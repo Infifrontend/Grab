@@ -144,7 +144,7 @@ export default function ActiveBidsSection() {
   }
 
   return (
-    <div className="deal-card">
+    <div className="deal-card" style={{backgroundColor:"var(--infiniti-bg-container)"}}>
       {/* Header */}
       <div className="section-header relative">
         <Tag className="limited-time-badge">Live Bidding</Tag>
@@ -155,7 +155,7 @@ export default function ActiveBidsSection() {
       </div>
 
       {/* Active Bids Content */}
-      <div className="p-6">
+      <div className="p-6" style={{backgroundColor:"var(--infiniti-bg-container)"}}>
         {activeBids.map((bid, index) => {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);

@@ -454,9 +454,9 @@ export default function Dashboard() {
       case "confirmed":
         return "var(--infiniti-success)";
       case "pending":
-        return "#faad14";
+        return "var(--ant-color-warning)";
       case "cancelled":
-        return "#ff4d4f";
+        return "var(--ant-color-error)";
       default:
         return "#d9d9d9";
     }
@@ -759,7 +759,7 @@ export default function Dashboard() {
                         />
                         <Bar
                           dataKey="bookings"
-                          fill="#4F46E5"
+                          fill="var(--infiniti-lightest-blue)"
                           radius={[4, 4, 0, 0]}
                           name="bookings"
                           minPointSize={5}

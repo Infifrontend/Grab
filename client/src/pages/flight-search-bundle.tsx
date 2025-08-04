@@ -1710,7 +1710,7 @@ export default function FlightSearchBundle() {
                   Available Flights
                   <Badge
                     count={`${filteredFlights.length} flights found`}
-                    style={{ backgroundColor: "#52c41a" }}
+                    style={{ backgroundColor: "var(--ant-color-success)" }}
                   />
                 </Title>
                 <Text className="text-gray-600">
@@ -1733,7 +1733,7 @@ export default function FlightSearchBundle() {
                           Outbound Flight
                           <Badge
                             count={filteredFlights.length}
-                            style={{ backgroundColor: "#52c41a" }}
+                            style={{ backgroundColor: "var(--ant-color-success)" }}
                           />
                         </span>
                       ),
@@ -1771,7 +1771,7 @@ export default function FlightSearchBundle() {
                           Return Flight
                           <Badge
                             count={filteredReturnFlights.length}
-                            style={{ backgroundColor: "#52c41a" }}
+                            style={{ backgroundColor: "var(--ant-color-success)" }}
                           />
                         </span>
                       ),

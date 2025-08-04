@@ -10,6 +10,7 @@ import {
   Col,
   Button,
   Typography,
+  Radio,
 } from "antd";
 import { useModalLogic } from "./use-modal-logic";
 const { Title, Text } = Typography;
@@ -18,7 +19,7 @@ interface DiscountModalProps {
   isModalVisible: boolean;
   editingData?: any;
   setIsModalVisible: (value: boolean) => void;
-  setEditingOffer: (value: any) => void;
+  setEditingData: (value: any) => void;
   setDiscountTableData: (value: any) => void;
 }
 
@@ -34,7 +35,7 @@ export default function DiscountModal({
   isModalVisible,
   editingData,
   setIsModalVisible,
-  setEditingOffer,
+  setEditingData,
   setDiscountTableData,
 }: DiscountModalProps) {
   const [form] = Form.useForm();
@@ -59,7 +60,7 @@ export default function DiscountModal({
       visible={isModalVisible}
       onCancel={() => {
         setIsModalVisible(false);
-        setEditingOffer(null);
+        setEditingData(null);
         setPolicyModalStep(0);
         form.resetFields();
       }}
@@ -75,6 +76,7 @@ export default function DiscountModal({
           console.log("Discount values:", values);
           setDiscountTableData({ ...formValues, ...form.getFieldsValue() });
           setIsModalVisible(false);
+          setEditingData(null);
         }}
       >
         {/* Steps Navigation */}
@@ -96,8 +98,8 @@ export default function DiscountModal({
                       index < policyModalStep
                         ? "bg-green-500 border-green-500 text-white"
                         : index === policyModalStep
-                          ? "bg-blue-500 border-blue-500 text-white"
-                          : "bg-white border-gray-300 text-gray-500"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white border-gray-300 text-gray-500"
                     }
                   `}
                 >
@@ -123,7 +125,7 @@ export default function DiscountModal({
           </div>
         </div>
 
-        <div style={{ minHeight: "400px" }}>
+        <div style={{ minHeight: "400px" }} className="mb-6">
           {/* Step 1: Basic Information */}
           {policyModalStep === 0 && (
             <div>
@@ -268,55 +270,55 @@ export default function DiscountModal({
               </Text>
               <div className="space-y-4 mb-6">
                 <Form.Item name="targetApplication" initialValue="baseFareOnly">
-                  <div className="space-y-3">
-                    <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          value="baseFareOnly"
-                          className="mr-3"
-                        />
-                        <div>
-                          <Text className="font-semibold text-blue-900">
-                            Base Fare Only
-                          </Text>
-                          <Text className="text-blue-700 text-sm block">
-                            Apply discount to base fare/ticket price
-                          </Text>
-                        </div>
+                  <Radio.Group className="w-full">
+                    <div className="space-y-3">
+                      <div className="p-4 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <Radio value="baseFareOnly" className="w-full">
+                          <div className="flex items-center">
+                            <div className="ml-3">
+                              <Text className="font-semibold text-blue-900">
+                                Base Fare Only
+                              </Text>
+                              <Text className="text-blue-700 text-sm block">
+                                Apply discount to base fare/ticket price
+                              </Text>
+                            </div>
+                          </div>
+                        </Radio>
+                      </div>
+
+                      <div className="p-4 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <Radio value="ancillariesOnly" className="w-full">
+                          <div className="flex items-center">
+                            <div className="ml-3">
+                              <Text className="font-semibold">
+                                Ancillaries Only
+                              </Text>
+                              <Text className="text-gray-600 text-sm block">
+                                Apply discount to selected ancillary services
+                              </Text>
+                            </div>
+                          </div>
+                        </Radio>
+                      </div>
+
+                      <div className="p-4 border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <Radio value="both" className="w-full">
+                          <div className="flex items-center">
+                            <div className="ml-3">
+                              <Text className="font-semibold">
+                                Both Base Fare & Ancillaries
+                              </Text>
+                              <Text className="text-gray-600 text-sm block">
+                                Apply discount to both fare and selected
+                                services
+                              </Text>
+                            </div>
+                          </div>
+                        </Radio>
                       </div>
                     </div>
-                    <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          value="ancillariesOnly"
-                          className="mr-3"
-                        />
-                        <div>
-                          <Text className="font-semibold">
-                            Ancillaries Only
-                          </Text>
-                          <Text className="text-gray-600 text-sm block">
-                            Apply discount to selected ancillary services
-                          </Text>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                      <div className="flex items-center">
-                        <input type="radio" value="both" className="mr-3" />
-                        <div>
-                          <Text className="font-semibold">
-                            Both Base Fare & Ancillaries
-                          </Text>
-                          <Text className="text-gray-600 text-sm block">
-                            Apply discount to both fare and selected services
-                          </Text>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  </Radio.Group>
                 </Form.Item>
               </div>
               <Row gutter={24}>
@@ -371,8 +373,8 @@ export default function DiscountModal({
 
           {/* Step 3: Eligibility Criteria */}
           {policyModalStep === 2 && (
-            <div className="space-y-8">
-              <div className="text-center mb-8">
+            <div className="space-y-6">
+              <div className="mb-4">
                 <Title level={4} className="!mb-4 text-blue-600">
                   Eligibility Criteria
                 </Title>
@@ -381,7 +383,7 @@ export default function DiscountModal({
                   location, and spending requirements.
                 </Text>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
                 <div className="mb-4">
                   <Title
                     level={5}
@@ -394,22 +396,22 @@ export default function DiscountModal({
                   </Text>
                 </div>
                 <Form.Item name="loyaltyTiers" className="!mb-0">
-                  <Checkbox.Group className="block">
+                  <Checkbox.Group className="grid grid-cols-6 gap-4 w-full">
                     {["bronze", "silver", "gold", "platinum", "diamond"].map(
                       (tier) => (
-                        <div key={tier} className="p-1 flex gap-2 items-center">
-                          <Checkbox value={tier} className="scale-110" />
+                        <Checkbox value={tier} className="w-[135px]">
+                            <div key={tier} className="p-1 flex gap-2 items-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${
+                            className={`flex w-4 h-4 rounded-full ${
                               tier === "bronze"
                                 ? "bg-amber-600"
                                 : tier === "silver"
-                                  ? "bg-gray-400"
-                                  : tier === "gold"
-                                    ? "bg-yellow-500"
-                                    : tier === "platinum"
-                                      ? "bg-slate-400"
-                                      : "bg-blue-500"
+                                ? "bg-gray-400"
+                                : tier === "gold"
+                                ? "bg-yellow-500"
+                                : tier === "platinum"
+                                ? "bg-slate-400"
+                                : "bg-blue-500"
                             }`}
                           ></div>
                           <Text
@@ -417,24 +419,25 @@ export default function DiscountModal({
                               tier === "bronze"
                                 ? "text-amber-800"
                                 : tier === "silver"
-                                  ? "text-gray-700"
-                                  : tier === "gold"
-                                    ? "text-yellow-800"
-                                    : tier === "platinum"
-                                      ? "text-slate-700"
-                                      : "text-blue-800"
+                                ? "text-gray-700"
+                                : tier === "gold"
+                                ? "text-yellow-800"
+                                : tier === "platinum"
+                                ? "text-slate-700"
+                                : "text-blue-800"
                             }`}
                           >
                             {tier.charAt(0).toUpperCase() + tier.slice(1)}
                           </Text>
-                        </div>
-                      ),
+                          </div>
+                          </Checkbox>
+                      )
                     )}
                   </Checkbox.Group>
                 </Form.Item>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <div className="mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                <div className="mb-4">
                   <Title
                     level={5}
                     className="!mb-2 text-gray-900 font-semibold"
@@ -448,90 +451,59 @@ export default function DiscountModal({
                 </div>
                 <Form.Item name="geographicEligibility" className="!mb-0">
                   <Checkbox.Group className="w-full">
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-6 gap-4">
                       {["US", "CA", "MX", "UK", "AU", "DE", "FR", "JP"].map(
                         (country) => (
                           <div
                             key={country}
-                            className={`flex items-center space-x-3 p-4 rounded-lg border hover:border-${
-                              country === "US"
-                                ? "blue-300"
-                                : country === "CA"
-                                  ? "red-300"
-                                  : country === "MX"
-                                    ? "green-300"
-                                    : country === "UK"
-                                      ? "purple-300"
-                                      : country === "AU"
-                                        ? "orange-300"
-                                        : country === "DE"
-                                          ? "yellow-300"
-                                          : country === "FR"
-                                            ? "indigo-300"
-                                            : "pink-300"
-                            } transition-colors ${
-                              country === "US"
-                                ? "bg-blue-50 border-blue-200"
-                                : country === "CA"
-                                  ? "bg-red-50 border-red-200"
-                                  : country === "MX"
-                                    ? "bg-green-50 border-green-200"
-                                    : country === "UK"
-                                      ? "bg-purple-50 border-purple-200"
-                                      : country === "AU"
-                                        ? "bg-orange-50 border-orange-200"
-                                        : country === "DE"
-                                          ? "bg-yellow-50 border-yellow-200"
-                                          : country === "FR"
-                                            ? "bg-indigo-50 border-indigo-200"
-                                            : "bg-pink-50 border-pink-200"
-                            }`}
+                            className={`flex items-center space-x-3 w-[135px]`}
                           >
-                            <Checkbox value={country} className="scale-110" />
-                            <Text
-                              className={`font-medium ${
-                                country === "US"
-                                  ? "text-blue-800"
-                                  : country === "CA"
+                            <Checkbox value={country}>
+                              <Text
+                                className={`flex font-medium ${
+                                  country === "US"
+                                    ? "text-blue-800"
+                                    : country === "CA"
                                     ? "text-red-800"
                                     : country === "MX"
-                                      ? "text-green-800"
-                                      : country === "UK"
-                                        ? "text-purple-800"
-                                        : country === "AU"
-                                          ? "text-orange-800"
-                                          : country === "DE"
-                                            ? "text-yellow-800"
-                                            : country === "FR"
-                                              ? "text-indigo-800"
-                                              : "text-pink-800"
-                              }`}
-                            >
-                              {country === "US"
-                                ? "🇺🇸 US"
-                                : country === "CA"
+                                    ? "text-green-800"
+                                    : country === "UK"
+                                    ? "text-purple-800"
+                                    : country === "AU"
+                                    ? "text-orange-800"
+                                    : country === "DE"
+                                    ? "text-yellow-800"
+                                    : country === "FR"
+                                    ? "text-indigo-800"
+                                    : "text-pink-800"
+                                }`}
+                              >
+                                {country === "US"
+                                  ? "🇺🇸 US"
+                                  : country === "CA"
                                   ? "🇨🇦 CA"
                                   : country === "MX"
-                                    ? "🇲🇽 MX"
-                                    : country === "UK"
-                                      ? "🇬🇧 UK"
-                                      : country === "AU"
-                                        ? "🇦🇺 AU"
-                                        : country === "DE"
-                                          ? "🇩🇪 DE"
-                                          : country === "FR"
-                                            ? "🇫🇷 FR"
-                                            : "🇯🇵 JP"}
-                            </Text>
+                                  ? "🇲🇽 MX"
+                                  : country === "UK"
+                                  ? "🇬🇧 UK"
+                                  : country === "AU"
+                                  ? "🇦🇺 AU"
+                                  : country === "DE"
+                                  ? "🇩🇪 DE"
+                                  : country === "FR"
+                                  ? "🇫🇷 FR"
+                                  : "🇯🇵 JP"}
+                              </Text>
+                            </Checkbox>
                           </div>
-                        ),
+                        )
                       )}
                     </div>
                   </Checkbox.Group>
                 </Form.Item>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <div className="mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                <div className="mb-4">
                   <Title
                     level={5}
                     className="!mb-2 text-gray-900 font-semibold"
@@ -545,7 +517,7 @@ export default function DiscountModal({
                 </div>
                 <Form.Item name="routeRestrictions" className="!mb-0">
                   <Checkbox.Group className="w-full">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-6 gap-4">
                       {[
                         "LAX-JFK",
                         "ORD-SFO",
@@ -554,22 +526,24 @@ export default function DiscountModal({
                         "DEN-BOS",
                         "LAX-ORD",
                       ].map((route) => (
-                        <div
-                          key={route}
-                          className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-                        >
-                          <Checkbox value={route} className="scale-110" />
+                        <Checkbox value={route} className="w-[135px]">
+                            <div
+                              key={route}
+                              className="flex items-center space-x-3"
+                            >
                           <Text className="font-medium text-gray-700">
                             {route}
                           </Text>
                         </div>
-                      ))}
-                    </div>
+                        </Checkbox>
+                    
+                  ))}
+                  </div>
                   </Checkbox.Group>
                 </Form.Item>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <div className="mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                <div className="mb-4">
                   <Title
                     level={5}
                     className="!mb-2 text-gray-900 font-semibold"
@@ -590,10 +564,10 @@ export default function DiscountModal({
                     formatter={(value) =>
                       `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                     }
-                    parser={(value) => value?.replace(/\$\s?|(,*)/g, "") || ""}
+                    parser={(value:any) => value?.replace(/\$\s?|(,*)/g, "") || ""}
                     style={{
                       fontSize: "16px",
-                      padding: "12px 16px",
+                      padding: "5px",
                       borderRadius: "8px",
                     }}
                   />
@@ -605,14 +579,14 @@ export default function DiscountModal({
           {/* Step 4: Date Windows & Validity */}
           {policyModalStep === 3 && (
             <div>
-              <Title level={4} className="!mb-4 text-orange-600">
+              <Title level={4} className="!mb-2 text-orange-600">
                 Date Windows & Validity
               </Title>
               <Text className="text-gray-600 block mb-6">
                 Set the validity period and any blackout dates for this
                 discount.
               </Text>
-              <Row gutter={16} className="mb-8">
+              <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
                     label={
@@ -659,20 +633,20 @@ export default function DiscountModal({
                     />
                   </Form.Item>
                 </Col>
+                <Col span={12}>
+                  <Title level={5} className="!mb-4">
+                    Blackout Dates
+                  </Title>
+                  <Form.Item name="blackoutDates">
+                    <DatePicker
+                      placeholder="dd-----yyyy"
+                      size="large"
+                      className="w-full rounded-lg"
+                      format="MMM DD, YYYY"
+                    />
+                  </Form.Item>
+                </Col>
               </Row>
-              <div className="mb-6">
-                <Title level={5} className="!mb-4">
-                  Blackout Dates
-                </Title>
-                <Form.Item name="blackoutDates">
-                  <DatePicker
-                    placeholder="dd-----yyyy"
-                    size="large"
-                    className="w-full rounded-lg"
-                    format="MMM DD, YYYY"
-                  />
-                </Form.Item>
-              </div>
             </div>
           )}
 
@@ -685,8 +659,7 @@ export default function DiscountModal({
               <Text className="text-gray-600 block mb-6">
                 Configure how this discount interacts with promotional codes.
               </Text>
-
-              <div className="p-6 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="pt-4 px-4 pb-2 border border-gray-200 rounded-lg bg-gray-50">
                 <Form.Item
                   name="allowPromoCodeCombination"
                   valuePropName="checked"
@@ -701,10 +674,10 @@ export default function DiscountModal({
                   <div className="flex items-start">
                     <Checkbox className="mr-4 mt-1" />
                     <div>
-                      <Text className="font-semibold text-lg block mb-2">
+                      <Text className="font-semibold text-md block">
                         Allow Combination with Promo Codes
                       </Text>
-                      <Text className="text-gray-600">
+                      <Text className="text-gray-600 text-sm">
                         This discount can be used together with promotional
                         codes
                       </Text>
@@ -721,7 +694,7 @@ export default function DiscountModal({
           <Button
             onClick={() => {
               setIsModalVisible(false);
-              setEditingOffer(null);
+              setEditingData(null);
               setPolicyModalStep(0);
               form.resetFields();
             }}
@@ -743,8 +716,10 @@ export default function DiscountModal({
               <Button
                 type="primary"
                 onClick={() => {
-                  setPolicyModalStep(Math.min(4, policyModalStep + 1));
                   handleFormData();
+                  setTimeout(() => {
+                    setPolicyModalStep(Math.min(4, policyModalStep + 1));
+                  }, 100);
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="large"
@@ -758,7 +733,7 @@ export default function DiscountModal({
                 className="bg-green-600 hover:bg-green-700"
                 size="large"
               >
-                Create Discount
+                {(editingData && Object.keys(editingData)?.length) ? "Update " : "Create "}  Discount
               </Button>
             )}
           </div>
