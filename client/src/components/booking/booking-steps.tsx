@@ -23,16 +23,13 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
       title: "Add Services",
     },
     {
-      title: "Group Leader Info",
-    },
-    {
-      title: "Passenger Info",
-    },
-    {
-      title: "Review & Confirmation",
+      title: "Group Leader Review",
     },
     {
       title: "Payment",
+    },
+    {
+      title: "Passenger Info",
     },
   ];
 

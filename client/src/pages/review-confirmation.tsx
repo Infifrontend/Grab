@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button, Card, Row, Col, Typography, Divider, Space } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 import dayjs from "dayjs";
 
@@ -10,6 +9,7 @@ const { Title, Text } = Typography;
 
 export default function ReviewConfirmation() {
   const navigate = useNavigate();
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,14 +69,12 @@ export default function ReviewConfirmation() {
     };
     localStorage.setItem("tempReviewData", JSON.stringify(reviewData));
     console.log("Saved review data before going back");
-    navigate("/passenger-info");
+    navigate(adminMode ? "/admin/passenger-info" : "/passenger-info");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
+    <>
+      <div className={`${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`}>
         {/* Booking Steps */}
         <div className="mb-8">
           <div className="overflow-x-auto">
@@ -127,8 +125,8 @@ export default function ReviewConfirmation() {
                           ? bookingData.tripType === "oneWay"
                             ? "One-way"
                             : bookingData.tripType === "roundTrip"
-                              ? "Round-trip"
-                              : "Multi-city"
+                            ? "Round-trip"
+                            : "Multi-city"
                           : "One-way"}
                       </Text>
                     </div>
@@ -152,10 +150,10 @@ export default function ReviewConfirmation() {
                         {bookingData?.departureDate
                           ? typeof bookingData.departureDate === "string"
                             ? dayjs(bookingData.departureDate).format(
-                                "DD MMM YYYY",
+                                "DD MMM YYYY"
                               )
                             : dayjs(bookingData.departureDate).format(
-                                "DD MMM YYYY",
+                                "DD MMM YYYY"
                               )
                           : "22 Jun 2024"}
                       </Text>
@@ -181,7 +179,12 @@ export default function ReviewConfirmation() {
                       </Text>
                       <Text className="text-gray-900 font-medium text-base">
                         {bookingData
-                          ? `${bookingData.totalPassengers || bookingData.adults + bookingData.kids + bookingData.infants} passengers`
+                          ? `${
+                              bookingData.totalPassengers ||
+                              bookingData.adults +
+                                bookingData.kids +
+                                bookingData.infants
+                            } passengers`
                           : "1 passenger"}
                       </Text>
                     </div>
@@ -195,10 +198,10 @@ export default function ReviewConfirmation() {
                         bookingData.tripType !== "oneWay"
                           ? typeof bookingData.returnDate === "string"
                             ? dayjs(bookingData.returnDate).format(
-                                "DD MMM YYYY",
+                                "DD MMM YYYY"
                               )
                             : dayjs(bookingData.returnDate).format(
-                                "DD MMM YYYY",
+                                "DD MMM YYYY"
                               )
                           : "N/A"}
                       </Text>
@@ -346,7 +349,7 @@ export default function ReviewConfirmation() {
                               total +
                               service.price *
                                 (bookingData?.totalPassengers || 1),
-                            0,
+                            0
                           )
                         : "3,800")}
                   </Text>
@@ -360,7 +363,7 @@ export default function ReviewConfirmation() {
                       {((bundleData?.bundleCost || 0) +
                         selectedServices.reduce(
                           (total, service) => total + service.price,
-                          0,
+                          0
                         )) *
                         (bookingData?.totalPassengers || 1)}
                     </Text>
@@ -424,14 +427,14 @@ export default function ReviewConfirmation() {
           <Button
             type="primary"
             size="large"
-            onClick={() => navigate("/payment-options")}
+            onClick={() => navigate(adminMode ? "/admin/payment-options" : "/payment-options")}
             className="px-8"
             style={{
               backgroundColor: "#2a0a22",
               borderColor: "#2a0a22",
             }}
           >
-            Continue to Payment
+            Submit the booking
           </Button>
         </div>
       </div>
@@ -451,6 +454,6 @@ export default function ReviewConfirmation() {
           margin: 16px 0;
         }
       `}</style>
-    </div>
+    </>
   );
 }

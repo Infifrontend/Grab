@@ -18,7 +18,6 @@ import {
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import Header from "@/components/layout/header";
 import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
@@ -27,9 +26,10 @@ export default function DownloadItinerary() {
   const navigate = useNavigate();
   // const [match, params] = useRoute("/download-itinerary/:id");
   const params = useParams();
-
   const printRef = useRef(null);
 
+  // Check if this is an admin booking
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   // const bookingId = params?.id;
   const bookingId = params.id;
 
@@ -51,9 +51,9 @@ export default function DownloadItinerary() {
 
   const handleBackToBookingDetails = () => {
     if (bookingId) {
-      navigate(`/booking-details/${bookingId}`);
+      navigate(adminMode ? `/admin/booking-details/${bookingId}` : `/booking-details/${bookingId}`);
     } else {
-      navigate("/dashboard");
+      navigate(adminMode ? "/admin/dashboard" : "/dashboard");
     }
   };
 
@@ -112,11 +112,19 @@ export default function DownloadItinerary() {
             </div>
             <div class="detail-row">
               <span class="detail-label">Total Amount:</span>
-              <span class="detail-value">$${parseFloat(booking.totalAmount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+              <span class="detail-value">$${parseFloat(
+                booking.totalAmount
+              ).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Booking Date:</span>
-              <span class="detail-value">${new Date(booking.bookedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
+              <span class="detail-value">${new Date(
+                booking.bookedAt
+              ).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}</span>
             </div>
           </div>
 
@@ -140,15 +148,35 @@ export default function DownloadItinerary() {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Route:</span>
-                <span class="detail-value">${flightData.origin} → ${flightData.destination}</span>
+                <span class="detail-value">${flightData.origin} → ${
+                  flightData.destination
+                }</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Departure:</span>
-                <span class="detail-value">${new Date(flightData.departureTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date(flightData.departureTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
+                <span class="detail-value">${new Date(
+                  flightData.departureTime
+                ).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })} at ${new Date(flightData.departureTime).toLocaleTimeString(
+                  "en-GB",
+                  { hour: "2-digit", minute: "2-digit" }
+                )}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Arrival:</span>
-                <span class="detail-value">${new Date(flightData.arrivalTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date(flightData.arrivalTime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
+                <span class="detail-value">${new Date(
+                  flightData.arrivalTime
+                ).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })} at ${new Date(flightData.arrivalTime).toLocaleTimeString(
+                  "en-GB",
+                  { hour: "2-digit", minute: "2-digit" }
+                )}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Duration:</span>
@@ -176,7 +204,9 @@ export default function DownloadItinerary() {
                 <div class="passenger-item">
                   <div class="detail-row">
                     <span class="detail-label">Passenger ${index + 1}:</span>
-                    <span class="detail-value">${passenger.title} ${passenger.firstName} ${passenger.lastName}</span>
+                    <span class="detail-value">${passenger.title} ${
+                    passenger.firstName
+                  } ${passenger.lastName}</span>
                   </div>
                   ${
                     passenger.nationality
@@ -193,13 +223,19 @@ export default function DownloadItinerary() {
                       ? `
                   <div class="detail-row">
                     <span class="detail-label">Date of Birth:</span>
-                    <span class="detail-value">${new Date(passenger.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                    <span class="detail-value">${new Date(
+                      passenger.dateOfBirth
+                    ).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}</span>
                   </div>
                   `
                       : ""
                   }
                 </div>
-              `,
+              `
                 )
                 .join("")}
             </div>
@@ -215,7 +251,11 @@ export default function DownloadItinerary() {
             <div class="section-title">Group Leader Information</div>
             <div class="detail-row">
               <span class="detail-label">Name:</span>
-              <span class="detail-value">${comprehensiveData.groupLeaderInfo.name || comprehensiveData.groupLeaderInfo.firstName || "N/A"}</span>
+              <span class="detail-value">${
+                comprehensiveData.groupLeaderInfo.name ||
+                comprehensiveData.groupLeaderInfo.firstName ||
+                "N/A"
+              }</span>
             </div>
             ${
               comprehensiveData.groupLeaderInfo.email
@@ -233,7 +273,10 @@ export default function DownloadItinerary() {
                 ? `
             <div class="detail-row">
               <span class="detail-label">Phone:</span>
-              <span class="detail-value">${comprehensiveData.groupLeaderInfo.phone || comprehensiveData.groupLeaderInfo.phoneNumber}</span>
+              <span class="detail-value">${
+                comprehensiveData.groupLeaderInfo.phone ||
+                comprehensiveData.groupLeaderInfo.phoneNumber
+              }</span>
             </div>
             `
                 : ""
@@ -245,7 +288,14 @@ export default function DownloadItinerary() {
 
           <div class="footer">
             <p>This is a computer-generated itinerary. Please contact us for any queries.</p>
-            <p>Generated on: ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
+            <p>Generated on: ${new Date().toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })} at ${new Date().toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}</p>
           </div>
         </body>
         </html>
@@ -288,7 +338,9 @@ For detailed itinerary, please download the PDF version.
 Best regards,
 Group Airline Booking Team`;
 
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoLink;
   };
 
@@ -298,27 +350,21 @@ Group Airline Booking Team`;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
-          <Spin size="large" />
-        </div>
+      <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
+        <Spin size="large" />
       </div>
     );
   }
 
   if (error || !bookingDetails) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <Alert
-            message="Booking Not Found"
-            description="The booking you're looking for could not be found."
-            type="error"
-            showIcon
-          />
-        </div>
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <Alert
+          message="Booking Not Found"
+          description="The booking you're looking for could not be found."
+          type="error"
+          showIcon
+        />
       </div>
     );
   }
@@ -326,10 +372,8 @@ Group Airline Booking Team`;
   const { booking, passengers, flightData, comprehensiveData } = bookingDetails;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6" ref={printRef}>
+    <>
+      <div className={`${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`} ref={printRef}>
         {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <Title level={2} className="!mb-0 text-gray-900">
@@ -448,7 +492,7 @@ Group Airline Booking Team`;
                         </Text>
                         <Text className="text-gray-900 font-semibold">
                           {new Date(
-                            flightData.departureTime,
+                            flightData.departureTime
                           ).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
@@ -456,7 +500,7 @@ Group Airline Booking Team`;
                           })}{" "}
                           at{" "}
                           {new Date(
-                            flightData.departureTime,
+                            flightData.departureTime
                           ).toLocaleTimeString("en-GB", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -471,12 +515,12 @@ Group Airline Booking Team`;
                         <Text className="text-gray-900 font-semibold">
                           {new Date(flightData.arrivalTime).toLocaleDateString(
                             "en-GB",
-                            { day: "2-digit", month: "short", year: "numeric" },
+                            { day: "2-digit", month: "short", year: "numeric" }
                           )}{" "}
                           at{" "}
                           {new Date(flightData.arrivalTime).toLocaleTimeString(
                             "en-GB",
-                            { hour: "2-digit", minute: "2-digit" },
+                            { hour: "2-digit", minute: "2-digit" }
                           )}
                         </Text>
                       </div>
@@ -525,7 +569,11 @@ Group Airline Booking Team`;
                   <div className="flex justify-between">
                     <Text className="text-gray-600 font-medium">Status:</Text>
                     <Text
-                      className={`font-semibold ${booking.bookingStatus === "confirmed" ? "text-green-600" : "text-orange-600"}`}
+                      className={`font-semibold ${
+                        booking.bookingStatus === "confirmed"
+                          ? "text-green-600"
+                          : "text-orange-600"
+                      }`}
                     >
                       {booking.bookingStatus}
                     </Text>
@@ -588,6 +636,6 @@ Group Airline Booking Team`;
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }

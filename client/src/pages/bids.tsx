@@ -25,7 +25,6 @@ import {
   UndoOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/layout/header";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -106,10 +105,10 @@ export default function Bids() {
           const travelDate = configData.travelDate
             ? formatDateToDDMMMYYYY(configData.travelDate)
             : bid.flight?.departureTime
-              ? formatDateToDDMMMYYYY(bid.flight.departureTime)
-              : bid.createdAt
-                ? formatDateToDDMMMYYYY(bid.createdAt)
-                : "N/A";
+            ? formatDateToDDMMMYYYY(bid.flight.departureTime)
+            : bid.createdAt
+            ? formatDateToDDMMMYYYY(bid.createdAt)
+            : "N/A";
 
           return {
             bidId: `BID-${bid.id}`,
@@ -117,36 +116,39 @@ export default function Bids() {
             passengers: bid.passengerCount,
             travelDate: travelDate,
             bidAmount: `$${bid.bidAmount}`,
-            deposit: `$${(parseFloat(bid.bidAmount.toString()) * bid.passengerCount * 0.1).toFixed(2)}`,
+            deposit: `$${(
+              parseFloat(bid.bidAmount.toString()) *
+              bid.passengerCount *
+              0.1
+            ).toFixed(2)}`,
             status:
               bid.bidStatus === "active"
                 ? "Open"
                 : bid.bidStatus === "accepted"
-                  ? "Accepted"
-                  : bid.bidStatus === "approved"
-                    ? "Accepted"
-                    : bid.bidStatus === "rejected"
-                      ? "Declined"
-                      : bid.bidStatus === "expired"
-                        ? "Expired"
-                        : bid.bidStatus === "completed"
-                          ? "Under Review"
-                          : bid.bidStatus === "pending"
-                            ? "Under Review"
-                            : "Under Review",
+                ? "Accepted"
+                : bid.bidStatus === "approved"
+                ? "Accepted"
+                : bid.bidStatus === "rejected"
+                ? "Declined"
+                : bid.bidStatus === "expired"
+                ? "Expired"
+                : bid.bidStatus === "completed"
+                ? "Under Review"
+                : bid.bidStatus === "pending"
+                ? "Under Review"
+                : "Under Review",
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
                 : bid.bidStatus === "accepted"
-                  ? "Converted to Booking"
-                  : bid.bidStatus === "approved"
-                    ? "Accepted for Booking"
-                    : bid.bidStatus === "active"
-                      ? "Open"
-                      : bid.bidStatus === "rejected" ||
-                          bid.bidStatus === "expired"
-                        ? "Refunded"
-                        : "Paid",
+                ? "Converted to Booking"
+                : bid.bidStatus === "approved"
+                ? "Accepted for Booking"
+                : bid.bidStatus === "active"
+                ? "Open"
+                : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
+                ? "Refunded"
+                : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
@@ -160,7 +162,7 @@ export default function Bids() {
         try {
           // Get all bid IDs to fetch related payments
           const bidIds = transformedBids.map((bid) =>
-            bid.bidId.replace("BID-", ""),
+            bid.bidId.replace("BID-", "")
           );
 
           // Fetch payments for each bid
@@ -188,7 +190,7 @@ export default function Bids() {
               const relatedBid = transformedBids.find(
                 (bid) =>
                   bid.bidId === `BID-${payment.relatedBidId}` ||
-                  bid.bidId === payment.bidId,
+                  bid.bidId === payment.bidId
               );
 
               const route = relatedBid ? relatedBid.route : "N/A";
@@ -204,7 +206,10 @@ export default function Bids() {
                 bidId: bidReference,
                 route: route,
                 amount: payment.amount
-                  ? `₹${parseFloat(payment.amount.toString()).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+                  ? `₹${parseFloat(payment.amount.toString()).toLocaleString(
+                      "en-IN",
+                      { minimumFractionDigits: 2 }
+                    )}`
                   : "₹0",
                 type:
                   payment.type ||
@@ -220,7 +225,7 @@ export default function Bids() {
                     ? new Date(payment.createdAt).toISOString().split("T")[0]
                     : new Date().toISOString().split("T")[0]),
               };
-            },
+            }
           );
 
           setPaymentHistoryData(transformedPayments);
@@ -230,29 +235,29 @@ export default function Bids() {
             .filter(
               (p) =>
                 (p.type === "Deposit" || p.type === "Payment") &&
-                (p.status === "Completed" || p.status === "completed"),
+                (p.status === "Completed" || p.status === "completed")
             )
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0,
+              0
             );
 
           const totalRefunds = transformedPayments
             .filter(
               (p) =>
                 p.type === "Refund" &&
-                (p.status === "Completed" || p.status === "completed"),
+                (p.status === "Completed" || p.status === "completed")
             )
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0,
+              0
             );
 
           const pendingPayments = transformedPayments
             .filter((p) => p.status === "Pending" || p.status === "pending")
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0,
+              0
             );
 
           setPaymentSummary({
@@ -288,14 +293,14 @@ export default function Bids() {
     // Filter by bid ID
     if (searchParams.bidId.trim()) {
       filtered = filtered.filter((bid) =>
-        bid.bidId.toLowerCase().includes(searchParams.bidId.toLowerCase()),
+        bid.bidId.toLowerCase().includes(searchParams.bidId.toLowerCase())
       );
     }
 
     // Filter by route
     if (searchParams.route.trim()) {
       filtered = filtered.filter((bid) =>
-        bid.route.toLowerCase().includes(searchParams.route.toLowerCase()),
+        bid.route.toLowerCase().includes(searchParams.route.toLowerCase())
       );
     }
 
@@ -306,7 +311,7 @@ export default function Bids() {
       searchParams.status !== ""
     ) {
       filtered = filtered.filter(
-        (bid) => bid.status.toLowerCase() === searchParams.status.toLowerCase(),
+        (bid) => bid.status.toLowerCase() === searchParams.status.toLowerCase()
       );
     }
 
@@ -335,7 +340,7 @@ export default function Bids() {
       if (!isNaN(minAmount)) {
         filtered = filtered.filter((bid) => {
           const bidAmount = parseFloat(
-            bid.bidAmount.replace("$", "").replace(/,/g, ""),
+            bid.bidAmount.replace("$", "").replace(/,/g, "")
           );
           return bidAmount >= minAmount;
         });
@@ -347,7 +352,7 @@ export default function Bids() {
       if (!isNaN(maxAmount)) {
         filtered = filtered.filter((bid) => {
           const bidAmount = parseFloat(
-            bid.bidAmount.replace("$", "").replace(/,/g, ""),
+            bid.bidAmount.replace("$", "").replace(/,/g, "")
           );
           return bidAmount <= maxAmount;
         });
@@ -556,503 +561,493 @@ export default function Bids() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <Title level={2} className="!mb-2">
+          Group Bidding
+        </Title>
+        <Text className="text-gray-600">
+          Submit bids for group travel and get competitive rates
+        </Text>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Page Header */}
-        <div className="mb-6">
-          <Title level={2} className="!mb-2">
-            Group Bidding
-          </Title>
-          <Text className="text-gray-600">
-            Submit bids for group travel and get competitive rates
-          </Text>
-        </div>
-
-        {/* Stats Cards */}
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Card className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <InfoCircleOutlined className="text-blue-500 text-lg mr-2" />
-                <Text className="text-gray-600 text-sm">Active Bids</Text>
-              </div>
-              {loading ? (
-                <Spin size="small" />
-              ) : (
-                <Title level={2} className="!mb-0 text-blue-600">
-                  {statistics.activeBids}
-                </Title>
-              )}
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Card className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <CheckCircleOutlined className="text-green-500 text-lg mr-2" />
-                <Text className="text-gray-600 text-sm">Accepted Bids</Text>
-              </div>
-              {loading ? (
-                <Spin size="small" />
-              ) : (
-                <Title level={2} className="!mb-0 text-green-600">
-                  {statistics.acceptedBids}
-                </Title>
-              )}
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Card className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <DollarOutlined className="text-orange-500 text-lg mr-2" />
-                <Text className="text-gray-600 text-sm">Total Savings</Text>
-              </div>
-              {loading ? (
-                <Spin size="small" />
-              ) : (
-                <Title level={2} className="!mb-0 text-orange-600">
-                  ${statistics.totalSavings}
-                </Title>
-              )}
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Card className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <CreditCardOutlined className="text-purple-500 text-lg mr-2" />
-                <Text className="text-gray-600 text-sm">Deposits Paid</Text>
-              </div>
-              {loading ? (
-                <Spin size="small" />
-              ) : (
-                <Title level={2} className="!mb-0 text-purple-600">
-                  ${statistics.depositsPaid.toFixed(2)}
-                </Title>
-              )}
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Card className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <UndoOutlined className="text-orange-500 text-lg mr-2" />
-                <Text className="text-gray-600 text-sm">Refunds Received</Text>
-              </div>
-              {loading ? (
-                <Spin size="small" />
-              ) : (
-                <Title level={2} className="!mb-0 text-orange-600">
-                  ${statistics.refundsReceived.toFixed(2)}
-                </Title>
-              )}
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Tabs */}
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabItems}
-          className="mb-6"
-        />
-
-        {/* Tab Content */}
-        {activeTab === "management" && (
-          <div className="space-y-6">
-            {/* Search and Filter */}
-            <Card>
-              <Title level={4} className="!mb-4 flex items-center">
-                <FilterOutlined className="mr-2" />
-                Search & Filter Bids
+      {/* Stats Cards */}
+      <Row gutter={[16, 16]} className="mb-6">
+        <Col xs={24} sm={12} md={6} lg={4}>
+          <Card className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <InfoCircleOutlined className="text-blue-500 text-lg mr-2" />
+              <Text className="text-gray-600 text-sm">Active Bids</Text>
+            </div>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Title level={2} className="!mb-0 text-blue-600">
+                {statistics.activeBids}
               </Title>
-
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Bid ID
-                  </Text>
-                  <Input
-                    placeholder="BID-2024-001"
-                    value={searchParams.bidId}
-                    onChange={(e) =>
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        bidId: e.target.value,
-                      }))
-                    }
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Route
-                  </Text>
-                  <Input
-                    placeholder="New York → London"
-                    value={searchParams.route}
-                    onChange={(e) =>
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        route: e.target.value,
-                      }))
-                    }
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Status
-                  </Text>
-                  <Select
-                    placeholder="All Status"
-                    style={{ width: "100%" }}
-                    value={searchParams.status || undefined}
-                    onChange={(value) =>
-                      setSearchParams((prev) => ({ ...prev, status: value }))
-                    }
-                    options={[
-                      { value: "all", label: "All Status" },
-                      { value: "open", label: "Open" },
-                      { value: "accepted", label: "Accepted" },
-                      { value: "declined", label: "Declined" },
-                      { value: "expired", label: "Expired" },
-                      { value: "under review", label: "Under Review" },
-                    ]}
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Date From
-                  </Text>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="DD MMM YYYY"
-                    format="DD MMM YYYY"
-                    value={searchParams.dateFrom}
-                    onChange={(date) =>
-                      setSearchParams((prev) => ({ ...prev, dateFrom: date }))
-                    }
-                  />
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]} className="mt-4">
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Date To
-                  </Text>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="DD MMM YYYY"
-                    format="DD MMM YYYY"
-                    value={searchParams.dateTo}
-                    onChange={(date) =>
-                      setSearchParams((prev) => ({ ...prev, dateTo: date }))
-                    }
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Min Amount ($)
-                  </Text>
-                  <Input
-                    placeholder="500"
-                    value={searchParams.minAmount}
-                    onChange={(e) =>
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        minAmount: e.target.value,
-                      }))
-                    }
-                    type="number"
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Text className="text-gray-600 text-sm block mb-1">
-                    Max Amount ($)
-                  </Text>
-                  <Input
-                    placeholder="2000"
-                    value={searchParams.maxAmount}
-                    onChange={(e) =>
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        maxAmount: e.target.value,
-                      }))
-                    }
-                    type="number"
-                  />
-                </Col>
-                <Col xs={24} md={6} className="flex items-end">
-                  <Button
-                    type="link"
-                    className="text-blue-600"
-                    onClick={handleResetFilters}
-                  >
-                    Reset Filters
-                  </Button>
-                </Col>
-              </Row>
-            </Card>
-
-            {/* All Bids Table */}
-            <Card>
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <Title level={4} className="!mb-1">
-                    All Bids ({filteredBidsData.length})
-                  </Title>
-                  <Text className="text-gray-600">
-                    Manage and track all your group bidding requests
-                  </Text>
-                </div>
-              </div>
-              <Table
-                columns={bidsColumns}
-                dataSource={filteredBidsData}
-                rowKey="bidId"
-                pagination={{ pageSize: 10 }}
-                loading={loading}
-              />
-            </Card>
-
-            {/* How Group Bidding Works */}
-            <Card>
-              <Title level={4} className="!mb-2">
-                How Group Bidding Works
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={4}>
+          <Card className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <CheckCircleOutlined className="text-green-500 text-lg mr-2" />
+              <Text className="text-gray-600 text-sm">Accepted Bids</Text>
+            </div>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Title level={2} className="!mb-0 text-green-600">
+                {statistics.acceptedBids}
               </Title>
-              <Text className="text-gray-600 block mb-6">
-                Get the best rates through our competitive bidding process
-              </Text>
-
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">1</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Submit Your Bid
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Enter your travel details and desired price for your group
-                      booking
-                    </Text>
-                  </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">2</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Pay Deposit
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Pay 10% deposit to secure your bid. Full refund if not
-                      accepted by airlines
-                    </Text>
-                  </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">3</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Airlines Review
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Airlines review your bid and may accept, counter, or
-                      decline based on availability
-                    </Text>
-                  </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">4</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Book & Save
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      If accepted, proceed with booking at your negotiated rate
-                      and save money
-                    </Text>
-                  </div>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === "payment-history" && (
-          <div className="space-y-6">
-            {/* Payment History Header */}
-            <Card>
-              <Title level={4} className="!mb-2">
-                Payment History
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={4}>
+          <Card className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <DollarOutlined className="text-orange-500 text-lg mr-2" />
+              <Text className="text-gray-600 text-sm">Total Savings</Text>
+            </div>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Title level={2} className="!mb-0 text-orange-600">
+                ${statistics.totalSavings}
               </Title>
-              <Text className="text-gray-600">
-                Track all deposits, refunds, and payment transactions
-              </Text>
-            </Card>
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={4}>
+          <Card className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <CreditCardOutlined className="text-purple-500 text-lg mr-2" />
+              <Text className="text-gray-600 text-sm">Deposits Paid</Text>
+            </div>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Title level={2} className="!mb-0 text-purple-600">
+                ${statistics.depositsPaid.toFixed(2)}
+              </Title>
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6} lg={4}>
+          <Card className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <UndoOutlined className="text-orange-500 text-lg mr-2" />
+              <Text className="text-gray-600 text-sm">Refunds Received</Text>
+            </div>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Title level={2} className="!mb-0 text-orange-600">
+                ${statistics.refundsReceived.toFixed(2)}
+              </Title>
+            )}
+          </Card>
+        </Col>
+      </Row>
 
-            {/* Payment History Table */}
-            <Card>
-              <Table
-                columns={paymentColumns}
-                dataSource={paymentHistoryData}
-                rowKey="paymentId"
-                pagination={{ pageSize: 10 }}
-                scroll={{ x: 1200 }}
-                loading={paymentLoading}
-              />
-            </Card>
+      {/* Tabs */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={tabItems}
+        className="mb-6"
+      />
 
-            {/* Payment Summary Cards */}
+      {/* Tab Content */}
+      {activeTab === "management" && (
+        <div className="space-y-6">
+          {/* Search and Filter */}
+          <Card>
+            <Title level={4} className="!mb-4 flex items-center">
+              <FilterOutlined className="mr-2" />
+              Search & Filter Bids
+            </Title>
+
             <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={6}>
-                <Card className="bg-green-50 border-green-200">
-                  <Text className="text-green-600 text-sm block mb-1">
-                    Total Deposits
-                  </Text>
-                  {paymentLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <Title level={3} className="!mb-0 text-green-600">
-                      ₹
-                      {paymentSummary.totalDeposits.toLocaleString("en-IN", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </Title>
-                  )}
-                </Card>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">Bid ID</Text>
+                <Input
+                  placeholder="BID-2024-001"
+                  value={searchParams.bidId}
+                  onChange={(e) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      bidId: e.target.value,
+                    }))
+                  }
+                />
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card className="bg-purple-50 border-purple-200">
-                  <Text className="text-purple-600 text-sm block mb-1">
-                    Total Refunds
-                  </Text>
-                  {paymentLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <Title level={3} className="!mb-0 text-purple-600">
-                      ₹
-                      {paymentSummary.totalRefunds.toLocaleString("en-IN", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </Title>
-                  )}
-                </Card>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">Route</Text>
+                <Input
+                  placeholder="New York → London"
+                  value={searchParams.route}
+                  onChange={(e) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      route: e.target.value,
+                    }))
+                  }
+                />
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card className="bg-blue-50 border-blue-200">
-                  <Text className="text-blue-600 text-sm block mb-1">
-                    Net Amount
-                  </Text>
-                  {paymentLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <Title level={3} className="!mb-0 text-blue-600">
-                      ₹
-                      {paymentSummary.netAmount.toLocaleString("en-IN", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </Title>
-                  )}
-                </Card>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">Status</Text>
+                <Select
+                  placeholder="All Status"
+                  style={{ width: "100%" }}
+                  value={searchParams.status || undefined}
+                  onChange={(value) =>
+                    setSearchParams((prev) => ({ ...prev, status: value }))
+                  }
+                  options={[
+                    { value: "all", label: "All Status" },
+                    { value: "open", label: "Open" },
+                    { value: "accepted", label: "Accepted" },
+                    { value: "declined", label: "Declined" },
+                    { value: "expired", label: "Expired" },
+                    { value: "under review", label: "Under Review" },
+                  ]}
+                />
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card className="bg-orange-50 border-orange-200">
-                  <Text className="text-orange-600 text-sm block mb-1">
-                    Pending Payments
-                  </Text>
-                  {paymentLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <Title level={3} className="!mb-0 text-orange-600">
-                      ₹
-                      {paymentSummary.pendingPayments.toLocaleString("en-IN", {
-                        minimimFractionDigits: 2,
-                      })}
-                    </Title>
-                  )}
-                </Card>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">
+                  Date From
+                </Text>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  placeholder="DD MMM YYYY"
+                  format="DD MMM YYYY"
+                  value={searchParams.dateFrom}
+                  onChange={(date) =>
+                    setSearchParams((prev) => ({ ...prev, dateFrom: date }))
+                  }
+                />
               </Col>
             </Row>
 
-            {/* How Group Bidding Works - Same section */}
-            <Card>
-              <Title level={4} className="!mb-2">
-                How Group Bidding Works
-              </Title>
-              <Text className="text-gray-600 block mb-6">
-                Get the best rates through our competitive bidding process
-              </Text>
+            <Row gutter={[16, 16]} className="mt-4">
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">
+                  Date To
+                </Text>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  placeholder="DD MMM YYYY"
+                  format="DD MMM YYYY"
+                  value={searchParams.dateTo}
+                  onChange={(date) =>
+                    setSearchParams((prev) => ({ ...prev, dateTo: date }))
+                  }
+                />
+              </Col>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">
+                  Min Amount ($)
+                </Text>
+                <Input
+                  placeholder="500"
+                  value={searchParams.minAmount}
+                  onChange={(e) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      minAmount: e.target.value,
+                    }))
+                  }
+                  type="number"
+                />
+              </Col>
+              <Col xs={24} md={6}>
+                <Text className="text-gray-600 text-sm block mb-1">
+                  Max Amount ($)
+                </Text>
+                <Input
+                  placeholder="2000"
+                  value={searchParams.maxAmount}
+                  onChange={(e) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      maxAmount: e.target.value,
+                    }))
+                  }
+                  type="number"
+                />
+              </Col>
+              <Col xs={24} md={6} className="flex items-end">
+                <Button
+                  type="link"
+                  className="text-blue-600"
+                  onClick={handleResetFilters}
+                >
+                  Reset Filters
+                </Button>
+              </Col>
+            </Row>
+          </Card>
 
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">1</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Submit Your Bid
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Enter your travel details and desired price for your group
-                      booking
-                    </Text>
+          {/* All Bids Table */}
+          <Card>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <Title level={4} className="!mb-1">
+                  All Bids ({filteredBidsData.length})
+                </Title>
+                <Text className="text-gray-600">
+                  Manage and track all your group bidding requests
+                </Text>
+              </div>
+            </div>
+            <Table
+              columns={bidsColumns}
+              dataSource={filteredBidsData}
+              rowKey="bidId"
+              pagination={{ pageSize: 10 }}
+              loading={loading}
+            />
+          </Card>
+
+          {/* How Group Bidding Works */}
+          <Card>
+            <Title level={4} className="!mb-2">
+              How Group Bidding Works
+            </Title>
+            <Text className="text-gray-600 block mb-6">
+              Get the best rates through our competitive bidding process
+            </Text>
+
+            <Row gutter={[24, 24]}>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">1</span>
                   </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">2</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Pay Deposit
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Pay 10% deposit to secure your bid. Full refund if not
-                      accepted by airlines
-                    </Text>
+                  <Title level={5} className="!mb-2">
+                    Submit Your Bid
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Enter your travel details and desired price for your group
+                    booking
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">2</span>
                   </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">3</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Airlines Review
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      Airlines review your bid and may accept, counter, or
-                      decline based on availability
-                    </Text>
+                  <Title level={5} className="!mb-2">
+                    Pay Deposit
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Pay 10% deposit to secure your bid. Full refund if not
+                    accepted by airlines
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">3</span>
                   </div>
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-blue-600 font-semibold">4</span>
-                    </div>
-                    <Title level={5} className="!mb-2">
-                      Book & Save
-                    </Title>
-                    <Text className="text-gray-600 text-sm">
-                      If accepted, proceed with booking at your negotiated rate
-                      and save money
-                    </Text>
+                  <Title level={5} className="!mb-2">
+                    Airlines Review
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Airlines review your bid and may accept, counter, or decline
+                    based on availability
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">4</span>
                   </div>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        )}
-      </div>
+                  <Title level={5} className="!mb-2">
+                    Book & Save
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    If accepted, proceed with booking at your negotiated rate
+                    and save money
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </div>
+      )}
+
+      {activeTab === "payment-history" && (
+        <div className="space-y-6">
+          {/* Payment History Header */}
+          <Card>
+            <Title level={4} className="!mb-2">
+              Payment History
+            </Title>
+            <Text className="text-gray-600">
+              Track all deposits, refunds, and payment transactions
+            </Text>
+          </Card>
+
+          {/* Payment History Table */}
+          <Card>
+            <Table
+              columns={paymentColumns}
+              dataSource={paymentHistoryData}
+              rowKey="paymentId"
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 1200 }}
+              loading={paymentLoading}
+            />
+          </Card>
+
+          {/* Payment Summary Cards */}
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-green-50 border-green-200">
+                <Text className="text-green-600 text-sm block mb-1">
+                  Total Deposits
+                </Text>
+                {paymentLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <Title level={3} className="!mb-0 text-green-600">
+                    ₹
+                    {paymentSummary.totalDeposits.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </Title>
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-purple-50 border-purple-200">
+                <Text className="text-purple-600 text-sm block mb-1">
+                  Total Refunds
+                </Text>
+                {paymentLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <Title level={3} className="!mb-0 text-purple-600">
+                    ₹
+                    {paymentSummary.totalRefunds.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </Title>
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-blue-50 border-blue-200">
+                <Text className="text-blue-600 text-sm block mb-1">
+                  Net Amount
+                </Text>
+                {paymentLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <Title level={3} className="!mb-0 text-blue-600">
+                    ₹
+                    {paymentSummary.netAmount.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </Title>
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-orange-50 border-orange-200">
+                <Text className="text-orange-600 text-sm block mb-1">
+                  Pending Payments
+                </Text>
+                {paymentLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <Title level={3} className="!mb-0 text-orange-600">
+                    ₹
+                    {paymentSummary.pendingPayments.toLocaleString("en-IN", {
+                      minimimFractionDigits: 2,
+                    })}
+                  </Title>
+                )}
+              </Card>
+            </Col>
+          </Row>
+
+          {/* How Group Bidding Works - Same section */}
+          <Card>
+            <Title level={4} className="!mb-2">
+              How Group Bidding Works
+            </Title>
+            <Text className="text-gray-600 block mb-6">
+              Get the best rates through our competitive bidding process
+            </Text>
+
+            <Row gutter={[24, 24]}>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">1</span>
+                  </div>
+                  <Title level={5} className="!mb-2">
+                    Submit Your Bid
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Enter your travel details and desired price for your group
+                    booking
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">2</span>
+                  </div>
+                  <Title level={5} className="!mb-2">
+                    Pay Deposit
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Pay 10% deposit to secure your bid. Full refund if not
+                    accepted by airlines
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">3</span>
+                  </div>
+                  <Title level={5} className="!mb-2">
+                    Airlines Review
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    Airlines review your bid and may accept, counter, or decline
+                    based on availability
+                  </Text>
+                </div>
+              </Col>
+              <Col xs={24} md={6}>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 font-semibold">4</span>
+                  </div>
+                  <Title level={5} className="!mb-2">
+                    Book & Save
+                  </Title>
+                  <Text className="text-gray-600 text-sm">
+                    If accepted, proceed with booking at your negotiated rate
+                    and save money
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,6 +36,7 @@ export default function QuickBookingForm() {
     "oneWay" | "roundTrip" | "multiCity"
   >("oneWay");
   const navigate = useNavigate();
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
@@ -180,7 +181,7 @@ export default function QuickBookingForm() {
       );
 
       // Navigate to flight search bundle page
-      navigate(window.location.pathname.includes('/admin/') ? "/admin/flight-search-bundle" : "/flight-search-bundle");
+      navigate(adminMode ? "/admin/flight-search-bundle" : "/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");

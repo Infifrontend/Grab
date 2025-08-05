@@ -60,9 +60,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import AdminHeader from "./admin-header";
-import AdminSidebar from "./admin-sidebar";
-
+import BreadcrumbNav from "@/components/breadcrumb/breadcrumb";
 const { Title, Text } = Typography;
 
 export default function BidManagement() {
@@ -194,18 +192,18 @@ export default function BidManagement() {
           bid.bidStatus === "active"
             ? "Active bid submitted"
             : bid.bidStatus === "accepted"
-              ? "Bid accepted"
-              : bid.bidStatus === "rejected"
-                ? "Bid declined"
-                : "Bid created";
+            ? "Bid accepted"
+            : bid.bidStatus === "rejected"
+            ? "Bid declined"
+            : "Bid created";
         color =
           bid.bidStatus === "active"
             ? "var(--ant-color-success)"
             : bid.bidStatus === "accepted"
-              ? "var(--infiniti-lighter-green)"
-              : bid.bidStatus === "rejected"
-                ? "var(--ant-color-error)"
-                : "var(--infiniti-lighter-blue)";
+            ? "var(--infiniti-lighter-green)"
+            : bid.bidStatus === "rejected"
+            ? "var(--ant-color-error)"
+            : "var(--infiniti-lighter-blue)";
       }
 
       return {
@@ -363,7 +361,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "POST",
         "/api/bid-configurations",
-        formattedData,
+        formattedData
       );
 
       if (!response.ok) {
@@ -381,7 +379,7 @@ export default function BidManagement() {
           result.message ||
             `Bid configuration "${
               finalValues.bidTitle || "New Bid"
-            }" created successfully!`,
+            }" created successfully!`
         );
 
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
@@ -481,13 +479,13 @@ export default function BidManagement() {
             configData.origin && configData.destination
               ? `${configData.origin} → ${configData.destination}`
               : bid.flight
-                ? `${bid.flight.origin} → ${bid.flight.destination}`
-                : "Route not available",
+              ? `${bid.flight.origin} → ${bid.flight.destination}`
+              : "Route not available",
           date: configData.travelDate
             ? new Date(configData.travelDate).toLocaleDateString()
             : bid.flight?.departureTime
-              ? new Date(bid.flight.departureTime).toLocaleDateString()
-              : "N/A",
+            ? new Date(bid.flight.departureTime).toLocaleDateString()
+            : "N/A",
         },
         upgrade: configData.fareType
           ? `Economy → ${configData.fareType}`
@@ -535,7 +533,7 @@ export default function BidManagement() {
             bid.status.toLowerCase() === statusFilter.toLowerCase();
 
           return matchesSearch && matchesStatus;
-        },
+        }
       );
     }, [searchText, statusFilter, activeBids]);
     return (
@@ -596,11 +594,11 @@ export default function BidManagement() {
                 const bidData = (recentBidsData || []).find(
                   (bid) =>
                     `BID${bid?.id?.toString().padStart(3, "0")}` ===
-                    record.bidId,
+                    record.bidId
                 );
 
                 const baseBidAmount = parseFloat(
-                  record.bidAmount.replace("$", ""),
+                  record.bidAmount.replace("$", "")
                 );
 
                 let retailUsers = [],
@@ -651,18 +649,18 @@ export default function BidManagement() {
                         i === 0 && record.status.toLowerCase() === "approved"
                           ? "approved"
                           : record.status.toLowerCase() === "pending"
-                            ? "pending_approval"
-                            : "pending_approval",
+                          ? "pending_approval"
+                          : "pending_approval",
                     });
                   }
                   highestBidAmount = Math.max(
-                    ...retailUsers.map((user) => user.bidAmount),
+                    ...retailUsers.map((user) => user.bidAmount)
                   );
                 }
 
                 console.log(
                   record?.status?.toLowerCase() === '"approved"',
-                  record?.status,
+                  record?.status
                 );
 
                 return (
@@ -694,8 +692,8 @@ export default function BidManagement() {
                                 user.status === "approved"
                                   ? "border-green-500 bg-green-50"
                                   : user.bidAmount === highestBidAmount
-                                    ? "border-yellow-500 bg-yellow-50"
-                                    : "bg-white border"
+                                  ? "border-yellow-500 bg-yellow-50"
+                                  : "bg-white border"
                               }
                             `}
                           >
@@ -740,8 +738,8 @@ export default function BidManagement() {
                                   user.status === "approved"
                                     ? "green"
                                     : user.status === "rejected"
-                                      ? "red"
-                                      : "orange"
+                                    ? "red"
+                                    : "orange"
                                 }
                               >
                                 {user.status.replace("_", " ").toUpperCase()}
@@ -760,7 +758,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.id,
                                         "approve",
-                                        record.bidId,
+                                        record.bidId
                                       )
                                     }
                                     loading={loading}
@@ -774,7 +772,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.id,
                                         "reject",
-                                        record.bidId,
+                                        record.bidId
                                       )
                                     }
                                     loading={loading}
@@ -794,7 +792,7 @@ export default function BidManagement() {
                         approval:{" "}
                         {
                           retailUsers.filter(
-                            (u) => u.status === "pending_approval",
+                            (u) => u.status === "pending_approval"
                           ).length
                         }{" "}
                         | Approved:{" "}
@@ -979,7 +977,7 @@ export default function BidManagement() {
 
     // Find the actual bid data from recentBidsData
     const bidData = (recentBidsData || []).find(
-      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
+      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
     );
 
     console.log("Found bidData:", bidData);
@@ -1007,14 +1005,14 @@ export default function BidManagement() {
           ? new Date(
               `${configData.travelDate}T${
                 configData.departureTimeRange?.split(" - ")[0] || "09:00"
-              }`,
+              }`
             ).toISOString()
           : bidData.createdAt,
         arrivalTime: configData.travelDate
           ? new Date(
               `${configData.travelDate}T${
                 configData.departureTimeRange?.split(" - ")[1] || "12:00"
-              }`,
+              }`
             ).toISOString()
           : null,
         price: bidData.bidAmount || 0,
@@ -1077,7 +1075,7 @@ export default function BidManagement() {
         `/api/bid-configurations/${bid.id}/status`,
         {
           status: newStatus,
-        },
+        }
       );
 
       if (!response.ok) {
@@ -1090,7 +1088,7 @@ export default function BidManagement() {
         message.success(
           `Bid configuration ${
             checked ? "activated" : "deactivated"
-          } successfully`,
+          } successfully`
         );
         // Refetch bid configurations to update the display
         refetchBids();
@@ -1126,7 +1124,7 @@ export default function BidManagement() {
 
       if (result.success) {
         message.success(
-          `Bid ${action === "accept" ? "accepted" : "rejected"} successfully`,
+          `Bid ${action === "accept" ? "accepted" : "rejected"} successfully`
         );
 
         // Refresh data
@@ -1166,7 +1164,7 @@ export default function BidManagement() {
       }
 
       console.log(
-        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
+        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`
       );
 
       // Validate that we have a valid numeric ID
@@ -1178,7 +1176,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "PUT",
         `/api/bids/${numericBidId}/retail-users/${userId}/status`,
-        { action },
+        { action }
       );
 
       if (!response.ok) {
@@ -1191,11 +1189,11 @@ export default function BidManagement() {
         if (action === "approve") {
           message.success(
             result.message ||
-              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
+              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'."
           );
         } else {
           message.success(
-            result.message || "Retail user rejected successfully",
+            result.message || "Retail user rejected successfully"
           );
         }
 
@@ -1211,7 +1209,7 @@ export default function BidManagement() {
     } catch (error) {
       console.error(`Error ${action}ing retail user:`, error);
       message.error(
-        error.message || `Failed to ${action} retail user. Please try again.`,
+        error.message || `Failed to ${action} retail user. Please try again.`
       );
     } finally {
       setLoading(false);
@@ -1246,7 +1244,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "PUT",
         `/api/bid-configurations/${selectedBid.id}`,
-        updateData,
+        updateData
       );
 
       if (!response.ok) {
@@ -1283,8 +1281,8 @@ export default function BidManagement() {
                     updatedAt: new Date().toISOString(),
                   }),
                 }
-              : bid,
-          ),
+              : bid
+          )
         );
       } else {
         message.error(result.message || "Failed to update bid configuration");
@@ -1366,14 +1364,14 @@ export default function BidManagement() {
               bid.bidStatus === "active"
                 ? "green"
                 : bid.bidStatus === "pending"
-                  ? "orange"
-                  : "red";
+                ? "orange"
+                : "red";
             const statusText =
               bid.bidStatus === "active"
                 ? "Active"
                 : bid.bidStatus === "pending"
-                  ? "Pending"
-                  : "Inactive";
+                ? "Pending"
+                : "Inactive";
 
             return (
               <Card
@@ -1935,7 +1933,7 @@ export default function BidManagement() {
                     <Text className="font-semibold">
                       {selectedBidForReview.createdAt
                         ? new Date(
-                            selectedBidForReview.createdAt,
+                            selectedBidForReview.createdAt
                           ).toLocaleDateString()
                         : "Unknown"}
                     </Text>
@@ -1949,7 +1947,7 @@ export default function BidManagement() {
                     <Text className="font-semibold text-orange-600">
                       {selectedBidForReview.validUntil
                         ? new Date(
-                            selectedBidForReview.validUntil,
+                            selectedBidForReview.validUntil
                           ).toLocaleDateString()
                         : "No expiry"}
                     </Text>
@@ -2014,7 +2012,7 @@ export default function BidManagement() {
                     <Text className="font-semibold">
                       {selectedBidForReview.configData?.travelDate
                         ? new Date(
-                            selectedBidForReview.configData.travelDate,
+                            selectedBidForReview.configData.travelDate
                           ).toLocaleDateString()
                         : "N/A"}
                     </Text>
@@ -2439,8 +2437,8 @@ export default function BidManagement() {
                     status === "Completed"
                       ? "green"
                       : status === "Pending"
-                        ? "orange"
-                        : "red"
+                      ? "orange"
+                      : "red"
                   }
                 >
                   {status}
@@ -3110,8 +3108,8 @@ export default function BidManagement() {
                                     demand === "Very High"
                                       ? "red"
                                       : demand === "High"
-                                        ? "blue"
-                                        : "orange"
+                                      ? "blue"
+                                      : "orange"
                                   }
                                 >
                                   {demand}
@@ -3187,7 +3185,10 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">63.4%</Text>
                             </div>
-                            <Progress percent={63.4} strokeColor="var(--textBlue500)" />
+                            <Progress
+                              percent={63.4}
+                              strokeColor="var(--textBlue500)"
+                            />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -3240,7 +3241,10 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">72.2%</Text>
                             </div>
-                            <Progress percent={72.2} strokeColor="var(--infiniti-lighter-blue)" />
+                            <Progress
+                              percent={72.2}
+                              strokeColor="var(--infiniti-lighter-blue)"
+                            />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -3293,7 +3297,10 @@ export default function BidManagement() {
                               </div>
                               <Text className="text-gray-500">56.3%</Text>
                             </div>
-                            <Progress percent={56.3} strokeColor="var(--textRed600)" />
+                            <Progress
+                              percent={56.3}
+                              strokeColor="var(--textRed600)"
+                            />
                             <Text className="text-gray-500 text-sm">
                               Demand Pressure
                             </Text>
@@ -3365,45 +3372,31 @@ export default function BidManagement() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <AdminHeader />
+    <>
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        {/* Breadcrumb */}
+        <BreadcrumbNav currentMenu="Bid Management" />
 
-      <div className="flex">
-        {/* Sidebar */}
-        <AdminSidebar activeMenu="Bid Management" />
+        {/* Page Header */}
+        <div className="mb-6">
+          <Title level={2} className="!mb-1 text-gray-900">
+            Bid Management
+          </Title>
+          <Text className="text-gray-600">
+            Manage passenger upgrade bids and bidding configurations
+          </Text>
+        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          {/* Breadcrumb */}
-          <Breadcrumb className="mb-4">
-            <Breadcrumb.Item>
-              <HomeOutlined />
-              <span className="ml-1">Home</span>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>Bid Management</Breadcrumb.Item>
-          </Breadcrumb>
-
-          {/* Page Header */}
-          <div className="mb-6">
-            <Title level={2} className="!mb-1 text-gray-900">
-              Bid Management
-            </Title>
-            <Text className="text-gray-600">
-              Manage passenger upgrade bids and bidding configurations
-            </Text>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="bg-white rounded-lg shadow-sm">
-            {/* Navigation Tabs */}
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              className="px-6"
-              items={tabItems}
-            />
-          </div>
+        {/* Main Content Area */}
+        <div className="bg-white rounded-lg shadow-sm">
+          {/* Navigation Tabs */}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            className="px-6"
+            items={tabItems}
+          />
         </div>
       </div>
 
@@ -3467,8 +3460,8 @@ export default function BidManagement() {
                           index < currentStep
                             ? "bg-green-500 border-green-500 text-white"
                             : index === currentStep
-                              ? "bg-blue-500 border-blue-500 text-white"
-                              : "bg-white border-gray-300 text-gray-500"
+                            ? "bg-blue-500 border-blue-500 text-white"
+                            : "bg-white border-gray-300 text-gray-500"
                         }
                       `}
                       >
@@ -3812,7 +3805,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ",",
+                                    ","
                                   )
                                 : ""
                             }
@@ -3843,7 +3836,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ",",
+                                    ","
                                   )
                                 : ""
                             }
@@ -3896,7 +3889,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ",",
+                                    ","
                                   )
                                 : ""
                             }
@@ -4360,6 +4353,6 @@ export default function BidManagement() {
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }

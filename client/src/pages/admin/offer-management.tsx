@@ -29,14 +29,13 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import AdminHeader from "./admin-header";
-import AdminSidebar from "./admin-sidebar";
 import CreateOfferModal from "../../components/admin/create-offer-modal";
 import CreatePolicyModal from "../../components/admin/create-policy-modal";
 import CreateAncillaryModal from "../../components/admin/create-ancillary-modal";
 import CreateDiscountModal from "../../components/admin/create-discount-modal";
 import CreatePromoCodeModal from "../../components/admin/create-promocode-modal";
 import dayjs from "dayjs";
+import BreadcrumbNav from "@/components/breadcrumb/breadcrumb";
 const { Title, Text } = Typography;
 
 export default function OfferManagement() {
@@ -1431,831 +1430,855 @@ export default function OfferManagement() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <AdminHeader />
+    <>
+      <div className="flex-1 p-6">
+        {/* Breadcrumb */}
+        <BreadcrumbNav currentMenu="Offers Management" />
 
-      <div className="flex">
-        {/* Sidebar */}
-        <AdminSidebar activeMenu="Offer Management" />
+        {/* Page Header */}
+        <div className="mb-6">
+          <Title level={2} className="!mb-1 text-gray-900">
+            Offer Management
+          </Title>
+          <Text className="text-gray-600">
+            Create and manage airline offers and ancillary services
+          </Text>
+        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          {/* Breadcrumb */}
-          <Breadcrumb className="mb-4">
-            <Breadcrumb.Item>
-              <HomeOutlined />
-              <span className="ml-1">Home</span>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>Offers Management</Breadcrumb.Item>
-          </Breadcrumb>
+        {/* Navigation Tabs */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          className="mb-3"
+          items={[
+            {
+              key: "dashboard",
+              label: (
+                <span>
+                  <BarChartOutlined className="pr-1" />
+                  Dashboard
+                </span>
+              ),
+            },
+            {
+              key: "policies",
+              label: (
+                <span>
+                  <span className="mr-2">🛡️</span>
+                  Policies
+                </span>
+              ),
+            },
+            {
+              key: "ancillaries",
+              label: (
+                <span>
+                  <span className="mr-2">✈️</span>
+                  Ancillaries
+                </span>
+              ),
+            },
+            {
+              key: "discounts",
+              label: (
+                <span>
+                  <PercentageOutlined className="pr-1" />
+                  Discounts
+                </span>
+              ),
+            },
+            {
+              key: "promocodes",
+              label: (
+                <span>
+                  <span className="mr-2">🎟️</span>
+                  Promo Codes
+                </span>
+              ),
+            },
+            {
+              key: "offers",
+              label: (
+                <span>
+                  <span className="mr-2">
+                    <GiftOutlined />
+                  </span>
+                  Offers
+                </span>
+              ),
+            },
+          ]}
+        />
 
-          {/* Page Header */}
-          <div className="mb-6">
-            <Title level={2} className="!mb-1 text-gray-900">
-              Offer Management
-            </Title>
-            <Text className="text-gray-600">
-              Create and manage airline offers and ancillary services
-            </Text>
-          </div>
+        {/* Tab Content */}
+        {activeTab === "dashboard" && renderDashboardContent()}
+        {activeTab === "policies" && (
+          <div>
+            {/* Header with Search and Create Button */}
+            <div className="mb-6 flex justify-between items-center">
+              <Input
+                placeholder="Search policies..."
+                prefix={<SearchOutlined className="text-gray-400" />}
+                className="max-w-md"
+                size="large"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsModalVisible(true)}
+              >
+                Create Policy
+              </Button>
+            </div>
 
-          {/* Navigation Tabs */}
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            className="mb-3"
-            items={[
-              {
-                key: "dashboard",
-                label: (
-                  <span>
-                    <BarChartOutlined className="pr-1"/>
-                    Dashboard
-                  </span>
-                ),
-              },
-              {
-                key: "policies",
-                label: (
-                  <span>
-                    <span className="mr-2">🛡️</span>
-                    Policies
-                  </span>
-                ),
-              },
-              {
-                key: "ancillaries",
-                label: (
-                  <span>
-                    <span className="mr-2">✈️</span>
-                    Ancillaries
-                  </span>
-                ),
-              },
-              {
-                key: "discounts",
-                label: (
-                  <span>
-                    <PercentageOutlined className="pr-1" />
-                    Discounts
-                  </span>
-                ),
-              },
-              {
-                key: "promocodes",
-                label: (
-                  <span>
-                    <span className="mr-2">🎟️</span>
-                    Promo Codes
-                  </span>
-                ),
-              },
-              {
-                key: "offers",
-                label: (
-                  <span>
-                    <span className="mr-2">
-                      <GiftOutlined />
-                    </span>
-                    Offers
-                  </span>
-                ),
-              },
-            ]}
-          />
-
-          {/* Tab Content */}
-          {activeTab === "dashboard" && renderDashboardContent()}
-          {activeTab === "policies" && (
-            <div>
-              {/* Header with Search and Create Button */}
-              <div className="mb-6 flex justify-between items-center">
-                <Input
-                  placeholder="Search policies..."
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  className="max-w-md"
-                  size="large"
-                />
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Create Policy
-                </Button>
+            {/* Pricing Policies Section */}
+            <Card className="mb-6">
+              <div className="mb-6">
+                <Title level={4} className="!mb-1">
+                  Pricing Policies
+                </Title>
+                <Text className="text-gray-500">
+                  Manage pricing policies for ancillaries and offers
+                </Text>
               </div>
 
-              {/* Pricing Policies Section */}
-              <Card className="mb-6">
-                <div className="mb-6">
-                  <Title level={4} className="!mb-1">
-                    Pricing Policies
-                  </Title>
-                  <Text className="text-gray-500">
-                    Manage pricing policies for ancillaries and offers
-                  </Text>
-                </div>
+              <Table
+                dataSource={policyTableData}
+                columns={[
+                  {
+                    title: "Policy Name",
+                    dataIndex: "policyName",
+                    key: "policyName",
+                    render: (text) => (
+                      <Text className="font-medium">
+                        {text?.replace(/^./, (char: any) => char.toUpperCase())}
+                      </Text>
+                    ),
+                  },
+                  {
+                    title: "Priority level",
+                    dataIndex: "priorityLevel",
+                    key: "priorityLevel",
+                    render: (priorityLevel) => (
+                      <Tag
+                        color={
+                          priorityLevel === "high"
+                            ? "red"
+                            : priorityLevel === "medium"
+                            ? "blue"
+                            : "green"
+                        }
+                        className="rounded-md"
+                      >
+                        {priorityLevel?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Booking channels",
+                    dataIndex: "bookingChannels",
+                    key: "bookingChannels",
+                    render: (bookingChannels) =>
+                      bookingChannels
+                        ?.map((item: string) =>
+                          item
+                            .trim()
+                            .replace(/^./, (char) => char.toUpperCase())
+                        )
+                        .join(" | "),
+                  },
+                  {
+                    title: "Effective Date",
+                    dataIndex: "validFrom",
+                    key: "validFrom",
+                    render: (validFrom) =>
+                      dayjs(validFrom).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Discontinue Date",
+                    dataIndex: "validTo",
+                    key: "validTo",
+                    render: (validTo) => dayjs(validTo).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "policyEnabled",
+                    key: "policyEnabled",
+                    render: (policyEnabled) => {
+                      return (
+                        <Tag
+                          color={policyEnabled ? "green" : "red"}
+                          className="rounded-md"
+                        >
+                          {policyEnabled ? "Active" : "In-active"}
+                        </Tag>
+                      );
+                    },
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    render: (_, record: any, index) => (
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            record.id = index;
+                            setEditingData(record);
+                            setIsModalVisible(true);
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() =>
+                            setPolicyTableData((prev) =>
+                              prev.filter((_, i) => i !== index)
+                            )
+                          }
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                pagination={false}
+                className="custom-table"
+              />
+            </Card>
+          </div>
+        )}
+        {activeTab === "ancillaries" && (
+          <div>
+            {/* Header with Search and Add Button */}
+            <div className="mb-6 flex justify-between items-center">
+              <Input
+                placeholder="Search ancillaries..."
+                prefix={<SearchOutlined className="text-gray-400" />}
+                className="max-w-md"
+                size="large"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsModalVisible(true)}
+              >
+                Add Ancillary
+              </Button>
+            </div>
 
-                <Table
-                  dataSource={policyTableData}
-                  columns={[
-                    {
-                      title: "Policy Name",
-                      dataIndex: "policyName",
-                      key: "policyName",
-                      render: (text) => (
-                        <Text className="font-medium">
+            {/* Ancillary Services Section */}
+            <Card className="mb-6">
+              <div className="mb-6">
+                <Title level={4} className="!mb-1">
+                  Ancillary Services
+                </Title>
+                <Text className="text-gray-500">
+                  Manage your ancillary services and pricing
+                </Text>
+              </div>
+
+              <Table
+                dataSource={ancillaryTableData}
+                columns={[
+                  {
+                    title: "Ancillary Name",
+                    dataIndex: "ancillaryName",
+                    key: "ancillaryName",
+                    render: (ancillaryName) => (
+                      <Text className="font-medium">
+                        {ancillaryName?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Text>
+                    ),
+                  },
+                  {
+                    title: "Ancillary type",
+                    dataIndex: "ancillaryType",
+                    key: "ancillaryType",
+                    render: (ancillaryType) =>
+                      ancillaryType?.replace(/^./, (char: any) =>
+                        char.toUpperCase()
+                      ), // capitalize the first character
+                  },
+                  {
+                    title: "Category",
+                    dataIndex: "category",
+                    key: "category",
+                    render: (category) =>
+                      category
+                        ?.split("-")
+                        ?.join(" ")
+                        ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
+                        ?.replace(/^./, (char: any) => char.toUpperCase()), // capitalize the first character
+                  },
+                  {
+                    title: "Terms and conditions",
+                    dataIndex: "refundable",
+                    key: "refundable",
+                    render: (refundable, data: any) =>
+                      `${refundable && "Refundable"}${
+                        data?.transferable ? " | Transferable" : ""
+                      }${data?.changeable ? " | Changeable" : ""}`,
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "policyEnabled",
+                    key: "policyEnabled",
+                    render: (policyEnabled) => {
+                      return (
+                        <Tag
+                          color={policyEnabled ? "green" : "red"}
+                          className="rounded-md"
+                        >
+                          {policyEnabled ? "Active" : "In-active"}
+                        </Tag>
+                      );
+                    },
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    render: (_, record, index) => (
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            record.id = index;
+                            setEditingData(record);
+                            setIsModalVisible(true);
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() =>
+                            setAncillaryTableData((prev: any) =>
+                              prev.filter((_: any, i: number) => i !== index)
+                            )
+                          }
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                pagination={false}
+                className="custom-table"
+              />
+            </Card>
+          </div>
+        )}
+        {activeTab === "discounts" && (
+          <div>
+            {/* Header with Search and Create Button */}
+            <div className="mb-6 flex justify-between items-center">
+              <Input
+                placeholder="Search discounts..."
+                prefix={<SearchOutlined className="text-gray-400" />}
+                className="max-w-md"
+                size="large"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsModalVisible(true)}
+              >
+                Create Discount
+              </Button>
+            </div>
+
+            {/* Discount Management Section */}
+            <Card className="mb-6">
+              <div className="mb-6">
+                <Title level={4} className="!mb-1">
+                  Discount Management
+                </Title>
+                <Text className="text-gray-500">
+                  Manage discount rules with advanced targeting and
+                  combinability options
+                </Text>
+              </div>
+
+              <Table
+                dataSource={discountTableData}
+                columns={[
+                  {
+                    title: "Discount Details",
+                    dataIndex: "discountName",
+                    key: "discountName",
+                    width: "25%",
+                    render: (text, record: any) => (
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">
                           {text?.replace(/^./, (char: any) =>
                             char.toUpperCase()
                           )}
                         </Text>
-                      ),
-                    },
-                    {
-                      title: "Priority level",
-                      dataIndex: "priorityLevel",
-                      key: "priorityLevel",
-                      render: (priorityLevel) => (
-                        <Tag
-                          color={
-                            priorityLevel === "high"
-                              ? "red"
-                              : priorityLevel === "medium"
-                              ? "blue"
-                              : "green"
-                          }
-                          className="rounded-md"
-                        >
-                          {priorityLevel?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Booking channels",
-                      dataIndex: "bookingChannels",
-                      key: "bookingChannels",
-                      render: (bookingChannels) =>
-                        bookingChannels
-                          ?.map((item: string) =>
-                            item
-                              .trim()
-                              .replace(/^./, (char) => char.toUpperCase())
-                          )
-                          .join(" | "),
-                    },
-                    {
-                      title: "Effective Date",
-                      dataIndex: "validFrom",
-                      key: "validFrom",
-                      render: (validFrom) =>
-                        dayjs(validFrom).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Discontinue Date",
-                      dataIndex: "validTo",
-                      key: "validTo",
-                      render: (validTo) =>
-                        dayjs(validTo).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Status",
-                      dataIndex: "policyEnabled",
-                      key: "policyEnabled",
-                      render: (policyEnabled) => {
-                        return (
-                          <Tag color={policyEnabled ? "green" : "red"} className="rounded-md">
-                            {policyEnabled ? "Active" : "In-active"}
-                          </Tag>
-                        );
-                      },
-                    },
-                    {
-                      title: "Actions",
-                      key: "actions",
-                      render: (_, record: any, index) => (
-                        <Space>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            className="text-blue-600 hover:text-blue-700"
-                            onClick={() => {
-                              record.id = index;
-                              setEditingData(record);
-                              setIsModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setPolicyTableData(prev => prev.filter((_, i) => i !== index))}
-                          />
-                        </Space>
-                      ),
-                    },
-                  ]}
-                  pagination={false}
-                  className="custom-table"
-                />
-              </Card>
-            </div>
-          )}
-          {activeTab === "ancillaries" && (
-            <div>
-              {/* Header with Search and Add Button */}
-              <div className="mb-6 flex justify-between items-center">
-                <Input
-                  placeholder="Search ancillaries..."
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  className="max-w-md"
-                  size="large"
-                />
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Add Ancillary
-                </Button>
-              </div>
-
-              {/* Ancillary Services Section */}
-              <Card className="mb-6">
-                <div className="mb-6">
-                  <Title level={4} className="!mb-1">
-                    Ancillary Services
-                  </Title>
-                  <Text className="text-gray-500">
-                    Manage your ancillary services and pricing
-                  </Text>
-                </div>
-
-                <Table
-                  dataSource={ancillaryTableData}
-                  columns={[
-                    {
-                      title: "Ancillary Name",
-                      dataIndex: "ancillaryName",
-                      key: "ancillaryName",
-                      render: (ancillaryName) => (
-                        <Text className="font-medium">
-                          {ancillaryName?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
+                        <Text className="text-blue-600 text-sm font-medium block">
+                          Code: {record.discountCode}
                         </Text>
-                      ),
-                    },
-                    {
-                      title: "Ancillary type",
-                      dataIndex: "ancillaryType",
-                      key: "ancillaryType",
-                      render: (ancillaryType) =>
-                        ancillaryType?.replace(/^./, (char: any) =>
-                          char.toUpperCase()
-                        ), // capitalize the first character
-                    },
-                    {
-                      title: "Category",
-                      dataIndex: "category",
-                      key: "category",
-                      render: (category) =>
-                        category
-                          ?.split("-")
-                          ?.join(" ")
-                          ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
-                          ?.replace(/^./, (char: any) => char.toUpperCase()), // capitalize the first character
-                    },
-                    {
-                      title: "Terms and conditions",
-                      dataIndex: "refundable",
-                      key: "refundable",
-                      render: (refundable, data: any) =>
-                        `${refundable && "Refundable"}${
-                          data?.transferable ? " | Transferable" : ""
-                        }${data?.changeable ? " | Changeable" : ""}`,
-                    },
-                    {
-                      title: "Status",
-                      dataIndex: "policyEnabled",
-                      key: "policyEnabled",
-                      render: (policyEnabled) => {
-                        return (
-                          <Tag color={policyEnabled ? "green" : "red"} className="rounded-md">
-                            {policyEnabled ? "Active" : "In-active"}
-                          </Tag>
-                        );
-                      },
-                    },
-                    {
-                      title: "Actions",
-                      key: "actions",
-                      render: (_, record, index) => (
-                        <Space>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            className="text-blue-600 hover:text-blue-700"
-                            onClick={() => {
-                              record.id = index;
-                              setEditingData(record);
-                              setIsModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setAncillaryTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
-                          />
-                        </Space>
-                      ),
-                    },
-                  ]}
-                  pagination={false}
-                  className="custom-table"
-                />
-              </Card>
-            </div>
-          )}
-          {activeTab === "discounts" && (
-            <div>
-              {/* Header with Search and Create Button */}
-              <div className="mb-6 flex justify-between items-center">
-                <Input
-                  placeholder="Search discounts..."
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  className="max-w-md"
-                  size="large"
-                />
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Create Discount
-                </Button>
-              </div>
-
-              {/* Discount Management Section */}
-              <Card className="mb-6">
-                <div className="mb-6">
-                  <Title level={4} className="!mb-1">
-                    Discount Management
-                  </Title>
-                  <Text className="text-gray-500">
-                    Manage discount rules with advanced targeting and
-                    combinability options
-                  </Text>
-                </div>
-
-                <Table
-                  dataSource={discountTableData}
-                  columns={[
-                    {
-                      title: "Discount Details",
-                      dataIndex: "discountName",
-                      key: "discountName",
-                      width: "25%",
-                      render: (text, record: any) => (
-                        <div>
-                          <Text className="font-semibold text-gray-900 block">
-                            {text?.replace(/^./, (char: any) =>
-                              char.toUpperCase()
-                            )}
-                          </Text>
-                          <Text className="text-blue-600 text-sm font-medium block">
-                            Code: {record.discountCode}
-                          </Text>
-                          <Text className="text-gray-600 text-sm">
-                            {record.description}
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Type & Value",
-                      key: "typeValue",
-                      width: "15%",
-                      render: (_, record) => (
-                        <div className="text-center">
-                          <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg mb-2">
-                            <Text className="font-bold text-lg">
-                              {record.discountValue}
-                            </Text>
-                          </div>
-                          <Text className="text-gray-600 text-sm">
-                            {record.discountType}
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Target",
-                      key: "target",
-                      width: "15%",
-                      render: (_, record) => (
-                        <Text className="text-gray-600 text-sm block">
-                          {
-                            record?.targetApplication
-                              ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
-                              ?.replace(/^./, (char: any) => char.toUpperCase()) // capitalize the first character
-                          }
+                        <Text className="text-gray-600 text-sm">
+                          {record.description}
                         </Text>
-                      ),
-                    },
-                    {
-                      title: "Usage",
-                      key: "usage",
-                      width: "12%",
-                      render: (_, record) => (
-                        <div>
-                          <Text className="font-semibold block">
-                            10/{record.totalUsageLimit}
-                          </Text>
-                          <Progress
-                            percent={10}
-                            strokeColor="var(--infiniti-lighter-blue)"
-                            showInfo={false}
-                            size="small"
-                            className="mb-1"
-                          />
-                          <Text className="text-gray-500 text-xs">
-                            {`${(10/(record.totalUsageLimit || 100)).toFixed(2)}`} % used
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Validity",
-                      key: "validity",
-                      width: "15%",
-                      render: (_, record) => (
-                        <div className="text-sm">
-                          <div className="mb-1">
-                            <Text className="text-gray-500 text-xs">From:</Text>
-                            <Text className="block">
-                              {dayjs(record.validFrom).format("DD MMM, YYYY")}
-                            </Text>
-                          </div>
-                          <div>
-                            <Text className="text-gray-500 text-xs">To:</Text>
-                            <Text className="block">
-                              {dayjs(record.validTo).format("DD MMM, YYYY")}
-                            </Text>
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Status",
-                      dataIndex: "status",
-                      key: "status",
-                      width: "8%",
-                      render: (status) => (
-                        <Tag color={status === "active" ? "green" : "red"} className="rounded-md">
-                          {status?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Actions",
-                      key: "actions",
-                      width: "10%",
-                      render: (_, record, index) => (
-                        <Space>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            className="text-blue-600 hover:text-blue-700"
-                            onClick={() => {
-                              record.id = index;
-                              setEditingData(record);
-                              setIsModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setDiscountTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
-                          />
-                        </Space>
-                      ),
-                    },
-                  ]}
-                  pagination={false}
-                  className="custom-table"
-                />
-              </Card>
-            </div>
-          )}
-          {activeTab === "promocodes" && (
-            <div>
-              {/* Header with Search and Create Button */}
-              <div className="mb-6 flex justify-between items-center">
-                <Input
-                  placeholder="Search promo codes..."
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  className="max-w-md"
-                  size="large"
-                />
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Create Promo Code
-                </Button>
-              </div>
-
-              {/* Promo Code Management Section */}
-              <Card className="mb-6">
-                <div className="mb-6">
-                  <Title level={4} className="!mb-1">
-                    Promo Code Management
-                  </Title>
-                  <Text className="text-gray-500">
-                    Manage promotional codes for marketing campaigns
-                  </Text>
-                </div>
-
-                <Table
-                  dataSource={promoCodeTableData}
-                  columns={[
-                    {
-                      title: "Code",
-                      dataIndex: "promoCode",
-                      key: "promoCode",
-                      width: 130,
-                      render: (promoCode) => (
-                        <div className="flex items-center space-x-2">
-                          <Text className="font-mono text-xs bg-gray-100 px-2 py-1 rounded font-semibold">
-                            {promoCode}
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Name",
-                      key: "promoName",
-                      width: 150,
-                      render: (_, record: any) => (
-                        <div>
-                          <Text className="font-semibold text-gray-900 block">
-                            {record.promoName}
-                          </Text>
-                          <Text className="text-gray-600 text-sm">
-                            {record.description}
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Type",
-                      dataIndex: "discountType",
-                      key: "discountType",
-                      width: "10%",
-                      render: (discountType) => (
-                        <Tag color="orange" className="rounded-md">
-                          {discountType?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Value",
-                      key: "discountValue",
-                      width: "12%",
-                      render: (_, record) => (
-                        <div>
-                          <Text className="font-bold text-lg block">
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Type & Value",
+                    key: "typeValue",
+                    width: "15%",
+                    render: (_, record) => (
+                      <div className="text-center">
+                        <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg mb-2">
+                          <Text className="font-bold text-lg">
                             {record.discountValue}
                           </Text>
-                          <Text className="text-gray-500 text-xs">
-                            Max: {record.maxDiscount}
+                        </div>
+                        <Text className="text-gray-600 text-sm">
+                          {record.discountType}
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Target",
+                    key: "target",
+                    width: "15%",
+                    render: (_, record) => (
+                      <Text className="text-gray-600 text-sm block">
+                        {
+                          record?.targetApplication
+                            ?.replace(/([A-Z])/g, " $1") // insert space before capital letters
+                            ?.replace(/^./, (char: any) => char.toUpperCase()) // capitalize the first character
+                        }
+                      </Text>
+                    ),
+                  },
+                  {
+                    title: "Usage",
+                    key: "usage",
+                    width: "12%",
+                    render: (_, record) => (
+                      <div>
+                        <Text className="font-semibold block">
+                          10/{record.totalUsageLimit}
+                        </Text>
+                        <Progress
+                          percent={10}
+                          strokeColor="var(--infiniti-lighter-blue)"
+                          showInfo={false}
+                          size="small"
+                          className="mb-1"
+                        />
+                        <Text className="text-gray-500 text-xs">
+                          {`${(10 / (record.totalUsageLimit || 100)).toFixed(
+                            2
+                          )}`}{" "}
+                          % used
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Validity",
+                    key: "validity",
+                    width: "15%",
+                    render: (_, record) => (
+                      <div className="text-sm">
+                        <div className="mb-1">
+                          <Text className="text-gray-500 text-xs">From:</Text>
+                          <Text className="block">
+                            {dayjs(record.validFrom).format("DD MMM, YYYY")}
                           </Text>
                         </div>
-                      ),
-                    },
-                    {
-                      title: "Effective Date",
-                      dataIndex: "startDate",
-                      key: "startDate",
-                      width: 130,
-                      render: (startDate) =>
-                        dayjs(startDate).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Discontinue Date",
-                      dataIndex: "endDate",
-                      key: "endDate",
-                      width: 137,
-                      render: (endDate) =>
-                        dayjs(endDate).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Status",
-                      dataIndex: "status",
-                      key: "status",
-                      render: (status) => (
-                        <Tag color={status === "active" ? "green" : "red"} className="rounded-md">
-                          {status?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Actions",
-                      key: "actions",
-                      width: "6%",
-                      render: (_, record, index) => (
-                        <Space>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            className="text-blue-600 hover:text-blue-700"
-                            onClick={() => {
-                              record.id = index;
-                              setEditingData(record);
-                              setIsModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setPromoCodeTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
-                          />
-                        </Space>
-                      ),
-                    },
-                  ]}
-                  pagination={false}
-                  className="custom-table"
-                />
-              </Card>
+                        <div>
+                          <Text className="text-gray-500 text-xs">To:</Text>
+                          <Text className="block">
+                            {dayjs(record.validTo).format("DD MMM, YYYY")}
+                          </Text>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "status",
+                    key: "status",
+                    width: "8%",
+                    render: (status) => (
+                      <Tag
+                        color={status === "active" ? "green" : "red"}
+                        className="rounded-md"
+                      >
+                        {status?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    width: "10%",
+                    render: (_, record, index) => (
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            record.id = index;
+                            setEditingData(record);
+                            setIsModalVisible(true);
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() =>
+                            setDiscountTableData((prev: any) =>
+                              prev.filter((_: any, i: number) => i !== index)
+                            )
+                          }
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                pagination={false}
+                className="custom-table"
+              />
+            </Card>
+          </div>
+        )}
+        {activeTab === "promocodes" && (
+          <div>
+            {/* Header with Search and Create Button */}
+            <div className="mb-6 flex justify-between items-center">
+              <Input
+                placeholder="Search promo codes..."
+                prefix={<SearchOutlined className="text-gray-400" />}
+                className="max-w-md"
+                size="large"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsModalVisible(true)}
+              >
+                Create Promo Code
+              </Button>
             </div>
-          )}
-          {activeTab === "offers" && (
-            <div>
-              {/* Header with Search and Create Button */}
-              <div className="mb-6 flex justify-between items-center">
-                <Input
-                  placeholder="Search offers..."
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  className="max-w-md"
-                  size="large"
-                />
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Create Offers
-                </Button>
+
+            {/* Promo Code Management Section */}
+            <Card className="mb-6">
+              <div className="mb-6">
+                <Title level={4} className="!mb-1">
+                  Promo Code Management
+                </Title>
+                <Text className="text-gray-500">
+                  Manage promotional codes for marketing campaigns
+                </Text>
               </div>
 
-              <Card>
-                <div className="mb-6">
-                  <Title level={4} className="!mb-1">
-                    Offers Management
-                  </Title>
-                  <Text className="text-gray-500">
-                    Design comprehensive offer packages combining multiple
-                    services.
-                  </Text>
-                </div>
-
-                <Table
-                  dataSource={offersTableData}
-                  columns={[
-                    {
-                      title: "Offer Details",
-                      dataIndex: "offerName",
-                      key: "offerName",
-                      width: 210,
-                      render: (text, record:any) => (
-                        <div>
-                          <Text className="font-semibold text-gray-900 block">
-                            {text}
-                          </Text>
-                          <Text className="text-blue-600 text-sm font-medium block">
-                            Code: {record.offerCode}
-                          </Text>
-                          <Text className="text-gray-600 text-sm">
-                            {record.description}
-                          </Text>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Ancillary Services",
-                      dataIndex: "ancillaryServices",
-                      key: "ancillaryServices",
-                      width: 220,
-                      render: (ancillaryServices) => (
-                        <div className="space-y-1">
-                          {ancillaryServices?.map(
-                            (service: any, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-2"
-                              >
-                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                <Text className="text-sm text-gray-700">
-                                  {service
-                                    .split("-")
-                                    .map(
-                                      (word: any) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1)
-                                    )
-                                    .join(" ")}
-                                </Text>
-                              </div>
+              <Table
+                dataSource={promoCodeTableData}
+                columns={[
+                  {
+                    title: "Code",
+                    dataIndex: "promoCode",
+                    key: "promoCode",
+                    width: 130,
+                    render: (promoCode) => (
+                      <div className="flex items-center space-x-2">
+                        <Text className="font-mono text-xs bg-gray-100 px-2 py-1 rounded font-semibold">
+                          {promoCode}
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Name",
+                    key: "promoName",
+                    width: 150,
+                    render: (_, record: any) => (
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">
+                          {record.promoName}
+                        </Text>
+                        <Text className="text-gray-600 text-sm">
+                          {record.description}
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Type",
+                    dataIndex: "discountType",
+                    key: "discountType",
+                    width: "10%",
+                    render: (discountType) => (
+                      <Tag color="orange" className="rounded-md">
+                        {discountType?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Value",
+                    key: "discountValue",
+                    width: "12%",
+                    render: (_, record) => (
+                      <div>
+                        <Text className="font-bold text-lg block">
+                          {record.discountValue}
+                        </Text>
+                        <Text className="text-gray-500 text-xs">
+                          Max: {record.maxDiscount}
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Effective Date",
+                    dataIndex: "startDate",
+                    key: "startDate",
+                    width: 130,
+                    render: (startDate) =>
+                      dayjs(startDate).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Discontinue Date",
+                    dataIndex: "endDate",
+                    key: "endDate",
+                    width: 137,
+                    render: (endDate) => dayjs(endDate).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "status",
+                    key: "status",
+                    render: (status) => (
+                      <Tag
+                        color={status === "active" ? "green" : "red"}
+                        className="rounded-md"
+                      >
+                        {status?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    width: "6%",
+                    render: (_, record, index) => (
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            record.id = index;
+                            setEditingData(record);
+                            setIsModalVisible(true);
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() =>
+                            setPromoCodeTableData((prev: any) =>
+                              prev.filter((_: any, i: number) => i !== index)
                             )
-                          )}
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Effective Date",
-                      dataIndex: "startDate",
-                      key: "startDate",
-                      width: 175,
-                      render: (startDate) =>
-                        dayjs(startDate).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Discontinue Date",
-                      dataIndex: "endDate",
-                      key: "endDate",
-                      width: 175,
-                      render: (endDate) =>
-                        dayjs(endDate).format("DD MMM, YYYY"),
-                    },
-                    {
-                      title: "Status",
-                      dataIndex: "status",
-                      key: "status",
-                      width: "8%",
-                      render: (status) => (
-                        <Tag color={status === "active" ? "green" : status === "draft" ? "orange" : "red"} className="rounded-md">
-                          {status?.replace(/^./, (char: any) =>
-                            char.toUpperCase()
-                          )}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: "Actions",
-                      key: "actions",
-                      render: (_, record: any, index) => (
-                        <Space>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            className="text-blue-600 hover:text-blue-700"
-                            onClick={() => {
-                              record.id = index;
-                              setEditingData(record);
-                              setIsModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setOffersTableData((prev:any) => prev.filter((_:any, i:number) => i !== index))}
-                          />
-                        </Space>
-                      ),
-                    },
-                  ]}
-                  pagination={false}
-                  className="custom-table"
-                />
-              </Card>
+                          }
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                pagination={false}
+                className="custom-table"
+              />
+            </Card>
+          </div>
+        )}
+        {activeTab === "offers" && (
+          <div>
+            {/* Header with Search and Create Button */}
+            <div className="mb-6 flex justify-between items-center">
+              <Input
+                placeholder="Search offers..."
+                prefix={<SearchOutlined className="text-gray-400" />}
+                className="max-w-md"
+                size="large"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsModalVisible(true)}
+              >
+                Create Offers
+              </Button>
             </div>
-          )}
-        </div>
+
+            <Card>
+              <div className="mb-6">
+                <Title level={4} className="!mb-1">
+                  Offers Management
+                </Title>
+                <Text className="text-gray-500">
+                  Design comprehensive offer packages combining multiple
+                  services.
+                </Text>
+              </div>
+
+              <Table
+                dataSource={offersTableData}
+                columns={[
+                  {
+                    title: "Offer Details",
+                    dataIndex: "offerName",
+                    key: "offerName",
+                    width: 210,
+                    render: (text, record: any) => (
+                      <div>
+                        <Text className="font-semibold text-gray-900 block">
+                          {text}
+                        </Text>
+                        <Text className="text-blue-600 text-sm font-medium block">
+                          Code: {record.offerCode}
+                        </Text>
+                        <Text className="text-gray-600 text-sm">
+                          {record.description}
+                        </Text>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Ancillary Services",
+                    dataIndex: "ancillaryServices",
+                    key: "ancillaryServices",
+                    width: 220,
+                    render: (ancillaryServices) => (
+                      <div className="space-y-1">
+                        {ancillaryServices?.map(
+                          (service: any, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2"
+                            >
+                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <Text className="text-sm text-gray-700">
+                                {service
+                                  .split("-")
+                                  .map(
+                                    (word: any) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1)
+                                  )
+                                  .join(" ")}
+                              </Text>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Effective Date",
+                    dataIndex: "startDate",
+                    key: "startDate",
+                    width: 175,
+                    render: (startDate) =>
+                      dayjs(startDate).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Discontinue Date",
+                    dataIndex: "endDate",
+                    key: "endDate",
+                    width: 175,
+                    render: (endDate) => dayjs(endDate).format("DD MMM, YYYY"),
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "status",
+                    key: "status",
+                    width: "8%",
+                    render: (status) => (
+                      <Tag
+                        color={
+                          status === "active"
+                            ? "green"
+                            : status === "draft"
+                            ? "orange"
+                            : "red"
+                        }
+                        className="rounded-md"
+                      >
+                        {status?.replace(/^./, (char: any) =>
+                          char.toUpperCase()
+                        )}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    render: (_, record: any, index) => (
+                      <Space>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          className="text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            record.id = index;
+                            setEditingData(record);
+                            setIsModalVisible(true);
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() =>
+                            setOffersTableData((prev: any) =>
+                              prev.filter((_: any, i: number) => i !== index)
+                            )
+                          }
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                pagination={false}
+                className="custom-table"
+              />
+            </Card>
+          </div>
+        )}
       </div>
 
       {activeTab === "policies" && (
@@ -2266,18 +2289,22 @@ export default function OfferManagement() {
           editingData={editingData}
           setEditingData={setEditingData}
           setPolicyTableData={(values) => {
-            setPolicyTableData((prev:any) => {
-              if(editingData && Object.keys(editingData)?.length) {
+            setPolicyTableData((prev: any) => {
+              if (editingData && Object.keys(editingData)?.length) {
                 let temp = JSON.parse(JSON.stringify(prev));
                 temp[editingData?.id] = values;
                 return temp;
               } else {
-                return ( 
-                  prev?.length ? [...prev, values] : [values]
-                )
+                return prev?.length ? [...prev, values] : [values];
               }
             });
-            message.success(`Policy ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
+            message.success(
+              `Policy ${
+                editingData && Object.keys(editingData)?.length
+                  ? " updated"
+                  : "created"
+              } successfully`
+            );
           }}
         />
       )}
@@ -2290,18 +2317,22 @@ export default function OfferManagement() {
           editingData={editingData}
           setEditingData={setEditingData}
           setAncillaryTableData={(values) => {
-            setAncillaryTableData((prev:any) => {
-              if(editingData && Object.keys(editingData)?.length) {
+            setAncillaryTableData((prev: any) => {
+              if (editingData && Object.keys(editingData)?.length) {
                 let temp = JSON.parse(JSON.stringify(prev));
                 temp[editingData?.id] = values;
                 return temp;
               } else {
-                return ( 
-                  prev?.length ? [...prev, values] : [values]
-                )
+                return prev?.length ? [...prev, values] : [values];
               }
             });
-            message.success(`Ancillaries ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
+            message.success(
+              `Ancillaries ${
+                editingData && Object.keys(editingData)?.length
+                  ? " updated"
+                  : "created"
+              } successfully`
+            );
           }}
         />
       )}
@@ -2314,18 +2345,22 @@ export default function OfferManagement() {
           editingData={editingData}
           setEditingData={setEditingData}
           setDiscountTableData={(values) => {
-            setDiscountTableData((prev:any) => {
-              if(editingData && Object.keys(editingData)?.length) {
+            setDiscountTableData((prev: any) => {
+              if (editingData && Object.keys(editingData)?.length) {
                 let temp = JSON.parse(JSON.stringify(prev));
                 temp[editingData?.id] = values;
                 return temp;
               } else {
-                return ( 
-                  prev?.length ? [...prev, values] : [values]
-                )
+                return prev?.length ? [...prev, values] : [values];
               }
             });
-            message.success(`Discounts ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
+            message.success(
+              `Discounts ${
+                editingData && Object.keys(editingData)?.length
+                  ? " updated"
+                  : "created"
+              } successfully`
+            );
           }}
         />
       )}
@@ -2338,18 +2373,22 @@ export default function OfferManagement() {
           editingData={editingData}
           setEditingData={setEditingData}
           setPromoCodeTableData={(values) => {
-            setPromoCodeTableData((prev:any) => {
-              if(editingData && Object.keys(editingData)?.length) {
+            setPromoCodeTableData((prev: any) => {
+              if (editingData && Object.keys(editingData)?.length) {
                 let temp = JSON.parse(JSON.stringify(prev));
                 temp[editingData?.id] = values;
                 return temp;
               } else {
-                return ( 
-                  prev?.length ? [...prev, values] : [values]
-                )
+                return prev?.length ? [...prev, values] : [values];
               }
             });
-            message.success(`Promo code ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
+            message.success(
+              `Promo code ${
+                editingData && Object.keys(editingData)?.length
+                  ? " updated"
+                  : "created"
+              } successfully`
+            );
           }}
         />
       )}
@@ -2366,23 +2405,25 @@ export default function OfferManagement() {
           editingData={editingData}
           setOffersTableData={(values) => {
             setEditingData(null);
-            setOffersTableData((prev:any) => {
-              if(editingData && Object.keys(editingData)?.length) {
+            setOffersTableData((prev: any) => {
+              if (editingData && Object.keys(editingData)?.length) {
                 let temp = JSON.parse(JSON.stringify(prev));
                 temp[editingData?.id] = values;
                 return temp;
               } else {
-                return ( 
-                  prev?.length ? [...prev, values] : [values]
-                )
+                return prev?.length ? [...prev, values] : [values];
               }
             });
-            message.success(`Offer ${(editingData && Object.keys(editingData)?.length) ? " updated" : "created"} successfully`);
+            message.success(
+              `Offer ${
+                editingData && Object.keys(editingData)?.length
+                  ? " updated"
+                  : "created"
+              } successfully`
+            );
           }}
         />
       )}
-
-
 
       <style jsx global>
         {`
@@ -2500,6 +2541,6 @@ export default function OfferManagement() {
           background-color: #10b981;
         }
       `}</style>
-    </div>
+    </>
   );
 }

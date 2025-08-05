@@ -23,15 +23,17 @@ import {
   EnvironmentOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
 import dayjs from "dayjs";
+import BookingSummary from "@/components/booking-summary/booking-summary";
 
 const { Title, Text } = Typography;
 
 export default function PaymentOptions() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  // Check if this is an admin booking
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -230,21 +232,21 @@ export default function PaymentOptions() {
       creditCardData
     };
     localStorage.setItem("tempPaymentData", JSON.stringify(tempPaymentData));
-    navigate("/review-confirmation");
+    navigate(adminMode ? "/admin/group-leader" : "/group-leader");
   };
 
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
     if (bookingReference) {
-      navigate(`/booking-details/${bookingReference}`);
+      navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
     } else {
-      navigate("/dashboard");
+      navigate(adminMode ? "/admin/dashboard" :  "/dashboard");
     }
   };
 
   const handleSuccessModalCancel = () => {
     setShowSuccessModal(false);
-    navigate("/dashboard");
+    navigate(adminMode ? "/admin/passenger-info" : "/passenger-info");
   };
 
   const handleSubmitBooking = async () => {
@@ -392,6 +394,7 @@ export default function PaymentOptions() {
         // Set booking reference for the modal
         const refNumber = result.booking?.bookingReference || result.bookingReference || 'GB-' + Date.now();
         setBookingReference(refNumber);
+        localStorage.setItem("bookingReference", refNumber);
 
         // Show success modal
         setShowSuccessModal(true);
@@ -440,15 +443,13 @@ export default function PaymentOptions() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
+    <>
+      <div className={`${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`}>
         {/* Booking Steps */}
-        <div className="mb-8">
+        <div className="mb-2">
           <div className="overflow-x-auto">
             <BookingSteps
-              currentStep={6}
+              currentStep={4}
               size="small"
               className="mb-6 min-w-[800px]"
             />
@@ -464,6 +465,11 @@ export default function PaymentOptions() {
             Choose your preferred payment schedule and method for your group
             booking.
           </Text>
+        </div>
+
+        {/* Booking Summary */}
+        <div className="mb-8">
+          <BookingSummary showModifySearch={false} />
         </div>
 
         <Row gutter={24}>
@@ -924,7 +930,7 @@ export default function PaymentOptions() {
             className="text-gray-600 hover:text-gray-800 flex items-center"
             size="large"
           >
-            Back to Review & Confirmation
+            Back
           </Button>
 
           <Button
@@ -937,7 +943,7 @@ export default function PaymentOptions() {
               borderColor: "#2a0a22",
             }}
           >
-            Submit Booking Request
+            Continue
           </Button>
         </div>
       </div>
@@ -949,20 +955,16 @@ export default function PaymentOptions() {
         onOk={handleSuccessModalOk}
         onCancel={handleSuccessModalCancel}
         footer={[
-          <Button key="dashboard" onClick={handleSuccessModalCancel}>
-            Go to Dashboard
-          </Button>,
           <Button 
             key="details" 
-            type="primary" 
             onClick={handleSuccessModalOk}
-            style={{
-              backgroundColor: "#2a0a22",
-              borderColor: "#2a0a22",
-            }}
           >
             View Booking Details
           </Button>,
+          <Button type="primary" key="Add Passenger Info" onClick={handleSuccessModalCancel}>
+            Add Passenger Info
+          </Button>
+          
         ]}
         centered
         width={500}
@@ -987,35 +989,6 @@ export default function PaymentOptions() {
             <Typography.Text className="text-blue-900 font-bold text-xl">
               {bookingReference}
             </Typography.Text>
-          </div>
-
-          <div className="space-y-3 text-left">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs font-medium">1</span>
-              </div>
-              <Typography.Text className="text-gray-700">
-                We'll search for the best available flights for your group
-              </Typography.Text>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs font-medium">2</span>
-              </div>
-              <Typography.Text className="text-gray-700">
-                You'll receive a detailed quote within 24 hours
-              </Typography.Text>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs font-medium">3</span>
-              </div>
-              <Typography.Text className="text-gray-700">
-                Once approved, you can finalize passenger details and make payment
-              </Typography.Text>
-            </div>
           </div>
         </div>
       </Modal>
@@ -1054,6 +1027,6 @@ export default function PaymentOptions() {
           font-weight: 500;
         }
       `}</style>
-    </div>
+    </>
   );
 }

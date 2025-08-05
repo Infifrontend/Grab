@@ -20,7 +20,6 @@ import {
   BankOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import Header from "@/components/layout/header";
 import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
@@ -276,9 +275,7 @@ export default function PaymentDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <>
       <div className="max-w-4xl mx-auto px-6 py-6">
         {/* Page Header */}
         <div className="mb-6">
@@ -622,6 +619,6 @@ export default function PaymentDetails() {
           </div>
         </div>
       </Modal>
-    </div>
+    </>
   );
 }

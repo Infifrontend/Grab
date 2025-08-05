@@ -1,4 +1,3 @@
-import Header from "@/components/layout/header";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
 import ActiveBidsSection from "@/components/bids/active-bids-section";
 import MarketplaceSection from "@/components/marketplace/marketplace-section";
@@ -15,67 +14,63 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Top Banner */}
-        <Alert
-          message={
-            <div className="flex items-center justify-between w-full">
-              <div className="relative overflow-hidden h-6 w-full marquee-wrapper">
-                <div className="flex animate-marquee whitespace-nowrap">
-                  <span className="mr-12 font-semibold">
-                    <strong>Exclusive Bid Prices Open!:</strong> Want to travel
-                    on a specific route? Submit your bid for your preferred
-                    dates and number of seats. If accepted, enjoy a special
-                    discounted rate tailored just for you!
-                  </span>
-                  <span className="mr-20 font-semibold">
-                    <strong>Exclusive Bid Prices Open!:</strong> Want to travel
-                    on a specific route? Submit your bid for your preferred
-                    dates and number of seats. If accepted, enjoy a special
-                    discounted rate tailored just for you!
-                  </span>
-                </div>
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      {/* Top Banner */}
+      <Alert
+        message={
+          <div className="flex items-center justify-between w-full">
+            <div className="relative overflow-hidden h-6 w-full marquee-wrapper">
+              <div className="flex animate-marquee whitespace-nowrap">
+                <span className="mr-12 font-semibold">
+                  <strong>Exclusive Bid Prices Open!:</strong> Want to travel on
+                  a specific route? Submit your bid for your preferred dates and
+                  number of seats. If accepted, enjoy a special discounted rate
+                  tailored just for you!
+                </span>
+                <span className="mr-20 font-semibold">
+                  <strong>Exclusive Bid Prices Open!:</strong> Want to travel on
+                  a specific route? Submit your bid for your preferred dates and
+                  number of seats. If accepted, enjoy a special discounted rate
+                  tailored just for you!
+                </span>
               </div>
-
-              <Button
-                type="link"
-                size="small"
-                onClick={handleBidsRedirect}
-                className="ml-4 text-orange-600 font-semibold hover:text-orange-700 flex-shrink-0"
-                style={{ padding: "0 8px", textDecoration: "underline" }}
-              >
-                Click here
-              </Button>
             </div>
-          }
-          type="warning"
-          icon={<InfoCircleOutlined />}
-          showIcon
-          className="mb-6 border-l-4 border-orange-500"
-        />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          <div className="lg:col-span-5">
-            <QuickBookingForm />
+            <Button
+              type="link"
+              size="small"
+              onClick={handleBidsRedirect}
+              className="ml-4 text-orange-600 font-semibold hover:text-orange-700 flex-shrink-0"
+              style={{ padding: "0 8px", textDecoration: "underline" }}
+            >
+              Click here
+            </Button>
           </div>
-          <div className="lg:col-span-7">
-            <ActiveBidsSection />
-          </div>
-        </div>
+        }
+        type="warning"
+        icon={<InfoCircleOutlined />}
+        showIcon
+        className="mb-6 border-l-4 border-orange-500"
+      />
 
-        {/* Marketplace Section */}
-        <div className="mb-8">
-          <MarketplaceSection />
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        <div className="lg:col-span-5">
+          <QuickBookingForm />
         </div>
+        <div className="lg:col-span-7">
+          <ActiveBidsSection />
+        </div>
+      </div>
 
-        {/* Recent Bookings Section */}
-        <div>
-          <RecentBookingsSection />
-        </div>
+      {/* Marketplace Section */}
+      <div className="mb-8">
+        <MarketplaceSection />
+      </div>
+
+      {/* Recent Bookings Section */}
+      <div>
+        <RecentBookingsSection />
       </div>
     </div>
   );

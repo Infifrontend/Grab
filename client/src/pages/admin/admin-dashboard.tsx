@@ -29,7 +29,6 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-
 import {
   BarChart,
   Bar,
@@ -44,9 +43,6 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-import AdminHeader from "./admin-header";
-import AdminSidebar from "./admin-sidebar";
-
 const { Title, Text } = Typography;
 
 // Mock data for charts
@@ -354,7 +350,9 @@ export default function AdminDashboard() {
                     <FallOutlined className="text-red-600 text-xs" />
                   )}
                   <Text
-                    className={`text-sm font-medium ${route.growth > 0 ? "text-green-600" : "text-red-600"}`}
+                    className={`text-sm font-medium ${
+                      route.growth > 0 ? "text-green-600" : "text-red-600"
+                    }`}
                   >
                     {route.growth > 0 ? "+" : ""}
                     {route.growth}%
@@ -735,11 +733,31 @@ export default function AdminDashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Food & Beverage", value: 35, color: "var(--infiniti-lightest-blue)" },
-                      { name: "Baggage", value: 25, color: "var(--infiniti-lighter-green)" },
-                      { name: "Seating", value: 20, color: "var(--infiniti-light-orange)" },
-                      { name: "Connectivity", value: 12, color: "var(--infiniti-light-red)" },
-                      { name: "Insurance", value: 8, color: "var(--infiniti-light-purple)" },
+                      {
+                        name: "Food & Beverage",
+                        value: 35,
+                        color: "var(--infiniti-lightest-blue)",
+                      },
+                      {
+                        name: "Baggage",
+                        value: 25,
+                        color: "var(--infiniti-lighter-green)",
+                      },
+                      {
+                        name: "Seating",
+                        value: 20,
+                        color: "var(--infiniti-light-orange)",
+                      },
+                      {
+                        name: "Connectivity",
+                        value: 12,
+                        color: "var(--infiniti-light-red)",
+                      },
+                      {
+                        name: "Insurance",
+                        value: 8,
+                        color: "var(--infiniti-light-purple)",
+                      },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -749,11 +767,31 @@ export default function AdminDashboard() {
                     dataKey="value"
                   >
                     {[
-                      { name: "Food & Beverage", value: 35, color: "var(--infiniti-lightest-blue)" },
-                      { name: "Baggage", value: 25, color: "var(--infiniti-lighter-green)" },
-                      { name: "Seating", value: 20, color: "var(--infiniti-light-orange)" },
-                      { name: "Connectivity", value: 12, color: "var(--infiniti-light-red)" },
-                      { name: "Insurance", value: 8, color: "var(--infiniti-light-purple)" },
+                      {
+                        name: "Food & Beverage",
+                        value: 35,
+                        color: "var(--infiniti-lightest-blue)",
+                      },
+                      {
+                        name: "Baggage",
+                        value: 25,
+                        color: "var(--infiniti-lighter-green)",
+                      },
+                      {
+                        name: "Seating",
+                        value: 20,
+                        color: "var(--infiniti-light-orange)",
+                      },
+                      {
+                        name: "Connectivity",
+                        value: 12,
+                        color: "var(--infiniti-light-red)",
+                      },
+                      {
+                        name: "Insurance",
+                        value: 8,
+                        color: "var(--infiniti-light-purple)",
+                      },
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -842,8 +880,7 @@ export default function AdminDashboard() {
               <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
                 <div className="flex items-start space-x-3">
                   <div
-                    className="w-6 h-6 bg-yellow-500 rounded-full flex items-centerAdding navigation to all menu items in the admin dashboard.
-``` justify-center mt-1"
+                    className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mt-1"
                   >
                     <span className="text-white text-xs">💡</span>
                   </div>
@@ -1241,97 +1278,103 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <AdminHeader />
-
-      <div className="flex">
-        {/* Sidebar */}
-        <AdminSidebar activeMenu="Dashboard" />
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          {/* Dashboard Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <Title level={2} className="!mb-1 text-gray-900">
-                  Dashboard
-                </Title>
-                <Text className="text-gray-600">
-                  Comprehensive insights into bookings, offers, and business
-                  performance
-                </Text>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Select
-                  value={timeRange}
-                  onChange={setTimeRange}
-                  className="w-40"
-                  options={[
-                    { value: "12months", label: "Last 12 months" },
-                    { value: "6months", label: "Last 6 months" },
-                    { value: "3months", label: "Last 3 months" },
-                  ]}
-                />
-                <Button icon={<ReloadOutlined />}>Refresh</Button>
-                <Button icon={<DownloadOutlined />}>Export</Button>
-              </div>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className="flex space-x-8 border-b border-gray-200">
-              <div
-                className={`pb-3 cursor-pointer ${activeTab === "overview" ? "border-b-2 border-blue-600" : ""}`}
-                onClick={() => setActiveTab("overview")}
-              >
-                <Text
-                  className={`font-medium ${activeTab === "overview" ? "text-blue-600" : "text-gray-500"}`}
-                >
-                  📊 Overview
-                </Text>
-              </div>
-              <div
-                className={`pb-3 cursor-pointer ${activeTab === "bookings" ? "border-b-2 border-blue-600" : ""}`}
-                onClick={() => setActiveTab("bookings")}
-              >
-                <Text
-                  className={`font-medium ${activeTab === "bookings" ? "text-blue-600" : "text-gray-500"}`}
-                >
-                  📅 Bookings Analytics
-                </Text>
-              </div>
-              <div
-                className={`pb-3 cursor-pointer ${activeTab === "offers" ? "border-b-2 border-blue-600" : ""}`}
-                onClick={() => setActiveTab("offers")}
-              >
-                <Text
-                  className={`font-medium ${activeTab === "offers" ? "text-blue-600" : "text-gray-500"}`}
-                >
-                  💰 Offers Analytics
-                </Text>
-              </div>
-              <div
-                className={`pb-3 cursor-pointer ${activeTab === "insights" ? "border-b-2 border-blue-600" : ""}`}
-                onClick={() => setActiveTab("insights")}
-              >
-                <Text
-                  className={`font-medium ${activeTab === "insights" ? "text-blue-600" : "text-gray-500"}`}
-                >
-                  📈 Insights & Forecasts
-                </Text>
-              </div>
-            </div>
+    /* Main Content */
+    <div className="flex-1 p-6">
+      {/* Dashboard Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <Title level={2} className="!mb-1 text-gray-900">
+              Dashboard
+            </Title>
+            <Text className="text-gray-600">
+              Comprehensive insights into bookings, offers, and business
+              performance
+            </Text>
           </div>
+          <div className="flex items-center space-x-3">
+            <Select
+              value={timeRange}
+              onChange={setTimeRange}
+              className="w-40"
+              options={[
+                { value: "12months", label: "Last 12 months" },
+                { value: "6months", label: "Last 6 months" },
+                { value: "3months", label: "Last 3 months" },
+              ]}
+            />
+            <Button icon={<ReloadOutlined />}>Refresh</Button>
+            <Button icon={<DownloadOutlined />}>Export</Button>
+          </div>
+        </div>
 
-          {/* Tab Content */}
-          {activeTab === "overview" && renderOverviewContent()}
-          {activeTab === "bookings" && renderBookingAnalyticsContent()}
-          {activeTab === "offers" && renderOfferAnalyticsContent()}
-          {activeTab === "insights" && renderInsightsForecastsContent()}
+        {/* Tab Navigation */}
+        <div className="flex space-x-8 border-b border-gray-200">
+          <div
+            className={`pb-3 cursor-pointer ${
+              activeTab === "overview" ? "border-b-2 border-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("overview")}
+          >
+            <Text
+              className={`font-medium ${
+                activeTab === "overview" ? "text-blue-600" : "text-gray-500"
+              }`}
+            >
+              📊 Overview
+            </Text>
+          </div>
+          <div
+            className={`pb-3 cursor-pointer ${
+              activeTab === "bookings" ? "border-b-2 border-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("bookings")}
+          >
+            <Text
+              className={`font-medium ${
+                activeTab === "bookings" ? "text-blue-600" : "text-gray-500"
+              }`}
+            >
+              📅 Bookings Analytics
+            </Text>
+          </div>
+          <div
+            className={`pb-3 cursor-pointer ${
+              activeTab === "offers" ? "border-b-2 border-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("offers")}
+          >
+            <Text
+              className={`font-medium ${
+                activeTab === "offers" ? "text-blue-600" : "text-gray-500"
+              }`}
+            >
+              💰 Offers Analytics
+            </Text>
+          </div>
+          <div
+            className={`pb-3 cursor-pointer ${
+              activeTab === "insights" ? "border-b-2 border-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("insights")}
+          >
+            <Text
+              className={`font-medium ${
+                activeTab === "insights" ? "text-blue-600" : "text-gray-500"
+              }`}
+            >
+              📈 Insights & Forecasts
+            </Text>
+          </div>
         </div>
       </div>
 
+      {/* Tab Content */}
+      {activeTab === "overview" && renderOverviewContent()}
+      {activeTab === "bookings" && renderBookingAnalyticsContent()}
+      {activeTab === "offers" && renderOfferAnalyticsContent()}
+      {activeTab === "insights" && renderInsightsForecastsContent()}
+      
       <style jsx global>{`
         .stats-card {
           border-radius: 16px;

@@ -20,8 +20,8 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
+import BookingSummary from "@/components/booking-summary/booking-summary";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -41,24 +41,31 @@ interface PassengerInfo {
 export default function PassengerInfo() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  // Check if this is an admin booking
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [totalPassengers, setTotalPassengers] = useState(32);
   const [passengers, setPassengers] = useState<PassengerInfo[]>([]);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [bookingReference, setBookingReference] = useState("");
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setBookingReference(localStorage.getItem("bookingReference") || "");
   }, []);
 
   // Initialize passenger data from localStorage
   useEffect(() => {
-    const storedBookingData = localStorage.getItem('bookingFormData');
-    const storedPassengerCount = localStorage.getItem('passengerCount');
+    const storedBookingData = localStorage.getItem("bookingFormData");
+    const searchCriteria = localStorage.getItem("searchCriteria");
+    const storedPassengerCount = localStorage.getItem("passengerCount");
 
-    if (storedBookingData) {
-      const data = JSON.parse(storedBookingData);
+    if (storedBookingData || searchCriteria) {
+      const data = JSON.parse(storedBookingData || "{}");
+      const paxCount = JSON.parse(searchCriteria || "{}")?.passengers || "32";
       setBookingData(data);
-      const count = data.totalPassengers || parseInt(storedPassengerCount || '32');
+      const count =
+        data.totalPassengers || parseInt(storedPassengerCount || paxCount);
       setTotalPassengers(count);
 
       // Check for previously saved passenger data
@@ -151,12 +158,12 @@ export default function PassengerInfo() {
       p.dateOfBirth &&
       p.nationality &&
       p.passportNumber &&
-      p.passportExpiry,
+      p.passportExpiry
   ).length;
 
   const handleBack = () => {
     // Save current passenger data before navigating back
-    const currentPassengerData = passengers.map(p => ({
+    const currentPassengerData = passengers.map((p) => ({
       title: p.title || "",
       firstName: p.firstName || "",
       lastName: p.lastName || "",
@@ -164,24 +171,60 @@ export default function PassengerInfo() {
       nationality: p.nationality || "",
       passportNumber: p.passportNumber || "",
       passportExpiry: p.passportExpiry || "",
-      specialRequests: p.specialRequests || ""
+      specialRequests: p.specialRequests || "",
     }));
-    localStorage.setItem("tempPassengerData", JSON.stringify(currentPassengerData));
+    localStorage.setItem(
+      "tempPassengerData",
+      JSON.stringify(currentPassengerData)
+    );
     console.log("Saved passenger data:", currentPassengerData);
-    navigate("/group-leader");
+    navigate(adminMode ? "/admin/group-leader" : "/group-leader");
   };
 
-  const handleContinue = () => {
-    // Store all passenger data before navigating
-    const allPassengerData = passengers.filter(p => 
-      p.firstName && p.lastName && p.dateOfBirth && p.nationality
-    );
+  const handleContinue = async () => {
+    try {
+      console.log("Saving passenger information...");
+      const validPassengers = passengers.filter(
+        (p) => p.firstName.trim() || p.lastName.trim()
+      );
 
-    localStorage.setItem("passengerData", JSON.stringify(allPassengerData));
+      console.log(
+        `Saving ${validPassengers.length} passengers:`,
+        validPassengers
+      );
 
-    console.log("Passenger data stored:", allPassengerData);
-    console.log("Navigating to review confirmation...");
-    navigate("/review-confirmation");
+      const passengersResponse = await fetch(
+        `/api/booking-passengers/${bookingReference}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            passengers: validPassengers,
+          }),
+        }
+      );
+
+      if (!passengersResponse.ok) {
+        const errorData = await passengersResponse.text();
+        console.error("Passenger update failed:", errorData);
+        throw new Error("Failed to update passenger information");
+      }
+
+      console.log("Passenger information saved successfully");
+
+      message.success("Changes saved successfully");
+
+      // Refresh the booking details to reflect the changes
+      // console.log("Refetching booking details...");
+      // await refetch();
+      navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
+      console.log("Booking details refetched successfully");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      message.error("Failed to save changes. Please try again.");
+    }
   };
 
   const handleAddPassenger = () => {
@@ -203,7 +246,7 @@ export default function PassengerInfo() {
   const handlePassengerChange = (
     index: number,
     field: keyof PassengerInfo,
-    value: string,
+    value: string
   ) => {
     const updatedPassengers = [...passengers];
     updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
@@ -223,15 +266,13 @@ export default function PassengerInfo() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
+    <>
+      <div className={`${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`}>
         {/* Booking Steps */}
-        <div className="mb-8">
+        <div className="mb-2">
           <div className="overflow-x-auto">
             <BookingSteps
-              currentStep={4}
+              currentStep={5}
               size="small"
               className="mb-6 min-w-[800px]"
             />
@@ -256,13 +297,18 @@ export default function PassengerInfo() {
               onClick={() => {
                 // Skip passenger info and go directly to review confirmation
                 localStorage.setItem("passengerData", JSON.stringify([]));
-                navigate("/review-confirmation");
+                navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
               }}
               className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
             >
               Add Passenger Later
             </Button>
           </div>
+        </div>
+
+        {/* Booking Summary */}
+        <div className="mb-8">
+          <BookingSummary showModifySearch={false} />
         </div>
 
         {/* Progress Bar */}
@@ -342,7 +388,7 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "firstName",
-                            e.target.value,
+                            e.target.value
                           )
                         }
                       />
@@ -360,7 +406,7 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "lastName",
-                            e.target.value,
+                            e.target.value
                           )
                         }
                       />
@@ -386,10 +432,12 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "dateOfBirth",
-                            date ? date.toISOString() : "",
+                            date ? date.toISOString() : ""
                           )
                         }
-                        disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
+                        disabledDate={(current) =>
+                          current && current.isAfter(dayjs(), "day")
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -436,7 +484,7 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "passportNumber",
-                            e.target.value,
+                            e.target.value
                           )
                         }
                       />
@@ -460,7 +508,7 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "passportExpiry",
-                            date ? date.toISOString() : "",
+                            date ? date.toISOString() : ""
                           )
                         }
                       />
@@ -480,7 +528,7 @@ export default function PassengerInfo() {
                           handlePassengerChange(
                             index,
                             "specialRequests",
-                            e.target.value,
+                            e.target.value
                           )
                         }
                       />
@@ -522,7 +570,7 @@ export default function PassengerInfo() {
             onClick={handleContinue}
             className="px-8"
           >
-            Continue
+            Submit
           </Button>
         </div>
       </div>
@@ -562,6 +610,6 @@ export default function PassengerInfo() {
           border-color: #d1d5db;
         }
       `}</style>
-    </div>
+    </>
   );
 }

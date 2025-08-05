@@ -13,26 +13,21 @@ import {
   Slider,
   Tabs,
   Radio,
-  Input,
   InputNumber,
   DatePicker,
   message,
 } from "antd";
 import {
-  ArrowRightOutlined,
   ArrowLeftOutlined,
-  PlusOutlined,
-  EditOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import Header from "@/components/layout/header";
 import { useNavigate } from "react-router-dom";
 import BookingSteps from "@/components/booking/booking-steps";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-
+import BookingSummary from "@/components/booking-summary/booking-summary";
 const { Title, Text } = Typography;
 
 interface Flight {
@@ -168,6 +163,8 @@ const mealOptions: BundleOption[] = [
 
 export default function FlightSearchBundle() {
   const navigate = useNavigate();
+  // Check if this is an admin booking
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [flights, setFlights] = useState<Flight[]>([]);
   const [availableFlights, setAvailableFlights] = useState<Flight[]>([]);
   const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
@@ -200,8 +197,6 @@ export default function FlightSearchBundle() {
     "standard-meal",
   ]);
 
-  // Additional state variables
-  const [isAdminBooking, setIsAdminBooking] = useState(false);
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
@@ -232,10 +227,6 @@ export default function FlightSearchBundle() {
   // Load flight data from localStorage on component mount
   useEffect(() => {
     const loadData = () => {
-      // Check if this is an admin booking
-      const adminBooking = localStorage.getItem("isAdminBooking");
-      setIsAdminBooking(adminBooking === "true");
-
       // Load search results
       const searchResults = localStorage.getItem("searchResults");
       if (searchResults) {
@@ -311,12 +302,12 @@ export default function FlightSearchBundle() {
         if (searchCriteriaData) {
           const criteria = JSON.parse(searchCriteriaData);
           setOrigin(
-            criteria.origin || localStorage.getItem("searchOrigin") || "",
+            criteria.origin || localStorage.getItem("searchOrigin") || ""
           );
           setDestination(
             criteria.destination ||
               localStorage.getItem("searchDestination") ||
-              "",
+              ""
           );
         } else {
           setOrigin(localStorage.getItem("searchOrigin") || "");
@@ -376,13 +367,13 @@ export default function FlightSearchBundle() {
     let filtered = availableFlights.filter(
       (flight) =>
         flight.origin === searchOrigin &&
-        flight.destination === searchDestination,
+        flight.destination === searchDestination
     );
 
     // Filter by airlines
     if (selectedAirlines.length > 0) {
       filtered = filtered.filter((flight) =>
-        selectedAirlines.includes(flight.airline),
+        selectedAirlines.includes(flight.airline)
       );
     }
 
@@ -476,7 +467,7 @@ export default function FlightSearchBundle() {
   const filteredReturnFlights = useMemo(() => {
     console.log(
       "Filtering return flights. Total return flights:",
-      returnFlights.length,
+      returnFlights.length
     );
     console.log("Return flights data:", returnFlights);
 
@@ -493,17 +484,17 @@ export default function FlightSearchBundle() {
       "Return flights filter - Looking for flights from:",
       searchDestination,
       "to:",
-      searchOrigin,
+      searchOrigin
     );
     console.log(
       "Available return flights routes:",
-      returnFlights.map((f) => `${f.origin}→${f.destination}`),
+      returnFlights.map((f) => `${f.origin}→${f.destination}`)
     );
 
     let filtered = returnFlights.filter(
       (flight) =>
         flight.origin === searchDestination &&
-        flight.destination === searchOrigin,
+        flight.destination === searchOrigin
     );
 
     console.log("After route filtering:", filtered.length, "return flights");
@@ -511,7 +502,7 @@ export default function FlightSearchBundle() {
     // Filter by airlines
     if (selectedAirlines.length > 0) {
       filtered = filtered.filter((flight) =>
-        selectedAirlines.includes(flight.airline),
+        selectedAirlines.includes(flight.airline)
       );
       console.log("After airline filter:", filtered.length);
     }
@@ -524,7 +515,7 @@ export default function FlightSearchBundle() {
           : flight.price;
       const inRange = price >= priceRange[0] && price <= priceRange[1];
       console.log(
-        `Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`,
+        `Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`
       );
       return inRange;
     });
@@ -651,20 +642,20 @@ export default function FlightSearchBundle() {
 
     localStorage.setItem(
       "selectedFlightData",
-      JSON.stringify(selectedFlightData),
+      JSON.stringify(selectedFlightData)
     );
     localStorage.setItem("selectedBundleData", JSON.stringify(bundleData));
 
     // Maintain admin booking context
-    if (isAdminBooking) {
+    if (adminMode) {
       localStorage.setItem("isAdminBooking", "true");
     }
 
     console.log(
       "Continue to Add Services & Bundles with flight data:",
-      selectedFlightData,
+      selectedFlightData
     );
-    navigate("/add-services-bundles");
+    navigate(adminMode ? "/admin/add-services-bundles" : "/add-services-bundles");
   };
 
   const handleSearchFlights = async () => {
@@ -703,8 +694,8 @@ export default function FlightSearchBundle() {
           tripType === "oneWay"
             ? null
             : typeof returnDate === "string"
-              ? returnDate
-              : returnDate?.format("YYYY-MM-DD"),
+            ? returnDate
+            : returnDate?.format("YYYY-MM-DD"),
         tripType,
         passengers: totalPassengers,
         adults,
@@ -727,8 +718,8 @@ export default function FlightSearchBundle() {
           tripType === "oneWay"
             ? null
             : typeof returnDate === "string"
-              ? returnDate
-              : returnDate?.format("YYYY-MM-DD"),
+            ? returnDate
+            : returnDate?.format("YYYY-MM-DD"),
         passengers: totalPassengers,
         cabin,
         tripType,
@@ -751,7 +742,7 @@ export default function FlightSearchBundle() {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
-            },
+            }
           ),
           arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString(
             "en-US",
@@ -759,7 +750,7 @@ export default function FlightSearchBundle() {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
-            },
+            }
           ),
         }));
 
@@ -785,7 +776,7 @@ export default function FlightSearchBundle() {
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: false,
-                },
+                }
               ),
               arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString(
                 "en-US",
@@ -793,9 +784,9 @@ export default function FlightSearchBundle() {
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: false,
-                },
+                }
               ),
-            }),
+            })
           );
 
           console.log("Processed return flights:", processedReturnFlights);
@@ -813,8 +804,8 @@ export default function FlightSearchBundle() {
           destination,
           "):",
           processedFlights.map(
-            (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`,
-          ),
+            (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`
+          )
         );
 
         if (processedReturnFlights.length > 0) {
@@ -825,8 +816,8 @@ export default function FlightSearchBundle() {
             origin,
             "):",
             processedReturnFlights.map(
-              (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`,
-            ),
+              (f) => `${f.flightNumber}: ${f.origin}→${f.destination}`
+            )
           );
         }
 
@@ -848,14 +839,14 @@ export default function FlightSearchBundle() {
         localStorage.setItem("searchResults", JSON.stringify(processedFlights));
         localStorage.setItem(
           "returnFlights",
-          JSON.stringify(processedReturnFlights),
+          JSON.stringify(processedReturnFlights)
         );
         localStorage.setItem("searchCriteria", JSON.stringify(searchData));
         localStorage.setItem("passengerCount", totalPassengers.toString());
 
         console.log(
           "Updated localStorage - Return flights:",
-          processedReturnFlights.length,
+          processedReturnFlights.length
         );
 
         // Update booking form data
@@ -880,7 +871,7 @@ export default function FlightSearchBundle() {
         };
         localStorage.setItem(
           "bookingFormData",
-          JSON.stringify(updatedBookingData),
+          JSON.stringify(updatedBookingData)
         );
 
         // Update component state
@@ -889,7 +880,7 @@ export default function FlightSearchBundle() {
         setShowModifySearch(false);
 
         console.log(
-          `Found ${processedFlights.length} flights for ${origin} to ${destination}`,
+          `Found ${processedFlights.length} flights for ${origin} to ${destination}`
         );
       } else {
         // No flights found
@@ -916,7 +907,7 @@ export default function FlightSearchBundle() {
     if (!selectedOutbound) return null;
     return (
       filteredFlights.find(
-        (flight) => flight.id.toString() === selectedOutbound,
+        (flight) => flight.id.toString() === selectedOutbound
       ) || null
     );
   }, [selectedOutbound, filteredFlights]);
@@ -925,17 +916,17 @@ export default function FlightSearchBundle() {
     if (!selectedReturn) return null;
     return (
       filteredReturnFlights.find(
-        (flight) => flight.id.toString() === selectedReturn,
+        (flight) => flight.id.toString() === selectedReturn
       ) || null
     );
   }, [selectedReturn, filteredReturnFlights]);
 
   // Get selected options
   const selectedSeatOption = seatOptions.find(
-    (option) => option.id === selectedSeat,
+    (option) => option.id === selectedSeat
   );
   const selectedBaggageOption = baggageOptions.find(
-    (option) => option.id === selectedBaggage,
+    (option) => option.id === selectedBaggage
   );
 
   const baseCost = useMemo(() => {
@@ -1031,8 +1022,8 @@ export default function FlightSearchBundle() {
       }`}
       onClick={onSelect}
     >
-      <Row align="middle" justify="space-between">
-        <Col span={18}>
+      <Row align="bottom" justify="space-between">
+        <Col span={adminMode ? 20 : 18}>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-lg">{getAirlineIcon(flight.airline)}</span>
             <div>
@@ -1082,7 +1073,7 @@ export default function FlightSearchBundle() {
             </div>
           </div>
         </Col>
-        <Col span={6} className="text-right">
+        <Col span={adminMode ? 4 : 6} className="text-right">
           <Text className="text-xl font-bold text-gray-900">
             ${flight.price}
           </Text>
@@ -1164,10 +1155,8 @@ export default function FlightSearchBundle() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
+    <>
+      <div className={`adminMode ${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`}>
         {/* Booking Steps */}
         <div className="mb-8">
           <BookingSteps currentStep={1} size="small" className="mb-6" />
@@ -1178,7 +1167,7 @@ export default function FlightSearchBundle() {
             <Title level={2} className="!mb-2 text-gray-900">
               Flight Search & Bundle Selection
             </Title>
-            {isAdminBooking && (
+            {adminMode && (
               <div className="flex items-center gap-2">
                 <Badge color="blue" text="Admin Booking" />
                 <Text className="text-gray-600">
@@ -1187,7 +1176,7 @@ export default function FlightSearchBundle() {
               </div>
             )}
           </div>
-          {isAdminBooking && (
+          {adminMode && (
             <Button
               type="text"
               onClick={() => navigate("/admin/bookings")}
@@ -1202,93 +1191,10 @@ export default function FlightSearchBundle() {
         <Card className="mb-6">
           {!showModifySearch ? (
             /* Compact Search Summary */
-            <div className="bg-gray-50 p-4 rounded-lg border">
-              <Row align="middle" justify="space-between">
-                <Col>
-                  <Row gutter={[24, 8]} align="middle">
-                    <Col>
-                      <div>
-                        <Text className="text-gray-600 text-sm">Route</Text>
-                        <Text className="block font-medium">
-                          {searchCriteria?.origin || origin} →{" "}
-                          {searchCriteria?.destination || destination}
-                        </Text>
-                      </div>
-                    </Col>
-                    <Col>
-                      <div>
-                        <Text className="text-gray-600 text-sm">Trip Type</Text>
-                        <Text className="block font-medium">
-                          {tripType === "oneWay"
-                            ? "One Way"
-                            : tripType === "roundTrip"
-                              ? "Round Trip"
-                              : "Multi City"}
-                        </Text>
-                      </div>
-                    </Col>
-                    <Col>
-                      <div>
-                        <Text className="text-gray-600 text-sm">Departure</Text>
-                        <Text className="block font-medium">
-                          {searchCriteria?.departureDate
-                            ? dayjs(searchCriteria.departureDate).format(
-                                "DD MMM YYYY",
-                              )
-                            : typeof departureDate === "string"
-                              ? dayjs(departureDate).format("DD MMM YYYY")
-                              : departureDate?.format("DD MMM YYYY")}
-                        </Text>
-                      </div>
-                    </Col>
-                    {tripType === "roundTrip" && (
-                      <Col>
-                        <div>
-                          <Text className="text-gray-600 text-sm">Return</Text>
-                          <Text className="block font-medium">
-                            {tripType === "oneWay"
-                              ? "N/A"
-                              : searchCriteria?.returnDate
-                                ? dayjs(searchCriteria.returnDate).format(
-                                    "DD MMM YYYY",
-                                  )
-                                : typeof returnDate === "string"
-                                  ? dayjs(returnDate).format("DD MMM YYYY")
-                                  : returnDate?.format("DD MMM YYYY")}
-                          </Text>
-                        </div>
-                      </Col>
-                    )}
-                    <Col>
-                      <div>
-                        <Text className="text-gray-600 text-sm">
-                          Passengers
-                        </Text>
-                        <Text className="block font-medium">
-                          {adults + kids + infants} passengers
-                        </Text>
-                      </div>
-                    </Col>
-                    <Col>
-                      <div>
-                        <Text className="text-gray-600 text-sm">Cabin</Text>
-                        <Text className="block font-medium">{cabin}</Text>
-                      </div>
-                    </Col>
-                  </Row>
-                </Col>
-                <Col>
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    onClick={() => setShowModifySearch(true)}
-                    className="text-blue-600"
-                  >
-                    Modify Search
-                  </Button>
-                </Col>
-              </Row>
-            </div>
+            <BookingSummary
+              setShowModifySearch={setShowModifySearch}
+              showModifySearch={true}
+            />
           ) : (
             /* Full Modify Search Form */
             <div>
@@ -1311,7 +1217,7 @@ export default function FlightSearchBundle() {
                       data.tripType = newTripType;
                       localStorage.setItem(
                         "bookingFormData",
-                        JSON.stringify(data),
+                        JSON.stringify(data)
                       );
                     }
 
@@ -1733,7 +1639,9 @@ export default function FlightSearchBundle() {
                           Outbound Flight
                           <Badge
                             count={filteredFlights.length}
-                            style={{ backgroundColor: "var(--ant-color-success)" }}
+                            style={{
+                              backgroundColor: "var(--ant-color-success)",
+                            }}
                           />
                         </span>
                       ),
@@ -1771,7 +1679,9 @@ export default function FlightSearchBundle() {
                           Return Flight
                           <Badge
                             count={filteredReturnFlights.length}
-                            style={{ backgroundColor: "var(--ant-color-success)" }}
+                            style={{
+                              backgroundColor: "var(--ant-color-success)",
+                            }}
                           />
                         </span>
                       ),
@@ -1896,7 +1806,7 @@ export default function FlightSearchBundle() {
             }
             className="infiniti-btn-primary px-8"
           >
-            Continue to Services
+            Continue
           </Button>
         </div>
       </div>
@@ -1913,8 +1823,8 @@ export default function FlightSearchBundle() {
         }
 
         :global(
-          .flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn
-        ) {
+            .flight-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn
+          ) {
           color: #2a0a22;
         }
 
@@ -1923,8 +1833,8 @@ export default function FlightSearchBundle() {
         }
 
         :global(
-          .flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn
-        ) {
+            .flight-tabs .ant-tabs-tab.ant-tabs-tab-disabled .ant-tabs-tab-btn
+          ) {
           color: #9ca3af;
           cursor: not-allowed;
         }
@@ -1946,6 +1856,6 @@ export default function FlightSearchBundle() {
           margin-left: 8px;
         }
       `}</style>
-    </div>
+    </>
   );
 }

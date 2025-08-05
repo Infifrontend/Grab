@@ -14,13 +14,15 @@ const Theme = () => {
   const { Text } = Typography;
   const { changeTheme } = useTheming();
   const [newTheme,setNewTheme] = useState(true);
-  const [themeValue, setThemeValue] = useState();
+  const [themeValue, setThemeValue] = useState("default");
   /* Localstorage theme value & handlers */
   const [LgetTheme] = localStorageAccessor('theme');
 
   useEffect(() => {
     setNewTheme(LgetTheme() === 'default' ? true : false) // eslint-disable-next-line
   }, [])
+
+  console.log(themeValue);
   
   return (
       <Radio.Group
@@ -33,7 +35,8 @@ const Theme = () => {
           }
           changeTheme(e.target.value); setThemeValue(e.target.value);
         }}
-        className="radioSwitch" value={themeValue}
+        className="radioSwitch" 
+        value={themeValue}
       >
         <Radio.Button className={`${newTheme ?'cls-default-theme cls-radio-switch':"cls-radio-switch"}`} value="default">
           <Text className="cls-light-icon Infi-Sp_14_Light"></Text> <BulbOutlined className="cls-light-icon"></BulbOutlined>

@@ -10,11 +10,14 @@ import {
   Col,
   Typography,
   message,
+  Space,
+  Divider,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/layout/header";
 import BookingSteps from "@/components/booking/booking-steps";
+import dayjs from "dayjs";
+import BookingSummary from "@/components/booking-summary/booking-summary";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -22,11 +25,30 @@ const { Option } = Select;
 export default function GroupLeader() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  // Check if this is an admin booking
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const [isLoading, setIsLoading] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [bundleData, setBundleData] = useState<any>(null);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const storedBookingData = localStorage.getItem("bookingFormData");
+    if (storedBookingData) {
+      setBookingData(JSON.parse(storedBookingData));
+    }
+
+    const storedServices = localStorage.getItem("selectedServices");
+    if (storedServices) {
+      setSelectedServices(JSON.parse(storedServices));
+    }
+
+    const storedBundleData = localStorage.getItem("selectedBundleData");
+    if (storedBundleData) {
+      setBundleData(JSON.parse(storedBundleData));
+    }
   }, []);
 
   // Load previously saved form data if available
@@ -49,18 +71,18 @@ export default function GroupLeader() {
       // Filter out empty values to avoid storing unnecessary data
       const filteredValues = Object.fromEntries(
         Object.entries(currentValues).filter(
-          ([_, value]) => value !== undefined && value !== "",
-        ),
+          ([_, value]) => value !== undefined && value !== ""
+        )
       );
       localStorage.setItem(
         "tempGroupLeaderData",
-        JSON.stringify(filteredValues),
+        JSON.stringify(filteredValues)
       );
       console.log("Saved group leader data:", filteredValues);
     } catch (error) {
       console.warn("Could not save group leader data:", error);
     }
-    navigate("/add-services-bundles");
+    navigate(adminMode ? "/admin/add-services-bundles" : "/add-services-bundles");
   };
 
   const handleContinue = () => {
@@ -83,16 +105,16 @@ export default function GroupLeader() {
 
       // Calculate and store total booking amount
       const bookingData = JSON.parse(
-        localStorage.getItem("bookingFormData") || "{}",
+        localStorage.getItem("bookingFormData") || "{}"
       );
       const flightData = JSON.parse(
-        localStorage.getItem("selectedFlightData") || "{}",
+        localStorage.getItem("selectedFlightData") || "{}"
       );
       const bundleData = JSON.parse(
-        localStorage.getItem("selectedBundleData") || "{}",
+        localStorage.getItem("selectedBundleData") || "{}"
       );
       const servicesData = JSON.parse(
-        localStorage.getItem("selectedServices") || "[]",
+        localStorage.getItem("selectedServices") || "[]"
       );
 
       const passengerCount = bookingData.totalPassengers || 1;
@@ -136,7 +158,7 @@ export default function GroupLeader() {
       localStorage.setItem("bookingSummary", JSON.stringify(bookingSummary));
 
       message.success("Group leader information saved locally!");
-      navigate("/passenger-info");
+      navigate(adminMode ? "/admin/payment-options" : "/payment-options");
     } catch (error) {
       console.error("Error processing group leader data:", error);
       message.error("Failed to process group leader information");
@@ -144,12 +166,10 @@ export default function GroupLeader() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <>
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Booking Steps */}
-        <div className="mb-8">
+        <div className="mb-2">
           <div className="overflow-x-auto">
             <BookingSteps
               currentStep={3}
@@ -162,23 +182,35 @@ export default function GroupLeader() {
         {/* Page Header */}
         <div className="mb-6">
           <Title level={2} className="!mb-2 text-gray-900">
-            Group Leader Information
+            Group Leader Review
           </Title>
           <Text className="text-gray-600">
             Please provide the details of the group leader who will be the main
-            contact for this booking.
+            contact for this booking and review the booking.
           </Text>
+        </div>
+
+        {/* Booking Summary */}
+        <div className="mb-8">
+          <BookingSummary showModifySearch={false} />
         </div>
 
         <Card className="mb-6">
           <Form
             form={form}
             layout="vertical"
+            initialValues={{
+              title: "mr",
+              firstName: "John",
+              lastName: "Smith",
+              email: "john.smith@company.com",
+              phoneNumber: "+1 (555) 123-4567",
+            }}
             requiredMark={false}
             className="group-leader-form"
           >
             {/* Personal Information */}
-            <div className="mb-8">
+            <div>
               <Title level={4} className="!mb-6 text-gray-800">
                 Personal Information
               </Title>
@@ -251,165 +283,176 @@ export default function GroupLeader() {
                   </Form.Item>
                 </Col>
               </Row>
-
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Date of Birth" name="dateOfBirth">
-                    <DatePicker
-                      size="large"
-                      placeholder="DD MMM YYYY"
-                      format="DD MMM YYYY"
-                      className="w-full"
-                      disabledDate={(current) =>
-                        current && current.isAfter(new Date(), "day")
-                      }
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Nationality" name="nationality">
-                    <Select
-                      size="large"
-                      placeholder="Select nationality"
-                      showSearch
-                    >
-                      <Option value="us">United States</Option>
-                      <Option value="uk">United Kingdom</Option>
-                      <Option value="ca">Canada</Option>
-                      <Option value="au">Australia</Option>
-                      <Option value="de">Germany</Option>
-                      <Option value="fr">France</Option>
-                      <Option value="jp">Japan</Option>
-                      <Option value="in">India</Option>
-                      <Option value="other">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Passport Information */}
-            <div className="mb-8">
-              <Title level={4} className="!mb-6 text-gray-800">
-                Passport Information
-              </Title>
-
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Passport Number" name="passportNumber">
-                    <Input size="large" placeholder="Enter passport number" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Passport Expiry Date"
-                    name="passportExpiryDate"
-                  >
-                    <DatePicker
-                      size="large"
-                      placeholder="DD MMM YYYY"
-                      format="DD MMM YYYY"
-                      className="w-full"
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Address Information */}
-            <div className="mb-8">
-              <Title level={4} className="!mb-6 text-gray-800">
-                Address Information
-              </Title>
-
-              <Row gutter={24}>
-                <Col xs={24}>
-                  <Form.Item label="Street Address" name="streetAddress">
-                    <Input size="large" placeholder="Enter street address" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="City" name="city">
-                    <Input size="large" placeholder="Enter city" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label="State/Province" name="stateProvince">
-                    <Input size="large" placeholder="Enter state/province" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Postal Code" name="postalCode">
-                    <Input size="large" placeholder="Enter postal code" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Country" name="country">
-                    <Select
-                      size="large"
-                      placeholder="Select country"
-                      showSearch
-                    >
-                      <Option value="us">United States</Option>
-                      <Option value="uk">United Kingdom</Option>
-                      <Option value="ca">Canada</Option>
-                      <Option value="au">Australia</Option>
-                      <Option value="de">Germany</Option>
-                      <Option value="fr">France</Option>
-                      <Option value="jp">Japan</Option>
-                      <Option value="in">India</Option>
-                      <Option value="other">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Emergency Contact */}
-            <div className="mb-8">
-              <Title level={4} className="!mb-6 text-gray-800">
-                Emergency Contact
-              </Title>
-
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Contact Name" name="emergencyContactName">
-                    <Input size="large" placeholder="Enter contact name" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Contact Phone" name="emergencyContactPhone">
-                    <Input size="large" placeholder="Enter contact phone" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={24}>
-                <Col xs={24}>
-                  <Form.Item
-                    label="Relationship"
-                    name="emergencyContactRelationship"
-                  >
-                    <Select size="large" placeholder="Select relationship">
-                      <Option value="spouse">Spouse</Option>
-                      <Option value="parent">Parent</Option>
-                      <Option value="sibling">Sibling</Option>
-                      <Option value="child">Child</Option>
-                      <Option value="friend">Friend</Option>
-                      <Option value="colleague">Colleague</Option>
-                      <Option value="other">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
             </div>
           </Form>
+        </Card>
+
+        <Card className="mb-6">
+          <Title level={4} className="!mb-6 text-gray-800">
+            Review Your Booking
+          </Title>
+
+          <Row gutter={[32, 32]}>
+            {/* Left Column */}
+            <Col xs={24} md={12}>
+              <Space direction="vertical" size="large" className="w-full">
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Trip Type
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData
+                      ? bookingData.tripType === "oneWay"
+                        ? "One-way"
+                        : bookingData.tripType === "roundTrip"
+                        ? "Round-trip"
+                        : "Multi-city"
+                      : "One-way"}
+                  </Text>
+                </div>
+
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Route
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData
+                      ? `${bookingData.origin} → ${bookingData.destination}`
+                      : "Chennai → Delhi"}
+                  </Text>
+                </div>
+
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Departure Date
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData?.departureDate
+                      ? typeof bookingData.departureDate === "string"
+                        ? dayjs(bookingData.departureDate).format("DD MMM YYYY")
+                        : dayjs(bookingData.departureDate).format("DD MMM YYYY")
+                      : "22 Jun 2024"}
+                  </Text>
+                </div>
+              </Space>
+            </Col>
+
+            {/* Right Column */}
+            <Col xs={24} md={12}>
+              <Space direction="vertical" size="large" className="w-full">
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Cabin Class
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData ? bookingData.cabin : "Economy"}
+                  </Text>
+                </div>
+
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Total Passengers
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData
+                      ? `${
+                          bookingData.totalPassengers ||
+                          bookingData.adults +
+                            bookingData.kids +
+                            bookingData.infants
+                        } passengers`
+                      : "1 passenger"}
+                  </Text>
+                </div>
+
+                <div>
+                  <Text className="text-gray-500 text-sm block mb-2">
+                    Return Date
+                  </Text>
+                  <Text className="text-gray-900 font-medium text-base">
+                    {bookingData?.returnDate &&
+                    bookingData.tripType !== "oneWay"
+                      ? typeof bookingData.returnDate === "string"
+                        ? dayjs(bookingData.returnDate).format("DD MMM YYYY")
+                        : dayjs(bookingData.returnDate).format("DD MMM YYYY")
+                      : "N/A"}
+                  </Text>
+                </div>
+              </Space>
+            </Col>
+          </Row>
+
+          <Divider />
+
+          {/* Selected Services */}
+          <div className="mb-4">
+            <Text className="text-gray-500 text-sm block mb-3">
+              Selected Services
+            </Text>
+            <Space direction="vertical" size="small" className="w-full">
+              {selectedServices.length > 0 ? (
+                selectedServices.map((service, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <Text className="text-gray-900">{service.name}</Text>
+                    <Text className="text-gray-600">
+                      $
+                      {service.price.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      per person
+                    </Text>
+                  </div>
+                ))
+              ) : (
+                <Text className="text-gray-500 italic">
+                  No additional services selected
+                </Text>
+              )}
+
+              {/* Show bundle services if available */}
+              {bundleData && (
+                <>
+                  {bundleData.selectedSeat && (
+                    <div className="flex items-center justify-between">
+                      <Text className="text-gray-900">
+                        {bundleData.selectedSeat.name}
+                      </Text>
+                      <Text className="text-gray-600">
+                        ${bundleData.selectedSeat.price} per person
+                      </Text>
+                    </div>
+                  )}
+                  {bundleData.selectedBaggage && (
+                    <div className="flex items-center justify-between">
+                      <Text className="text-gray-900">
+                        {bundleData.selectedBaggage.name}
+                      </Text>
+                      <Text className="text-gray-600">
+                        ${bundleData.selectedBaggage.price} per person
+                      </Text>
+                    </div>
+                  )}
+                  {bundleData.selectedMeals &&
+                    bundleData.selectedMeals.length > 0 &&
+                    bundleData.selectedMeals.map((meal, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <Text className="text-gray-900">{meal.name}</Text>
+                        <Text className="text-gray-600">
+                          ${meal.price} per person
+                        </Text>
+                      </div>
+                    ))}
+                </>
+              )}
+            </Space>
+          </div>
         </Card>
 
         {/* Navigation Buttons */}
@@ -456,6 +499,6 @@ export default function GroupLeader() {
           content: "*";
         }
       `}</style>
-    </div>
+    </>
   );
 }
