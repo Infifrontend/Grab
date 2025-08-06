@@ -5,7 +5,8 @@ import {
   Card,
   Space,
   Button,
-  Divider
+  Divider,
+  Popover,
 } from "antd";
 import {
   DownOutlined,
@@ -16,11 +17,13 @@ import {
   CalendarOutlined,
   CreditCardOutlined,
   SettingOutlined,
-  LogoutOutlined
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Notification from "./notification";
+import AccessibilityHeader from "@/components/ui/accessibility-header";
+import { Theme } from "@/components/Theme/Theme";
 
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
@@ -36,17 +39,55 @@ const navigationItems = [
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
 
   // Calculate active menu based on current path
-  const activeMenu = navigationItems.find(item => 
-    location.pathname === item.path || 
-    (item.path !== '/' && location.pathname.startsWith(item.path))
-  )?.key || localStorage.getItem("activeMenu") || "";
+  const activeMenu =
+    navigationItems.find(
+      (item) =>
+        location.pathname === item.path ||
+        (item.path !== "/" && location.pathname.startsWith(item.path))
+    )?.key ||
+    localStorage.getItem("activeMenu") ||
+    "";
 
   const handleSignOut = () => {
-    localStorage.removeItem('userLoggedIn');
-    localStorage.removeItem('username');
-    navigate('/login');
+    localStorage.removeItem("userLoggedIn");
+    localStorage.removeItem("username");
+    navigate("/login");
+  };
+
+  // For Focus issue fix - accessibility section
+  const changeFocus = (e: React.KeyboardEvent) => {
+    const currElement = e.target as HTMLElement;
+    e.key === "Tab" &&
+      !(e.key === "Tab" && e.shiftKey) &&
+      !!document.querySelectorAll(".cls-accessibility-popover")[0] &&
+      !document
+        .querySelectorAll(".cls-accessibility-popover")[0]
+        .classList.contains("ant-popover-hidden") &&
+      e.preventDefault();
+    setTimeout(() => {
+      if (
+        !!document.querySelectorAll(".cls-accessibility-popover")[0] &&
+        !document
+          .querySelectorAll(".cls-accessibility-popover")[0]
+          .classList.contains("ant-popover-hidden")
+      ) {
+        const element = document.querySelectorAll(
+          ".cls-accessibility-popover .cls-default"
+        )[0] as HTMLElement;
+        (e.key === "Enter" || e.key === "Space") &&
+          element.clientWidth &&
+          element.focus();
+        e.key === "Tab" &&
+          !(e.key === "Tab" && e.shiftKey) &&
+          element.clientWidth &&
+          element.focus();
+      } else {
+        (e.key === "Enter" || e.key === "Space") && currElement.focus();
+      }
+    }, 300);
   };
 
   return (
@@ -63,150 +104,179 @@ export default function Header() {
             />
           </Link>
 
-          {/* Navigation - Updated with smoother active state */}
-          <nav className="hidden lg:flex space-x-8">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.key}
-                to={item.path}
-                onClick={() => localStorage.setItem("activeMenu", item.key)}
-                className={`infiniti-nav-item transition-colors duration-200 ${
-                  activeMenu === item.key 
-                    ? "active" 
-                    : ""
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* User Profile - Remaining unchanged */}
-          <div className="flex items-center space-x-4">
-            <Notification />
-            <Dropdown
-              placement="bottomRight"
-              trigger={["click"]}
-              dropdownRender={() => (
-                <Card
-                  className="user-profile-dropdown"
-                  style={{
-                    width: 320,
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "12px",
-                    boxShadow:
-                      "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                  }}
-                  bodyStyle={{ padding: "20px" }}
-                >
-                  {/* User Info Section */}
-                  <div className="flex items-start gap-3 mb-4">
-                    <Avatar
-                      size={48}
-                      icon={<UserOutlined />}
-                      className="bg-gray-200"
-                    />
-                    <div className="flex-1">
-                      <Typography.Title
-                        level={5}
-                        className="!mb-1 text-gray-900"
-                      >
-                        John Smith
-                      </Typography.Title>
-                      <Typography.Text className="text-sm text-blue-600 font-medium">
-                        Gold Member
-                      </Typography.Text>
-                    </div>
-                  </div>
-
-                  {/* Contact Information */}
-                  <Space direction="vertical" size={8} className="w-full mb-4">
-                    <div className="flex items-center gap-2">
-                      <MailOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        john.smith@company.com
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PhoneOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        +1 (555) 123-4567
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <EnvironmentOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        New York, NY
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CalendarOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        Member since January 2023
-                      </Typography.Text>
-                    </div>
-                  </Space>
-
-                  {/* Total Bookings */}
-                  <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
-                    <Typography.Text className="text-sm text-gray-600">
-                      Total Bookings:
-                    </Typography.Text>
-                    <Typography.Text className="text-sm font-semibold text-gray-900">
-                      12
-                    </Typography.Text>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <Space direction="vertical" size={8} className="w-full">
-                    <Button
-                      type="text"
-                      icon={<UserOutlined />}
-                      className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                      style={{ border: "none", padding: "0 12px" }}
-                    >
-                      View Profile
-                    </Button>
-                    <Button
-                      type="text"
-                      icon={<CreditCardOutlined />}
-                      className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                      style={{ border: "none", padding: "0 12px" }}
-                    >
-                      Payment Methods
-                    </Button>
-                    <Button
-                      type="text"
-                      icon={<SettingOutlined />}
-                      className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                      style={{ border: "none", padding: "0 12px" }}
-                    >
-                      Settings
-                    </Button>
-                  </Space>
-
-                  <Divider className="!my-3" />
-
-                  {/* Sign Out */}
-                  <Button
-                    type="text"
-                    icon={<LogoutOutlined />}
-                    className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
-                    style={{ border: "none" }}
-                    onClick={handleSignOut}
+          {isUserLoggedIn ? (
+            <>
+              {/* Navigation - Updated with smoother active state */}
+              <nav className="hidden lg:flex space-x-8">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    to={item.path}
+                    onClick={() => localStorage.setItem("activeMenu", item.key)}
+                    className={`infiniti-nav-item transition-colors duration-200 ${
+                      activeMenu === item.key ? "active" : ""
+                    }`}
                   >
-                    Sign Out
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+              {/* User Profile - Remaining unchanged  */}
+              <div className="flex items-center space-x-4">
+                <Popover
+                  trigger="click"
+                  className="cls-accessibility-popover"
+                  placement="bottom"
+                  content={<AccessibilityHeader />}
+                  title={null}
+                >
+                  <Button
+                    type="link"
+                    className="cls-accessibility"
+                    onKeyDown={changeFocus}
+                  >
+                    {"Accessibility"}
                   </Button>
-                </Card>
-              )}
+                </Popover>
+                <Notification />
+                <Dropdown
+                  placement="bottomRight"
+                  trigger={["click"]}
+                  dropdownRender={() => (
+                    <Card
+                      className="user-profile-dropdown"
+                      style={{
+                        width: 320,
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "12px",
+                        boxShadow:
+                          "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                      }}
+                      bodyStyle={{ padding: "20px" }}
+                    >
+                      {/* User Info Section */}
+                      <div className="flex justify-between align-center gap-3 mb-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar
+                            size={48}
+                            icon={<UserOutlined />}
+                            className="bg-gray-200"
+                          />
+                          <div className="flex-1">
+                            <Typography.Title
+                              level={5}
+                              className="!mb-1 text-gray-900"
+                            >
+                              John Smith
+                            </Typography.Title>
+                            <Typography.Text className="text-sm text-blue-600 font-medium">
+                              Gold Member
+                            </Typography.Text>
+                          </div>
+                        </div>
+                        <Theme />
+                      </div>
+                      {/* Contact Information */}
+                      <Space direction="vertical" size={8} className="w-full mb-4">
+                        <div className="flex items-center gap-2">
+                          <MailOutlined className="text-gray-400 text-sm" />
+                          <Typography.Text className="text-sm text-gray-600">
+                            john.smith@company.com
+                          </Typography.Text>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <PhoneOutlined className="text-gray-400 text-sm" />
+                          <Typography.Text className="text-sm text-gray-600">
+                            +1 (555) 123-4567
+                          </Typography.Text>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <EnvironmentOutlined className="text-gray-400 text-sm" />
+                          <Typography.Text className="text-sm text-gray-600">
+                            New York, NY
+                          </Typography.Text>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CalendarOutlined className="text-gray-400 text-sm" />
+                          <Typography.Text className="text-sm text-gray-600">
+                            Member since January 2023
+                          </Typography.Text>
+                        </div>
+                      </Space>
+
+                      {/* Total Bookings */}
+                      <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
+                        <Typography.Text className="text-sm text-gray-600">
+                          Total Bookings:
+                        </Typography.Text>
+                        <Typography.Text className="text-sm font-semibold text-gray-900">
+                          12
+                        </Typography.Text>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <Space direction="vertical" size={8} className="w-full">
+                        <Button
+                          type="text"
+                          icon={<UserOutlined />}
+                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                          style={{ border: "none", padding: "0 12px" }}
+                        >
+                          View Profile
+                        </Button>
+                        <Button
+                          type="text"
+                          icon={<CreditCardOutlined />}
+                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                          style={{ border: "none", padding: "0 12px" }}
+                        >
+                          Payment Methods
+                        </Button>
+                        <Button
+                          type="text"
+                          icon={<SettingOutlined />}
+                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                          style={{ border: "none", padding: "0 12px" }}
+                        >
+                          Settings
+                        </Button>
+                      </Space>
+
+                      <Divider className="!my-3" />
+
+                      {/* Sign Out */}
+                      <Button
+                        type="text"
+                        icon={<LogoutOutlined />}
+                        className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        style={{ border: "none" }}
+                        onClick={handleSignOut}
+                      >
+                        Sign Out
+                      </Button>
+                    </Card>
+                  )}
+                >
+                  <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg transition-colors">
+                    <Avatar size="small" icon={<UserOutlined />} />
+                    <span className="text-gray-600 font-medium">John Smith</span>
+                    <DownOutlined
+                      className="text-xs text-gray-600"
+                      style={{ marginBlockStart: "0.25rem" }}
+                    />
+                  </div>
+                </Dropdown>
+              </div>
+            </>
+          ) : (
+            <Button
+              type="primary"
+              onClick={() => navigate("/login")}
+              className="infiniti-btn-primary px-6 h-[32px] flex align-center justify-center"
             >
-              <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg transition-colors">
-                <Avatar size="small" icon={<UserOutlined />} />
-                <span className="text-gray-600 font-medium">John Smith</span>
-                <DownOutlined className="text-xs text-gray-600" style={{ marginBlockStart: "0.25rem" }} />
-              </div> 
-            </Dropdown>
-          </div>
+              Sign in
+            </Button>
+          )}
         </div>
       </div>
 

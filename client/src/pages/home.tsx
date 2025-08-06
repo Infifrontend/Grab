@@ -7,6 +7,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const navigate = useNavigate();
 
   const handleBidsRedirect = () => {
@@ -69,9 +70,11 @@ export default function Home() {
       </div>
 
       {/* Recent Bookings Section */}
-      <div>
-        <RecentBookingsSection />
-      </div>
+      {userMode && (
+        <div>
+          <RecentBookingsSection />
+        </div>
+      )}
     </div>
   );
 }

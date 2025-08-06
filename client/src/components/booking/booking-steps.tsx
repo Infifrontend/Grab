@@ -34,7 +34,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
   ];
 
   return (
-    <div className={`booking-steps ${className}`}>
+    <div className={`bg-white booking-steps ${className}`}>
       <Steps
         current={currentStep}
         size={size}
@@ -53,7 +53,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
 
       <style jsx>{`
         .booking-steps {
-          background: var(--bgGray50);
+          // background: var(--bgGray50);
           padding: 24px;
           border-radius: 12px;
           border: 1px solid #e5e7eb;

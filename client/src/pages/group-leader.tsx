@@ -27,6 +27,7 @@ export default function GroupLeader() {
   const navigate = useNavigate();
   // Check if this is an admin booking
   const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const [isLoading, setIsLoading] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
@@ -199,13 +200,21 @@ export default function GroupLeader() {
           <Form
             form={form}
             layout="vertical"
-            initialValues={{
-              title: "mr",
-              firstName: "John",
-              lastName: "Smith",
-              email: "john.smith@company.com",
-              phoneNumber: "+1 (555) 123-4567",
-            }}
+            initialValues={
+              userMode || adminMode ? {
+                title: "mr",
+                firstName: "John",
+                lastName: "Smith",
+                email: "john.smith@company.com",
+                phoneNumber: "+1 (555) 123-4567",
+              } : {
+                title: "mr",
+                firstName: "",
+                lastName: "",
+                email: "",
+                phoneNumber: "",
+              }
+            }
             requiredMark={false}
             className="group-leader-form"
           >

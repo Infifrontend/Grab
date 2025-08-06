@@ -464,6 +464,131 @@ const MenuRoutes = {
         "permission": []
       }
     ]
+  },
+  "guest": {
+    "menu": [],
+    "routes": [
+      {
+        "route_id": 301,
+        "path": "/",
+        "layout": "RetailLayout",
+        "component": "Home",
+        "permission": [],
+        "default": true
+      },
+      {
+        "route_id": 302,
+        "path": "/login",
+        "layout": "",
+        "component": "Login",
+        "permission": []
+      },
+      {
+        "route_id": 303,
+        "path": "/admin/login",
+        "layout": "",
+        "component": "AdminLogin",
+        "permission": []
+      },
+      {
+        "route_id": 203,
+        "path": "/booking-details/:id",
+        "layout": "RetailLayout",
+        "component": "BookingDetails",
+        "permission": []
+      },
+      {
+        "route_id": 204,
+        "path": "/manage-booking",
+        "layout": "RetailLayout",
+        "component": "ManageBooking",
+        "permission": []
+      },
+      {
+        "route_id": 205,
+        "path": "/manage-booking/:id",
+        "layout": "RetailLayout",
+        "component": "ManageBookingDetail",
+        "permission": []
+      },
+      {
+        "route_id": 206,
+        "path": "/payments",
+        "layout": "RetailLayout",
+        "component": "Payments",
+        "permission": []
+      },
+      {
+        "route_id": 207,
+        "path": "/payment-details/:bidId",
+        "layout": "RetailLayout",
+        "component": "PaymentDetails",
+        "permission": []
+      },
+      {
+        "route_id": 213,
+        "path": "/flight-search-results",
+        "layout": "RetailLayout",
+        "component": "FlightSearchResults",
+        "permission": []
+      },
+      {
+        "route_id": 214,
+        "path": "/flight-search-bundle",
+        "layout": "RetailLayout",
+        "component": "FlightSearchBundle",
+        "permission": []
+      },
+      {
+        "route_id": 215,
+        "path": "/add-services-bundles",
+        "layout": "RetailLayout",
+        "component": "AddServicesBundles",
+        "permission": []
+      },
+      {
+        "route_id": 216,
+        "path": "/group-leader",
+        "layout": "RetailLayout",
+        "component": "GroupLeader",
+        "permission": []
+      },
+      {
+        "route_id": 217,
+        "path": "/passenger-info",
+        "layout": "RetailLayout",
+        "component": "PassengerInfo",
+        "permission": []
+      },
+      {
+        "route_id": 218,
+        "path": "/payment-options",
+        "layout": "RetailLayout",
+        "component": "PaymentOptions",
+        "permission": []
+      },
+      {
+        "route_id": 219,
+        "path": "/review-confirmation",
+        "layout": "RetailLayout",
+        "component": "ReviewConfirmation",
+        "permission": []
+      },
+      {
+        "route_id": 220,
+        "path": "/download-itinerary/:id",
+        "layout": "RetailLayout",
+        "component": "DownloadItinerary",
+        "permission": []
+      },
+      {
+        "route_id": 222,
+        "path": "*",
+        "layout": "RetailLayout",
+        "component": "NotFound",
+        "permission": []
+      }
+    ]
   }
 }   
 

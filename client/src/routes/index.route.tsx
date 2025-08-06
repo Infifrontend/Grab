@@ -43,18 +43,7 @@ const AppRoute = () => {
   const getActiveRoutes = () => {
     if (isAdminLoggedIn) return MenuRoutes.admin;
     if (isUserLoggedIn) return MenuRoutes.retail;
-    
-    return {
-      menu: [],
-      routes: [
-        ...MenuRoutes.retail.routes.filter(route => 
-          ['/', '/login'].includes(route.path)
-        ),
-        ...MenuRoutes.admin.routes.filter(route => 
-          route.path === '/admin/login'
-        )
-      ]
-    };
+    return MenuRoutes.guest;
   };
 
   // Network status
@@ -71,7 +60,11 @@ const AppRoute = () => {
   // Generate routes
   useEffect(() => {
     const activeRoutes = getActiveRoutes();
+    console.log(activeRoutes);
+
     const generatedRoutes = activeRoutes.routes.map(route => {
+      console.log(route.layout, route.component);
+      
       const Layout = Layouts.get(route.layout);
       const Page = Pages.get(route.component);
       
@@ -87,14 +80,18 @@ const AppRoute = () => {
           element={
             Layout ? (
               <Layout>
-                <MotionWrapper>
-                  <Page />
-                </MotionWrapper>
+                  <Suspense fallback={<Loader fallback={true} />}>
+                    <MotionWrapper>
+                      <Page />
+                    </MotionWrapper>
+                  </Suspense>
               </Layout> 
               ) : (
-              <MotionWrapper>
-                <Page />
-              </MotionWrapper>
+                <Suspense fallback={<Loader fallback={true} />}>
+                  <MotionWrapper>
+                      <Page />
+                  </MotionWrapper>
+                </Suspense>
             )
           }
         />
@@ -121,14 +118,17 @@ const AppRoute = () => {
     }
     
     const activeRoutes = getActiveRoutes();
+    
     const isPathValid = activeRoutes.routes.some(route => 
       matchPath(route.path, location.pathname)
     );
+    
+    console.log(isPathValid);
 
     if (!isPathValid) {
       navigate(location.pathname.startsWith('/admin') 
         ? '/admin/login' 
-        : '/login');
+        : '/new-booking');
     }
   }, [location.pathname, isAdminLoggedIn, isUserLoggedIn, navigate, pageLoading]);
 

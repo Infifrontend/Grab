@@ -42,7 +42,8 @@ interface SearchFormData {
 
 export default function NewBooking() {
   const [form] = Form.useForm();
-  const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("roundTrip");
+  const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
+  const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("oneWay");
   const navigate = useNavigate();
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
@@ -194,9 +195,11 @@ export default function NewBooking() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       {/* Multi-step Progress */}
-      <div className="mb-8">
-        <BookingSteps currentStep={0} size="small" className="mb-6" />
-      </div>
+      { userMode &&
+        <div className="mb-8">
+          <BookingSteps currentStep={0} size="small" className="mb-6" />
+        </div>
+      }
 
       {/* Page Header */}
       <div className="mb-6">
@@ -228,7 +231,7 @@ export default function NewBooking() {
         >
           {/* Trip Type */}
           <div className="mb-6">
-            <Text className="block mb-3 text-gray-700 font-medium">
+            <Text className="block mb-3 text-gray-700 font-bold">
               Trip Type
             </Text>
             <Radio.Group
@@ -241,9 +244,9 @@ export default function NewBooking() {
             </Radio.Group>
           </div>
 
-          {/* Origin and Destination */}
-          <Row gutter={24} className="mb-6">
-            <Col xs={24} md={12}>
+          <Row gutter={24} className="mb-2">
+            {/* Origin and Destination */}
+            <Col xs={24} md={userMode ? 12 : 6}>
               <Form.Item
                 label="Origin *"
                 name="origin"
@@ -270,7 +273,7 @@ export default function NewBooking() {
                 </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={userMode ? 12 : 6}>
               <Form.Item
                 label="Destination *"
                 name="destination"
@@ -299,11 +302,8 @@ export default function NewBooking() {
                 </Select>
               </Form.Item>
             </Col>
-          </Row>
-
-          {/* Dates */}
-          <Row gutter={24} className="mb-6">
-            <Col xs={24} md={12}>
+            {/* Dates */}
+            <Col xs={24} md={userMode ? 12 : 6}>
               <Form.Item
                 label="Departure date *"
                 name="departureDate"
@@ -323,7 +323,7 @@ export default function NewBooking() {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={userMode ? 12 : 6}>
               <Form.Item
                 label="Return date"
                 name="returnDate"
@@ -352,129 +352,146 @@ export default function NewBooking() {
               </Form.Item>
             </Col>
           </Row>
-
-          {/* Passengers */}
-          <div className="mb-6">
-            <Text className="block mb-3 text-gray-700 font-medium">
-              Passengers *
-            </Text>
-            <Row gutter={24}>
-              <Col xs={24} md={8}>
-                <div>
+          <Row gutter={[24, 0]}>
+            {/* Passengers */}
+            <Col xs={24} md={userMode ? 24 : 18}>
+              <Row gutter={[24, 0]}>
+                <Col span={24} className="mb-2">
+                  <Text className="block text-gray-700 font-bold">
+                    Passengers *
+                  </Text>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="block mb-2 text-gray-600 text-sm">
+                      Adults (12+ years)
+                    </Text>
+                    <Form.Item
+                      name="adults"
+                      rules={[
+                        { required: true, message: "At least 1 adult required" },
+                        {
+                          validator: (_, value) => {
+                            if (value && value > 0) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(
+                              new Error("At least 1 adult is required")
+                            );
+                          },
+                        },
+                      ]}
+                    >
+                      <InputNumber
+                        size="large"
+                        min={1}
+                        className="w-full"
+                        placeholder="1"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="block mb-2 text-gray-600 text-sm">
+                      Kids (2-11 years)
+                    </Text>
+                    <Form.Item name="kids">
+                      <InputNumber
+                        size="large"
+                        min={0}
+                        className="w-full"
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
+                <Col xs={24} md={8}>
+                  <div>
+                    <Text className="block mb-2 text-gray-600 text-sm">
+                      Infants (0-2 years)
+                    </Text>
+                    <Form.Item name="infants">
+                      <InputNumber
+                        size="large"
+                        min={0}
+                        className="w-full"
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </Col>
+              </Row>
+            </Col>
+            {/* Cabin */}
+            <Col xs={24} md={userMode ? 24 : 6}>
+              <Row gutter={[24, 0]} className="mb-2">
+                <Col span={24} className="mb-2">
+                  <Text className="block text-gray-700 font-bold">
+                    Cabin *
+                  </Text>
+                </Col>
+                <Col span={userMode ? 12 : 24}>
                   <Text className="block mb-2 text-gray-600 text-sm">
-                    Adults (12+ years)
+                    Cabin Class
                   </Text>
                   <Form.Item
-                    name="adults"
+                    name="cabin"
                     rules={[
-                      { required: true, message: "At least 1 adult required" },
-                      {
-                        validator: (_, value) => {
-                          if (value && value > 0) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject(
-                            new Error("At least 1 adult is required")
-                          );
-                        },
-                      },
+                      { required: true, message: "Please select cabin class" },
                     ]}
                   >
-                    <InputNumber
-                      size="large"
-                      min={1}
-                      className="w-full"
-                      placeholder="1"
-                    />
+                    <Select size="large" placeholder="Select cabin class">
+                      <Option value="economy">Economy</Option>
+                      <Option value="business">Business</Option>
+                      <Option value="first">First Class</Option>
+                    </Select>
                   </Form.Item>
-                </div>
-              </Col>
-              <Col xs={24} md={8}>
-                <div>
-                  <Text className="block mb-2 text-gray-600 text-sm">
-                    Kids (2-11 years)
-                  </Text>
-                  <Form.Item name="kids">
-                    <InputNumber
-                      size="large"
-                      min={0}
-                      className="w-full"
-                      placeholder="0"
-                    />
-                  </Form.Item>
-                </div>
-              </Col>
-              <Col xs={24} md={8}>
-                <div>
-                  <Text className="block mb-2 text-gray-600 text-sm">
-                    Infants (0-2 years)
-                  </Text>
-                  <Form.Item name="infants">
-                    <InputNumber
-                      size="large"
-                      min={0}
-                      className="w-full"
-                      placeholder="0"
-                    />
-                  </Form.Item>
-                </div>
-              </Col>
-            </Row>
-          </div>
-
-          {/* Cabin */}
-          <Row gutter={24} className="mb-6">
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Cabin *"
-                name="cabin"
-                rules={[
-                  { required: true, message: "Please select cabin class" },
-                ]}
-              >
-                <Select size="large" placeholder="Select cabin class">
-                  <Option value="economy">Economy</Option>
-                  <Option value="business">Business</Option>
-                  <Option value="first">First Class</Option>
-                </Select>
+                </Col>
+              </Row>
+            </Col>
+            {/* Special Requests */}
+            <Col xs={24} md={userMode ? 24 : 15}>
+              <Form.Item label="Special Requests" name="specialRequests">
+                <TextArea
+                  rows={4}
+                  placeholder="Any special requirements or requests for your group..."
+                  className="resize-none"
+                />
               </Form.Item>
             </Col>
           </Row>
 
-          {/* Special Requests */}
-          <Form.Item label="Special Requests" name="specialRequests">
-            <TextArea
-              rows={4}
-              placeholder="Any special requirements or requests for your group..."
-              className="resize-none"
-            />
-          </Form.Item>
         </Form>
       </Card>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={handleBackToHome}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          Back to Home
-        </Button>
-
-        <Button
-          type="primary"
-          size="large"
-          loading={searchMutation.isPending}
-          onClick={() => form.submit()}
-          className="infiniti-btn-primary px-8"
-        >
-          {searchMutation.isPending
-            ? "Searching Flights..."
-            : "Continue to Flight Search"}
-        </Button>
-      </div>
+        <div className={`flex ${userMode ? "justify-between" : "justify-center"} items-center`}>
+        { userMode &&
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBackToHome}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            Back to Home
+          </Button>
+        }
+          <Button
+            type="primary"
+            size="large"
+            loading={searchMutation.isPending}
+            onClick={() => form.submit()}
+            className="infiniti-btn-primary px-8"
+          >
+            { !userMode 
+              ? "Search Flights"
+              : searchMutation.isPending
+                ? "Searching Flights..."
+                : "Continue to Flight Search"
+            }
+          </Button>
+        </div>
     </div>
   );
 }
