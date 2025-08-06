@@ -2,11 +2,11 @@ import React, { useState, createContext, useCallback, useLayoutEffect, useMemo }
 import { ConfigProvider, theme } from "antd";
 import { localStorageAccessor } from "@/utils/browserStorage";
 // import { useLang } from "@/hooks/Language.hook";
-import { 
-  ThemesType, 
-  ThemeContextProps, 
-  ThemeManagerProps, 
-  GeneralThemeType, 
+import {
+  ThemesType,
+  ThemeContextProps,
+  ThemeManagerProps,
+  GeneralThemeType,
   AirlineThemeType,
   CSSVariables,
   ConfigKeyType
@@ -21,17 +21,53 @@ const LOCALSTORAGE_VAR = "theme";
 export const ThemeContext = createContext<ThemeContextProps>({
   selectedTheme: DEFAULT_THEME,
   themeAlgorithm: DEFAULT_ALGORITHM,
-  setSelectedTheme: () => {},
-  setThemeAlgorithm: () => {},
+  setSelectedTheme: () => { },
+  setThemeAlgorithm: () => { },
 });
 
 const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
   // const { antdLangProvider } = useLang();
 
-  // Set document direction
-  useLayoutEffect(() => {    
-    document.documentElement.dir = CFG?.site?.layout?.page_direction === "right" ? "rtl" : "ltr";
-  }, [CFG?.site?.layout?.page_direction]);
+  /* Load airline data on component mount */
+  // let airlineThemes: AirlineThemeType;
+  // 1. Glob import all favicons from known plugin paths
+  const faviconModules = import.meta.glob(
+    '@/plugins/*/assets/images/favicon.ico',
+    { eager: true, as: 'url' }
+  );
+
+  // 2. Get the airline code from config
+  const airlineCode = CFG.default.airline_code;
+
+  // 3. Try to find the favicon URL for that airline
+  let imgUrl: string | undefined = undefined;
+
+  for (const path in faviconModules) {
+    if (path.includes(`/plugins/${airlineCode}/assets/images/favicon.ico`)) {
+      imgUrl = faviconModules[path] as string;
+      break;
+    }
+  }
+
+  // 4. Fallback to RM if not found
+  if (!imgUrl) {
+    for (const path in faviconModules) {
+      if (path.includes(`/plugins/RM/assets/images/favicon.ico`)) {
+        imgUrl = faviconModules[path] as string;
+        console.error(
+          `Error loading favicon for airline ${airlineCode}. Fallback to RM.`
+        );
+        break;
+      }
+    }
+  }
+
+  // 5. Set favicon if found
+  const favicon = document.getElementById("favicon") as HTMLLinkElement | null;
+  if (favicon && imgUrl) {
+    favicon.href = imgUrl;
+  }
+
 
   // Load themes
   const [generalThemes] = useState<GeneralThemeType>(() => {
@@ -59,13 +95,13 @@ const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
 
       try {
         const airlineCode = CFG?.default?.airline_code;
-        
+
         // Dynamically import airline theme
         const themeModule = await import(
           /* webpackMode: "lazy" */
           `@/plugins/${airlineCode}/config/theme.json`
         );
-        
+
         setAirlineThemes(themeModule.default);
       } catch (error) {
         console.error(`Failed to load airline themes for ${CFG?.default?.airline_code}`, error);
@@ -117,7 +153,7 @@ const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
   // Update CSS variables
   const updateCSSVariables = useCallback((config: CSSVariables) => {
     if (!config) return;
-    
+
     const root = document.documentElement;
     Object.entries(config).forEach(([property, value]) => {
       if (value) {
@@ -177,7 +213,7 @@ const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
           cssVar: true,
           hashed: false,
         }}
-        // locale={antdLangProvider}
+      // locale={antdLangProvider}
       >
         {children}
       </ConfigProvider>

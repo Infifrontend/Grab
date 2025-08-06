@@ -938,10 +938,10 @@ export default function PaymentOptions() {
             size="large"
             onClick={handleSubmitBooking}
             className="px-8"
-            style={{
-              backgroundColor: "#2a0a22",
-              borderColor: "#2a0a22",
-            }}
+            // style={{
+            //   backgroundColor: "#2a0a22",
+            //   borderColor: "#2a0a22",
+            // }}
           >
             Continue
           </Button>

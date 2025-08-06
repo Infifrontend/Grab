@@ -429,10 +429,10 @@ export default function ReviewConfirmation() {
             size="large"
             onClick={() => navigate(adminMode ? "/admin/payment-options" : "/payment-options")}
             className="px-8"
-            style={{
-              backgroundColor: "#2a0a22",
-              borderColor: "#2a0a22",
-            }}
+            // style={{
+            //   backgroundColor: "#2a0a22",
+            //   borderColor: "#2a0a22",
+            // }}
           >
             Submit the booking
           </Button>

@@ -70,9 +70,7 @@ const AdminSidebar = () => {
     <Sider
       width={224}
       className="w-56 !fixed !h-screen !overflow-y-auto !left-0 !top-0 !bottom-0 z-50 shadow-xl"
-      style={{
-        background: "linear-gradient(to bottom, #0f172a, #1e293b)",
-      }}
+    
     >
       <div className="flex items-center space-x-4 border-b-2 border-white-200 px-4 py-[14px]">
         <div className="flex items-center space-x-3">

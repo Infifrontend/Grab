@@ -36,6 +36,7 @@ const navigationItems = [
   { key: "manage-booking", label: "Manage Booking", path: "/manage-booking" },
   { key: "bids", label: "Bids", path: "/bids" }
 ];
+import CFG from "../../config/config.json";
 
 export default function Header() {
   const location = useLocation();
@@ -114,9 +115,11 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="infiniti-logo cursor-pointer">
             <img
-              src="/src/images/Logo.png"
-              alt="Volaris"
-              title="Volaris"
+              src={
+                `/src/plugins/${CFG?.default?.airline_code}/assets/images/Logo.png`
+              }
+              alt={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
+              title={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
               className="cursor-pointer"
             />
           </Link>
@@ -217,66 +220,13 @@ export default function Header() {
                           </div>
                           <Theme />
                         </div>
-                        {/* Contact Information */}
-                        <Space
-                          direction="vertical"
-                          size={8}
-                          className="w-full mb-4"
-                        >
-                          <div className="flex items-center gap-2">
-                            <MailOutlined className="text-gray-400 text-sm" />
-                            <Typography.Text className="text-sm text-gray-600">
-                              john.smith@company.com
-                            </Typography.Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <PhoneOutlined className="text-gray-400 text-sm" />
-                            <Typography.Text className="text-sm text-gray-600">
-                              +1 (555) 123-4567
-                            </Typography.Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <EnvironmentOutlined className="text-gray-400 text-sm" />
-                            <Typography.Text className="text-sm text-gray-600">
-                              New York, NY
-                            </Typography.Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CalendarOutlined className="text-gray-400 text-sm" />
-                            <Typography.Text className="text-sm text-gray-600">
-                              Member since January 2023
-                            </Typography.Text>
-                          </div>
-                        </Space>
+                     
 
-                        {/* Total Bookings */}
-                        <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
-                          <Typography.Text className="text-sm text-gray-600">
-                            Total Bookings:
-                          </Typography.Text>
-                          <Typography.Text className="text-sm font-semibold text-gray-900">
-                            12
-                          </Typography.Text>
-                        </div>
+                     
 
                         {/* Action Buttons */}
                         <Space direction="vertical" size={8} className="w-full">
-                          <Button
-                            type="text"
-                            icon={<UserOutlined />}
-                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                            style={{ border: "none", padding: "0 12px" }}
-                          >
-                            View Profile
-                          </Button>
-                          <Button
-                            type="text"
-                            icon={<CreditCardOutlined />}
-                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                            style={{ border: "none", padding: "0 12px" }}
-                          >
-                            Payment Methods
-                          </Button>
+                         
                           <Button
                             type="text"
                             icon={<SettingOutlined />}

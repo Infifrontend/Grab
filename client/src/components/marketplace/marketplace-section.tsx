@@ -24,6 +24,9 @@ export default function MarketplaceSection() {
     // Search functionality is handled by the query parameter change
   };
 
+  console.log(packages, 'aaa');
+
+
   const handleBookPackage = (packageId: number) => {
     window.open("https://demo-packages.infinitisoftware.net/", "_blank");
   };
@@ -108,6 +111,19 @@ export default function MarketplaceSection() {
             {packages?.map((pkg) => (
               <Card key={pkg.id} className="package-card">
                 {/* Package Header */}
+                <div style={{
+                  height: 170,
+                  width: 230
+                }}>
+                  <img style={{
+                    height: "100%",
+                    width: "100%",
+                    objectFit: "cover",
+                    borderRadius: "8px"
+
+                  }}
+                    src={`../src/images/packages/${pkg.location.split("—")[1].trim().toLowerCase()}.jpg`}></img>
+                </div>
                 <div className="p-4 border-b border-gray-100">
                   <div className="text-xs text-gray-500 mb-1">
                     {pkg.location}

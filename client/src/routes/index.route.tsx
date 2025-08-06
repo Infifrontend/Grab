@@ -4,9 +4,9 @@
  *               It dynamically loads components based on authentication state and routes configuration.
  */
 import { Suspense, useEffect, useState } from "react";
-import { 
-  useNavigate, 
-  useLocation, 
+import {
+  useNavigate,
+  useLocation,
   matchPath,
   Routes,
   Route,
@@ -64,10 +64,10 @@ const AppRoute = () => {
 
     const generatedRoutes = activeRoutes.routes.map(route => {
       console.log(route.layout, route.component);
-      
+
       const Layout = Layouts.get(route.layout);
       const Page = Pages.get(route.component);
-      
+
       if (!Page) {
         console.error(`Missing components for route: ${route.path}`);
         return null;
@@ -80,18 +80,18 @@ const AppRoute = () => {
           element={
             Layout ? (
               <Layout>
-                  <Suspense fallback={<Loader fallback={true} />}>
-                    <MotionWrapper>
-                      <Page />
-                    </MotionWrapper>
-                  </Suspense>
-              </Layout> 
-              ) : (
                 <Suspense fallback={<Loader fallback={true} />}>
                   <MotionWrapper>
-                      <Page />
+                    <Page />
                   </MotionWrapper>
                 </Suspense>
+              </Layout>
+            ) : (
+              <Suspense fallback={<Loader fallback={true} />}>
+                <MotionWrapper>
+                  <Page />
+                </MotionWrapper>
+              </Suspense>
             )
           }
         />
@@ -110,25 +110,31 @@ const AppRoute = () => {
   useEffect(() => {
     if (pageLoading) return;
 
-    if(location.pathname === "/login" || location.pathname === "/admin/login") {
+    if (location.pathname === "/login" || location.pathname === "/admin/login") {
       localStorage.setItem("userLoggedIn", "false");
       localStorage.setItem('adminLoggedIn', 'false');
       localStorage.removeItem('adminUsername');
       localStorage.removeItem('username');
     }
-    
+
     const activeRoutes = getActiveRoutes();
-    
-    const isPathValid = activeRoutes.routes.some(route => 
+
+    const isPathValid = activeRoutes.routes.some(route =>
       matchPath(route.path, location.pathname)
     );
-    
+
     console.log(isPathValid);
 
     if (!isPathValid) {
-      navigate(location.pathname.startsWith('/admin') 
-        ? '/admin/login' 
-        : '/new-booking');
+      if (location.pathname === "/") {
+        localStorage.removeItem("adminLoggedIn");
+        localStorage.removeItem("adminUsername");
+      }
+      navigate(
+        location.pathname.startsWith('/admin')
+          ? '/admin/login'
+          : '/'
+      );
     }
   }, [location.pathname, isAdminLoggedIn, isUserLoggedIn, navigate, pageLoading]);
 

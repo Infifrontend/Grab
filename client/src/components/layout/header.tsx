@@ -42,9 +42,9 @@ const navigationItems = [
   { key: "new-booking", label: "New Booking", path: "/new-booking" },
   { key: "payments", label: "Payments", path: "/payments" },
   { key: "bids", label: "Bids", path: "/bids" },
-  { key: "settings", label: "Settings", path: "/settings" },
   { key: "admin", label: "Admin", path: "/admin/login" },
 ];
+import CFG from "../../config/config.json";
 
 // Custom dropdown content instead of using Ant Design's menu items
 
@@ -187,7 +187,7 @@ export default function Header() {
     navigate('/login');
   };
 
-    // For Focus issue fix - accessibility section
+  // For Focus issue fix - accessibility section
   const changeFocus = (e: React.KeyboardEvent) => {
     const currElement = e.target as HTMLElement;
     e.key === "Tab" &&
@@ -227,9 +227,11 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="infiniti-logo cursor-pointer">
             <img
-              src="/src/images/Logo.png"
-              alt="Volaris"
-              title="Volaris"
+              src={
+                `/src/plugins/${CFG?.default?.airline_code}/assets/images/Logo.png`
+              }
+              alt={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
+              title={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
               className="cursor-pointer"
             />
           </Link>
@@ -359,7 +361,6 @@ export default function Header() {
               </Button>
             </Popover>
 
-            <Theme />
 
             <Dropdown
               placement="bottomRight"
@@ -394,69 +395,18 @@ export default function Header() {
                         Gold Member
                       </Typography.Text>
                     </div>
+                    <Theme />
                   </div>
 
-                  {/* Contact Information */}
-                  <Space direction="vertical" size={8} className="w-full mb-4">
-                    <div className="flex items-center gap-2">
-                      <MailOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        john.smith@company.com
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PhoneOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        +1 (555) 123-4567
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <EnvironmentOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        New York, NY
-                      </Typography.Text>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CalendarOutlined className="text-gray-400 text-sm" />
-                      <Typography.Text className="text-sm text-gray-600">
-                        Member since January 2023
-                      </Typography.Text>
-                    </div>
-                  </Space>
-
-                  {/* Total Bookings */}
-                  <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
-                    <Typography.Text className="text-sm text-gray-600">
-                      Total Bookings:
-                    </Typography.Text>
-                    <Typography.Text className="text-sm font-semibold text-gray-900">
-                      12
-                    </Typography.Text>
-                  </div>
 
                   {/* Action Buttons */}
                   <Space direction="vertical" size={8} className="w-full">
                     <Button
                       type="text"
-                      icon={<UserOutlined />}
-                      className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                      style={{ border: "none", padding: "0 12px" }}
-                    >
-                      View Profile
-                    </Button>
-                    <Button
-                      type="text"
-                      icon={<CreditCardOutlined />}
-                      className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                      style={{ border: "none", padding: "0 12px" }}
-                    >
-                      Payment Methods
-                    </Button>
-                    <Button
-                      type="text"
                       icon={<SettingOutlined />}
                       className="w-full justify-start h-10 text-left hover:bg-gray-50"
                       style={{ border: "none", padding: "0 12px" }}
+                      onClick={() => navigate("/settings")}
                     >
                       Settings
                     </Button>

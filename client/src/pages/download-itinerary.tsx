@@ -407,10 +407,10 @@ Group Airline Booking Team`;
                   icon={<DownloadOutlined />}
                   onClick={handleDownloadPDF}
                   className="w-full flex items-center justify-center h-12"
-                  style={{
-                    backgroundColor: "#2a0a22",
-                    borderColor: "#2a0a22",
-                  }}
+                  // style={{
+                  //   backgroundColor: "#2a0a22",
+                  //   borderColor: "#2a0a22",
+                  // }}
                 >
                   Download PDF
                 </Button>

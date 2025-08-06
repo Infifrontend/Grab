@@ -80,6 +80,8 @@
   .infiniti-logo {
     @apply text-2xl font-bold;
     color: var(--infiniti-primary);
+    width: 150px;
+    height: 40px;
   }
 
   .infiniti-nav-item {

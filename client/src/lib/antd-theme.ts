@@ -3,7 +3,7 @@ import type { ThemeConfig } from 'antd';
 
 export const antdTheme: ThemeConfig = {
   token: {
-    colorPrimary: '#2a0a22',
+    // colorPrimary: '#2a0a22',
     colorLink: '#2a0a22',
     colorSuccess: '#52C41A',
     colorWarning: '#faad14',
@@ -13,7 +13,7 @@ export const antdTheme: ThemeConfig = {
   },
   components: {
     Button: {
-      colorPrimary: '#2a0a22',
+      // colorPrimary: '#2a0a22',
       algorithm: true,
     },
     Input: {

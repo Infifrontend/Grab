@@ -44,7 +44,7 @@ export default function PaymentDetails() {
         setBidParticipationData(JSON.parse(storedData));
       } else {
         // If no localStorage data, try to fetch from API and create participation data
-        const bidId = params.id;
+        const bidId = params.bidId;
         console.log("Bid ID from params:", bidId, "Full params:", params);
         if (bidId) {
           try {
@@ -113,10 +113,10 @@ export default function PaymentDetails() {
     };
 
     loadBidData();
-  }, [navigate, params.id]);
+  }, [navigate, params.bidId]);
 
   const handleBack = () => {
-    navigate(`/bid-details/${params.id}`);
+    navigate(`/bid-details/${params.bidId}`);
   };
 
   const handlePaymentSubmit = async () => {
@@ -276,7 +276,7 @@ export default function PaymentDetails() {
 
   return (
     <>
-      <div className="max-w-4xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Page Header */}
         <div className="mb-6">
           <Button
