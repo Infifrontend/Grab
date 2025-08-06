@@ -47,9 +47,10 @@ export default function RecentBookingsSection() {
 
   const columns: ColumnsType<any> = [
     {
-      title: "Booking Reference",
-      dataIndex: "bookingReference",
-      key: "bookingReference",
+      title: "PNR",
+      dataIndex: "pnr",
+      key: "pnr",
+      className: "font-medium",
       render: (text) => (
         <span className="font-semibold text-[var(--infiniti-primary)]">
           {text}
@@ -101,11 +102,10 @@ export default function RecentBookingsSection() {
       key: "actions",
       render: (_, record) => (
         <a
-          href="#"
           className="text-[var(--infiniti-primary)] font-medium hover:underline"
           onClick={(e) => {
             e.preventDefault();
-            navigate(`/booking-details/${record.bookingReference}`);
+            navigate(`/booking-details/${record.pnr}`);
           }}
         >
           View Details

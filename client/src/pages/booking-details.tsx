@@ -103,7 +103,7 @@ export default function BookingDetails() {
               Booking Details
             </Title>
             <Text className="text-gray-600">
-              Booking ID: {booking.bookingReference || booking.bookingId}
+              PNR: {booking.pnr}
             </Text>
           </div>
         </div>

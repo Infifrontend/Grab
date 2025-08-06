@@ -112,6 +112,7 @@ export default function Bookings() {
     return {
       id: booking.id,
       bookingId: booking.bookingReference,
+      pnr: booking.pnr, // Added PNR
       groupLeader: groupLeaderName,
       email: groupLeaderEmail,
       route: booking.flight
@@ -139,7 +140,8 @@ export default function Bookings() {
       searchText === "" ||
       booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
       booking.groupLeader.toLowerCase().includes(searchText.toLowerCase()) ||
-      booking.email.toLowerCase().includes(searchText.toLowerCase());
+      booking.email.toLowerCase().includes(searchText.toLowerCase()) ||
+      booking.pnr.toLowerCase().includes(searchText.toLowerCase()); // Added PNR to search
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
@@ -166,14 +168,14 @@ export default function Bookings() {
 
   const columns = [
     {
-      title: "Booking ID",
+      title: "Booking ID / PNR",
       dataIndex: "bookingId",
       key: "bookingId",
       sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
       render: (bookingId, record) => (
         <div>
           <Text strong className="text-blue-600">
-            {bookingId}
+            {record.pnr} {/* Display PNR */}
           </Text>
           <br />
           <Text type="secondary" className="text-sm">
@@ -666,8 +668,8 @@ export default function Bookings() {
       >
         {selectedBooking && (
           <Descriptions bordered column={2}>
-            <Descriptions.Item label="Booking ID">
-              {selectedBooking.bookingId}
+            <Descriptions.Item label="PNR"> {/* Updated Label */}
+              {selectedBooking.pnr} {/* Display PNR */}
             </Descriptions.Item>
             <Descriptions.Item label="Status">
               <Tag

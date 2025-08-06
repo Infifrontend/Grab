@@ -558,7 +558,7 @@ export default function ManageBooking() {
                           <Button
                             type="link"
                             className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
-                            onClick={() => handleViewBooking(record.key)}
+                            onClick={() => handleViewBooking(record.pnr)}
                             title="view"
                           >
                             <EyeOutlined />
@@ -566,7 +566,7 @@ export default function ManageBooking() {
                           <Button
                             type="link"
                             className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
-                            onClick={() => handleEditBooking(record.bookingId)}
+                            onClick={() => handleEditBooking(record.pnr)}
                             title="edit"
                           >
                             <EditOutlined />

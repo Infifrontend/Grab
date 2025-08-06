@@ -219,7 +219,9 @@ export default function PassengerInfo() {
       // Refresh the booking details to reflect the changes
       // console.log("Refetching booking details...");
       // await refetch();
-      navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
+      // Get PNR from booking data or use the booking reference as fallback
+                const pnr = localStorage.getItem("currentPNR") || bookingReference;
+                navigate(adminMode ? `/admin/booking-details/${pnr}` : `/booking-details/${pnr}`);
       console.log("Booking details refetched successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
@@ -297,7 +299,9 @@ export default function PassengerInfo() {
               onClick={() => {
                 // Skip passenger info and go directly to review confirmation
                 localStorage.setItem("passengerData", JSON.stringify([]));
-                navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
+                // Get PNR from booking data or use the booking reference as fallback
+                const pnr = localStorage.getItem("currentPNR") || bookingReference;
+                navigate(adminMode ? `/admin/booking-details/${pnr}` : `/booking-details/${pnr}`);
               }}
               className="px-6 border-gray-300 text-gray-700 hover:border-gray-400"
             >

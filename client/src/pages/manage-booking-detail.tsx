@@ -370,12 +370,10 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
               <Space direction="vertical" size="large" className="w-full">
                 <div>
                   <Text className="block mb-2 text-gray-700 font-medium">
-                    Booking ID
+                    PNR
                   </Text>
                   <Input
-                    value={
-                      booking.bookingReference || booking.bookingId || bookingId
-                    }
+                    value={booking.pnr}
                     disabled
                     className="w-full"
                   />

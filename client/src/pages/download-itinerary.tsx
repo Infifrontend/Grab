@@ -454,7 +454,7 @@ Group Airline Booking Team`;
                 {/* Booking Information */}
                 <div>
                   <Text className="font-semibold text-gray-900 block text-lg">
-                    Booking #{booking.bookingReference}
+                    PNR: {booking.pnr}
                   </Text>
                   <div className="flex justify-between">
                     <Text className="text-gray-600 font-medium">
