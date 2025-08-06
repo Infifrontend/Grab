@@ -265,7 +265,7 @@ export default function ManageBooking() {
 
       return {
         key: booking.id,
-        pnr: booking.bookingReference,
+        pnr: booking.pnr,
         groupType: "Group Travel", // Default since we don't have this field
         route: route,
         date: departureDate,
