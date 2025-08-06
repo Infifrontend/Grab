@@ -2,60 +2,15 @@
   "default": {
     "global": {},
     "component": {
-      "Table": {
-        "headerBg": "#f8fafc",
-        "headerColor": "rgba(0,0,0,0.88)",
-        "headerSortActiveBg": "#f0f0f0",
-        "headerSortHoverBg": "#f0f0f0",
-        "bodySortBg": "#fafafa",
-        "rowHoverBg": "#fafafa",
-        "rowSelectedBg": "#696266",
-        "rowSelectedHoverBg": "#5c5158",
-        "rowExpandedBg": "rgba(0,0,0,0.02)",
-        "borderColor": "#f0f0f0",
-        "cellPaddingBlock": 16,
-        "cellPaddingBlockMD": 12,
-        "cellPaddingBlockSM": 8,
-        "cellFontSizeMD": 14,
-        "footerBg": "#fafafa",
-        "footerColor": "rgba(0,0,0,0.88)",
-        "headerSplitColor": "#f0f0f0",
-        "fixedHeaderSortActiveBg": "#f0f0f0",
-        "headerFilterHoverBg": "rgba(0,0,0,0.06)",
-        "filterDropdownMenuBg": "#ffffff",
-        "filterDropdownBg": "#ffffff",
-        "headerIconHoverColor": "rgba(0,0,0,0.572)",
-        "expandIconBg": "#ffffff",
-        "cellPaddingInline": 16,
-        "stickyScrollBarBg": "rgba(0,0,0,0.25)",
-        "cellPaddingInlineMD": 8,
-        "headerIconColor": "rgba(0,0,0,0.2925)",
-        "cellPaddingInlineSM": 8,
-        "headerBorderRadius": 10,
-        "cellFontSize": 14,
-        "cellFontSizeSM": 14,
-        "selectionColumnWidth": 32,
-        "expandIconMarginTop": 2.5,
-        "stickyScrollBarBorderRadius": 100,
-        "expandIconHalfInner": 7,
-        "expandIconSize": 17,
-        "expandIconScale": 0.9411764705882353
-      },
       "Button": {
-        "colorPrimary": "#5a2a52",
-        "colorPrimaryHover": "#3a1a32",
-        "colorPrimaryActive": "#5a2a52",
+        "colorPrimary": "rgb(253,150,70)",
+        "colorPrimaryHover": "rgb(253,150,70)",
+        "colorPrimaryActive": "rgb(253,150,70)",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
+        "colorLink": "#1D2F7E",
         "controlHeight": 40,
         "lineWidth": 0,
         "borderRadius": 6
-      },
-      "Typography": {},
-      "Alert": {
-        "colorWarningBg": "#FFF4E6",
-        "colorWarningBorder": "#FFE7D1",
-        "colorWarningIcon": "#fdc200",
-        "colorTextHeading": "#1f1f1f"
       },
       "Switch": {
         "switchColor": "#1677ff",
@@ -63,28 +18,8 @@
         "switchHandleShadow": "0 2px 4px 0 rgba(0,35,11,0.2)",
         "colorTextLightSolid": "#ffffff"
       },
-      "Input": {
-        "borderRadius": 6,
-        "paddingBlock": 4,
-        "paddingBlockSM": 0,
-        "paddingBlockLG": 7,
-        "paddingInline": 11,
-        "paddingInlineSM": 7,
-        "paddingInlineLG": 11,
-        "addonBg": "rgba(0,0,0,0.02)",
-        "colorPrimary": "#2a0a22",
-        "colorPrimaryHover": "#36152c",
-        "colorPrimaryActive": "rgba(13,2,8,0.62)",
-        "colorErrorActive": "rgba(255,38,5,0.06)",
-        "colorWarningActive": "rgba(255,215,5,0.1)",
-        "hoverBg": "#ffffff",
-        "activeBg": "#ffffff",
-        "fontSize": 14,
-        "fontSizeLG": 16,
-        "fontSizeSM": 14
-      },
       "Radio": {
-        "colorPrimary": "#2a0a22",
+        "colorPrimary": "#1D2F7E",
         "colorPrimaryHover": "#36152c",
         "colorPrimaryActive": "#030002",
         "colorBgContainer": "#ffffff",
@@ -94,7 +29,7 @@
         "radioSize": 16,
         "dotSize": 6,
         "buttonSolidCheckedColor": "#fff",
-        "buttonSolidCheckedBg": "#2a0a22",
+        "buttonSolidCheckedBg": "rgb(253,150,70)",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#ffffff",
@@ -103,116 +38,13 @@
         "buttonPaddingInline": 15,
         "wrapperMarginInlineEnd": 8,
         "radioColor": "#fff",
-        "radioBg": "#2a0a22"
+        "radioBg": "rgb(253,150,70)"
       },
-      "Tabs": {
-        "itemSelectedColor": "#2a0a22",
-        "itemHoverColor": "#36152c",
-        "itemActiveColor": "#030002",
-        "itemColor": "#8a8a8a",
-        "cardHeight": 40,
-        "titleFontSize": 14,
-        "horizontalMargin": "0 0 16px 0",
-        "horizontalItemGutter": 32
-      },
-      "Select": {
-        "borderRadius": 6,
-        "optionSelectedColor": "#ffffff",
-        "optionSelectedFontWeight": 600,
-        "optionSelectedBg": "#80206a",
-        "optionActiveBg": "rgba(0,0,0,0.04)",
-        "optionPadding": "5px 12px",
-        "optionFontSize": 14,
-        "optionLineHeight": 1.5714285714285714,
-        "optionHeight": 32,
-        "selectorBg": "#ffffff",
-        "clearBg": "#ffffff",
-        "colorBgContainerDisabled": "rgba(0,0,0,0.04)",
-        "colorTextDisabled": "rgba(0,0,0,0.25)",
-        "multipleItemBg": "rgba(0,0,0,0.06)",
-        "multipleItemBorderColor": "transparent",
-        "multipleItemHeight": 24,
-        "multipleItemHeightSM": 16,
-        "multipleItemHeightLG": 32,
-        "multipleItemBgDisabled": "rgba(0,0,0,0.04)",
-        "multipleItemColorDisabled": "rgba(0,0,0,0.25)",
-        "multipleItemBorderColorDisabled": "transparent",
-        "showArrowPaddingInlineEnd": 18,
-        "colorPrimaryHover": "#36152c",
-        "colorPrimary": "#2a0a22",
-        "colorPrimaryActive": "rgba(13,2,8,0.62)",
-        "controlHeightLG": 40,
-        "zIndexPopup": 1050
-      },
-      "DatePicker": {
-        "borderRadius": 6,
-        "paddingBlock": 4,
-        "paddingBlockSM": 0,
-        "paddingBlockLG": 7,
-        "paddingInline": 11,
-        "paddingInlineSM": 7,
-        "paddingInlineLG": 11,
-        "colorBgContainerDisabled": "rgba(0,0,0,0.04)",
-        "colorBgContainer": "#ffffff",
-        "colorPrimary": "#2a0a22",
-        "colorPrimaryHover": "#36152c",
-        "colorPrimaryActive": "rgba(13,2,8,0.62)",
-        "colorErrorActive": "rgba(255,38,5,0.06)",
-        "colorWarningActive": "rgba(255,215,5,0.1)",
-        "addonBg": "rgba(0,0,0,0.02)",
-        "hoverBg": "#ffffff",
-        "activeBg": "#ffffff",
-        "fontSize": 14,
-        "fontSizeLG": 16,
-        "fontSizeSM": 14,
-        "cellHoverBg": "rgba(0,0,0,0.04)",
-        "cellActiveWithRangeBg": "#696266",
-        "cellHoverWithRangeBg": "#cb1b9f",
-        "cellRangeBorderColor": "#88126a",
-        "timeColumnWidth": 56,
-        "timeColumnHeight": 224,
-        "timeCellHeight": 28,
-        "cellWidth": 36,
-        "cellHeight": 24,
-        "textHeight": 40,
-        "withoutTimeCellHeight": 66,
-        "multipleItemBg": "rgba(0,0,0,0.06)",
-        "multipleItemBorderColor": "transparent",
-        "multipleItemHeight": 24,
-        "multipleItemHeightSM": 16,
-        "multipleItemHeightLG": 32,
-        "multipleItemColorDisabled": "rgba(0,0,0,0.25)",
-        "multipleItemBorderColorDisabled": "transparent",
-        "multipleSelectorBgDisabled": "rgba(0,0,0,0.04)",
-        "zIndexPopup": 1050,
-        "presetsWidth": 120,
-        "presetsMaxWidth": 200
-      }
-    },
-    "token": {
-      "colorBgLayout": "#f5f5f5",
-      "colorBgContainer": "#ffffff",
-      "colorBgElevated": "#ffffff",
-      "colorOrange": "#d46b08",
-      "colorBgOrange": "#fff7e6",
-      "colorBorderOrange": "#ffd591",
-      "colorTextDisabled": "#bfbfbf",
-      "colorBorder": "#d9d9d9",
-      "colorBgContainerDisabled": "#f5f5f5",
-      "controlOutline": "none",
-      "colorText": "rgba(0,0,0,0.88)",
-      "colorSuccess": "#52c41a",
-      "colorSuccessBg": "#f6ffed",
-      "colorSuccessBorder": "#b7eb8f",
-      "colorError": "#ff4d4f",
-      "colorPrimary": "#000",
-      "blue1": "#ffffff",
-      "blue3": "#ffffff",
-      "blue7": "#ffffff"
+      "select": {}
     },
     "custom": {
-      "--infiniti-primary": "#80206a",
-      "--infiniti-primary-header": "#80206a",
+      "--infiniti-primary": "#1D2F7E",
+      "--infiniti-primary-header": "#1D2F7E",
       "--infiniti-secondary": "#a12885",
       "--infiniti-orange": "hsl(18, 100%, 62%)",
       "--infiniti-success": "hsl(102, 69%, 49%)",
@@ -244,7 +76,7 @@
       "--textGray900": "rgb(17 24 39)",
       "--textBlue100": "#141414",
       "--textBlue500": "rgb(59 130 246)",
-      "--textBlue600": "rgb(37 99 235)",
+      "--textBlue600": "rgb(253,150,70)",
       "--textBlue700": "rgb(29 78 216)",
       "--textBlue800": "rgb(30 64 175)",
       "--bgBlue50": "rgb(239 246 255)",
@@ -287,7 +119,11 @@
       "--t-accessibility-gradient": "url(#paint0_linear_423_13078)",
       "--t-accessiblity-active-text-color": "#fff",
       "--t-accessiblity-btn-text-color": "#000",
-      "--t-btn-primary-color":"#fff"
+      "--t-btn-primary-color": "#fff",
+      "--infiniti-link": "#00A7FF"
+    },
+    "token": {
+      "colorPrimary": "rgb(253,150,70)"
     },
     "algorithm": "light"
   },
@@ -300,7 +136,9 @@
       "Button": {
         "colorLink": "#676767",
         "colorLinkActive": "#676767",
-        "colorLinkHover": "#fff"
+        "colorLinkHover": "#fff",
+        "colorPrimary": "rgb(253,150,70)",
+        "colorPrimaryHover": "rgb(255, 136, 34)"
       },
       "Carousel": {
         "colorBgContainer": "#141414"
@@ -341,8 +179,8 @@
         "lastItemColor": "#666",
         "separatorColor": "#666"
       },
-      "Card":{
-        "borderColor":"#ffffff"
+      "Card": {
+        "borderColor": "#ffffff"
       }
     },
     "token": {
@@ -357,7 +195,8 @@
       "--textGray800": "#ffffff",
       "--textGray900": "#ffffff",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#ffffff"
     },
     "algorithm": "dark"
   },
@@ -408,14 +247,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#fff",
-        "buttonSolidCheckedBg": "#2a0a22",
+        "buttonSolidCheckedBg": "#1D2F7E",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#ffffff",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#2a0a22"
+        "radioBg": "#1D2F7E"
       },
       "Table": {
         "rowSelectedBg": "#666"
@@ -532,7 +371,8 @@
       "--whiteText": "#000",
       "--blackText": "#FFFFFF",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#ffffff"
     },
     "algorithm": "dark"
   },
@@ -584,14 +424,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#FBEB3F",
-        "buttonSolidCheckedBg": "#2a0a22",
+        "buttonSolidCheckedBg": "#1D2F7E",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#FBEB3F",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#2a0a22"
+        "radioBg": "#1D2F7E"
       },
       "Table": {
         "rowSelectedBg": "#666"
@@ -716,7 +556,8 @@
       "--whiteText": "#000000",
       "--blackText": "#FBEB3F",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#FBEB3F"
     },
     "algorithm": "dark"
   },
@@ -838,8 +679,7 @@
       "colorLink": "#000",
       "colorSuccess": "#000",
       "colorWarning": "#000",
-      "colorError": "#000",
-      "colorBgLayout":"#FBEB3F"
+      "colorError": "#000"
     },
     "Alert": {
       "colorWarningBg": "#FBEB3F",
@@ -915,7 +755,8 @@
       "--whiteText": "#FBEB3F",
       "--blackText": "#000",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#FBEB3F"
+      "--t-theme-active-bg": "#FBEB3F",
+      "--infiniti-link": "#000"
     },
     "algorithm": "dark"
   },

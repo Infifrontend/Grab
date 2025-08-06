@@ -172,6 +172,7 @@ export default function Header() {
                 <Button
                   type="link"
                   className="cls-accessibility"
+                  style={{ color: "var(--infiniti-link)" }}
                   onKeyDown={changeFocus}
                 >
                   {"Accessibility"}

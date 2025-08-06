@@ -11,6 +11,7 @@ import {
   Spin,
   message,
   Table,
+  Tag,
 } from "antd";
 import {
   SearchOutlined,
@@ -163,7 +164,9 @@ export default function ManageBooking() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    console.log(status);
+    
+    switch (status.toLowerCase()) {
       case "confirmed":
         return "success";
       case "pending":
@@ -371,231 +374,230 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      <div>
-        {/* Bookings Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <Title level={3} className="!mb-1 text-gray-900">
-              Your Bookings
-            </Title>
-            <Text className="text-gray-600">
-              Manage and track all your group bookings
-            </Text>
-          </div>
-        </div>
-
-        {/* Bookings Table */}
-        <Card className="border-0 shadow-sm">
-          {bookingsTableData.length > 0 ? (
-            <Table
-              dataSource={bookingsTableData}
-              rowKey="key"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} of ${total} bookings`,
-                pageSizeOptions: ["5", "10", "20", "50"],
-                className: "px-6 pb-4",
-              }}
-              className="w-full"
-              scroll={{ x: "max-content" }}
-              columns={[
-                {
-                  title: "Booking ID",
-                  dataIndex: "bookingId",
-                  key: "bookingId",
-                  fixed: "left",
-                  width: 150,
-                  render: (text) => (
-                    <span className="font-semibold text-[var(--infiniti-primary)]">
-                      {text}
-                    </span>
-                  ),
-                  sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
-                },
-                {
-                  title: "Group Type",
-                  dataIndex: "groupType",
-                  key: "groupType",
-                  width: 120,
-                  render: (text) => (
-                    <span className="text-gray-700 capitalize">{text}</span>
-                  ),
-                  filters: [
-                    { text: "Group Travel", value: "Group Travel" },
-                    { text: "Corporate", value: "Corporate" },
-                    { text: "Family", value: "Family" },
-                  ],
-                  onFilter: (value, record) => record.groupType === value,
-                },
-                {
-                  title: "Route",
-                  dataIndex: "route",
-                  key: "route",
-                  width: 200,
-                  render: (text) => (
-                    <span className="text-gray-900 font-medium">{text}</span>
-                  ),
-                  sorter: (a, b) => a.route.localeCompare(b.route),
-                },
-                {
-                  title: "Departure",
-                  dataIndex: "date",
-                  key: "date",
-                  width: 120,
-                  render: (date) => {
-                    if (!date || date === "Date not available")
-                      return (
-                        <span className="text-gray-500">Not available</span>
-                      );
-                    try {
-                      return (
-                        <span className="text-gray-600">
-                          {new Date(date).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      );
-                    } catch (e) {
-                      return (
-                        <span className="text-gray-500">Invalid date</span>
-                      );
-                    }
-                  },
-                  sorter: (a, b) => {
-                    if (
-                      a.date === "Date not available" &&
-                      b.date === "Date not available"
-                    )
-                      return 0;
-                    if (a.date === "Date not available") return 1;
-                    if (b.date === "Date not available") return -1;
-                    try {
-                      return (
-                        new Date(a.date).getTime() -
-                        new Date(b.date).getTime()
-                      );
-                    } catch (e) {
-                      return 0;
-                    }
-                  },
-                },
-                {
-                  title: "Return",
-                  dataIndex: "returnDate",
-                  key: "returnDate",
-                  width: 120,
-                  render: (returnDate) => {
-                    if (!returnDate)
-                      return <span className="text-gray-500">One-way</span>;
-                    try {
-                      return (
-                        <span className="text-gray-600">
-                          {new Date(returnDate).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      );
-                    } catch (e) {
-                      return (
-                        <span className="text-gray-500">Invalid date</span>
-                      );
-                    }
-                  },
-                },
-                {
-                  title: "Passengers",
-                  dataIndex: "passengers",
-                  key: "passengers",
-                  width: 100,
-                  render: (passengers) => (
-                    <span className="text-gray-700 font-medium">
-                      {passengers}
-                    </span>
-                  ),
-                  sorter: (a, b) => a.passengers - b.passengers,
-                },
-                {
-                  title: "Status",
-                  dataIndex: "status",
-                  key: "status",
-                  width: 120,
-                  render: (status) => (
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold capitalize"
-                      style={{ backgroundColor: getStatusColor(status) }}
-                    >
-                      {status}
-                    </span>
-                  ),
-                  filters: [
-                    { text: "Confirmed", value: "confirmed" },
-                    { text: "Pending", value: "pending" },
-                    { text: "Cancelled", value: "cancelled" },
-                  ],
-                  onFilter: (value, record) => record.status === value,
-                },
-                {
-                  title: "Actions",
-                  key: "actions",
-                  fixed: "right",
-                  width: 120,
-                  render: (value, record) => {
-                    console.log(record, 'recordrecord');
-
-                    return (
-                      <>
-                        <Button
-                          type="link"
-                          className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
-                          onClick={() => handleViewBooking(record.key)}
-                          title="view"
-                        >
-                          <EyeOutlined />
-                        </Button>
-                        <Button
-                          type="link"
-                          className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
-                          onClick={() => handleEditBooking(record.bookingId)}
-                          title="edit"
-                        >
-                          <EditOutlined />
-                        </Button>
-                      </>
-
-
-
-                    )
-                  }
-                },
-              ]}
-            />
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <Title level={4} className="text-gray-500 !mb-2">
-                No bookings yet
+      {(userMode || adminMode) && 
+        <div>
+          {/* Bookings Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <Title level={3} className="!mb-1 text-gray-900">
+                Your Bookings
               </Title>
-              <Text className="block text-gray-400 mb-6">
-                Start by creating your first group booking
+              <Text className="text-gray-600">
+                Manage and track all your group bookings
               </Text>
-              <Button
-                type="primary"
-                className="infiniti-btn-primary"
-                onClick={handleNewBooking}
-              >
-                Create New Booking
-              </Button>
             </div>
-          )}
-        </Card>
-      </div>
+          </div>
+
+          {/* Bookings Table */}
+          <Card className="border-0 shadow-sm">
+            {bookingsTableData.length > 0 ? (
+              <Table
+                dataSource={bookingsTableData}
+                rowKey="key"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} bookings`,
+                  pageSizeOptions: ["5", "10", "20", "50"],
+                  className: "px-6 pb-4",
+                }}
+                className="w-full"
+                scroll={{ x: "max-content" }}
+                columns={[
+                  {
+                    title: "Booking ID",
+                    dataIndex: "bookingId",
+                    key: "bookingId",
+                    fixed: "left",
+                    width: 150,
+                    render: (text) => (
+                      <span className="font-semibold text-[var(--infiniti-primary)]">
+                        {text}
+                      </span>
+                    ),
+                    sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
+                  },
+                  // {
+                  //   title: "Group Type",
+                  //   dataIndex: "groupType",
+                  //   key: "groupType",
+                  //   width: 120,
+                  //   render: (text) => (
+                  //     <span className="text-gray-700 capitalize">{text}</span>
+                  //   ),
+                  //   filters: [
+                  //     { text: "Group Travel", value: "Group Travel" },
+                  //     { text: "Corporate", value: "Corporate" },
+                  //     { text: "Family", value: "Family" },
+                  //   ],
+                  //   onFilter: (value, record) => record.groupType === value,
+                  // },
+                  {
+                    title: "Route",
+                    dataIndex: "route",
+                    key: "route",
+                    width: 200,
+                    render: (text) => (
+                      <span className="text-gray-900 font-medium">{text}</span>
+                    ),
+                    sorter: (a, b) => a.route.localeCompare(b.route),
+                  },
+                  {
+                    title: "Departure",
+                    dataIndex: "date",
+                    key: "date",
+                    width: 120,
+                    render: (date) => {
+                      if (!date || date === "Date not available")
+                        return (
+                          <span className="text-gray-500">Not available</span>
+                        );
+                      try {
+                        return (
+                          <span className="text-gray-600">
+                            {new Date(date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        );
+                      } catch (e) {
+                        return (
+                          <span className="text-gray-500">Invalid date</span>
+                        );
+                      }
+                    },
+                    sorter: (a, b) => {
+                      if (
+                        a.date === "Date not available" &&
+                        b.date === "Date not available"
+                      )
+                        return 0;
+                      if (a.date === "Date not available") return 1;
+                      if (b.date === "Date not available") return -1;
+                      try {
+                        return (
+                          new Date(a.date).getTime() -
+                          new Date(b.date).getTime()
+                        );
+                      } catch (e) {
+                        return 0;
+                      }
+                    },
+                  },
+                  {
+                    title: "Return",
+                    dataIndex: "returnDate",
+                    key: "returnDate",
+                    width: 120,
+                    render: (returnDate) => {
+                      if (!returnDate)
+                        return <span className="text-gray-500">One-way</span>;
+                      try {
+                        return (
+                          <span className="text-gray-600">
+                            {new Date(returnDate).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        );
+                      } catch (e) {
+                        return (
+                          <span className="text-gray-500">Invalid date</span>
+                        );
+                      }
+                    },
+                  },
+                  {
+                    title: "Passengers",
+                    dataIndex: "passengers",
+                    key: "passengers",
+                    width: 100,
+                    render: (passengers) => (
+                      <span className="text-gray-700 font-medium">
+                        {passengers}
+                      </span>
+                    ),
+                    sorter: (a, b) => a.passengers - b.passengers,
+                  },
+                  {
+                    title: "Status",
+                    dataIndex: "status",
+                    key: "status",
+                    width: 120,
+                    render: (status) => (
+                      <Tag
+                        className="px-3 py-1 text-xs font-semibold capitalize"
+                        color={getStatusColor(status)}
+                      >
+                        {status}
+                      </Tag>
+                    ),
+                    filters: [
+                      { text: "Confirmed", value: "confirmed" },
+                      { text: "Pending", value: "pending" },
+                      { text: "Cancelled", value: "cancelled" },
+                    ],
+                    onFilter: (value, record) => record.status === value,
+                  },
+                  {
+                    title: "Actions",
+                    key: "actions",
+                    fixed: "right",
+                    width: 120,
+                    render: (value, record) => {
+                      console.log(record, 'recordrecord');
+
+                      return (
+                        <>
+                          <Button
+                            type="link"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            onClick={() => handleViewBooking(record.key)}
+                            title="view"
+                          >
+                            <EyeOutlined />
+                          </Button>
+                          <Button
+                            type="link"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            onClick={() => handleEditBooking(record.bookingId)}
+                            title="edit"
+                          >
+                            <EditOutlined />
+                          </Button>
+                        </>
+                      )
+                    }
+                  },
+                ]}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <Title level={4} className="text-gray-500 !mb-2">
+                  No bookings yet
+                </Title>
+                <Text className="block text-gray-400 mb-6">
+                  Start by creating your first group booking
+                </Text>
+                <Button
+                  type="primary"
+                  className="infiniti-btn-primary"
+                  onClick={handleNewBooking}
+                >
+                  Create New Booking
+                </Button>
+              </div>
+            )}
+          </Card>
+        </div>
+      }
     </div>
   );
 }

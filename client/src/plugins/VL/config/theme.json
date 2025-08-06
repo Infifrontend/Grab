@@ -46,6 +46,7 @@
         "colorPrimaryHover": "#3a1a32",
         "colorPrimaryActive": "#5a2a52",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
+        "colorLink": "#80206a",
         "controlHeight": 40,
         "lineWidth": 0,
         "borderRadius": 6
@@ -287,7 +288,8 @@
       "--t-accessibility-gradient": "url(#paint0_linear_423_13078)",
       "--t-accessiblity-active-text-color": "#fff",
       "--t-accessiblity-btn-text-color": "#000",
-      "--t-btn-primary-color":"#fff"
+      "--t-btn-primary-color": "#fff",
+      "--infiniti-link": "#00A7FF"
     },
     "algorithm": "light"
   },
@@ -341,8 +343,8 @@
         "lastItemColor": "#666",
         "separatorColor": "#666"
       },
-      "Card":{
-        "borderColor":"#ffffff"
+      "Card": {
+        "borderColor": "#ffffff"
       }
     },
     "token": {
@@ -357,7 +359,8 @@
       "--textGray800": "#ffffff",
       "--textGray900": "#ffffff",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#ffffff"
     },
     "algorithm": "dark"
   },
@@ -532,7 +535,8 @@
       "--whiteText": "#000",
       "--blackText": "#FFFFFF",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#ffffff"
     },
     "algorithm": "dark"
   },
@@ -660,7 +664,7 @@
       "--infiniti-light-green": "rgb(245 245 245)",
       "--infiniti-light-blue": "rgb(240 240 240)",
       "--infiniti-lighter-blue": "#FBEB3F",
-      "--infiniti-lightest-blue": "rgb(100 100 100)",
+      "--infiniti-lightest-blue": "rgb(100ffffff 100 100)",
       "--infiniti-light-orange": "rgb(180 180 180)",
       "--infiniti-light-red": "rgb(130 130 130)",
       "--infiniti-lighter-green": "rgb(110 110 110)",
@@ -716,7 +720,8 @@
       "--whiteText": "#000000",
       "--blackText": "#FBEB3F",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#fff"
+      "--t-theme-active-bg": "#fff",
+      "--infiniti-link": "#FBEB3F"
     },
     "algorithm": "dark"
   },
@@ -839,7 +844,7 @@
       "colorSuccess": "#000",
       "colorWarning": "#000",
       "colorError": "#000",
-      "colorBgLayout":"#FBEB3F"
+      "colorBgLayout": "#FBEB3F"
     },
     "Alert": {
       "colorWarningBg": "#FBEB3F",
@@ -915,7 +920,8 @@
       "--whiteText": "#FBEB3F",
       "--blackText": "#000",
       "--t-theme-selector-bg": "#ccd5fe",
-      "--t-theme-active-bg": "#FBEB3F"
+      "--t-theme-active-bg": "#FBEB3F",
+            "--infiniti-link": "#000"
     },
     "algorithm": "dark"
   },

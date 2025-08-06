@@ -77,6 +77,7 @@ const AdminHeader = () => {
               <Button
                 type="link"
                 className="cls-accessibility"
+                style={{ color: "var(--infiniti-link)" }}
                 onKeyDown={changeFocus}
               >
                 {"Accessibility"}
