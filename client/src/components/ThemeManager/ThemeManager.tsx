@@ -37,7 +37,7 @@ const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
   );
 
   // 2. Get the airline code from config
-  const airlineCode = CFG.default.airline_code;
+  const airlineCode = CFG.default.airline_code || "RM";
 
   // 3. Try to find the favicon URL for that airline
   let imgUrl: string | undefined = undefined;
@@ -104,7 +104,7 @@ const ThemeManager: React.FC<ThemeManagerProps> = ({ children }) => {
 
         setAirlineThemes(themeModule.default);
       } catch (error) {
-        console.error(`Failed to load airline themes for ${CFG?.default?.airline_code}`, error);
+        console.error(`Failed to load airline themes for ${CFG?.default?.airline_code || "RM"}`, error);
       }
     };
 

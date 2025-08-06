@@ -116,7 +116,7 @@ export default function Header() {
           <Link to="/" className="infiniti-logo cursor-pointer">
             <img
               src={
-                `/src/plugins/${CFG?.default?.airline_code}/assets/images/Logo.png`
+                `/src/plugins/${CFG?.default?.airline_code || "RM"}/assets/images/Logo.png`
               }
               alt={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
               title={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
@@ -225,7 +225,7 @@ export default function Header() {
                             icon={<UserOutlined />}
                             className="w-full justify-start h-10 text-left hover:bg-gray-50"
                             style={{ border: "none", padding: "0 12px" }}
-                            onClick={()=>navigate("/admin/login")}
+                            onClick={() => navigate("/admin/login")}
                           >
                             Admin
                           </Button>
@@ -234,7 +234,7 @@ export default function Header() {
                             icon={<SettingOutlined />}
                             className="w-full justify-start h-10 text-left hover:bg-gray-50"
                             style={{ border: "none", padding: "0 12px" }}
-                            onClick={()=>navigate("/settings")}
+                            onClick={() => navigate("/settings")}
                           >
                             Settings
                           </Button>

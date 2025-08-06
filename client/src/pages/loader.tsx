@@ -15,7 +15,8 @@ const Loader = memo(({ fallback }: LoaderProps) => {
         <div className="flex flex-col items-center justify-center">
           <span className="block w-full text-center">
             <img
-              src="/src/images/Logo.png"
+              src={`/src/plugins/${CFG?.default?.airline_code || "RM"}/assets/images/Logo.png`}
+
               width={210}
               alt="Volaris"
               title="Volaris"
