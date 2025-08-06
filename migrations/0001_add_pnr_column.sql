@@ -7,7 +7,7 @@ ALTER TABLE "flight_bookings" ADD COLUMN "pnr" text;
 
 -- Generate PNR for existing bookings
 UPDATE "flight_bookings" 
-SET "pnr" = 'AI' || (100000 + (id * 123) % 900000)::text
+SET "pnr" = (100000 + (id * 123) % 900000)::text
 WHERE "pnr" IS NULL;
 
 -- Now add NOT NULL constraint and unique constraint

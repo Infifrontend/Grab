@@ -308,10 +308,8 @@ export class DatabaseStorage implements IStorage {
 
   // Generate unique PNR (Passenger Name Record)
   private generatePNR(): string {
-    const airlines = ['AI', 'UK', 'SG', 'G8', '6E', 'I5']; // Indian airline codes
-    const airlineCode = airlines[Math.floor(Math.random() * airlines.length)];
     const randomDigits = Math.floor(100000 + Math.random() * 900000); // 6 digit number
-    return `${airlineCode}${randomDigits}`;
+    return `${randomDigits}`;
   }
 
   async createFlightBooking(bookingData: InsertFlightBooking): Promise<FlightBooking> {
