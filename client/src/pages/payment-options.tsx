@@ -391,10 +391,12 @@ export default function PaymentOptions() {
         // Save payment data to localStorage after successful submission
         localStorage.setItem("paymentData", JSON.stringify(cleanPaymentData));
 
-        // Set booking reference for the modal
-        const refNumber = result.booking?.bookingReference || result.bookingReference || 'GB-' + Date.now();
-        setBookingReference(refNumber);
-        localStorage.setItem("bookingReference", refNumber);
+        // Store PNR for navigation and display
+        localStorage.setItem("currentPNR", result.pnr);
+
+        // Update booking reference to show PNR in success modal
+        setBookingReference(result.pnr);
+        localStorage.setItem("bookingReference", result.pnr);
 
         // Show success modal
         setShowSuccessModal(true);
@@ -950,7 +952,7 @@ export default function PaymentOptions() {
           <Button type="primary" key="Add Passenger Info" onClick={handleSuccessModalCancel}>
             Add Passenger Info
           </Button>
-          
+
         ]}
         centered
         width={500}
