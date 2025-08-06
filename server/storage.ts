@@ -50,6 +50,7 @@ export interface IStorage {
   getFlightBookings(userId?: number): Promise<FlightBooking[]>;
   getFlightBooking(id: number): Promise<FlightBooking | undefined>;
   getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
+  getFlightBookingByPNR(pnr: string): Promise<any>;
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
   updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
   updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void>;
@@ -296,9 +297,47 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
-  async createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking> {
+  async getFlightBookingByPNR(pnr: string): Promise<any> {
+    const [booking] = await db
+      .select()
+      .from(flightBookings)
+      .where(eq(flightBookings.pnr, pnr))
+      .limit(1);
+    return booking;
+  }
+
+  // Generate unique PNR (Passenger Name Record)
+  private generatePNR(): string {
+    const airlines = ['AI', 'UK', 'SG', 'G8', '6E', 'I5']; // Indian airline codes
+    const airlineCode = airlines[Math.floor(Math.random() * airlines.length)];
+    const randomDigits = Math.floor(100000 + Math.random() * 900000); // 6 digit number
+    return `${airlineCode}${randomDigits}`;
+  }
+
+  async createFlightBooking(bookingData: InsertFlightBooking): Promise<FlightBooking> {
+    // Generate unique PNR if not provided
+    let pnr = bookingData.pnr;
+    if (!pnr) {
+      let isUnique = false;
+      while (!isUnique) {
+        pnr = this.generatePNR();
+        // Check if PNR already exists
+        const existingBooking = await db
+          .select()
+          .from(flightBookings)
+          .where(eq(flightBookings.pnr, pnr))
+          .limit(1);
+
+        if (existingBooking.length === 0) {
+          isUnique = true;
+        }
+      }
+    }
+
+    const bookingWithPNR = { ...bookingData, pnr };
+
     try {
-      const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+      const [newBooking] = await db.insert(flightBookings).values(bookingWithPNR).returning();
       return newBooking;
     } catch (error) {
       // If we get a duplicate key error, try to fix the sequence
@@ -311,7 +350,7 @@ export class DatabaseStorage implements IStorage {
         `);
 
         // Try the insert again
-        const [newBooking] = await db.insert(flightBookings).values(booking).returning();
+        const [newBooking] = await db.insert(flightBookings).values(bookingWithPNR).returning();
         return newBooking;
       } else {
         throw error;
@@ -942,11 +981,11 @@ export class DatabaseStorage implements IStorage {
 
       if (bid.length === 0) {
         console.log(`No bid found with ID: ${id}`);
-        
+
         // Debug: Show what bids actually exist
         const allBids = await db.select({ id: bids.id, bidAmount: bids.bidAmount, bidStatus: bids.bidStatus }).from(bids);
         console.log(`Existing bids in database:`, allBids);
-        
+
         return null;
       }
 
@@ -957,7 +996,7 @@ export class DatabaseStorage implements IStorage {
         hasUser: !!bid[0].users,
         hasFlight: !!bid[0].flights
       });
-      
+
       return {
         bid: bid[0].bids,
         user: bid[0].users,

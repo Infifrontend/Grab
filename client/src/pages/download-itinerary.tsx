@@ -103,6 +103,10 @@ export default function DownloadItinerary() {
               <span class="detail-value">${booking.bookingReference}</span>
             </div>
             <div class="detail-row">
+              <span class="detail-label">PNR:</span>
+              <span class="detail-value">${booking.pnr}</span>
+            </div>
+            <div class="detail-row">
               <span class="detail-label">Booking Status:</span>
               <span class="detail-value">${booking.bookingStatus}</span>
             </div>
@@ -452,6 +456,14 @@ Group Airline Booking Team`;
                   <Text className="font-semibold text-gray-900 block text-lg">
                     Booking #{booking.bookingReference}
                   </Text>
+                  <div className="flex justify-between">
+                    <Text className="text-gray-600 font-medium">
+                      PNR:
+                    </Text>
+                    <Text className="text-gray-900 font-semibold">
+                      {booking.pnr}
+                    </Text>
+                  </div>
                   {comprehensiveData?.groupLeaderInfo && (
                     <Text className="text-gray-600">
                       Group Leader:{" "}

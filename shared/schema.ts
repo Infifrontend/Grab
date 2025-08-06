@@ -83,6 +83,7 @@ export const flights = pgTable("flights", {
 export const flightBookings = pgTable("flight_bookings", {
   id: serial("id").primaryKey(),
   bookingReference: text("booking_reference").notNull().unique(),
+  pnr: text("pnr").notNull().unique(),
   userId: integer("user_id").references(() => users.id),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   passengerCount: integer("passenger_count").notNull(),

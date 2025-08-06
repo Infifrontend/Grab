@@ -165,7 +165,7 @@ export default function ManageBooking() {
 
   const getStatusColor = (status: string) => {
     console.log(status);
-    
+
     switch (status.toLowerCase()) {
       case "confirmed":
         return "success";
@@ -193,8 +193,8 @@ export default function ManageBooking() {
   // Transform real booking data for table and sort by creation date (latest first)
   const bookingsTableData = flightBookingsData
     .sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.bookedAt || 0);
-      const dateB = new Date(b.createdAt || b.bookedAt || 0);
+      const dateA = new Date(a.bookedAt || a.createdAt || 0);
+      const dateB = new Date(b.bookedAt || b.createdAt || 0);
       return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
     })
     .map((booking, index) => {
@@ -313,7 +313,7 @@ export default function ManageBooking() {
                 </Text>
                 <Input
                   size="large"
-                  placeholder="Enter booking ID (e.g., GR-2024-1001)"
+                  placeholder="Enter booking reference, PNR, or email"
                   value={bookingId}
                   onChange={(e) => setBookingId(e.target.value)}
                   className="w-full"
@@ -374,7 +374,7 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      {(userMode || adminMode) && 
+      {(userMode || adminMode) &&
         <div>
           {/* Bookings Header */}
           <div className="flex justify-between items-center mb-6">

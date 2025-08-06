@@ -458,6 +458,14 @@ export default function BookingDetails() {
                   </div>
                   <div>
                     <Text className="text-gray-500 text-sm block mb-1">
+                      PNR
+                    </Text>
+                    <Text className="text-gray-900 font-semibold">
+                      {booking.pnr}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text className="text-gray-500 text-sm block mb-1">
                       Total Amount
                     </Text>
                     <Text className="text-gray-900">
