@@ -478,6 +478,13 @@ const MenuRoutes = {
       },
       {
         "route_id": 302,
+        "path": "/find-your-booking",
+        "layout": "RetailLayout",
+        "component": "ManageBooking",
+        "permission": []
+      },
+      {
+        "route_id": 302,
         "path": "/login",
         "layout": "",
         "component": "Login",

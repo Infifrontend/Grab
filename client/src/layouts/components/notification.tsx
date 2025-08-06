@@ -229,7 +229,7 @@ const Notification = () => {
         onOpenChange={setNotificationOpen}
         className="notification-popover"
       >
-        <Badge count={unreadCount} size="small" className="mr-2 cursor-pointer">
+        <Badge count={unreadCount} size="small" className="cursor-pointer">
           <BellOutlined className="text-gray-500 text-lg" />
         </Badge>
       </Popover>

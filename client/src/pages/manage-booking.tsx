@@ -27,7 +27,7 @@ export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
   const navigate = useNavigate();
   const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
-
+  const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
   });
@@ -223,139 +223,141 @@ export default function ManageBooking() {
       </Row>
 
       {/* Recent Bookings */}
-      <div className="mt-8">
-        <Title level={4} className="!mb-6 text-gray-900">
-          Recent Bookings
-        </Title>
+      {userMode || adminMode &&
+        <div className="mt-8">
+          <Title level={4} className="!mb-6 text-gray-900">
+            Recent Bookings
+          </Title>
 
-        <Row gutter={[24, 24]}>
-          {recentBookings.map((booking: any) => (
-            <Col xs={24} lg={8} key={booking.id}>
-              <Card className="h-full hover:shadow-md transition-shadow">
-                <div className="mb-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <Text className="font-bold text-lg text-[var(--infiniti-primary)]">
-                      {booking.bookingReference}
-                    </Text>
-                    <Badge
-                      status={getStatusColor(booking.bookingStatus)}
-                      text={getStatusText(booking.bookingStatus)}
-                      className="font-medium"
-                    />
-                  </div>
-                  <Text className="text-gray-600 block mb-3 capitalize">
-                    Flight Booking
-                  </Text>
-                </div>
-
-                <Space
-                  direction="vertical"
-                  size="small"
-                  className="w-full mb-4"
-                >
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <UserOutlined className="text-sm" />
-                    <Text className="text-sm font-medium">
-                      Flight ID: {booking.flightId}
+          <Row gutter={[24, 24]}>
+            {recentBookings.map((booking: any) => (
+              <Col xs={24} lg={8} key={booking.id}>
+                <Card className="h-full hover:shadow-md transition-shadow">
+                  <div className="mb-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <Text className="font-bold text-lg text-[var(--infiniti-primary)]">
+                        {booking.bookingReference}
+                      </Text>
+                      <Badge
+                        status={getStatusColor(booking.bookingStatus)}
+                        text={getStatusText(booking.bookingStatus)}
+                        className="font-medium"
+                      />
+                    </div>
+                    <Text className="text-gray-600 block mb-3 capitalize">
+                      Flight Booking
                     </Text>
                   </div>
 
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <CalendarOutlined className="text-sm" />
-                    <Text className="text-sm">
-                      Booked:{" "}
-                      {booking.bookedAt
-                        ? format(new Date(booking.bookedAt), "dd MMM yyyy")
-                        : "N/A"}
-                    </Text>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <TeamOutlined className="text-sm" />
-                    <Text className="text-sm">
-                      {booking.passengerCount} confirmed passengers
-                    </Text>
-                  </div>
-
-                  {booking.totalAmount && (
+                  <Space
+                    direction="vertical"
+                    size="small"
+                    className="w-full mb-4"
+                  >
                     <div className="flex items-center gap-2 text-gray-600">
-                      <span className="text-sm">💰</span>
-                      <Text className="text-sm font-semibold text-green-600">
-                        ₹{parseFloat(booking.totalAmount).toLocaleString()}
+                      <UserOutlined className="text-sm" />
+                      <Text className="text-sm font-medium">
+                        Flight ID: {booking.flightId}
                       </Text>
                     </div>
-                  )}
-                </Space>
 
-                <Button
-                  type="primary"
-                  className="w-full infiniti-btn-primary"
-                  onClick={() =>
-                    navigate(
-                      adminMode
-                        ? `/admin/booking-details/${booking.bookingReference}`
-                        : `/booking-details/${booking.bookingReference}`
-                    )
-                  }
-                >
-                  View Details
-                </Button>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-
-        {/* Empty state */}
-        {(!flightBookings || flightBookings.length === 0) &&
-          !isFlightBookingsLoading && (
-            <Card className="text-center py-12">
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <CalendarOutlined className="text-2xl text-gray-400" />
-                </div>
-                <div>
-                  <Title level={4} className="!mb-2 text-gray-600">
-                    No Recent Bookings
-                  </Title>
-                  <Text className="text-gray-500">
-                    You haven't made any bookings yet. Start by creating your
-                    first group booking and managing passenger information.
-                  </Text>
-                </div>
-                <Button
-                  type="primary"
-                  className="infiniti-btn-primary mt-4"
-                  onClick={() =>
-                    navigate(adminMode ? "/admin/bookings" : "/new-booking")
-                  }
-                >
-                  Create New Booking
-                </Button>
-              </div>
-            </Card>
-          )}
-
-        {/* Loading state */}
-        {isFlightBookingsLoading && (
-          <Row gutter={[24, 24]}>
-            {[1, 2, 3].map((i) => (
-              <Col xs={24} lg={8} key={i}>
-                <Card className="h-full">
-                  <div className="animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                    <div className="space-y-3">
-                      <div className="h-4 bg-gray-200 rounded"></div>
-                      <div className="h-4 bg-gray-200 rounded"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <CalendarOutlined className="text-sm" />
+                      <Text className="text-sm">
+                        Booked:{" "}
+                        {booking.bookedAt
+                          ? format(new Date(booking.bookedAt), "dd MMM yyyy")
+                          : "N/A"}
+                      </Text>
                     </div>
-                    <div className="h-10 bg-gray-200 rounded mt-6"></div>
-                  </div>
+
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <TeamOutlined className="text-sm" />
+                      <Text className="text-sm">
+                        {booking.passengerCount} confirmed passengers
+                      </Text>
+                    </div>
+
+                    {booking.totalAmount && (
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-sm">💰</span>
+                        <Text className="text-sm font-semibold text-green-600">
+                          ₹{parseFloat(booking.totalAmount).toLocaleString()}
+                        </Text>
+                      </div>
+                    )}
+                  </Space>
+
+                  <Button
+                    type="primary"
+                    className="w-full infiniti-btn-primary"
+                    onClick={() =>
+                      navigate(
+                        adminMode
+                          ? `/admin/booking-details/${booking.bookingReference}`
+                          : `/booking-details/${booking.bookingReference}`
+                      )
+                    }
+                  >
+                    View Details
+                  </Button>
                 </Card>
               </Col>
             ))}
           </Row>
-        )}
-      </div>
+
+          {/* Empty state */}
+          {(!flightBookings || flightBookings.length === 0) &&
+            !isFlightBookingsLoading && (
+              <Card className="text-center py-12">
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                    <CalendarOutlined className="text-2xl text-gray-400" />
+                  </div>
+                  <div>
+                    <Title level={4} className="!mb-2 text-gray-600">
+                      No Recent Bookings
+                    </Title>
+                    <Text className="text-gray-500">
+                      You haven't made any bookings yet. Start by creating your
+                      first group booking and managing passenger information.
+                    </Text>
+                  </div>
+                  <Button
+                    type="primary"
+                    className="infiniti-btn-primary mt-4"
+                    onClick={() =>
+                      navigate(adminMode ? "/admin/bookings" : "/new-booking")
+                    }
+                  >
+                    Create New Booking
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+          {/* Loading state */}
+          {isFlightBookingsLoading && (
+            <Row gutter={[24, 24]}>
+              {[1, 2, 3].map((i) => (
+                <Col xs={24} lg={8} key={i}>
+                  <Card className="h-full">
+                    <div className="animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                      <div className="space-y-3">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      </div>
+                      <div className="h-10 bg-gray-200 rounded mt-6"></div>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </div>
+      }
     </div>
   );
 }

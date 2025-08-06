@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   Popover,
+  Tooltip,
 } from "antd";
 import {
   DownOutlined,
@@ -18,12 +19,17 @@ import {
   CreditCardOutlined,
   SettingOutlined,
   LogoutOutlined,
+  CompressOutlined,
+  ExpandOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Notification from "./notification";
 import AccessibilityHeader from "@/components/ui/accessibility-header";
 import { Theme } from "@/components/Theme/Theme";
+import { useState } from "react";
+import { useEventListener } from "@/hooks/event-listener.hook";
+const { Text } = Typography;
 
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
@@ -39,7 +45,8 @@ const navigationItems = [
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+  const [isFullScreen, setIsFullscreen] = useState(true);
+  const isUserLoggedIn = localStorage.getItem("userLoggedIn") === "true";
 
   // Calculate active menu based on current path
   const activeMenu =
@@ -54,7 +61,7 @@ export default function Header() {
   const handleSignOut = () => {
     localStorage.removeItem("userLoggedIn");
     localStorage.removeItem("username");
-    navigate("/login");
+    navigate("/");
   };
 
   // For Focus issue fix - accessibility section
@@ -90,10 +97,25 @@ export default function Header() {
     }, 300);
   };
 
+  const toggleScreen = () => {
+    !document.fullscreenElement
+      ? document.documentElement.requestFullscreen()
+      : document.exitFullscreen();
+  };
+
+  const handleFullscreenChange = () => {
+    !document.fullscreenElement
+      ? setIsFullscreen(true)
+      : setIsFullscreen(false);
+  };
+
+  // Add event listener for fullscreen change
+  useEventListener("fullscreenchange", handleFullscreenChange, document);
+
   return (
-    <header className="infiniti-header">
+    <header className="infiniti-header sticky top-0 z-50 shadow-md">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className={`flex items-center justify-between h-16`}>
           {/* Logo */}
           <Link to="/" className="infiniti-logo cursor-pointer">
             <img
@@ -104,9 +126,9 @@ export default function Header() {
             />
           </Link>
 
-          {isUserLoggedIn ? (
-            <>
-              {/* Navigation - Updated with smoother active state */}
+          <div className={`flex items-center ${isUserLoggedIn ? "justify-between" : "justify-end"}  h-16`}>
+            {isUserLoggedIn ? (
+              /* Navigation - Updated with smoother active state */
               <nav className="hidden lg:flex space-x-8">
                 {navigationItems.map((item) => (
                   <Link
@@ -121,167 +143,224 @@ export default function Header() {
                   </Link>
                 ))}
               </nav>
-              {/* User Profile - Remaining unchanged  */}
-              <div className="flex items-center space-x-4">
-                <Popover
-                  trigger="click"
-                  className="cls-accessibility-popover"
-                  placement="bottom"
-                  content={<AccessibilityHeader />}
-                  title={null}
+            ) : (
+              <nav className="hidden lg:flex space-x-8">
+                <Link
+                  to="/"
+                  className={`infiniti-nav-item transition-colors duration-200 ${
+                    activeMenu === "home" ? "active" : ""
+                  }`}
+                  onClick={() => localStorage.setItem("activeMenu", "home")}
                 >
-                  <Button
-                    type="link"
-                    className="cls-accessibility"
-                    onKeyDown={changeFocus}
-                  >
-                    {"Accessibility"}
-                  </Button>
-                </Popover>
-                <Notification />
-                <Dropdown
-                  placement="bottomRight"
-                  trigger={["click"]}
-                  dropdownRender={() => (
-                    <Card
-                      className="user-profile-dropdown"
-                      style={{
-                        width: 320,
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "12px",
-                        boxShadow:
-                          "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                      }}
-                      bodyStyle={{ padding: "20px" }}
-                    >
-                      {/* User Info Section */}
-                      <div className="flex justify-between align-center gap-3 mb-4">
-                        <div className="flex items-start gap-3">
-                          <Avatar
-                            size={48}
-                            icon={<UserOutlined />}
-                            className="bg-gray-200"
-                          />
-                          <div className="flex-1">
-                            <Typography.Title
-                              level={5}
-                              className="!mb-1 text-gray-900"
-                            >
-                              John Smith
-                            </Typography.Title>
-                            <Typography.Text className="text-sm text-blue-600 font-medium">
-                              Gold Member
+                  Home
+                </Link>
+                <Link
+                  to="/find-your-booking"
+                  onClick={() => localStorage.setItem("activeMenu", "find-your-booking")}
+                  className={`infiniti-nav-item transition-colors duration-200 ${
+                    activeMenu === "find-your-booking" ? "active" : ""
+                  }`}
+                >
+                  Find your booking
+                </Link>
+              </nav>
+            )}
+            {/* User Profile - Remaining unchanged  */}
+            <div className="flex items-center space-x-4 ml-4">
+              <Popover
+                trigger="click"
+                className="cls-accessibility-popover"
+                placement="bottom"
+                content={<AccessibilityHeader />}
+                title={null}
+              >
+                <Button
+                  type="link"
+                  className="cls-accessibility"
+                  onKeyDown={changeFocus}
+                >
+                  {"Accessibility"}
+                </Button>
+              </Popover>
+              {isUserLoggedIn && (
+                <>
+                  <Notification />
+                  <Dropdown
+                    placement="bottomRight"
+                    trigger={["click"]}
+                    dropdownRender={() => (
+                      <Card
+                        className="user-profile-dropdown"
+                        style={{
+                          width: 320,
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "12px",
+                          boxShadow:
+                            "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                        }}
+                        bodyStyle={{ padding: "20px" }}
+                      >
+                        {/* User Info Section */}
+                        <div className="flex justify-between align-center gap-3 mb-4">
+                          <div className="flex items-start gap-3">
+                            <Avatar
+                              size={48}
+                              icon={<UserOutlined />}
+                              className="bg-gray-200"
+                            />
+                            <div className="flex-1">
+                              <Typography.Title
+                                level={5}
+                                className="!mb-1 text-gray-900"
+                              >
+                                John Smith
+                              </Typography.Title>
+                              <Typography.Text className="text-sm text-blue-600 font-medium">
+                                Gold Member
+                              </Typography.Text>
+                            </div>
+                          </div>
+                          <Theme />
+                        </div>
+                        {/* Contact Information */}
+                        <Space
+                          direction="vertical"
+                          size={8}
+                          className="w-full mb-4"
+                        >
+                          <div className="flex items-center gap-2">
+                            <MailOutlined className="text-gray-400 text-sm" />
+                            <Typography.Text className="text-sm text-gray-600">
+                              john.smith@company.com
                             </Typography.Text>
                           </div>
-                        </div>
-                        <Theme />
-                      </div>
-                      {/* Contact Information */}
-                      <Space direction="vertical" size={8} className="w-full mb-4">
-                        <div className="flex items-center gap-2">
-                          <MailOutlined className="text-gray-400 text-sm" />
-                          <Typography.Text className="text-sm text-gray-600">
-                            john.smith@company.com
-                          </Typography.Text>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <PhoneOutlined className="text-gray-400 text-sm" />
-                          <Typography.Text className="text-sm text-gray-600">
-                            +1 (555) 123-4567
-                          </Typography.Text>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <EnvironmentOutlined className="text-gray-400 text-sm" />
-                          <Typography.Text className="text-sm text-gray-600">
-                            New York, NY
-                          </Typography.Text>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CalendarOutlined className="text-gray-400 text-sm" />
-                          <Typography.Text className="text-sm text-gray-600">
-                            Member since January 2023
-                          </Typography.Text>
-                        </div>
-                      </Space>
+                          <div className="flex items-center gap-2">
+                            <PhoneOutlined className="text-gray-400 text-sm" />
+                            <Typography.Text className="text-sm text-gray-600">
+                              +1 (555) 123-4567
+                            </Typography.Text>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <EnvironmentOutlined className="text-gray-400 text-sm" />
+                            <Typography.Text className="text-sm text-gray-600">
+                              New York, NY
+                            </Typography.Text>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CalendarOutlined className="text-gray-400 text-sm" />
+                            <Typography.Text className="text-sm text-gray-600">
+                              Member since January 2023
+                            </Typography.Text>
+                          </div>
+                        </Space>
 
-                      {/* Total Bookings */}
-                      <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
-                        <Typography.Text className="text-sm text-gray-600">
-                          Total Bookings:
-                        </Typography.Text>
-                        <Typography.Text className="text-sm font-semibold text-gray-900">
-                          12
-                        </Typography.Text>
-                      </div>
+                        {/* Total Bookings */}
+                        <div className="flex justify-between items-center py-3 px-3 bg-gray-50 rounded-lg mb-4">
+                          <Typography.Text className="text-sm text-gray-600">
+                            Total Bookings:
+                          </Typography.Text>
+                          <Typography.Text className="text-sm font-semibold text-gray-900">
+                            12
+                          </Typography.Text>
+                        </div>
 
-                      {/* Action Buttons */}
-                      <Space direction="vertical" size={8} className="w-full">
+                        {/* Action Buttons */}
+                        <Space direction="vertical" size={8} className="w-full">
+                          <Button
+                            type="text"
+                            icon={<UserOutlined />}
+                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                            style={{ border: "none", padding: "0 12px" }}
+                          >
+                            View Profile
+                          </Button>
+                          <Button
+                            type="text"
+                            icon={<CreditCardOutlined />}
+                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                            style={{ border: "none", padding: "0 12px" }}
+                          >
+                            Payment Methods
+                          </Button>
+                          <Button
+                            type="text"
+                            icon={<SettingOutlined />}
+                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                            style={{ border: "none", padding: "0 12px" }}
+                          >
+                            Settings
+                          </Button>
+                        </Space>
+
+                        <Divider className="!my-3" />
+
+                        {/* Sign Out */}
                         <Button
                           type="text"
-                          icon={<UserOutlined />}
-                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                          style={{ border: "none", padding: "0 12px" }}
+                          icon={<LogoutOutlined />}
+                          className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          style={{ border: "none" }}
+                          onClick={handleSignOut}
                         >
-                          View Profile
+                          Sign Out
                         </Button>
-                        <Button
-                          type="text"
-                          icon={<CreditCardOutlined />}
-                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                          style={{ border: "none", padding: "0 12px" }}
-                        >
-                          Payment Methods
-                        </Button>
-                        <Button
-                          type="text"
-                          icon={<SettingOutlined />}
-                          className="w-full justify-start h-10 text-left hover:bg-gray-50"
-                          style={{ border: "none", padding: "0 12px" }}
-                        >
-                          Settings
-                        </Button>
-                      </Space>
-
-                      <Divider className="!my-3" />
-
-                      {/* Sign Out */}
-                      <Button
-                        type="text"
-                        icon={<LogoutOutlined />}
-                        className="w-full justify-center h-10 text-red-600 hover:bg-red-50 hover:text-red-700"
-                        style={{ border: "none" }}
-                        onClick={handleSignOut}
-                      >
-                        Sign Out
-                      </Button>
-                    </Card>
-                  )}
-                >
-                  <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg transition-colors">
-                    <Avatar size="small" icon={<UserOutlined />} />
-                    <span className="text-gray-600 font-medium">John Smith</span>
-                    <DownOutlined
-                      className="text-xs text-gray-600"
-                      style={{ marginBlockStart: "0.25rem" }}
-                    />
-                  </div>
-                </Dropdown>
-              </div>
-            </>
-          ) : (
-            <Button
-              type="primary"
-              onClick={() => navigate("/login")}
-              className="infiniti-btn-primary px-6 h-[32px] flex align-center justify-center"
-            >
-              Sign in
-            </Button>
-          )}
+                      </Card>
+                    )}
+                  >
+                    <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg transition-colors">
+                      <Avatar size="small" icon={<UserOutlined />} />
+                      <span className="text-gray-600 font-medium">
+                        John Smith
+                      </span>
+                      <DownOutlined
+                        className="text-xs text-gray-600"
+                        style={{ marginBlockStart: "0.25rem" }}
+                      />
+                    </div>
+                  </Dropdown>
+                </>
+              )}
+            </div>
+            {!isUserLoggedIn && (
+              <>
+              <Button
+                type="link"
+                onClick={toggleScreen}
+                className="cls-toggle-screen"
+                style={{ width: 16 }}
+              >
+                {!isFullScreen ? (
+                  <Tooltip title="Compress_screen">
+                    <CompressOutlined className="cls-screen-expand-collapse" />
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="Expand_screen">
+                    <ExpandOutlined className="cls-expand-icon" />
+                  </Tooltip>
+                )}
+              </Button>
+              <Button
+                type="link"
+                onClick={() => navigate("/login")}
+                className="cls-signIn infiniti-btn-primary px-6 h-[32px] flex align-center justify-center"
+              >
+                Sign in
+              </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       <style>
         {`
+          .cls-signIn span {
+            color: var(--infiniti-primary);
+            font-weight: 500;
+          }
+          .cls-accessibility span {
+            font-weight: 700;
+          }
           .user-profile-dropdown .ant-card-body {
             padding: 20px !important;
           }
