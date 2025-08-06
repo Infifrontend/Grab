@@ -899,7 +899,7 @@ export default function BidManagement() {
                       case "completed":
                         return "Under Review";
                       case "approved":
-                        return "Accepted";
+                        return "Approved";
                       case "accepted":
                         return "Accepted";
                       case "rejected":
@@ -1197,12 +1197,22 @@ export default function BidManagement() {
           );
         }
 
-        // Refresh the data to update the UI with new bid status and retail user statuses
-        queryClient.invalidateQueries(["recent-bids"]);
-        queryClient.invalidateQueries(["bid-configurations"]);
+        // Refresh all data to ensure UI reflects the status changes
+        await Promise.all([
+          queryClient.invalidateQueries(["recent-bids"]),
+          queryClient.invalidateQueries(["bid-configurations"]),
+          queryClient.refetchQueries(["recent-bids"]),
+          queryClient.refetchQueries(["bid-configurations"])
+        ]);
 
         // Force refetch to get latest data
-        refetchBids();
+        await refetchBids();
+
+        // If a bid was approved, update the status in the active tab display immediately
+        if (action === "approve" && result.newBidStatus) {
+          // Force a re-render by updating the active tab
+          setActiveTab("2"); // Active Bids tab
+        }
       } else {
         throw new Error(result.message || `Failed to ${action} retail user`);
       }

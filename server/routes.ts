@@ -1928,10 +1928,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
 
-        // Update bid status from "Completed" to "Approved" when a retail user is approved
-        if (existingBid.bid.bidStatus === 'completed') {
-          newBidStatus = 'approved';
-        }
+        // Update bid status to "approved" when a retail user is approved
+        // This should happen regardless of current status
+        newBidStatus = 'approved';
+        console.log(`Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}`);
       } else {
         // If rejecting this user, just update their status
         existingNotes.retailUsers[retailUserIndex].status = 'rejected';
@@ -1972,7 +1972,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : `Retail user rejected successfully`,
         retailUser: existingNotes.retailUsers[retailUserIndex],
         bidStatusUpdated: newBidStatus !== existingBid.bid.bidStatus,
-        newBidStatus: newBidStatus
+        newBidStatus: newBidStatus,
+        previousBidStatus: existingBid.bid.bidStatus
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
