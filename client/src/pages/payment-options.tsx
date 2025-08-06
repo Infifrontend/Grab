@@ -33,7 +33,9 @@ export default function PaymentOptions() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   // Check if this is an admin booking
-  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  const adminMode = JSON.parse(
+    localStorage.getItem("adminLoggedIn") || "false",
+  );
   const [paymentMethod, setPaymentMethod] = useState("creditCard");
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +43,7 @@ export default function PaymentOptions() {
 
   // Scroll to top on page load
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const [paymentSchedule, setPaymentSchedule] = useState("full");
@@ -50,24 +52,29 @@ export default function PaymentOptions() {
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [passengerCount, setPassengerCount] = useState(1);
-  const [tripType, setTripType] = useState<'oneWay' | 'roundTrip' | 'multiCity'>('roundTrip');
+  const [tripType, setTripType] = useState<
+    "oneWay" | "roundTrip" | "multiCity"
+  >("roundTrip");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [bookingReference, setBookingReference] = useState('');
+  const [bookingReference, setBookingReference] = useState("");
 
   // Load booking data on component mount
   useEffect(() => {
     const loadBookingData = () => {
       // Get trip type - prioritize from bookingFormData (Quick Booking form)
-      const bookingFormData = localStorage.getItem('bookingFormData');
+      const bookingFormData = localStorage.getItem("bookingFormData");
       if (bookingFormData) {
         const formData = JSON.parse(bookingFormData);
-        const formTripType = formData.tripType || 'roundTrip';
+        const formTripType = formData.tripType || "roundTrip";
         setTripType(formTripType);
         // Ensure consistency by updating selectedTripType
-        localStorage.setItem('selectedTripType', formTripType);
+        localStorage.setItem("selectedTripType", formTripType);
       } else {
-        const savedTripType = localStorage.getItem('selectedTripType');
-        setTripType(savedTripType as 'oneWay' | 'roundTrip' | 'multiCity' || 'roundTrip');
+        const savedTripType = localStorage.getItem("selectedTripType");
+        setTripType(
+          (savedTripType as "oneWay" | "roundTrip" | "multiCity") ||
+            "roundTrip",
+        );
       }
 
       // Load previously saved payment data if available
@@ -76,9 +83,14 @@ export default function PaymentOptions() {
         try {
           const savedPaymentData = JSON.parse(tempPaymentData);
           console.log("Restored payment data:", savedPaymentData);
-          if (savedPaymentData.paymentSchedule) setPaymentSchedule(savedPaymentData.paymentSchedule);
-          if (savedPaymentData.paymentMethod) setPaymentMethod(savedPaymentData.paymentMethod);
-          if (savedPaymentData.creditCardData && savedPaymentData.paymentMethod === "creditCard") {
+          if (savedPaymentData.paymentSchedule)
+            setPaymentSchedule(savedPaymentData.paymentSchedule);
+          if (savedPaymentData.paymentMethod)
+            setPaymentMethod(savedPaymentData.paymentMethod);
+          if (
+            savedPaymentData.creditCardData &&
+            savedPaymentData.paymentMethod === "creditCard"
+          ) {
             form.setFieldsValue(savedPaymentData.creditCardData);
           }
         } catch (error) {
@@ -91,7 +103,9 @@ export default function PaymentOptions() {
       if (storedBookingData) {
         const data = JSON.parse(storedBookingData);
         setBookingData(data);
-        setPassengerCount(data.totalPassengers || data.adults + data.kids + data.infants || 1);
+        setPassengerCount(
+          data.totalPassengers || data.adults + data.kids + data.infants || 1,
+        );
       }
 
       // Load selected flight data
@@ -123,16 +137,18 @@ export default function PaymentOptions() {
 
     // Calculate base flight cost
     if (flightData && flightData.outbound) {
-      const outboundPrice = typeof flightData.outbound.price === 'string' 
-        ? parseFloat(flightData.outbound.price) 
-        : flightData.outbound.price || 0;
+      const outboundPrice =
+        typeof flightData.outbound.price === "string"
+          ? parseFloat(flightData.outbound.price)
+          : flightData.outbound.price || 0;
       baseCost += outboundPrice * passengerCount;
 
       // Add return flight cost if round trip
       if (flightData.return && tripType === "roundTrip") {
-        const returnPrice = typeof flightData.return.price === 'string'
-          ? parseFloat(flightData.return.price)
-          : flightData.return.price || 0;
+        const returnPrice =
+          typeof flightData.return.price === "string"
+            ? parseFloat(flightData.return.price)
+            : flightData.return.price || 0;
         baseCost += returnPrice * passengerCount;
       }
     }
@@ -140,15 +156,16 @@ export default function PaymentOptions() {
     // Calculate services cost from selected services
     if (selectedServices.length > 0) {
       servicesCost = selectedServices.reduce((total, service) => {
-        const servicePrice = typeof service.price === 'string' 
-          ? parseFloat(service.price) 
-          : service.price || 0;
+        const servicePrice =
+          typeof service.price === "string"
+            ? parseFloat(service.price)
+            : service.price || 0;
         return total + servicePrice * passengerCount;
       }, 0);
     }
 
     // Calculate bundle services cost (seat, baggage, meals)
-    const bundleData = localStorage.getItem('selectedBundleData');
+    const bundleData = localStorage.getItem("selectedBundleData");
     if (bundleData) {
       const bundle = JSON.parse(bundleData);
       if (bundle.selectedSeat) {
@@ -160,7 +177,7 @@ export default function PaymentOptions() {
         servicesCost += baggagePrice * passengerCount;
       }
       if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
-        bundle.selectedMeals.forEach(meal => {
+        bundle.selectedMeals.forEach((meal) => {
           const mealPrice = meal.price || 0;
           servicesCost += mealPrice * passengerCount;
         });
@@ -204,7 +221,7 @@ export default function PaymentOptions() {
       },
     ];
 
-    return options.filter(option => option.available);
+    return options.filter((option) => option.available);
   };
 
   const availablePaymentOptions = getAvailablePaymentOptions();
@@ -216,10 +233,10 @@ export default function PaymentOptions() {
       try {
         const formValues = form.getFieldsValue();
         creditCardData = {
-          cardNumber: formValues.cardNumber || '',
-          cardholderName: formValues.cardholderName || '',
-          expiryDate: formValues.expiryDate || '',
-          cvv: formValues.cvv || '',
+          cardNumber: formValues.cardNumber || "",
+          cardholderName: formValues.cardholderName || "",
+          expiryDate: formValues.expiryDate || "",
+          cvv: formValues.cvv || "",
         };
       } catch (formError) {
         console.warn("Could not save form data:", formError);
@@ -229,7 +246,7 @@ export default function PaymentOptions() {
     const tempPaymentData = {
       paymentSchedule,
       paymentMethod,
-      creditCardData
+      creditCardData,
     };
     localStorage.setItem("tempPaymentData", JSON.stringify(tempPaymentData));
     navigate(adminMode ? "/admin/group-leader" : "/group-leader");
@@ -238,9 +255,13 @@ export default function PaymentOptions() {
   const handleSuccessModalOk = () => {
     setShowSuccessModal(false);
     if (bookingReference) {
-      navigate(adminMode ? `/admin/booking-details/${bookingReference}` : `/booking-details/${bookingReference}`);
+      navigate(
+        adminMode
+          ? `/admin/booking-details/${bookingReference}`
+          : `/booking-details/${bookingReference}`,
+      );
     } else {
-      navigate(adminMode ? "/admin/dashboard" :  "/dashboard");
+      navigate(adminMode ? "/admin/dashboard" : "/dashboard");
     }
   };
 
@@ -256,7 +277,9 @@ export default function PaymentOptions() {
         await form.validateFields();
       }
 
-      const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+      const selectedOption = availablePaymentOptions.find(
+        (opt) => opt.id === paymentMethod,
+      );
       const discount = selectedOption?.discount || 0;
       const discountedTotal = totalAmount * (1 - discount);
 
@@ -266,10 +289,10 @@ export default function PaymentOptions() {
         try {
           const formValues = form.getFieldsValue();
           creditCardData = {
-            cardNumber: formValues.cardNumber || '',
-            cardholderName: formValues.cardholderName || '',
-            expiryDate: formValues.expiryDate || '',
-            cvv: formValues.cvv || '',
+            cardNumber: formValues.cardNumber || "",
+            cardholderName: formValues.cardholderName || "",
+            expiryDate: formValues.expiryDate || "",
+            cvv: formValues.cvv || "",
           };
         } catch (formError) {
           console.error("Form data extraction error:", formError);
@@ -288,21 +311,27 @@ export default function PaymentOptions() {
 
       try {
         const storedBookingData = localStorage.getItem("bookingFormData");
-        parsedBookingData = storedBookingData ? JSON.parse(storedBookingData) : null;
+        parsedBookingData = storedBookingData
+          ? JSON.parse(storedBookingData)
+          : null;
       } catch (e) {
         console.warn("Failed to parse booking data:", e);
       }
 
       try {
         const storedGroupLeaderData = localStorage.getItem("groupLeaderData");
-        parsedGroupLeaderData = storedGroupLeaderData ? JSON.parse(storedGroupLeaderData) : null;
+        parsedGroupLeaderData = storedGroupLeaderData
+          ? JSON.parse(storedGroupLeaderData)
+          : null;
       } catch (e) {
         console.warn("Failed to parse group leader data:", e);
       }
 
       try {
         const storedPassengerData = localStorage.getItem("passengerData");
-        parsedPassengerData = storedPassengerData ? JSON.parse(storedPassengerData) : [];
+        parsedPassengerData = storedPassengerData
+          ? JSON.parse(storedPassengerData)
+          : [];
       } catch (e) {
         console.warn("Failed to parse passenger data:", e);
         parsedPassengerData = [];
@@ -310,14 +339,18 @@ export default function PaymentOptions() {
 
       try {
         const storedBundleData = localStorage.getItem("selectedBundleData");
-        parsedBundleData = storedBundleData ? JSON.parse(storedBundleData) : null;
+        parsedBundleData = storedBundleData
+          ? JSON.parse(storedBundleData)
+          : null;
       } catch (e) {
         console.warn("Failed to parse bundle data:", e);
       }
 
       try {
         const storedBookingSummary = localStorage.getItem("bookingSummary");
-        parsedBookingSummary = storedBookingSummary ? JSON.parse(storedBookingSummary) : null;
+        parsedBookingSummary = storedBookingSummary
+          ? JSON.parse(storedBookingSummary)
+          : null;
       } catch (e) {
         console.warn("Failed to parse booking summary:", e);
       }
@@ -329,37 +362,48 @@ export default function PaymentOptions() {
         totalAmount: Number(totalAmount) || 0,
         discountedTotal: Number(discountedTotal) || 0,
         paymentDiscount: Number(discount) || 0,
-        dueNow: paymentSchedule === "full" ? discountedTotal : 
-                paymentSchedule === "deposit" ? discountedTotal * 0.3 : 
-                discountedTotal / 3,
-        selectedPaymentOption: selectedOption ? {
-          id: selectedOption.id,
-          name: selectedOption.name,
-          discount: selectedOption.discount || 0
-        } : null,
+        dueNow:
+          paymentSchedule === "full"
+            ? discountedTotal
+            : paymentSchedule === "deposit"
+              ? discountedTotal * 0.3
+              : discountedTotal / 3,
+        selectedPaymentOption: selectedOption
+          ? {
+              id: selectedOption.id,
+              name: selectedOption.name,
+              discount: selectedOption.discount || 0,
+            }
+          : null,
         formData: creditCardData,
         passengerCount: Number(passengerCount) || 1,
       };
 
       // Create clean flight data object
-      const cleanFlightData = flightData ? {
-        outbound: flightData.outbound ? {
-          id: flightData.outbound.id,
-          airline: flightData.outbound.airline,
-          flightNumber: flightData.outbound.flightNumber,
-          price: Number(flightData.outbound.price) || 0,
-          departureTime: flightData.outbound.departureTime,
-          arrivalTime: flightData.outbound.arrivalTime,
-        } : null,
-        return: flightData.return ? {
-          id: flightData.return.id,
-          airline: flightData.return.airline,
-          flightNumber: flightData.return.flightNumber,
-          price: Number(flightData.return.price) || 0,
-          departureTime: flightData.return.departureTime,
-          arrivalTime: flightData.return.arrivalTime,
-        } : null,
-      } : null;
+      const cleanFlightData = flightData
+        ? {
+            outbound: flightData.outbound
+              ? {
+                  id: flightData.outbound.id,
+                  airline: flightData.outbound.airline,
+                  flightNumber: flightData.outbound.flightNumber,
+                  price: Number(flightData.outbound.price) || 0,
+                  departureTime: flightData.outbound.departureTime,
+                  arrivalTime: flightData.outbound.arrivalTime,
+                }
+              : null,
+            return: flightData.return
+              ? {
+                  id: flightData.return.id,
+                  airline: flightData.return.airline,
+                  flightNumber: flightData.return.flightNumber,
+                  price: Number(flightData.return.price) || 0,
+                  departureTime: flightData.return.departureTime,
+                  arrivalTime: flightData.return.arrivalTime,
+                }
+              : null,
+          }
+        : null;
 
       // Prepare comprehensive booking payload with clean data
       const comprehensiveBookingData = {
@@ -433,11 +477,16 @@ export default function PaymentOptions() {
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
-      let errorMessage = "An error occurred while submitting your booking. Please try again.";
+      let errorMessage =
+        "An error occurred while submitting your booking. Please try again.";
       if (error instanceof Error) {
         console.error("Error details:", error.message);
-        if (error.message.includes("network") || error.message.includes("fetch")) {
-          errorMessage = "Network error. Please check your connection and try again.";
+        if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
         }
       }
       alert(errorMessage);
@@ -506,8 +555,11 @@ export default function PaymentOptions() {
                           immediately.
                         </Text>
                         <Text className="font-bold text-xl text-gray-900">
-                          ${(() => {
-                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                          $
+                          {(() => {
+                            const selectedOption = availablePaymentOptions.find(
+                              (opt) => opt.id === paymentMethod,
+                            );
                             const discount = selectedOption?.discount || 0;
                             return (totalAmount * (1 - discount)).toFixed(2);
                           })()}
@@ -527,22 +579,40 @@ export default function PaymentOptions() {
                           before departure.
                         </Text>
                         <div className="flex justify-between mt-2">
-                          <Text className="text-sm text-gray-600">Deposit (30%):</Text>
-                          <Text className="font-semibold">${(() => {
-                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                            const discount = selectedOption?.discount || 0;
-                            const discountedTotal = totalAmount * (1 - discount);
-                            return (discountedTotal * 0.3).toFixed(2);
-                          })()}</Text>
+                          <Text className="text-sm text-gray-600">
+                            Deposit (30%):
+                          </Text>
+                          <Text className="font-semibold">
+                            $
+                            {(() => {
+                              const selectedOption =
+                                availablePaymentOptions.find(
+                                  (opt) => opt.id === paymentMethod,
+                                );
+                              const discount = selectedOption?.discount || 0;
+                              const discountedTotal =
+                                totalAmount * (1 - discount);
+                              return (discountedTotal * 0.3).toFixed(2);
+                            })()}
+                          </Text>
                         </div>
                         <div className="flex justify-between">
-                          <Text className="text-sm text-gray-600">Remaining:</Text>
-                          <Text className="font-semibold">${(() => {
-                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                            const discount = selectedOption?.discount || 0;
-                            const discountedTotal = totalAmount * (1 - discount);
-                            return (discountedTotal * 0.7).toFixed(2);
-                          })()}</Text>
+                          <Text className="text-sm text-gray-600">
+                            Remaining:
+                          </Text>
+                          <Text className="font-semibold">
+                            $
+                            {(() => {
+                              const selectedOption =
+                                availablePaymentOptions.find(
+                                  (opt) => opt.id === paymentMethod,
+                                );
+                              const discount = selectedOption?.discount || 0;
+                              const discountedTotal =
+                                totalAmount * (1 - discount);
+                              return (discountedTotal * 0.7).toFixed(2);
+                            })()}
+                          </Text>
                         </div>
                       </div>
                     </Radio>
@@ -559,31 +629,58 @@ export default function PaymentOptions() {
                         </Text>
                         <div className="space-y-1">
                           <div className="flex justify-between">
-                            <Text className="text-sm text-gray-600">Today:</Text>
-                            <Text className="font-semibold">${(() => {
-                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                              const discount = selectedOption?.discount || 0;
-                              const discountedTotal = totalAmount * (1 - discount);
-                              return (discountedTotal / 3).toFixed(2);
-                            })()}</Text>
+                            <Text className="text-sm text-gray-600">
+                              Today:
+                            </Text>
+                            <Text className="font-semibold">
+                              $
+                              {(() => {
+                                const selectedOption =
+                                  availablePaymentOptions.find(
+                                    (opt) => opt.id === paymentMethod,
+                                  );
+                                const discount = selectedOption?.discount || 0;
+                                const discountedTotal =
+                                  totalAmount * (1 - discount);
+                                return (discountedTotal / 3).toFixed(2);
+                              })()}
+                            </Text>
                           </div>
                           <div className="flex justify-between">
-                            <Text className="text-sm text-gray-600">In 30 days:</Text>
-                            <Text className="font-semibold">${(() => {
-                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                              const discount = selectedOption?.discount || 0;
-                              const discountedTotal = totalAmount * (1 - discount);
-                              return (discountedTotal / 3).toFixed(2);
-                            })()}</Text>
+                            <Text className="text-sm text-gray-600">
+                              In 30 days:
+                            </Text>
+                            <Text className="font-semibold">
+                              $
+                              {(() => {
+                                const selectedOption =
+                                  availablePaymentOptions.find(
+                                    (opt) => opt.id === paymentMethod,
+                                  );
+                                const discount = selectedOption?.discount || 0;
+                                const discountedTotal =
+                                  totalAmount * (1 - discount);
+                                return (discountedTotal / 3).toFixed(2);
+                              })()}
+                            </Text>
                           </div>
                           <div className="flex justify-between">
-                            <Text className="text-sm text-gray-600">In 60 days:</Text>
-                            <Text className="font-semibold">${(() => {
-                              const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                              const discount = selectedOption?.discount || 0;
-                              const discountedTotal = totalAmount * (1 - discount);
-                              return (discountedTotal / 3).toFixed(2);
-                            })()}</Text>
+                            <Text className="text-sm text-gray-600">
+                              In 60 days:
+                            </Text>
+                            <Text className="font-semibold">
+                              $
+                              {(() => {
+                                const selectedOption =
+                                  availablePaymentOptions.find(
+                                    (opt) => opt.id === paymentMethod,
+                                  );
+                                const discount = selectedOption?.discount || 0;
+                                const discountedTotal =
+                                  totalAmount * (1 - discount);
+                                return (discountedTotal / 3).toFixed(2);
+                              })()}
+                            </Text>
                           </div>
                         </div>
                       </div>
@@ -609,8 +706,15 @@ export default function PaymentOptions() {
               >
                 <Space direction="vertical" className="w-full" size={16}>
                   {availablePaymentOptions.map((option) => (
-                    <div key={option.id} className={`border rounded-lg p-4 hover:border-blue-300 transition-colors ${!option.available ? 'opacity-50' : ''}`}>
-                      <Radio value={option.id} className="!flex !items-start" disabled={!option.available}>
+                    <div
+                      key={option.id}
+                      className={`border rounded-lg p-4 hover:border-blue-300 transition-colors ${!option.available ? "opacity-50" : ""}`}
+                    >
+                      <Radio
+                        value={option.id}
+                        className="!flex !items-start"
+                        disabled={!option.available}
+                      >
                         <div className="flex-1 ml-2">
                           <div className="flex items-center gap-2 mb-2">
                             {option.icon}
@@ -626,57 +730,87 @@ export default function PaymentOptions() {
                           </Text>
                           {option.discount > 0 && (
                             <Text className="text-green-600 text-sm font-medium">
-                              Save ${(totalAmount * option.discount).toFixed(2)} with this method
+                              Save ${(totalAmount * option.discount).toFixed(2)}{" "}
+                              with this method
                             </Text>
                           )}
 
-                          {paymentMethod === "creditCard" && option.id === "creditCard" && (
-                            <Form form={form} layout="vertical" className="mt-4">
-                              <Row gutter={16}>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Card Number"
-                                    name="cardNumber"
-                                    rules={[{ required: true, message: 'Please enter card number' }]}
-                                  >
-                                    <Input
-                                      placeholder="1234 5678 9012 3456"
-                                      size="large"
-                                    />
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Cardholder Name"
-                                    name="cardholderName"
-                                    rules={[{ required: true, message: 'Please enter cardholder name' }]}
-                                  >
-                                    <Input placeholder="John Doe" size="large" />
-                                  </Form.Item>
-                                </Col>
-                              </Row>
-                              <Row gutter={16}>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    label="Expiry Date"
-                                    name="expiryDate"
-                                    rules={[{ required: true, message: 'Please enter expiry date' }]}
-                                  >
-                                    <Input placeholder="MM/YY" size="large" />
-                                  </Form.Item>
-                                </Col>
-                                <Col xs={24} md={12}>
-                                  <Form.Item 
-                                    label="CVV" 
-                                    name="cvv"
-                                    rules={[{ required: true, message: 'Please enter CVV' }]}
-                                  >
-                                    <Input placeholder="123" size="large" />
-                                  </Form.Item>
-                                </Col>
-                              </Row>
-                            </Form>
-                          )}
+                          {paymentMethod === "creditCard" &&
+                            option.id === "creditCard" && (
+                              <Form
+                                form={form}
+                                layout="vertical"
+                                className="mt-4"
+                              >
+                                <Row gutter={16}>
+                                  <Col xs={24} md={12}>
+                                    <Form.Item
+                                      label="Card Number"
+                                      name="cardNumber"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message: "Please enter card number",
+                                        },
+                                      ]}
+                                    >
+                                      <Input
+                                        placeholder="1234 5678 9012 3456"
+                                        size="large"
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} md={12}>
+                                    <Form.Item
+                                      label="Cardholder Name"
+                                      name="cardholderName"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message:
+                                            "Please enter cardholder name",
+                                        },
+                                      ]}
+                                    >
+                                      <Input
+                                        placeholder="John Doe"
+                                        size="large"
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+                                <Row gutter={16}>
+                                  <Col xs={24} md={12}>
+                                    <Form.Item
+                                      label="Expiry Date"
+                                      name="expiryDate"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message: "Please enter expiry date",
+                                        },
+                                      ]}
+                                    >
+                                      <Input placeholder="MM/YY" size="large" />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} md={12}>
+                                    <Form.Item
+                                      label="CVV"
+                                      name="cvv"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message: "Please enter CVV",
+                                        },
+                                      ]}
+                                    >
+                                      <Input placeholder="123" size="large" />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+                              </Form>
+                            )}
                         </div>
                       </Radio>
                     </div>
@@ -699,7 +833,9 @@ export default function PaymentOptions() {
                     <span className="text-blue-600 text-sm">✈️</span>
                   </div>
                   <Text className="text-gray-900 font-medium">
-                    {bookingData ? `${bookingData.origin} ${tripType === "roundTrip" ? "⇄" : "→"} ${bookingData.destination}` : "Flight Route"}
+                    {bookingData
+                      ? `${bookingData.origin} ${tripType === "roundTrip" ? "⇄" : "→"} ${bookingData.destination}`
+                      : "Flight Route"}
                   </Text>
                 </div>
 
@@ -708,11 +844,11 @@ export default function PaymentOptions() {
                     <CalendarOutlined className="text-blue-600 text-sm" />
                   </div>
                   <Text className="text-gray-900">
-                    {bookingData ? (
-                      tripType === "roundTrip" ? 
-                        `${dayjs(bookingData.departureDate).format('DD MMM YYYY')} - ${dayjs(bookingData.returnDate).format('DD MMM YYYY')}` :
-                        dayjs(bookingData.departureDate).format('DD MMM YYYY')
-                    ) : "Travel Dates"}
+                    {bookingData
+                      ? tripType === "roundTrip"
+                        ? `${dayjs(bookingData.departureDate).format("DD MMM YYYY")} - ${dayjs(bookingData.returnDate).format("DD MMM YYYY")}`
+                        : dayjs(bookingData.departureDate).format("DD MMM YYYY")
+                      : "Travel Dates"}
                   </Text>
                 </div>
 
@@ -720,7 +856,9 @@ export default function PaymentOptions() {
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <UserOutlined className="text-blue-600 text-sm" />
                   </div>
-                  <Text className="text-gray-900">{passengerCount} passenger{passengerCount > 1 ? 's' : ''}</Text>
+                  <Text className="text-gray-900">
+                    {passengerCount} passenger{passengerCount > 1 ? "s" : ""}
+                  </Text>
                 </div>
 
                 {groupLeaderData && (
@@ -728,25 +866,35 @@ export default function PaymentOptions() {
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <EnvironmentOutlined className="text-blue-600 text-sm" />
                     </div>
-                    <Text className="text-gray-900">{groupLeaderData.groupType} Group</Text>
+                    <Text className="text-gray-900">
+                      {groupLeaderData.groupType} Group
+                    </Text>
                   </div>
                 )}
               </div>
 
               {flightData && (
                 <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                  <Text className="font-medium text-gray-700 block mb-2">Selected Flights</Text>
+                  <Text className="font-medium text-gray-700 block mb-2">
+                    Selected Flights
+                  </Text>
                   <div className="space-y-2 text-sm">
                     {flightData.outbound && (
                       <div>
                         <Text className="text-gray-600">Outbound: </Text>
-                        <Text className="text-gray-900">{flightData.outbound.airline} {flightData.outbound.flightNumber}</Text>
+                        <Text className="text-gray-900">
+                          {flightData.outbound.airline}{" "}
+                          {flightData.outbound.flightNumber}
+                        </Text>
                       </div>
                     )}
                     {flightData.return && tripType === "roundTrip" && (
                       <div>
                         <Text className="text-gray-600">Return: </Text>
-                        <Text className="text-gray-900">{flightData.return.airline} {flightData.return.flightNumber}</Text>
+                        <Text className="text-gray-900">
+                          {flightData.return.airline}{" "}
+                          {flightData.return.flightNumber}
+                        </Text>
                       </div>
                     )}
                   </div>
@@ -758,13 +906,21 @@ export default function PaymentOptions() {
                   <div className="flex justify-between">
                     <Text className="text-gray-600">Base Flight Cost</Text>
                     <Text className="text-gray-900">
-                      ${(() => {
+                      $
+                      {(() => {
                         let baseCost = 0;
                         if (flightData.outbound) {
-                          baseCost += (typeof flightData.outbound.price === 'string' ? parseFloat(flightData.outbound.price) : flightData.outbound.price || 0) * passengerCount;
+                          baseCost +=
+                            (typeof flightData.outbound.price === "string"
+                              ? parseFloat(flightData.outbound.price)
+                              : flightData.outbound.price || 0) *
+                            passengerCount;
                         }
                         if (flightData.return && tripType === "roundTrip") {
-                          baseCost += (typeof flightData.return.price === 'string' ? parseFloat(flightData.return.price) : flightData.return.price || 0) * passengerCount;
+                          baseCost +=
+                            (typeof flightData.return.price === "string"
+                              ? parseFloat(flightData.return.price)
+                              : flightData.return.price || 0) * passengerCount;
                         }
                         return baseCost.toFixed(2);
                       })()}
@@ -776,23 +932,36 @@ export default function PaymentOptions() {
                   <div className="flex justify-between">
                     <Text className="text-gray-600">Additional Services</Text>
                     <Text className="text-gray-900">
-                      ${(selectedServices.reduce((total, service) => {
-                        const servicePrice = typeof service.price === 'string' ? parseFloat(service.price) : service.price || 0;
-                        return total + servicePrice * passengerCount;
-                      }, 0)).toFixed(2)}
+                      $
+                      {selectedServices
+                        .reduce((total, service) => {
+                          const servicePrice =
+                            typeof service.price === "string"
+                              ? parseFloat(service.price)
+                              : service.price || 0;
+                          return total + servicePrice * passengerCount;
+                        }, 0)
+                        .toFixed(2)}
                     </Text>
                   </div>
                 )}
 
                 {(() => {
-                  const bundleData = localStorage.getItem('selectedBundleData');
+                  const bundleData = localStorage.getItem("selectedBundleData");
                   if (bundleData) {
                     const bundle = JSON.parse(bundleData);
                     let bundleCost = 0;
-                    if (bundle.selectedSeat) bundleCost += (bundle.selectedSeat.price || 0) * passengerCount;
-                    if (bundle.selectedBaggage) bundleCost += (bundle.selectedBaggage.price || 0) * passengerCount;
-                    if (bundle.selectedMeals && bundle.selectedMeals.length > 0) {
-                      bundle.selectedMeals.forEach(meal => {
+                    if (bundle.selectedSeat)
+                      bundleCost +=
+                        (bundle.selectedSeat.price || 0) * passengerCount;
+                    if (bundle.selectedBaggage)
+                      bundleCost +=
+                        (bundle.selectedBaggage.price || 0) * passengerCount;
+                    if (
+                      bundle.selectedMeals &&
+                      bundle.selectedMeals.length > 0
+                    ) {
+                      bundle.selectedMeals.forEach((meal) => {
                         bundleCost += (meal.price || 0) * passengerCount;
                       });
                     }
@@ -800,7 +969,9 @@ export default function PaymentOptions() {
                       return (
                         <div className="flex justify-between">
                           <Text className="text-gray-600">Bundle Services</Text>
-                          <Text className="text-gray-900">${bundleCost.toFixed(2)}</Text>
+                          <Text className="text-gray-900">
+                            ${bundleCost.toFixed(2)}
+                          </Text>
                         </div>
                       );
                     }
@@ -810,21 +981,27 @@ export default function PaymentOptions() {
 
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Taxes & Fees (8%)</Text>
-                  <Text className="text-gray-900">${(() => {
-                    const subtotal = totalAmount / 1.08;
-                    const taxesOnly = subtotal * 0.08;
-                    return taxesOnly.toFixed(2);
-                  })()}</Text>
+                  <Text className="text-gray-900">
+                    $
+                    {(() => {
+                      const subtotal = totalAmount / 1.08;
+                      const taxesOnly = subtotal * 0.08;
+                      return taxesOnly.toFixed(2);
+                    })()}
+                  </Text>
                 </div>
 
                 {passengerCount >= 10 && (
                   <div className="flex justify-between">
                     <Text className="text-green-600">Group Discount (15%)</Text>
-                    <Text className="text-green-600">-${(() => {
-                      const subtotal = totalAmount / 1.08;
-                      const discount = subtotal * 0.15;
-                      return discount.toFixed(2);
-                    })()}</Text>
+                    <Text className="text-green-600">
+                      -$
+                      {(() => {
+                        const subtotal = totalAmount / 1.08;
+                        const discount = subtotal * 0.15;
+                        return discount.toFixed(2);
+                      })()}
+                    </Text>
                   </div>
                 )}
 
@@ -835,8 +1012,11 @@ export default function PaymentOptions() {
                     Total Amount
                   </Text>
                   <Text className="font-bold text-xl text-gray-900">
-                    ${(() => {
-                      const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                    $
+                    {(() => {
+                      const selectedOption = availablePaymentOptions.find(
+                        (opt) => opt.id === paymentMethod,
+                      );
                       const discount = selectedOption?.discount || 0;
                       return (totalAmount * (1 - discount)).toFixed(2);
                     })()}
@@ -852,24 +1032,35 @@ export default function PaymentOptions() {
                   <div className="flex justify-between items-center mt-1">
                     <Text className="text-blue-600">Due now:</Text>
                     <Text className="font-semibold text-blue-700">
-                      ${(() => {
-                        const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                      $
+                      {(() => {
+                        const selectedOption = availablePaymentOptions.find(
+                          (opt) => opt.id === paymentMethod,
+                        );
                         const discount = selectedOption?.discount || 0;
                         const discountedTotal = totalAmount * (1 - discount);
 
-                        if (paymentSchedule === "full") return discountedTotal.toFixed(2);
-                        if (paymentSchedule === "deposit") return (discountedTotal * 0.3).toFixed(2);
-                        if (paymentSchedule === "split") return (discountedTotal / 3).toFixed(2);
+                        if (paymentSchedule === "full")
+                          return discountedTotal.toFixed(2);
+                        if (paymentSchedule === "deposit")
+                          return (discountedTotal * 0.3).toFixed(2);
+                        if (paymentSchedule === "split")
+                          return (discountedTotal / 3).toFixed(2);
                         return discountedTotal.toFixed(2);
                       })()}
                     </Text>
                   </div>
                   {paymentSchedule === "deposit" && (
                     <div className="flex justify-between items-center mt-1">
-                      <Text className="text-blue-600">Remaining (due in 30 days):</Text>
+                      <Text className="text-blue-600">
+                        Remaining (due in 30 days):
+                      </Text>
                       <Text className="font-semibold text-blue-700">
-                        ${(() => {
-                          const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                        $
+                        {(() => {
+                          const selectedOption = availablePaymentOptions.find(
+                            (opt) => opt.id === paymentMethod,
+                          );
                           const discount = selectedOption?.discount || 0;
                           const discountedTotal = totalAmount * (1 - discount);
                           return (discountedTotal * 0.7).toFixed(2);
@@ -880,23 +1071,35 @@ export default function PaymentOptions() {
                   {paymentSchedule === "split" && (
                     <div className="space-y-1 mt-1">
                       <div className="flex justify-between items-center">
-                        <Text className="text-blue-600">Next payment (30 days):</Text>
+                        <Text className="text-blue-600">
+                          Next payment (30 days):
+                        </Text>
                         <Text className="font-semibold text-blue-700">
-                          ${(() => {
-                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                          $
+                          {(() => {
+                            const selectedOption = availablePaymentOptions.find(
+                              (opt) => opt.id === paymentMethod,
+                            );
                             const discount = selectedOption?.discount || 0;
-                            const discountedTotal = totalAmount * (1 - discount);
+                            const discountedTotal =
+                              totalAmount * (1 - discount);
                             return (discountedTotal / 3).toFixed(2);
                           })()}
                         </Text>
                       </div>
                       <div className="flex justify-between items-center">
-                        <Text className="text-blue-600">Final payment (60 days):</Text>
+                        <Text className="text-blue-600">
+                          Final payment (60 days):
+                        </Text>
                         <Text className="font-semibold text-blue-700">
-                          ${(() => {
-                            const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
+                          $
+                          {(() => {
+                            const selectedOption = availablePaymentOptions.find(
+                              (opt) => opt.id === paymentMethod,
+                            );
                             const discount = selectedOption?.discount || 0;
-                            const discountedTotal = totalAmount * (1 - discount);
+                            const discountedTotal =
+                              totalAmount * (1 - discount);
                             return (discountedTotal / 3).toFixed(2);
                           })()}
                         </Text>
@@ -943,16 +1146,16 @@ export default function PaymentOptions() {
         onOk={handleSuccessModalOk}
         onCancel={handleSuccessModalCancel}
         footer={[
-          <Button 
-            key="details" 
-            onClick={handleSuccessModalOk}
-          >
+          <Button key="details" onClick={handleSuccessModalOk}>
             View Booking Details
           </Button>,
-          <Button type="primary" key="Add Passenger Info" onClick={handleSuccessModalCancel}>
+          <Button
+            type="primary"
+            key="Add Passenger Info"
+            onClick={handleSuccessModalCancel}
+          >
             Add Passenger Info
-          </Button>
-
+          </Button>,
         ]}
         centered
         width={500}
@@ -966,13 +1169,14 @@ export default function PaymentOptions() {
               Booking Submitted Successfully!
             </Typography.Title>
             <Typography.Text className="text-gray-600 text-lg">
-              Your group booking request has been received and is being processed.
+              Your group booking request has been received and is being
+              processed.
             </Typography.Text>
           </div>
 
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <Typography.Text className="text-blue-700 block mb-2">
-              Booking Reference Number
+              PNR Number
             </Typography.Text>
             <Typography.Text className="text-blue-900 font-bold text-xl">
               {bookingReference}
