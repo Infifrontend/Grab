@@ -826,20 +826,6 @@ export default function PaymentOptions() {
                   </div>
                 )}
 
-                {(() => {
-                  const selectedOption = availablePaymentOptions.find(opt => opt.id === paymentMethod);
-                  const discount = selectedOption?.discount || 0;
-                  if (discount > 0) {
-                    return (
-                      <div className="flex justify-between">
-                        <Text className="text-green-600">Payment Method Discount ({(discount * 100).toFixed(0)}%)</Text>
-                        <Text className="text-green-600">-${(totalAmount * discount).toFixed(2)}</Text>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-
                 <Divider className="!my-3" />
 
                 <div className="flex justify-between items-center">
