@@ -133,9 +133,8 @@ export default function Header() {
                     key={item.key}
                     to={item.path}
                     onClick={() => localStorage.setItem("activeMenu", item.key)}
-                    className={`infiniti-nav-item transition-colors duration-200 ${
-                      activeMenu === item.key ? "active" : ""
-                    }`}
+                    className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === item.key ? "active" : ""
+                      }`}
                   >
                     {item.label}
                   </Link>
@@ -145,9 +144,8 @@ export default function Header() {
               <nav className="hidden lg:flex space-x-8">
                 <Link
                   to="/"
-                  className={`infiniti-nav-item transition-colors duration-200 ${
-                    activeMenu === "home" ? "active" : ""
-                  }`}
+                  className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === "home" ? "active" : ""
+                    }`}
                   onClick={() => localStorage.setItem("activeMenu", "home")}
                 >
                   Home
@@ -155,9 +153,8 @@ export default function Header() {
                 <Link
                   to="/find-your-booking"
                   onClick={() => localStorage.setItem("activeMenu", "find-your-booking")}
-                  className={`infiniti-nav-item transition-colors duration-200 ${
-                    activeMenu === "find-your-booking" ? "active" : ""
-                  }`}
+                  className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === "find-your-booking" ? "active" : ""
+                    }`}
                 >
                   Find your booking
                 </Link>
@@ -220,18 +217,24 @@ export default function Header() {
                           </div>
                           <Theme />
                         </div>
-                     
-
-                     
 
                         {/* Action Buttons */}
                         <Space direction="vertical" size={8} className="w-full">
-                         
+                          <Button
+                            type="text"
+                            icon={<UserOutlined />}
+                            className="w-full justify-start h-10 text-left hover:bg-gray-50"
+                            style={{ border: "none", padding: "0 12px" }}
+                            onClick={()=>navigate("/admin/login")}
+                          >
+                            Admin
+                          </Button>
                           <Button
                             type="text"
                             icon={<SettingOutlined />}
                             className="w-full justify-start h-10 text-left hover:bg-gray-50"
                             style={{ border: "none", padding: "0 12px" }}
+                            onClick={()=>navigate("/settings")}
                           >
                             Settings
                           </Button>
@@ -268,29 +271,29 @@ export default function Header() {
             </div>
             {!isUserLoggedIn && (
               <>
-              <Button
-                type="link"
-                onClick={toggleScreen}
-                className="cls-toggle-screen"
-                style={{ width: 16 }}
-              >
-                {!isFullScreen ? (
-                  <Tooltip title="Compress_screen">
-                    <CompressOutlined className="cls-screen-expand-collapse" />
-                  </Tooltip>
-                ) : (
-                  <Tooltip title="Expand_screen">
-                    <ExpandOutlined className="cls-expand-icon" />
-                  </Tooltip>
-                )}
-              </Button>
-              <Button
-                type="link"
-                onClick={() => navigate("/login")}
-                className="cls-signIn infiniti-btn-primary px-6 h-[32px] flex align-center justify-center"
-              >
-                Sign in
-              </Button>
+                <Button
+                  type="link"
+                  onClick={toggleScreen}
+                  className="cls-toggle-screen"
+                  style={{ width: 16 }}
+                >
+                  {!isFullScreen ? (
+                    <Tooltip title="Compress_screen">
+                      <CompressOutlined className="cls-screen-expand-collapse" />
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Expand_screen">
+                      <ExpandOutlined className="cls-expand-icon" />
+                    </Tooltip>
+                  )}
+                </Button>
+                <Button
+                  type="link"
+                  onClick={() => navigate("/login")}
+                  className="cls-signIn infiniti-btn-primary px-6 h-[32px] flex align-center justify-center"
+                >
+                  Sign in
+                </Button>
               </>
             )}
           </div>

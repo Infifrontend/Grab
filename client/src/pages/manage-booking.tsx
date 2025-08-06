@@ -180,11 +180,11 @@ export default function ManageBooking() {
   };
 
   const handleNewBooking = () => {
-    navigate("/new-booking");
+    navigate(adminMode ? "/admin/bookings" : "/new-booking");
   };
 
   const handleViewBooking = (bookingId: any) => {
-    navigate(`/booking-details/${bookingId}`);
+    navigate(adminMode ? `/admin/booking-details/${bookingId}` : `/booking-details/${bookingId}`);
   };
 
   // Transform real booking data for table and sort by creation date (latest first)

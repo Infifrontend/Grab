@@ -3,6 +3,7 @@ import AccessibilityHeader from "@/components/ui/accessibility-header";
 import { BellOutlined, CalendarOutlined, CreditCardOutlined, DownOutlined, EnvironmentOutlined, LogoutOutlined, MailOutlined, PhoneOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Button, Card, Divider, Dropdown, Flex, Popover, Space, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
+import Notification from "./notification";
 const Text = Typography;
 
 const AdminHeader = () => {
@@ -65,9 +66,7 @@ const AdminHeader = () => {
             </div>
           </div> */}
           <div className="flex items-center space-x-4">
-            <Badge count={5} size="small">
-              <BellOutlined className="text-gray-500 text-lg" />
-            </Badge>
+            <Notification />
             <Popover
               trigger="click"
               className="cls-accessibility-popover"
