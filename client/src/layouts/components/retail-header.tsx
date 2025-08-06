@@ -33,13 +33,8 @@ const { Text } = Typography;
 
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
-  { key: "dashboard", label: "Dashboard", path: "/dashboard" },
   { key: "manage-booking", label: "Manage Booking", path: "/manage-booking" },
-  { key: "new-booking", label: "New Booking", path: "/new-booking" },
-  { key: "payments", label: "Payments", path: "/payments" },
-  { key: "bids", label: "Bids", path: "/bids" },
-  { key: "settings", label: "Settings", path: "/settings" },
-  { key: "admin", label: "Admin", path: "/admin/login" },
+  { key: "bids", label: "Bids", path: "/bids" }
 ];
 
 export default function Header() {

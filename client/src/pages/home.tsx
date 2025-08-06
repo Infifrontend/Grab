@@ -70,11 +70,11 @@ export default function Home() {
       </div>
 
       {/* Recent Bookings Section */}
-      {userMode && (
+      {/* {userMode && (
         <div>
           <RecentBookingsSection />
         </div>
-      )}
+      )} */}
     </div>
   );
 }

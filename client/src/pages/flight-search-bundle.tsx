@@ -1614,13 +1614,13 @@ export default function FlightSearchBundle() {
                 >
                   <span className="text-blue-600">✈️</span>
                   Available Flights
-                  <Badge
+                  {/* <Badge
                     count={`${filteredFlights.length} flights found`}
                     style={{ backgroundColor: "var(--ant-color-success)" }}
-                  />
+                  /> */}
                 </Title>
                 <Text className="text-gray-600">
-                  {searchCriteria?.origin || origin || "Origin"} →{" "}
+                  {searchCriteria?.origin || origin || "Origin"} {searchCriteria?.tripType === "roundTrip" ? "↔" : "→"}{" "}
                   {searchCriteria?.destination || destination || "Destination"}
                 </Text>
               </div>

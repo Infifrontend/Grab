@@ -264,48 +264,48 @@ const MenuRoutes = {
         "key": "home",
         "subMenu": []
       },
-      {
-        "menu_code": "Dashboard",
-        "path": "/dashboard",
-        "key": "dashboard",
-        "subMenu": []
-      },
+      // {
+      //   "menu_code": "Dashboard",
+      //   "path": "/dashboard",
+      //   "key": "dashboard",
+      //   "subMenu": []
+      // },
       {
         "menu_code": "Manage Booking",
         "path": "/manage-booking",
         "key": "manage-booking",
         "subMenu": []
       },
-      {
-        "menu_code": "New Booking",
-        "path": "/new-booking",
-        "key": "new-booking",
-        "subMenu": []
-      },
-      {
-        "menu_code": "Payments",
-        "path": "/payments",
-        "key": "payments",
-        "subMenu": []
-      },
+      // {
+      //   "menu_code": "New Booking",
+      //   "path": "/new-booking",
+      //   "key": "new-booking",
+      //   "subMenu": []
+      // },
+      // {
+      //   "menu_code": "Payments",
+      //   "path": "/payments",
+      //   "key": "payments",
+      //   "subMenu": []
+      // },
       {
         "menu_code": "Bids",
         "path": "/bids",
         "key": "bids",
         "subMenu": []
       },
-      {
-        "menu_code": "Settings",
-        "path": "/settings",
-        "key": "settings",
-        "subMenu": []
-      },
-      {
-        "menu_code": "Admin",
-        "path": "/admin/login",
-        "key": "admin",
-        "subMenu": []
-      }
+      // {
+      //   "menu_code": "Settings",
+      //   "path": "/settings",
+      //   "key": "settings",
+      //   "subMenu": []
+      // },
+      // {
+      //   "menu_code": "Admin",
+      //   "path": "/admin/login",
+      //   "key": "admin",
+      //   "subMenu": []
+      // }
     ],
     "routes": [
       {
