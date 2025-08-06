@@ -1692,8 +1692,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const paymentReference = `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
+      // For bid payments, set bookingId to null to avoid foreign key constraint violation
+      // The bid relationship will be tracked through other means (payment reference, notes, etc.)
       const paymentData = {
-        bookingId: bookingId || (bidId ? `BID-${bidId}` : null), // Link to bid if no booking ID
+        bookingId: bookingId && !bidId ? parseInt(bookingId) : null, // Only use bookingId if it's not a bid payment
         userId: userId, // Add user_id field
         paymentReference: paymentReference,
         amount: amount.toString(),
@@ -1712,14 +1714,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Payment created successfully:", payment);
 
-      // If this payment is for a bid, update the bid status
+      // If this payment is for a bid, update the bid status and link the payment
       if (bidId) {
         try {
+          // Get existing bid notes
+          const bidDetails = await storage.getBidById(parseInt(bidId));
+          let existingNotes = {};
+          try {
+            existingNotes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+          } catch (e) {
+            existingNotes = {};
+          }
+
+          // Add payment information to bid notes
+          const updatedNotes = {
+            ...existingNotes,
+            paymentInfo: {
+              paymentId: payment.id,
+              paymentReference: paymentReference,
+              paymentStatus: paymentStatus || "completed",
+              paymentDate: new Date().toISOString(),
+              amount: amount,
+              paymentMethod: paymentMethod,
+              paymentCompleted: true
+            }
+          };
+
           await storage.updateBidDetails(parseInt(bidId), {
             bidStatus: 'completed',
+            notes: JSON.stringify(updatedNotes),
             updatedAt: new Date()
           });
-          console.log(`Updated bid ${bidId} status to completed`);
+          console.log(`Updated bid ${bidId} status to completed and linked payment ${payment.id}`);
         } catch (error) {
           console.log("Could not update bid status:", error.message);
         }
@@ -1741,6 +1767,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage = "Duplicate payment detected";
         } else if (error.message.includes("NOT NULL constraint")) {
           errorMessage = "Missing required payment information";
+        } else if (error.message.includes("FOREIGN KEY constraint")) {
+          errorMessage = "Invalid booking reference provided";
         } else if (error.message.includes("user_id")) {
           errorMessage = "User information required for payment";
         } else {
