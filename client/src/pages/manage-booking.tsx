@@ -75,7 +75,7 @@ export default function ManageBooking() {
     console.log("Finding booking:", { bookingId });
 
     if (!bookingId) {
-      message.error("Please enter a booking ID.");
+      message.error("Please enter a PNR.");
       return;
     }
 
@@ -85,7 +85,7 @@ export default function ManageBooking() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          message.error("Booking not found. Please check your booking ID.");
+          message.error("Booking not found. Please check your PNR.");
         } else {
           message.error("Error fetching booking details. Please try again.");
         }
@@ -117,7 +117,7 @@ export default function ManageBooking() {
     console.log("Finding booking:", { bookingId });
 
     if (!bookingId) {
-      message.error("Please enter a booking ID.");
+      message.error("Please enter a PNR.");
       return;
     }
 
@@ -127,7 +127,7 @@ export default function ManageBooking() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          message.error("Booking not found. Please check your booking ID.");
+          message.error("Booking not found. Please check your PNR.");
         } else {
           message.error("Error fetching booking details. Please try again.");
         }
@@ -265,7 +265,7 @@ export default function ManageBooking() {
 
       return {
         key: booking.id,
-        bookingId: booking.bookingReference,
+        pnr: booking.bookingReference,
         groupType: "Group Travel", // Default since we don't have this field
         route: route,
         date: departureDate,
@@ -309,7 +309,7 @@ export default function ManageBooking() {
             <Space direction="vertical" size="large" className="w-full">
               <div>
                 <Text className="block mb-2 text-gray-700 font-medium">
-                  Booking ID
+                  PNR
                 </Text>
                 <Input
                   size="large"
@@ -407,9 +407,9 @@ export default function ManageBooking() {
                 scroll={{ x: "max-content" }}
                 columns={[
                   {
-                    title: "Booking ID",
-                    dataIndex: "bookingId",
-                    key: "bookingId",
+                    title: "PNR",
+                    dataIndex: "pnr",
+                    key: "pnr",
                     fixed: "left",
                     width: 150,
                     render: (text) => (
@@ -417,7 +417,7 @@ export default function ManageBooking() {
                         {text}
                       </span>
                     ),
-                    sorter: (a, b) => a.bookingId.localeCompare(b.bookingId),
+                    sorter: (a, b) => a.pnr.localeCompare(b.pnr),
                   },
                   // {
                   //   title: "Group Type",
