@@ -70,7 +70,7 @@ export default function AdminSettings() {
       const transformedUsers = data.users?.map(user => ({
         id: user.id,
         name: user.name,
-        email: user.username, // Using username as email since we don't have email field
+        email: user.email, // Now using actual email field
         role: user.isRetailAllowed ? "Retail User" : "Regular User",
         status: user.isRetailAllowed ? "Active" : "Inactive",
         lastLogin: "N/A", // We don't track last login in current schema

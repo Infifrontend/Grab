@@ -2085,19 +2085,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { firstName, lastName, email, username, password, name, isRetailAllowed } = req.body;
 
       // Validate required fields
-      if (!username || !password || !name) {
+      if (!username || !password || !name || !email) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, and name are required"
+          message: "Username, password, name, and email are required"
         });
       }
 
-      // Check if user already exists
+      // Check if user already exists by username or email
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({
           success: false,
           message: "User with this username already exists"
+        });
+      }
+
+      const existingEmailUser = await storage.getUserByEmail(email);
+      if (existingEmailUser) {
+        return res.status(400).json({
+          success: false,
+          message: "User with this email already exists"
         });
       }
 
@@ -2108,6 +2116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username,
         password: hashedPassword,
         name,
+        email,
         isRetailAllowed: isRetailAllowed || false
       });
 
@@ -2118,6 +2127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: newUser.id,
           username: newUser.username,
           name: newUser.name,
+          email: newUser.email,
           isRetailAllowed: newUser.isRetailAllowed
         }
       });

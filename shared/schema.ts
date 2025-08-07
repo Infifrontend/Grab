@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
+  email: text("email").notNull().unique(),
   isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 
@@ -238,6 +239,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   name: true,
+  email: true,
 });
 
 export const insertDealSchema = createInsertSchema(deals);
