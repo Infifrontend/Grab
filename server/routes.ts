@@ -2065,17 +2065,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new user
   app.post("/api/users", async (req, res) => {
     try {
-      const { username, password, name, isRetailAllowed } = req.body;
+      const { username, password, name, isRetailAllowed, firstName, lastName, email } = req.body;
 
-      if (!username || !password || !name) {
+      // Handle case where email is provided instead of username (from admin form)
+      const userUsername = username || (email ? email.split('@')[0] : null);
+      const userPassword = password || 'defaultPassword123'; // Default password
+      const userName = name || `${firstName || ''} ${lastName || ''}`.trim();
+
+      if (!userUsername || !userName) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, and name are required"
+          message: "Username and name are required"
         });
       }
 
       // Check if username already exists
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await storage.getUserByUsername(userUsername);
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -2085,9 +2090,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create the user
       const newUser = await storage.createUser({
-        username,
-        password, // In production, you should hash this password
-        name,
+        username: userUsername,
+        password: userPassword, // In production, you should hash this password
+        name: userName,
         isRetailAllowed: isRetailAllowed || false
       });
 
@@ -2105,7 +2110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating user:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: error.message || "Internal server error"
       });
     }
   });

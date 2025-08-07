@@ -113,11 +113,16 @@ export default function AdminSettings() {
       setLoading(true);
       
       const userData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
         username: values.email.split('@')[0], // Use email prefix as username
         password: 'defaultPassword123', // You might want to generate this or ask user to set it
         name: `${values.firstName} ${values.lastName}`,
         isRetailAllowed: values.status || false
       };
+
+      console.log('Sending user data:', userData);
 
       const response = await fetch('/api/users', {
         method: 'POST',
@@ -127,16 +132,21 @@ export default function AdminSettings() {
         body: JSON.stringify(userData),
       });
 
+      const responseData = await response.json();
+      console.log('Server response:', responseData);
+
       if (!response.ok) {
-        throw new Error('Failed to create user');
+        throw new Error(responseData.message || 'Failed to create user');
       }
 
-      const newUser = await response.json();
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'User creation failed');
+      }
       
       // Add the new user to local state
       const userForTable = {
-        id: newUser.id,
-        name: newUser.name,
+        id: responseData.user.id,
+        name: responseData.user.name,
         email: values.email,
         role: values.role || 'Operator',
         status: values.status ? 'Active' : 'Inactive',
@@ -148,7 +158,7 @@ export default function AdminSettings() {
       setIsUserModalVisible(false);
       form.resetFields();
       
-      console.log('User created successfully:', newUser);
+      console.log('User created successfully:', responseData.user);
       alert('User created successfully!');
       
     } catch (error) {
