@@ -71,7 +71,7 @@ export default function ActiveBidsSection() {
   const getBidStatusInfo = (bid: ActiveBid) => {
     // Check bid status first for different states
     switch (bid.bidStatus) {
-      case 'completed':
+      case "completed":
         // For completed bids, check if payment is actually completed
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
@@ -83,17 +83,17 @@ export default function ActiveBidsSection() {
         } catch (e) {
           return { status: "Under Review", color: "orange" };
         }
-      case 'accepted':
+      case "accepted":
         return { status: "Accepted", color: "green" };
-      case 'approved':
+      case "approved":
         return { status: "Accepted", color: "green" };
-      case 'rejected':
+      case "rejected":
         return { status: "Declined", color: "red" };
-      case 'expired':
+      case "expired":
         return { status: "Expired", color: "default" };
-      case 'pending':
+      case "pending":
         return { status: "Under Review", color: "blue" };
-      case 'active':
+      case "active":
         // For active bids, check payment status
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
@@ -144,7 +144,10 @@ export default function ActiveBidsSection() {
   }
 
   return (
-    <div className="deal-card" style={{backgroundColor:"var(--infiniti-bg-container)"}}>
+    <div
+      className="deal-card"
+      style={{ backgroundColor: "var(--infiniti-bg-container)" }}
+    >
       {/* Header */}
       <div className="section-header relative">
         <Tag className="limited-time-badge">Live Bidding</Tag>
@@ -155,12 +158,18 @@ export default function ActiveBidsSection() {
       </div>
 
       {/* Active Bids Content */}
-      <div className="p-6" style={{backgroundColor:"var(--infiniti-bg-container)"}}>
+      <div
+        className="p-6"
+        style={{ backgroundColor: "var(--infiniti-bg-container)" }}
+      >
         {activeBids.map((bid, index) => {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);
           const statusInfo = getBidStatusInfo(bid);
-          const createdDate = new Date(bid.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          const createdDate = new Date(bid.createdAt).toLocaleDateString(
+            "en-GB",
+            { day: "2-digit", month: "short", year: "numeric" },
+          );
 
           return (
             <div
@@ -230,7 +239,7 @@ export default function ActiveBidsSection() {
                       e.preventDefault();
                       navigate(`/bid-details/${bid.id}`);
                     }}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
+                    className="text-blue-700 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
                   >
                     View Details
                   </a>

@@ -161,11 +161,7 @@ export default function Login() {
               >
                 <Checkbox className="text-gray-600">Remember me</Checkbox>
               </Form.Item>
-              <Button
-                type="link"
-                className="p-0 hover:text-purple-800"
-                style={{ color: "#80206a" }}
-              >
+              <Button type="link" className="p-0 hover:text-purple-800">
                 Forgot password?
               </Button>
             </div>
@@ -176,11 +172,6 @@ export default function Login() {
                 type="primary"
                 htmlType="submit"
                 className="w-full h-12 border-0 rounded-lg font-semibold text-base"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #80206a 0%, #9c2a7a 50%, #b83389 100%)",
-                  boxShadow: "none",
-                }}
                 loading={loading}
               >
                 {loading ? "Logging in..." : "Login"}

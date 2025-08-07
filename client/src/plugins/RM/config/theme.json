@@ -678,7 +678,8 @@
       "colorLink": "#000",
       "colorSuccess": "#000",
       "colorWarning": "#000",
-      "colorError": "#000"
+      "colorError": "#000",
+      "colorBgLayout": "#FBEB3F"
     },
     "Alert": {
       "colorWarningBg": "#FBEB3F",

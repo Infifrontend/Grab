@@ -17,6 +17,8 @@ import {
   Divider,
   Spin,
   Alert,
+  Modal,
+  Form,
 } from "antd";
 import {
   DownloadOutlined,
@@ -27,6 +29,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "antd/es/form/Form";
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -36,11 +40,15 @@ export default function ManageBookingDetail() {
   const navigate = useNavigate();
 
   // Check if this is an admin booking
-  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  const adminMode = JSON.parse(
+    localStorage.getItem("adminLoggedIn") || "false",
+  );
   const [activeTab, setActiveTab] = useState("basic-info");
   const [paymentAmount, setPaymentAmount] = useState("4500.00");
   const [paymentMethod, setPaymentMethod] = useState("Credit Card");
-
+  const [modal2Open, setModal2Open] = useState(false);
+  const [groupSizeAction, setGroupSizeAction] = useState("");
+  const [groupSizeForm] = useForm();
   // Get booking ID from URL params
   // const bookingId = params?.id;
   const bookingId = params.id;
@@ -81,7 +89,7 @@ export default function ManageBookingDetail() {
         bookingDetails.passengers.map((p) => ({
           firstName: p.firstName || "",
           lastName: p.lastName || "",
-        }))
+        })),
       );
     } else if (bookingDetails?.booking?.passengerCount) {
       // Create empty passenger slots based on passenger count
@@ -90,7 +98,7 @@ export default function ManageBookingDetail() {
         () => ({
           firstName: "",
           lastName: "",
-        })
+        }),
       );
       setPassengers(emptyPassengers);
     }
@@ -120,13 +128,26 @@ export default function ManageBookingDetail() {
 
   // Calculate confirmed passengers (those with both first and last names filled)
   const confirmedPassengersCount = passengers.filter(
-    (p) => p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim()
+    (p) => p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim(),
   ).length;
 
   // Set current group size to match confirmed passengers count
   const [currentGroupSize, setCurrentGroupSize] = useState(
-    confirmedPassengersCount
+    confirmedPassengersCount,
   );
+
+  const groupSizeFunction = (action: string) => {
+    groupSizeForm.resetFields();
+    setGroupSizeAction(action);
+    setModal2Open(true);
+  };
+
+  const submitGroupSize = () => {
+    setModal2Open(false);
+    const finalGroupSizeRequest = groupSizeForm.getFieldsValue();
+    finalGroupSizeRequest.sizeType = groupSizeAction;
+    console.log(finalGroupSizeRequest, "finalGroupSizeRequest");
+  };
 
   React.useEffect(() => {
     // Update current group size to match confirmed passengers count
@@ -152,7 +173,12 @@ export default function ManageBookingDetail() {
           showIcon
         />
         <div className="mt-4">
-          <Button onClick={() => navigate(adminMode ? "/admin/manage-booking" : "/manage-booking")} type="primary">
+          <Button
+            onClick={() =>
+              navigate(adminMode ? "/admin/manage-booking" : "/manage-booking")
+            }
+            type="primary"
+          >
             Back to Manage Booking
           </Button>
         </div>
@@ -178,7 +204,7 @@ export default function ManageBookingDetail() {
   const handlePassengerChange = (
     index: number,
     field: string,
-    value: string
+    value: string,
   ) => {
     const updated = [...passengers];
     updated[index] = { ...updated[index], [field]: value };
@@ -208,7 +234,7 @@ export default function ManageBookingDetail() {
             groupLeaderEmail: groupLeaderInfo.email,
             groupLeaderPhone: groupLeaderInfo.phone,
           }),
-        }
+        },
       );
 
       if (!groupLeaderResponse.ok) {
@@ -222,12 +248,12 @@ export default function ManageBookingDetail() {
       // Save passenger information
       console.log("Saving passenger information...");
       const validPassengers = passengers.filter(
-        (p) => p.firstName.trim() || p.lastName.trim()
+        (p) => p.firstName.trim() || p.lastName.trim(),
       );
 
       console.log(
         `Saving ${validPassengers.length} passengers:`,
-        validPassengers
+        validPassengers,
       );
 
       const passengersResponse = await fetch(
@@ -240,7 +266,7 @@ export default function ManageBookingDetail() {
           body: JSON.stringify({
             passengers: validPassengers,
           }),
-        }
+        },
       );
 
       if (!passengersResponse.ok) {
@@ -305,7 +331,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `passenger_list_${bookingId || "template"}.csv`
+      `passenger_list_${bookingId || "template"}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -358,7 +384,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
           {/* Booking Information */}
           <Col xs={24} lg={12}>
             <Card>
-              <div className="mb-6">
+              <div classNant-modal-headerame="mb-6">
                 <Title level={4} className="!mb-2 text-gray-900">
                   Booking Information
                 </Title>
@@ -370,10 +396,12 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
               <Space direction="vertical" size="large" className="w-full">
                 <div>
                   <Text className="block mb-2 text-gray-700 font-medium">
-                    PNR
+                    Booking ID
                   </Text>
                   <Input
-                    value={booking.pnr}
+                    value={
+                      booking.bookingReference || booking.bookingId || bookingId
+                    }
                     disabled
                     className="w-full"
                   />
@@ -467,31 +495,28 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   <Text className="block mb-2 text-gray-700 font-medium">
                     Adjust Group Size
                   </Text>
-                  <Text className="text-gray-600 text-sm block mb-3">
+                  {/* <Text className="text-gray-600 text-sm block mb-3">
                     Add or remove passengers
-                  </Text>
+                  </Text> */}
                   <div className="flex items-center gap-3">
                     <Button
-                      onClick={() =>
-                        setCurrentGroupSize(Math.max(0, currentGroupSize - 1))
-                      }
-                      className="w-10 h-10 flex items-center justify-center"
-                      disabled={currentGroupSize <= 0}
+                      onClick={() => groupSizeFunction("upsize")}
+                      className="w-15 h-10 flex items-center justify-center"
                     >
-                      -
+                      Upsize
                     </Button>
-                    <InputNumber
+                    {/* <InputNumber
                       value={currentGroupSize}
                       onChange={(value) => setCurrentGroupSize(value || 0)}
                       min={0}
                       className="text-center"
                       style={{ width: "80px" }}
-                    />
+                    /> */}
                     <Button
-                      onClick={() => setCurrentGroupSize(currentGroupSize + 1)}
-                      className="w-10 h-10 flex items-center justify-center"
+                      onClick={() => groupSizeFunction("downsize")}
+                      className="w-15 h-10 flex items-center justify-center"
                     >
-                      +
+                      Downsize
                     </Button>
                   </div>
                 </div>
@@ -557,7 +582,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               handlePassengerChange(
                                 index,
                                 "firstName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="flex-1"
@@ -569,7 +594,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               handlePassengerChange(
                                 index,
                                 "lastName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="flex-1"
@@ -1089,6 +1114,32 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
           </Button>
         </div>
       )}
+
+      <Modal
+        title={`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} the no of additional pessangers`}
+        centered
+        open={modal2Open}
+        onOk={() => submitGroupSize()}
+        onCancel={() => setModal2Open(false)}
+      >
+        <Form form={groupSizeForm}>
+          <Form.Item name="adult" label="Adult" extra="12+Years">
+            <InputNumber maxLength={2}></InputNumber>
+          </Form.Item>
+
+          <Form.Item name="child" label="Child" extra="2-12 Years">
+            <InputNumber maxLength={2}></InputNumber>
+          </Form.Item>
+
+          <Form.Item name="infant" label="Infant" extra="0-2 Years">
+            <InputNumber maxLength={2}></InputNumber>
+          </Form.Item>
+
+          <Form.Item name="remarks" label="Remarks">
+            <Textarea></Textarea>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
