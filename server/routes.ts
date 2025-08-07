@@ -2062,6 +2062,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      res.json({
+        success: true,
+        users: allUsers
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch users"
+      });
+    }
+  });
+
   // Create a new user
   app.post("/api/users", async (req, res) => {
     try {

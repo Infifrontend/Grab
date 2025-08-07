@@ -60,40 +60,27 @@ export default function AdminSettings() {
   const fetchUsers = async () => {
     try {
       setUsersLoading(true);
-      // In a real app, you'd have an endpoint to get all users
-      // For now, we'll simulate this with mock data that represents database users
-      const mockUsers = [
-        {
-          id: 1,
-          name: "John Doe",
-          email: "john.doe@company.com",
-          role: "Super Admin",
-          status: "Active",
-          lastLogin: "2024-01-15 14:30",
-          permissions: ["Full Access"],
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          email: "jane.smith@company.com",
-          role: "Admin",
-          status: "Active",
-          lastLogin: "2024-01-14 09:15",
-          permissions: ["Booking Management", "Offer Management"],
-        },
-        {
-          id: 3,
-          name: "Mike Wilson",
-          email: "mike.wilson@company.com",
-          role: "Operator",
-          status: "Inactive",
-          lastLogin: "2024-01-10 16:45",
-          permissions: ["View Only"],
-        },
-      ];
-      setUsers(mockUsers);
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const data = await response.json();
+      
+      // Transform database user data to match table format
+      const transformedUsers = data.users?.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.username, // Using username as email since we don't have email field
+        role: user.isRetailAllowed ? "Retail User" : "Regular User",
+        status: user.isRetailAllowed ? "Active" : "Inactive",
+        lastLogin: "N/A", // We don't track last login in current schema
+        permissions: user.isRetailAllowed ? ["Retail Access"] : ["Basic Access"],
+      })) || [];
+      
+      setUsers(transformedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
+      alert('Failed to fetch users from database');
     } finally {
       setUsersLoading(false);
     }
@@ -143,18 +130,8 @@ export default function AdminSettings() {
         throw new Error(responseData.message || 'User creation failed');
       }
       
-      // Add the new user to local state
-      const userForTable = {
-        id: responseData.user.id,
-        name: responseData.user.name,
-        email: values.email,
-        role: values.role || 'Operator',
-        status: values.status ? 'Active' : 'Inactive',
-        lastLogin: 'Never',
-        permissions: values.role === 'admin' ? ['Booking Management', 'Offer Management'] : ['View Only'],
-      };
-
-      setUsers(prev => [...prev, userForTable]);
+      // Refresh users list from database
+      await fetchUsers();
       setIsUserModalVisible(false);
       form.resetFields();
       

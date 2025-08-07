@@ -25,6 +25,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   checkRetailAccess(userId: number): Promise<boolean>;
   updateUserRetailAccess(userId: number, isAllowed: boolean): Promise<void>;
+  getAllUsers(): Promise<User[]>;
 
   // Deals
   getDeals(): Promise<Deal[]>;
