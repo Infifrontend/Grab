@@ -51,7 +51,7 @@ export default function Login() {
       localStorage.setItem('userName', data.user.name);
 
       message.success('Login successful!');
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
       message.error(error.message || 'Login failed. Please check your credentials and try again.');
