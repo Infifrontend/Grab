@@ -34,7 +34,7 @@ const { Text } = Typography;
 const navigationItems = [
   { key: "home", label: "Home", path: "/" },
   { key: "manage-booking", label: "Manage Booking", path: "/manage-booking" },
-  { key: "bids", label: "Bids", path: "/bids" }
+  { key: "bids", label: "Bids", path: "/bids" },
 ];
 import CFG from "../../config/config.json";
 
@@ -42,14 +42,14 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isFullScreen, setIsFullscreen] = useState(true);
-  const isUserLoggedIn = localStorage.getItem("userLoggedIn") === "true";
+  const isUserLoggedIn = localStorage.getItem("isAuthenticated") === "true";
 
   // Calculate active menu based on current path
   const activeMenu =
     navigationItems.find(
       (item) =>
         location.pathname === item.path ||
-        (item.path !== "/" && location.pathname.startsWith(item.path))
+        (item.path !== "/" && location.pathname.startsWith(item.path)),
     )?.key ||
     localStorage.getItem("activeMenu") ||
     "";
@@ -78,7 +78,7 @@ export default function Header() {
           .classList.contains("ant-popover-hidden")
       ) {
         const element = document.querySelectorAll(
-          ".cls-accessibility-popover .cls-default"
+          ".cls-accessibility-popover .cls-default",
         )[0] as HTMLElement;
         (e.key === "Enter" || e.key === "Space") &&
           element.clientWidth &&
@@ -115,16 +115,24 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="infiniti-logo cursor-pointer">
             <img
-              src={
-                `/src/plugins/${CFG?.default?.airline_code || "RM"}/assets/images/Logo.png`
+              src={`/src/plugins/${CFG?.default?.airline_code || "RM"}/assets/images/Logo.png`}
+              alt={
+                CFG?.default?.airline_name
+                  ? CFG?.default?.airline_name
+                  : "Volaris"
               }
-              alt={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
-              title={CFG?.default?.airline_name ? CFG?.default?.airline_name : "Volaris"}
+              title={
+                CFG?.default?.airline_name
+                  ? CFG?.default?.airline_name
+                  : "Volaris"
+              }
               className="cursor-pointer"
             />
           </Link>
 
-          <div className={`flex items-center ${isUserLoggedIn ? "justify-between" : "justify-end"}  h-16`}>
+          <div
+            className={`flex items-center ${isUserLoggedIn ? "justify-between" : "justify-end"}  h-16`}
+          >
             {isUserLoggedIn ? (
               /* Navigation - Updated with smoother active state */
               <nav className="hidden lg:flex space-x-8">
@@ -133,8 +141,9 @@ export default function Header() {
                     key={item.key}
                     to={item.path}
                     onClick={() => localStorage.setItem("activeMenu", item.key)}
-                    className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === item.key ? "active" : ""
-                      }`}
+                    className={`infiniti-nav-item transition-colors duration-200 ${
+                      activeMenu === item.key ? "active" : ""
+                    }`}
                   >
                     {item.label}
                   </Link>
@@ -144,17 +153,21 @@ export default function Header() {
               <nav className="hidden lg:flex space-x-8">
                 <Link
                   to="/"
-                  className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === "home" ? "active" : ""
-                    }`}
+                  className={`infiniti-nav-item transition-colors duration-200 ${
+                    activeMenu === "home" ? "active" : ""
+                  }`}
                   onClick={() => localStorage.setItem("activeMenu", "home")}
                 >
                   Home
                 </Link>
                 <Link
                   to="/find-your-booking"
-                  onClick={() => localStorage.setItem("activeMenu", "find-your-booking")}
-                  className={`infiniti-nav-item transition-colors duration-200 ${activeMenu === "find-your-booking" ? "active" : ""
-                    }`}
+                  onClick={() =>
+                    localStorage.setItem("activeMenu", "find-your-booking")
+                  }
+                  className={`infiniti-nav-item transition-colors duration-200 ${
+                    activeMenu === "find-your-booking" ? "active" : ""
+                  }`}
                 >
                   Find your booking
                 </Link>
