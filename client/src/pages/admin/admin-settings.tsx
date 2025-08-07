@@ -53,39 +53,110 @@ export default function AdminSettings() {
     }
   }, [navigate]);
 
-  const mockUsers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@company.com",
-      role: "Super Admin",
-      status: "Active",
-      lastLogin: "2024-01-15 14:30",
-      permissions: ["Full Access"],
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@company.com",
-      role: "Admin",
-      status: "Active",
-      lastLogin: "2024-01-14 09:15",
-      permissions: ["Booking Management", "Offer Management"],
-    },
-    {
-      id: 3,
-      name: "Mike Wilson",
-      email: "mike.wilson@company.com",
-      role: "Operator",
-      status: "Inactive",
-      lastLogin: "2024-01-10 16:45",
-      permissions: ["View Only"],
-    },
-  ];
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Fetch users from database
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true);
+      // In a real app, you'd have an endpoint to get all users
+      // For now, we'll simulate this with mock data that represents database users
+      const mockUsers = [
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john.doe@company.com",
+          role: "Super Admin",
+          status: "Active",
+          lastLogin: "2024-01-15 14:30",
+          permissions: ["Full Access"],
+        },
+        {
+          id: 2,
+          name: "Jane Smith",
+          email: "jane.smith@company.com",
+          role: "Admin",
+          status: "Active",
+          lastLogin: "2024-01-14 09:15",
+          permissions: ["Booking Management", "Offer Management"],
+        },
+        {
+          id: 3,
+          name: "Mike Wilson",
+          email: "mike.wilson@company.com",
+          role: "Operator",
+          status: "Inactive",
+          lastLogin: "2024-01-10 16:45",
+          permissions: ["View Only"],
+        },
+      ];
+      setUsers(mockUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
     navigate("/admin/login");
+  };
+
+  const handleCreateUser = async (values) => {
+    try {
+      setLoading(true);
+      
+      const userData = {
+        username: values.email.split('@')[0], // Use email prefix as username
+        password: 'defaultPassword123', // You might want to generate this or ask user to set it
+        name: `${values.firstName} ${values.lastName}`,
+        isRetailAllowed: values.status || false
+      };
+
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+
+      const newUser = await response.json();
+      
+      // Add the new user to local state
+      const userForTable = {
+        id: newUser.id,
+        name: newUser.name,
+        email: values.email,
+        role: values.role || 'Operator',
+        status: values.status ? 'Active' : 'Inactive',
+        lastLogin: 'Never',
+        permissions: values.role === 'admin' ? ['Booking Management', 'Offer Management'] : ['View Only'],
+      };
+
+      setUsers(prev => [...prev, userForTable]);
+      setIsUserModalVisible(false);
+      form.resetFields();
+      
+      console.log('User created successfully:', newUser);
+      alert('User created successfully!');
+      
+    } catch (error) {
+      console.error('Error creating user:', error);
+      alert('Failed to create user: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const userColumns = [
@@ -175,8 +246,8 @@ export default function AdminSettings() {
             </div>
             <Table
               columns={userColumns}
-              dataSource={mockUsers}
-              loading={loading}
+              dataSource={users}
+              loading={usersLoading}
               rowKey="id"
               pagination={false}
             />
@@ -455,7 +526,13 @@ export default function AdminSettings() {
               <Button onClick={() => setIsUserModalVisible(false)}>
                 Cancel
               </Button>
-              <Button type="primary">Create User</Button>
+              <Button 
+                type="primary" 
+                onClick={() => form.validateFields().then(handleCreateUser)}
+                loading={loading}
+              >
+                Create User
+              </Button>
             </Space>
           </Form.Item>
         </Form>

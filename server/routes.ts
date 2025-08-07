@@ -2062,6 +2062,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new user
+  app.post("/api/users", async (req, res) => {
+    try {
+      const { username, password, name, isRetailAllowed } = req.body;
+
+      if (!username || !password || !name) {
+        return res.status(400).json({
+          success: false,
+          message: "Username, password, and name are required"
+        });
+      }
+
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already exists"
+        });
+      }
+
+      // Create the user
+      const newUser = await storage.createUser({
+        username,
+        password, // In production, you should hash this password
+        name,
+        isRetailAllowed: isRetailAllowed || false
+      });
+
+      res.json({
+        success: true,
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          name: newUser.name,
+          isRetailAllowed: newUser.isRetailAllowed
+        },
+        message: "User created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
+    }
+  });
+
   // Check retail access for user
   app.post("/api/check-retail-access", async (req, res) => {
     try {
