@@ -149,6 +149,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
   async getDeals(): Promise<Deal[]> {
     return await db.select().from(deals);
   }
