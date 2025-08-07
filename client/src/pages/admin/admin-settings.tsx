@@ -61,26 +61,37 @@ export default function AdminSettings() {
     try {
       setUsersLoading(true);
       const response = await fetch('/api/users');
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+      
       const data = await response.json();
+      console.log('Fetched users data:', data);
+      
+      // Check if response has the expected structure
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch users');
+      }
       
       // Transform database user data to match table format
-      const transformedUsers = data.users?.map(user => ({
+      const transformedUsers = (data.users || []).map(user => ({
         id: user.id,
-        name: user.name,
-        email: user.email, // Now using actual email field
+        name: user.name || 'N/A',
+        email: user.email || user.username || 'N/A',
         role: user.isRetailAllowed ? "Retail User" : "Regular User",
         status: user.isRetailAllowed ? "Active" : "Inactive",
         lastLogin: "N/A", // We don't track last login in current schema
         permissions: user.isRetailAllowed ? ["Retail Access"] : ["Basic Access"],
-      })) || [];
+      }));
       
+      console.log('Transformed users:', transformedUsers);
       setUsers(transformedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
-      alert('Failed to fetch users from database');
+      alert(`Failed to fetch users from database: ${error.message}`);
     } finally {
       setUsersLoading(false);
     }

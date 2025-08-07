@@ -2065,16 +2065,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
+      console.log("Fetching all users...");
       const allUsers = await storage.getAllUsers();
+      console.log(`Found ${allUsers.length} users`);
+      
       res.json({
         success: true,
-        users: allUsers
+        users: allUsers,
+        count: allUsers.length
       });
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to fetch users"
+        message: "Failed to fetch users",
+        error: error.message
       });
     }
   });
