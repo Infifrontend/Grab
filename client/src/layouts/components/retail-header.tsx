@@ -56,9 +56,8 @@ export default function Header() {
     "";
 
   const handleSignOut = () => {
-    localStorage.removeItem("userLoggedIn");
-    localStorage.removeItem("username");
-    navigate("/");
+    localStorage.clear();
+    navigate("/login");
   };
 
   // For Focus issue fix - accessibility section
