@@ -104,7 +104,7 @@ export default function AdminSettings() {
         lastName: values.lastName,
         email: values.email,
         username: values.email.split('@')[0], // Use email prefix as username
-        password: 'defaultPassword123', // You might want to generate this or ask user to set it
+        password: values.password,
         name: `${values.firstName} ${values.lastName}`,
         isRetailAllowed: values.status || false
       };
@@ -496,6 +496,16 @@ export default function AdminSettings() {
             rules={[{ required: true, type: "email" }]}
           >
             <Input placeholder="Enter email address" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: "Please enter a password" },
+              { min: 8, message: "Password must be at least 8 characters" }
+            ]}
+          >
+            <Input.Password placeholder="Enter password" />
           </Form.Item>
           <Form.Item name="role" label="Role" rules={[{ required: true }]}>
             <Select placeholder="Select role">

@@ -1001,9 +1001,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const bidId = parseInt(id);
-      
+
       console.log(`Looking up bid with ID: ${bidId}`);
-      
+
       if (isNaN(bidId) || bidId <= 0) {
         console.log(`Invalid bid ID format: ${id} -> ${bidId}`);
         return res.status(400).json({ 
@@ -1011,9 +1011,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Invalid bid ID: ${id}` 
         });
       }
-      
+
       const bid = await storage.getBidById(bidId);
-      
+
       if (!bid) {
         const allBids = await storage.getBids();
         console.log(`Bid not found with ID: ${bidId}`);
@@ -1024,14 +1024,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Bid not found with ID: ${bidId}` 
         });
       }
-      
+
       console.log(`Successfully found bid ${bidId}:`, {
         bidId: bid.bid?.id,
         bidAmount: bid.bid?.bidAmount,
         bidStatus: bid.bid?.bidStatus,
         userId: bid.bid?.userId
       });
-      
+
       res.json({
         success: true,
         ...bid
@@ -1648,7 +1648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Ensure default user exists and get user ID from bid if bidId is provided
       let userId = null;
-      
+
       // First, ensure we have a default user
       try {
         let defaultUser = await storage.getUserByUsername("default_user");
@@ -1677,12 +1677,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (isNaN(parsedBidId)) {
             throw new Error(`Invalid bid ID format: ${bidId}`);
           }
-          
+
           const bidDetails = await storage.getBidById(parsedBidId);
           if (!bidDetails || !bidDetails.bid) {
             throw new Error(`Bid not found with ID: ${bidId}`);
           }
-          
+
           // Try to use the bid's user ID if it exists and is valid
           if (bidDetails.bid.userId) {
             const bidUser = await storage.getUser(bidDetails.bid.userId);
@@ -1693,7 +1693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Bid user ${bidDetails.bid.userId} not found, using default user ${userId}`);
             }
           }
-          
+
           console.log(`Found bid ${bidId} for user ${userId}`);
         } catch (error) {
           console.error("Error validating bid for payment:", error.message);
@@ -1879,12 +1879,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
         const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
         const userCount = Math.max(parseInt(userId), 5); // Ensure we have at least as many users as the requested userId
-        
+
         existingNotes.retailUsers = [];
         for (let i = 0; i < userCount; i++) {
           const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
           const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
-          
+
           existingNotes.retailUsers.push({
             id: i + 1,
             name: names[i] || `User ${i + 1}`,
@@ -1899,7 +1899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find and update the specific retail user
       let retailUserIndex = existingNotes.retailUsers.findIndex(user => user.id === parseInt(userId));
-      
+
       // If user still not found, add them dynamically
       if (retailUserIndex === -1) {
         const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
@@ -1907,7 +1907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
         const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
         const userIdNum = parseInt(userId);
-        
+
         const newUser = {
           id: userIdNum,
           name: names[userIdNum - 1] || `User ${userIdNum}`,
@@ -1917,10 +1917,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bidAmount: baseBidAmount + randomIncrement,
           status: 'pending_approval'
         };
-        
+
         existingNotes.retailUsers.push(newUser);
         retailUserIndex = existingNotes.retailUsers.length - 1;
-        
+
         console.log(`Created new retail user dynamically:`, newUser);
       }
 
@@ -2082,52 +2082,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new user
   app.post("/api/users", async (req, res) => {
     try {
-      const { username, password, name, isRetailAllowed, firstName, lastName, email } = req.body;
+      const { firstName, lastName, email, username, password, name, isRetailAllowed } = req.body;
 
-      // Handle case where email is provided instead of username (from admin form)
-      const userUsername = username || (email ? email.split('@')[0] : null);
-      const userPassword = password || 'defaultPassword123'; // Default password
-      const userName = name || `${firstName || ''} ${lastName || ''}`.trim();
-
-      if (!userUsername || !userName) {
+      // Validate required fields
+      if (!username || !password || !name) {
         return res.status(400).json({
           success: false,
-          message: "Username and name are required"
+          message: "Username, password, and name are required"
         });
       }
 
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userUsername);
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "Username already exists"
+          message: "User with this username already exists"
         });
       }
 
-      // Create the user
+      // Hash password before storing (basic hashing - in production use bcrypt)
+      const hashedPassword = Buffer.from(password).toString('base64');
+
       const newUser = await storage.createUser({
-        username: userUsername,
-        password: userPassword, // In production, you should hash this password
-        name: userName,
+        username,
+        password: hashedPassword,
+        name,
         isRetailAllowed: isRetailAllowed || false
       });
 
       res.json({
         success: true,
+        message: "User created successfully",
         user: {
           id: newUser.id,
           username: newUser.username,
           name: newUser.name,
           isRetailAllowed: newUser.isRetailAllowed
-        },
-        message: "User created successfully"
+        }
       });
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error"
+        message: "Internal server error"
       });
     }
   });
