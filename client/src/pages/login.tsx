@@ -23,21 +23,38 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Check credentials
-      if (values.username === "john smith" && values.password === "Infi@123") {
-        // Store user session
-        localStorage.setItem("userLoggedIn", "true");
-        localStorage.setItem("username", values.username);
+      const response = await fetch('/api/check-retail-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+        }),
+      });
 
-        message.success("Login successful! Welcome aboard!");
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
-      } else {
-        message.error("Invalid username or password. Please try again.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
+
+      if (!data.success) {
+        throw new Error(data.message || 'Access denied');
+      }
+
+      // Store user data
+      localStorage.setItem('userRole', 'retail');
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userId', data.user.id.toString());
+      localStorage.setItem('userName', data.user.name);
+
+      message.success('Login successful!');
+      navigate('/dashboard');
     } catch (error) {
-      message.error("Login failed. Please try again.");
+      console.error('Login error:', error);
+      message.error(error.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }

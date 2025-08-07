@@ -23,6 +23,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  checkRetailAccess(userId: number): Promise<boolean>;
+  updateUserRetailAccess(userId: number, isAllowed: boolean): Promise<void>;
 
   // Deals
   getDeals(): Promise<Deal[]>;
@@ -127,6 +129,23 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async checkRetailAccess(userId: number): Promise<boolean> {
+    const result = await db
+      .select({ isRetailAllowed: users.isRetailAllowed })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    return result[0]?.isRetailAllowed || false;
+  }
+
+  async updateUserRetailAccess(userId: number, isAllowed: boolean) {
+    await db
+      .update(users)
+      .set({ isRetailAllowed: isAllowed })
+      .where(eq(users.id, userId));
   }
 
   async getDeals(): Promise<Deal[]> {
@@ -310,7 +329,7 @@ export class DatabaseStorage implements IStorage {
   private generatePNR(): string {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const digits = '0123456789';
-    
+
     // Generate format: A1B2C3 (letter-digit-letter-digit-letter-digit)
     let pnr = '';
     for (let i = 0; i < 3; i++) {
@@ -318,7 +337,7 @@ export class DatabaseStorage implements IStorage {
       const digit = digits[Math.floor(Math.random() * digits.length)];
       pnr += letter + digit;
     }
-    
+
     return pnr;
   }
 

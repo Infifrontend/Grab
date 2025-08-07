@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
+  isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 
 export const deals = pgTable("deals", {

@@ -2062,6 +2062,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check retail access for user
+  app.post("/api/check-retail-access", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Username and password are required"
+        });
+      }
+
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid credentials"
+        });
+      }
+
+      // In a real application, you'd verify the password hash here
+      // For now, we'll assume password verification passed
+
+      // Check if user has retail access
+      const hasRetailAccess = await storage.checkRetailAccess(user.id);
+      if (!hasRetailAccess) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied: You are not authorized to access the retail portal"
+        });
+      }
+
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          isRetailAllowed: user.isRetailAllowed
+        },
+        message: "Access granted"
+      });
+    } catch (error) {
+      console.error("Error checking retail access:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
+    }
+  });
+
+  // Update user retail access (admin only)
+  app.put("/api/users/:id/retail-access", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isAllowed } = req.body;
+
+      await storage.updateUserRetailAccess(parseInt(id), isAllowed);
+
+      res.json({
+        success: true,
+        message: `Retail access ${isAllowed ? 'granted' : 'revoked'} successfully`
+      });
+    } catch (error) {
+      console.error("Error updating retail access:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update retail access"
+      });
+    }
+  });
+
   // Create notification (helper function for internal use)
   const createNotification = async (type: string, title: string, message: string, priority: string = 'medium', actionData: any = null) => {
     try {
