@@ -4,7 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
@@ -12,7 +12,7 @@ export const users = pgTable("users", {
 });
 
 export const deals = pgTable("deals", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   title: text("title").notNull(),
   subtitle: text("subtitle"),
   discountPercentage: integer("discount_percentage").notNull(),
@@ -29,7 +29,7 @@ export const deals = pgTable("deals", {
 });
 
 export const packages = pgTable("packages", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   title: text("title").notNull(),
   location: text("location").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
@@ -39,7 +39,7 @@ export const packages = pgTable("packages", {
 });
 
 export const bookings = pgTable("bookings", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: text("booking_id").notNull().unique(),
   userId: integer("user_id").references(() => users.id),
   route: text("route").notNull(),
@@ -50,7 +50,7 @@ export const bookings = pgTable("bookings", {
 });
 
 export const searchRequests = pgTable("search_requests", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   origin: text("origin").notNull(),
   destination: text("destination").notNull(),
   departureDate: timestamp("departure_date").notNull(),
@@ -62,7 +62,7 @@ export const searchRequests = pgTable("search_requests", {
 
 // Flights table for flight booking functionality
 export const flights = pgTable("flights", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   flightNumber: text("flight_number").notNull().unique(),
   airline: text("airline").notNull(),
   aircraft: text("aircraft").notNull(),
@@ -82,7 +82,7 @@ export const flights = pgTable("flights", {
 
 // Enhanced bookings table for managing flight bookings
 export const flightBookings = pgTable("flight_bookings", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingReference: text("booking_reference").notNull().unique(),
   pnr: text("pnr").notNull().unique(),
   userId: integer("user_id").references(() => users.id),
@@ -99,7 +99,7 @@ export const flightBookings = pgTable("flight_bookings", {
 
 // Passenger details for bookings
 export const passengers = pgTable("passengers", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
   title: text("title").notNull(), // Mr, Mrs, Ms, Dr
   firstName: text("first_name").notNull(),
@@ -115,7 +115,7 @@ export const passengers = pgTable("passengers", {
 
 // Bids module for flight offers
 export const bids = pgTable("bids", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
@@ -129,7 +129,7 @@ export const bids = pgTable("bids", {
 
 // Payment handling for transactions
 export const payments = pgTable("payments", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: integer("booking_id").references(() => flightBookings.id),
   userId: integer("user_id").references(() => users.id),
   paymentReference: text("payment_reference").notNull().unique(),
@@ -146,7 +146,7 @@ export const payments = pgTable("payments", {
 
 // Payment refunds tracking
 export const refunds = pgTable("refunds", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   paymentId: integer("payment_id").references(() => payments.id).notNull(),
   refundReference: text("refund_reference").notNull().unique(),
   refundAmount: decimal("refund_amount", { precision: 10, scale: 2 }).notNull(),
@@ -157,7 +157,7 @@ export const refunds = pgTable("refunds", {
 });
 
 export const notifications = pgTable("notifications", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   type: text("type").notNull(), // bid_created, bid_accepted, payment_received, etc.
   title: text("title").notNull(),
   message: text("message").notNull(),
