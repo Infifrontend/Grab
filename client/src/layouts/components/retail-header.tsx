@@ -43,6 +43,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [isFullScreen, setIsFullscreen] = useState(true);
   const isUserLoggedIn = localStorage.getItem("isAuthenticated") === "true";
+  const userName = localStorage.getItem("userName") || "User";
 
   // Calculate active menu based on current path
   const activeMenu =
@@ -222,7 +223,7 @@ export default function Header() {
                                 level={5}
                                 className="!mb-1 text-gray-900"
                               >
-                                John Smith
+                                {userName}
                               </Typography.Title>
                               <Typography.Text className="text-sm text-blue-600 font-medium">
                                 Gold Member
@@ -272,7 +273,7 @@ export default function Header() {
                     <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg transition-colors">
                       <Avatar size="small" icon={<UserOutlined />} />
                       <span className="text-gray-600 font-medium">
-                        John Smith
+                        {userName}
                       </span>
                       <DownOutlined
                         className="text-xs text-gray-600"
