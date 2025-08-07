@@ -446,21 +446,7 @@ export default function AdminSettings() {
               <Select.Option value="viewer">Viewer</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="permissions" label="Permissions">
-            <Select mode="multiple" placeholder="Select permissions">
-              <Select.Option value="booking_management">
-                Booking Management
-              </Select.Option>
-              <Select.Option value="offer_management">
-                Offer Management
-              </Select.Option>
-              <Select.Option value="bid_management">
-                Bid Management
-              </Select.Option>
-              <Select.Option value="cms">CMS</Select.Option>
-              <Select.Option value="reports">Reports</Select.Option>
-            </Select>
-          </Form.Item>
+
           <Form.Item name="status" label="Status" valuePropName="checked">
             <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
           </Form.Item>
