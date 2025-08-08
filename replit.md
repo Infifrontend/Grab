@@ -142,6 +142,18 @@ The application is structured as a monorepo with clear separation between client
 
 ## Recent Changes
 
+### August 2025 - Replit Migration & Conditional Bid Status
+- **2025-08-08**: Successfully migrated from Replit Agent to Replit environment
+- **Security Enhancement**: Fixed database connection to use server-side DATABASE_URL instead of VITE_ prefixed variables
+- **Database Migration**: Added PostgreSQL database with proper Drizzle ORM integration
+- **Conditional Bid Status System**: Implemented dynamic bid status based on user payment status
+  - Paid users see "Under Review" status for their paid bids
+  - Unpaid users see "Open" status until seat limit reached
+  - All users see "Closed" when total seats are fulfilled
+- **Enhanced API Endpoints**: Updated /api/bids and /api/bids/:id with retail_bids integration
+- **Payment Status Tracking**: Added payment_status column to retail_bids table
+- **Business Logic**: Complete seat calculation and user-specific status visibility
+
 ### July 2025 - Database Integration & Quick Booking
 - **2025-07-14**: Implemented complete flight booking system with PostgreSQL database
 - **Database Schema**: 10+ interconnected tables for flights, bookings, passengers, bids, payments
