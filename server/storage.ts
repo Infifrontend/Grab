@@ -1358,6 +1358,7 @@ export class DatabaseStorage implements IStorage {
   // Check if user has paid for a specific bid
   async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
     try {
+      // Check retail_bids table first
       const userRetailBid = await db
         .select()
         .from(retailBids)
@@ -1367,12 +1368,30 @@ export class DatabaseStorage implements IStorage {
         ))
         .limit(1);
 
-      if (userRetailBid.length === 0) {
-        return false;
+      if (userRetailBid.length > 0) {
+        const status = userRetailBid[0].status;
+        if (status === 'paid' || status === 'approved') {
+          return true;
+        }
       }
 
-      const status = userRetailBid[0].status;
-      return status === 'paid' || status === 'approved';
+      // Fallback: check if the bid itself is completed and belongs to this user
+      const bidDetails = await this.getBidById(bidId);
+      if (bidDetails && bidDetails.bid.userId === userId && bidDetails.bid.bidStatus === 'completed') {
+        // Also check for payment info in notes
+        try {
+          const notes = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+          if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
+            return true;
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+        // Even without payment info in notes, if bid is completed, consider it paid
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error("Error checking user payment status:", error);
       return false;
