@@ -196,9 +196,28 @@ export default function ManageBooking() {
     );
   };
 
+  // Get current user info from localStorage
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUserId = currentUser.id;
+
   // Transform real booking data for table and sort by creation date (latest first)
   const bookingsTableData = (flightBookingsData || [])
-    .filter(booking => booking && booking.id) // Filter out invalid bookings
+    .filter(booking => {
+      if (!booking || !booking.id) return false; // Filter out invalid bookings
+      
+      // Only show bookings for logged-in users
+      if (!userMode && !adminMode) return false;
+      
+      // For admin mode, show all bookings
+      if (adminMode) return true;
+      
+      // For user mode, only show bookings belonging to the current user
+      if (userMode && currentUserId) {
+        return booking.userId === currentUserId;
+      }
+      
+      return false;
+    })
     .sort((a, b) => {
       const dateA = new Date(a.bookedAt || a.createdAt || 0);
       const dateB = new Date(b.bookedAt || b.createdAt || 0);
