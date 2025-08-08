@@ -78,9 +78,28 @@ export default function GroupLeader() {
     if (tempData) {
       try {
         const savedData = JSON.parse(tempData);
-        form.setFieldsValue(savedData);
+        // Merge saved data with user info, prioritizing user info for email
+        const mergedData = {
+          ...savedData,
+          // Always use logged-in user's email if available
+          email: userInfo?.email || savedData.email || "",
+          // Fill in name fields if empty in saved data
+          firstName: savedData.firstName || userInfo?.firstName || "",
+          lastName: savedData.lastName || userInfo?.lastName || "",
+        };
+        form.setFieldsValue(mergedData);
       } catch (error) {
         console.warn("Could not restore group leader data:", error);
+        // Fallback to user info if saved data is corrupted
+        if (userInfo) {
+          form.setFieldsValue({
+            title: "mr",
+            firstName: userInfo.firstName,
+            lastName: userInfo.lastName,
+            email: userInfo.email,
+            phoneNumber: "",
+          });
+        }
       }
     } else if (userInfo) {
       // Auto-fill with logged-in user data if no saved data exists
