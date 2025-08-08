@@ -172,6 +172,19 @@ export const notifications = pgTable("notifications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Retail bids table for storing retail user bid submissions
+export const retailBids = pgTable("retail_bids", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  bidId: integer("bid_id").references(() => bids.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
+  passengerCount: integer("passenger_count").notNull(),
+  status: text("status").notNull().default("submitted"), // submitted, approved, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -237,6 +250,21 @@ export const refundsRelations = relations(refunds, ({ one }) => ({
   }),
 }));
 
+export const retailBidsRelations = relations(retailBids, ({ one }) => ({
+  bid: one(bids, {
+    fields: [retailBids.bidId],
+    references: [bids.id],
+  }),
+  user: one(users, {
+    fields: [retailBids.userId],
+    references: [users.id],
+  }),
+  flight: one(flights, {
+    fields: [retailBids.flightId],
+    references: [flights.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -263,6 +291,7 @@ export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: t
 export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
+export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -288,3 +317,5 @@ export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
+export type RetailBid = typeof retailBids.$inferSelect;
+export type InsertRetailBid = z.infer<typeof insertRetailBidSchema>;

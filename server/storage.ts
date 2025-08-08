@@ -1,20 +1,43 @@
 import { db } from "./db";
-import { 
-  users, 
-  deals, 
-  packages, 
-  bookings, 
-  searchRequests, 
-  flights, 
-  flightBookings, 
+import {
+  users as usersTable,
+  deals,
+  packages,
+  bookings,
+  searchRequests,
+  flights,
+  flightBookings,
   passengers,
   bids,
   payments,
   refunds,
-  type User, type InsertUser, type Deal, type Package, type Booking, type InsertBooking, type InsertSearchRequest,
-  type Flight, type InsertFlight, type InsertFlightBooking, type FlightBooking, type Passenger, type InsertPassenger,
-  type Bid, type InsertBid, type Payment, type InsertPayment, type Refund, type InsertRefund
-} from "@shared/schema";
+  notifications,
+  retailBids,
+  type InsertUser,
+  type InsertDeal,
+  type InsertPackage,
+  type InsertBooking,
+  type InsertSearchRequest,
+  type InsertFlight,
+  type InsertFlightBooking,
+  type InsertPassenger,
+  type InsertBid,
+  type InsertPayment,
+  type InsertRefund,
+  type InsertRetailBid,
+  type User,
+  type Deal,
+  type Package,
+  type Booking,
+  type SearchRequest,
+  type Flight,
+  type FlightBooking,
+  type Passenger,
+  type Bid,
+  type Payment,
+  type Refund,
+  type RetailBid
+} from "../shared/schema.js";
 import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -109,6 +132,9 @@ export interface IStorage {
 
   updateBidDetails(bidId: number, updateData: any): Promise<any>;
   getPaymentsByBidId(bidId: number): Promise<Payment[]>;
+
+  // Retail Bids
+  createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -116,23 +142,23 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
     return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
-      .insert(users)
+      .insert(usersTable)
       .values(insertUser)
       .returning();
     return user;
@@ -140,9 +166,9 @@ export class DatabaseStorage implements IStorage {
 
   async checkRetailAccess(userId: number): Promise<boolean> {
     const result = await db
-      .select({ isRetailAllowed: users.isRetailAllowed })
-      .from(users)
-      .where(eq(users.id, userId))
+      .select({ isRetailAllowed: usersTable.isRetailAllowed })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
       .limit(1);
 
     return result[0]?.isRetailAllowed || false;
@@ -150,15 +176,15 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserRetailAccess(userId: number, isAllowed: boolean) {
     await db
-      .update(users)
+      .update(usersTable)
       .set({ isRetailAllowed: isAllowed })
-      .where(eq(users.id, userId));
+      .where(eq(usersTable.id, userId));
   }
 
   async getAllUsers(): Promise<User[]> {
     try {
       console.log("Executing getAllUsers query...");
-      const allUsers = await db.select().from(users);
+      const allUsers = await db.select().from(usersTable);
       console.log(`getAllUsers returned ${allUsers.length} users`);
       return allUsers;
     } catch (error) {
@@ -186,7 +212,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const allPackages = await db.select().from(packages);
-    return allPackages.filter(pkg => 
+    return allPackages.filter(pkg =>
       pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
       pkg.title.toLowerCase().includes(destination.toLowerCase())
     );
@@ -438,7 +464,7 @@ export class DatabaseStorage implements IStorage {
   async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
     return await db
       .update(flightBookings)
-      .set({ 
+      .set({
         passengerCount: passengerCount,
         updatedAt: new Date()
       })
@@ -698,7 +724,7 @@ export class DatabaseStorage implements IStorage {
       // Filter by status if provided
       let filteredPayments = allPayments;
       if (statusFilter && statusFilter !== 'All Status') {
-        filteredPayments = allPayments.filter(p => 
+        filteredPayments = allPayments.filter(p =>
           p.paymentStatus.toLowerCase() === statusFilter.toLowerCase()
         );
       }
@@ -1037,7 +1063,7 @@ export class DatabaseStorage implements IStorage {
       const bid = await db
         .select()
         .from(bids)
-        .leftJoin(users, eq(bids.userId, users.id))
+        .leftJoin(usersTable, eq(bids.userId, usersTable.id))
         .leftJoin(flights, eq(bids.flightId, flights.id))
         .where(eq(bids.id, id))
         .limit(1);
@@ -1152,7 +1178,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await db
         .update(flightBookings)
-        .set({ 
+        .set({
           passengerCount: passengerCount,
           updatedAt: new Date()
         })
@@ -1228,9 +1254,9 @@ export class DatabaseStorage implements IStorage {
         const bookingRef = payment.bookingId ? payment.bookingId.toString() : '';
 
         // Look for bid ID in various fields
-        return paymentRef.includes(bidId.toString()) || 
+        return paymentRef.includes(bidId.toString()) ||
                bookingRef.includes(bidId.toString()) ||
-               (payment.userId === bidDetails.bid?.userId && 
+               (payment.userId === bidDetails.bid?.userId &&
                 Math.abs(new Date(payment.createdAt).getTime() - new Date(bidDetails.bid?.createdAt || 0).getTime()) < 24 * 60 * 60 * 1000); // Within 24 hours
       });
 
@@ -1290,6 +1316,68 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fixing database sequences:', error);
       throw error;
+    }
+  }
+
+  // Retail Bids
+  async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
+    console.log("Creating retail bid with data:", bid);
+
+    // Validate that the user has retail access
+    const hasRetailAccess = await this.checkRetailAccess(bid.userId);
+    if (!hasRetailAccess) {
+      throw new Error(`User ${bid.userId} does not have retail access.`);
+    }
+
+    // Fetch flight details to check available seats and maxSeatsPerUser limit
+    const flight = await this.getFlight(bid.flightId);
+    if (!flight) {
+      throw new Error(`Flight with ID ${bid.flightId} not found.`);
+    }
+
+    // Check if the bid exceeds the maximum seats per user for this flight
+    if (bid.passengerCount > flight.maxSeatsPerUser) {
+      throw new Error(`Bid exceeds maximum seats per user (${flight.maxSeatsPerUser}) for flight ${bid.flightId}.`);
+    }
+
+    // Check if the requested seats are available on the flight
+    if (bid.passengerCount > flight.availableSeats) {
+      throw new Error(`Not enough available seats (${flight.availableSeats}) for flight ${bid.flightId}.`);
+    }
+
+    try {
+      // Insert the retail bid into the database
+      const [newRetailBid] = await db
+        .insert(retailBids)
+        .values({
+          ...bid,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      // Decrease the available seats on the flight
+      await this.updateFlightSeats(bid.flightId, bid.passengerCount);
+
+      console.log("Retail bid created successfully:", newRetailBid);
+      return newRetailBid;
+    } catch (error) {
+      // Handle potential sequence errors for retailBids table
+      if (error.code === '23505' && error.constraint === 'retail_bids_pkey') {
+        console.log('Fixing retail_bids sequence...');
+        // Attempt to fix the sequence and retry insertion
+        await db.execute(`
+          SELECT setval('retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM retail_bids), 0) + 1, false);
+        `);
+        await db.execute(`
+          ALTER TABLE retail_bids ALTER COLUMN id SET DEFAULT nextval('retail_bids_id_seq');
+        `);
+        console.log('Retrying retail bid creation after sequence fix...');
+        return this.createRetailBid(bid); // Retry the operation
+      } else {
+        console.error("Error creating retail bid:", error);
+        throw error;
+      }
     }
   }
 }

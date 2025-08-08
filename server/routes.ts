@@ -8,6 +8,7 @@ import {
   insertPassengerSchema,
   insertBidSchema,
   insertPaymentSchema,
+  insertRetailBidSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -22,6 +23,7 @@ import {
   bids,
   payments,
   notifications,
+  retailBids,
 } from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2359,6 +2361,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to update retail access"
+      });
+    }
+  });
+
+  // Submit retail bid
+  app.post("/api/retail-bids", async (req, res) => {
+    try {
+      const { bidId, userId, submittedAmount, passengerCount } = req.body;
+
+      console.log("Received retail bid submission:", req.body);
+
+      // Validate required fields
+      if (!bidId || !userId || !submittedAmount || !passengerCount) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required: bidId, userId, submittedAmount, passengerCount"
+        });
+      }
+
+      // Get the original bid configuration to validate limits
+      const originalBid = await storage.getBidById(parseInt(bidId));
+      if (!originalBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid configuration not found"
+        });
+      }
+
+      // Parse bid configuration data
+      let configData = {};
+      try {
+        configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
+
+      const maxSeatsPerUser = configData.maxSeatsPerUser || originalBid.bid.maxSeatsPerBid || 5;
+      const minSeatsPerBid = configData.minSeatsPerBid || originalBid.bid.minSeatsPerBid || 1;
+      const maxSeatsPerBid = configData.maxSeatsPerBid || originalBid.bid.maxSeatsPerBid || 10;
+
+      // Validate passenger count limits
+      if (passengerCount < minSeatsPerBid) {
+        return res.status(400).json({
+          success: false,
+          message: `Minimum passenger count is ${minSeatsPerBid}`
+        });
+      }
+
+      if (passengerCount > maxSeatsPerBid) {
+        return res.status(400).json({
+          success: false,
+          message: `Maximum passenger count per bid is ${maxSeatsPerBid}`
+        });
+      }
+
+      if (passengerCount > maxSeatsPerUser) {
+        return res.status(400).json({
+          success: false,
+          message: `Maximum passenger count per user is ${maxSeatsPerUser}`
+        });
+      }
+
+      // Check if user has already submitted a bid for this configuration
+      const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      const userExistingBid = existingRetailBids.find(rb => rb.userId === parseInt(userId));
+      
+      if (userExistingBid) {
+        return res.status(400).json({
+          success: false,
+          message: "You have already submitted a bid for this configuration"
+        });
+      }
+
+      // Validate submitted amount (should be >= original bid amount)
+      const originalBidAmount = parseFloat(originalBid.bid.bidAmount);
+      if (parseFloat(submittedAmount) < originalBidAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Submitted amount must be at least $${originalBidAmount}`
+        });
+      }
+
+      // Create retail bid submission
+      const retailBidData = {
+        bidId: parseInt(bidId),
+        userId: parseInt(userId),
+        flightId: originalBid.bid.flightId,
+        submittedAmount: submittedAmount.toString(),
+        passengerCount: parseInt(passengerCount),
+        status: "submitted"
+      };
+
+      const newRetailBid = await storage.createRetailBid(retailBidData);
+
+      // Create notification
+      await createNotification(
+        'retail_bid_submitted',
+        'New Retail Bid Submitted',
+        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}`,
+        'medium',
+        {
+          retailBidId: newRetailBid.id,
+          bidId: parseInt(bidId),
+          userId: parseInt(userId),
+          amount: submittedAmount,
+          passengerCount: parseInt(passengerCount)
+        }
+      );
+
+      res.json({
+        success: true,
+        message: "Retail bid submitted successfully",
+        retailBid: newRetailBid
+      });
+
+    } catch (error) {
+      console.error("Error submitting retail bid:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to submit retail bid",
+        error: error.message
+      });
+    }
+  });
+
+  // Get retail bids for a bid configuration
+  app.get("/api/retail-bids/:bidId", async (req, res) => {
+    try {
+      const { bidId } = req.params;
+      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      
+      res.json({
+        success: true,
+        retailBids
+      });
+    } catch (error) {
+      console.error("Error fetching retail bids:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch retail bids",
+        error: error.message
       });
     }
   });

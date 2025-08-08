@@ -9,6 +9,7 @@ import {
   Alert,
   Divider,
   Spin,
+  message,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -31,6 +32,8 @@ export default function BidDetails() {
   const [loading, setLoading] = useState(true);
   const [bidData, setBidData] = useState<any>(null);
   const [error, setError] = useState(null);
+  const [submittingBid, setSubmittingBid] = useState(false);
+  const [bidSubmitted, setBidSubmitted] = useState(false);
 
   // Fetch bid details from database
   useEffect(() => {
@@ -213,6 +216,52 @@ export default function BidDetails() {
       setPassengers(bidData?.bid?.passengerCount);
     } else {
       setPassengers(newPaxCount);
+    }
+  };
+
+  const handleSubmitRetailBid = async () => {
+    if (!params?.id || !bidData) {
+      message.error("Invalid bid configuration");
+      return;
+    }
+
+    // Get user information from localStorage
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      message.error("Please log in to submit a bid");
+      navigate("/login");
+      return;
+    }
+
+    setSubmittingBid(true);
+
+    try {
+      const response = await fetch("/api/retail-bids", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bidId: parseInt(params.id),
+          userId: parseInt(userId),
+          submittedAmount: bidAmount,
+          passengerCount: passengers,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        message.success("Your bid has been submitted successfully!");
+        setBidSubmitted(true);
+      } else {
+        message.error(result.message || "Failed to submit bid");
+      }
+    } catch (error) {
+      console.error("Error submitting retail bid:", error);
+      message.error("Failed to submit bid. Please try again.");
+    } finally {
+      setSubmittingBid(false);
     }
   };
 
@@ -728,31 +777,55 @@ export default function BidDetails() {
           >
             Cancel
           </Button>
-          {(transformedBidData.status === "Open" ||
-            transformedBidData.status === "open") &&
-            transformedBidData.status !== "Under Review" && (
-              <div className="flex justify-end">
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handleContinueToPayment}
-                  className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
-                >
-                  Continue to Payment
-                </Button>
-              </div>
-            )}
-
-          {transformedBidData.status === "completed" && (
+          
+          {bidSubmitted ? (
             <div className="flex justify-end">
               <Button
                 size="large"
                 disabled
-                className="px-8 py-2 h-auto font-semibold"
+                className="px-8 py-2 h-auto font-semibold bg-green-100 text-green-700 border-green-300"
               >
-                Payment Completed
+                Bid Submitted Successfully
               </Button>
             </div>
+          ) : (
+            <>
+              {(transformedBidData.status === "Open" ||
+                transformedBidData.status === "open") &&
+                transformedBidData.status !== "Under Review" && (
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      type="default"
+                      size="large"
+                      onClick={handleSubmitRetailBid}
+                      loading={submittingBid}
+                      className="rounded-md px-8 font-semibold border-blue-600 text-blue-600 hover:bg-blue-50"
+                    >
+                      {submittingBid ? "Submitting Bid..." : "Submit Bid"}
+                    </Button>
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={handleContinueToPayment}
+                      className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+                    >
+                      Continue to Payment
+                    </Button>
+                  </div>
+                )}
+
+              {transformedBidData.status === "completed" && (
+                <div className="flex justify-end">
+                  <Button
+                    size="large"
+                    disabled
+                    className="px-8 py-2 h-auto font-semibold"
+                  >
+                    Payment Completed
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </Card>
