@@ -201,12 +201,31 @@ export default function ManageBookingDetail() {
     setPassengers([...passengers, { firstName: "", lastName: "" }]);
   };
 
+  const handleRemovePassenger = (index: number) => {
+    if (passengers.length > 1) {
+      const updatedPassengers = passengers.filter((_, i) => i !== index);
+      setPassengers(updatedPassengers);
+    }
+  };
+
   const handlePassengerChange = (
     index: number,
     field: string,
     value: string,
   ) => {
+    // Validate input
+    if (field === "firstName" || field === "lastName") {
+      // Allow only letters, spaces, hyphens, and apostrophes
+      const nameRegex = /^[a-zA-Z\s\-']*$/;
+      if (!nameRegex.test(value)) {
+        return; // Don't update if invalid characters
+      }
+    }
+
     const updated = [...passengers];
+    if (!updated[index]) {
+      updated[index] = { firstName: "", lastName: "" };
+    }
     updated[index] = { ...updated[index], [field]: value };
     setPassengers(updated);
   };
@@ -220,6 +239,19 @@ export default function ManageBookingDetail() {
     try {
       console.log("Starting to save changes for booking:", bookingId);
 
+      // Validate that we have a booking ID
+      if (!bookingId) {
+        throw new Error("No booking ID available");
+      }
+
+      // Validate group leader information if provided
+      if (groupLeaderInfo.email && groupLeaderInfo.email.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(groupLeaderInfo.email.trim())) {
+          throw new Error("Please enter a valid email address");
+        }
+      }
+
       // Save group leader information
       console.log("Saving group leader information...");
       const groupLeaderResponse = await fetch(
@@ -230,17 +262,17 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            groupLeaderName: groupLeaderInfo.name,
-            groupLeaderEmail: groupLeaderInfo.email,
-            groupLeaderPhone: groupLeaderInfo.phone,
+            groupLeaderName: groupLeaderInfo.name || "",
+            groupLeaderEmail: groupLeaderInfo.email || "",
+            groupLeaderPhone: groupLeaderInfo.phone || "",
           }),
         },
       );
 
       if (!groupLeaderResponse.ok) {
-        const errorData = await groupLeaderResponse.text();
+        const errorData = await groupLeaderResponse.json().catch(() => ({}));
         console.error("Group leader update failed:", errorData);
-        throw new Error("Failed to update group leader information");
+        throw new Error(errorData.message || "Failed to update group leader information");
       }
 
       console.log("Group leader information saved successfully");
@@ -248,13 +280,27 @@ export default function ManageBookingDetail() {
       // Save passenger information
       console.log("Saving passenger information...");
       const validPassengers = passengers.filter(
-        (p) => p.firstName.trim() || p.lastName.trim(),
+        (p) => p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim(),
       );
 
       console.log(
-        `Saving ${validPassengers.length} passengers:`,
+        `Saving ${validPassengers.length} valid passengers out of ${passengers.length} total:`,
         validPassengers,
       );
+
+      // Prepare passenger data with proper structure
+      const passengerData = validPassengers.map((passenger, index) => ({
+        firstName: passenger.firstName.trim(),
+        lastName: passenger.lastName.trim(),
+        title: "Mr", // Default title
+        dateOfBirth: null,
+        nationality: "Indian", // Default nationality
+        passportNumber: null,
+        passportExpiry: null,
+        seatPreference: null,
+        mealPreference: null,
+        specialRequests: null,
+      }));
 
       const passengersResponse = await fetch(
         `/api/booking-passengers/${bookingId}`,
@@ -264,18 +310,19 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            passengers: validPassengers,
+            passengers: passengerData,
           }),
         },
       );
 
       if (!passengersResponse.ok) {
-        const errorData = await passengersResponse.text();
+        const errorData = await passengersResponse.json().catch(() => ({}));
         console.error("Passenger update failed:", errorData);
-        throw new Error("Failed to update passenger information");
+        throw new Error(errorData.message || "Failed to update passenger information");
       }
 
-      console.log("Passenger information saved successfully");
+      const passengerResult = await passengersResponse.json();
+      console.log("Passenger information saved successfully:", passengerResult);
 
       message.success("Changes saved successfully");
 
@@ -285,7 +332,13 @@ export default function ManageBookingDetail() {
       console.log("Booking details refetched successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
-      message.error("Failed to save changes. Please try again.");
+      if (error.message.includes("email")) {
+        message.error(error.message);
+      } else if (error.message.includes("booking")) {
+        message.error("Booking not found. Please check the booking reference and try again.");
+      } else {
+        message.error(error.message || "Failed to save changes. Please try again.");
+      }
     }
   };
 
@@ -574,10 +627,10 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
 
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {passengers.map((passenger, index) => (
-                        <div key={index} className="flex gap-3">
+                        <div key={index} className="flex gap-3 items-center">
                           <Input
                             placeholder={`Passenger ${index + 1} - First Name`}
-                            value={passenger.firstName}
+                            value={passenger.firstName || ""}
                             onChange={(e) =>
                               handlePassengerChange(
                                 index,
@@ -586,10 +639,11 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               )
                             }
                             className="flex-1"
+                            maxLength={50}
                           />
                           <Input
                             placeholder={`Passenger ${index + 1} - Last Name`}
-                            value={passenger.lastName}
+                            value={passenger.lastName || ""}
                             onChange={(e) =>
                               handlePassengerChange(
                                 index,
@@ -598,7 +652,18 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               )
                             }
                             className="flex-1"
+                            maxLength={50}
                           />
+                          {passengers.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleRemovePassenger(index)}
+                              className="flex-shrink-0"
+                              title="Remove passenger"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
