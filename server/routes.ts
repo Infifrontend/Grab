@@ -615,16 +615,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all bids
+  // Get all bids with conditional status based on user payment and seat availability
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bids = await storage.getBids(
-        userId ? parseInt(userId as string) : undefined,
+      const requestingUserId = userId ? parseInt(userId as string) : null;
+      
+      const bids = await storage.getBids();
+
+      // Enhanced bids with conditional status logic
+      const enhancedBids = await Promise.all(
+        bids.map(async (bid) => {
+          try {
+            // Get payments for this bid
+            const bidPayments = await db
+              .select()
+              .from(payments)
+              .where(eq(payments.bidId, bid.id))
+              .execute();
+
+            // Get retail bids (user submissions) for this bid
+            const retailBidSubmissions = await db
+              .select()
+              .from(retailBids)
+              .where(eq(retailBids.bidId, bid.id))
+              .execute();
+
+            // Calculate total booked seats from confirmed payments
+            const confirmedPayments = bidPayments.filter(
+              (payment) => payment.paymentStatus === 'completed' || payment.paymentStatus === 'paid'
+            );
+            
+            const totalBookedSeats = confirmedPayments.reduce((total, payment) => {
+              const retailBid = retailBidSubmissions.find(rb => rb.userId === payment.userId);
+              return total + (retailBid?.passengerCount || 0);
+            }, 0);
+
+            // Determine conditional status based on user and business logic
+            let conditionalStatus = bid.bidStatus; // Default to original status
+            
+            if (requestingUserId) {
+              // Check if the requesting user has paid for this bid
+              const userPayment = confirmedPayments.find(
+                (payment) => payment.userId === requestingUserId
+              );
+
+              // Check if bid is at capacity
+              const isAtCapacity = totalBookedSeats >= (bid.totalSeatsAvailable || 50);
+
+              if (isAtCapacity) {
+                // If total seats are fulfilled, show "Closed" to all users
+                conditionalStatus = "Closed";
+              } else if (userPayment) {
+                // If user has paid but bid is not full, show "Under Review"
+                conditionalStatus = "Under Review";
+              } else {
+                // If user hasn't paid and bid is not full, show "Open"
+                conditionalStatus = "Open";
+              }
+            } else {
+              // For non-authenticated requests, show generic status
+              const isAtCapacity = totalBookedSeats >= (bid.totalSeatsAvailable || 50);
+              conditionalStatus = isAtCapacity ? "Closed" : "Open";
+            }
+
+            return {
+              ...bid,
+              conditionalStatus,
+              totalBookedSeats,
+              remainingSeats: (bid.totalSeatsAvailable || 50) - totalBookedSeats,
+              isAtCapacity: totalBookedSeats >= (bid.totalSeatsAvailable || 50),
+              userHasPaid: requestingUserId ? confirmedPayments.some(p => p.userId === requestingUserId) : false
+            };
+          } catch (bidError) {
+            console.error(`Error processing bid ${bid.id}:`, bidError);
+            return {
+              ...bid,
+              conditionalStatus: bid.bidStatus,
+              totalBookedSeats: 0,
+              remainingSeats: bid.totalSeatsAvailable || 50,
+              isAtCapacity: false,
+              userHasPaid: false
+            };
+          }
+        })
       );
 
       // Sort bids by creation date (newest first) for recent activity display
-      const sortedBids = bids.sort((a, b) => 
+      const sortedBids = enhancedBids.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
