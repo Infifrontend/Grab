@@ -32,8 +32,9 @@ export default function GroupLeader() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [bundleData, setBundleData] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
 
-  // Scroll to top on page load
+  // Scroll to top on page load and fetch user info
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     const storedBookingData = localStorage.getItem("bookingFormData");
@@ -50,9 +51,28 @@ export default function GroupLeader() {
     if (storedBundleData) {
       setBundleData(JSON.parse(storedBundleData));
     }
+
+    // Fetch logged-in user information
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+    const userName = localStorage.getItem("userName");
+    const userEmail = localStorage.getItem("userEmail");
+    
+    if (isAuthenticated && userName) {
+      // Parse the name to get first and last name
+      const nameParts = userName.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
+      setUserInfo({
+        firstName,
+        lastName,
+        email: userEmail || "",
+        fullName: userName
+      });
+    }
   }, []);
 
-  // Load previously saved form data if available
+  // Load previously saved form data or user info if available
   useEffect(() => {
     const tempData = localStorage.getItem("tempGroupLeaderData");
     if (tempData) {
@@ -62,8 +82,17 @@ export default function GroupLeader() {
       } catch (error) {
         console.warn("Could not restore group leader data:", error);
       }
+    } else if (userInfo) {
+      // Auto-fill with logged-in user data if no saved data exists
+      form.setFieldsValue({
+        title: "mr",
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        email: userInfo.email,
+        phoneNumber: "",
+      });
     }
-  }, [form]);
+  }, [form, userInfo]);
 
   const handleBack = () => {
     // Save current form data before navigating back (without validation)
@@ -200,21 +229,13 @@ export default function GroupLeader() {
           <Form
             form={form}
             layout="vertical"
-            initialValues={
-              userMode || adminMode ? {
-                title: "mr",
-                firstName: "John",
-                lastName: "Smith",
-                email: "john.smith@company.com",
-                phoneNumber: "+1 (555) 123-4567",
-              } : {
-                title: "mr",
-                firstName: "",
-                lastName: "",
-                email: "",
-                phoneNumber: "",
-              }
-            }
+            initialValues={{
+              title: "mr",
+              firstName: "",
+              lastName: "",
+              email: "",
+              phoneNumber: "",
+            }}
             requiredMark={false}
             className="group-leader-form"
           >

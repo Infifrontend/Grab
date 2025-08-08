@@ -49,6 +49,7 @@ export default function Login() {
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userId', data.user.id.toString());
       localStorage.setItem('userName', data.user.name);
+      localStorage.setItem('userEmail', data.user.email || values.username);
 
       message.success('Login successful!');
       navigate('/');

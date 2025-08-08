@@ -2267,6 +2267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: user.id,
           username: user.username,
           name: user.name,
+          email: user.email,
           isRetailAllowed: user.isRetailAllowed
         },
         message: "Access granted"
