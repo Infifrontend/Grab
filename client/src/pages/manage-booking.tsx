@@ -115,17 +115,17 @@ export default function ManageBooking() {
     }
   };
 
-  const handleEditBooking = async (bookingId: any) => {
-    console.log("Finding booking:", { bookingId });
+  const handleEditBooking = async (pnrOrBookingId: any) => {
+    console.log("Finding booking:", { pnrOrBookingId });
 
-    if (!bookingId) {
+    if (!pnrOrBookingId) {
       message.error("Please enter a PNR.");
       return;
     }
 
     try {
       // Fetch booking details from the API using the booking ID
-      const response = await fetch(`/api/booking-details/${bookingId}`);
+      const response = await fetch(`/api/booking-details/${pnrOrBookingId}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -148,8 +148,8 @@ export default function ManageBooking() {
       // Navigate to the booking details page with the retrieved data
       navigate(
         adminMode
-          ? `/admin/manage-booking/${bookingId}`
-          : `/manage-booking/${bookingId}`,
+          ? `/admin/manage-booking/${pnrOrBookingId}`
+          : `/manage-booking/${pnrOrBookingId}`,
       );
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -160,8 +160,8 @@ export default function ManageBooking() {
   const handleManageBooking = (booking: Booking) => {
     navigate(
       adminMode
-        ? `/admin/manage-booking/${bookingId}`
-        : `/manage-booking/${bookingId}`,
+        ? `/admin/manage-booking/${booking.id}`
+        : `/manage-booking/${booking.id}`,
     );
   };
 
