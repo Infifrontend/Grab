@@ -1364,7 +1364,12 @@ export class DatabaseStorage implements IStorage {
       const [newRetailBid] = await db
         .insert(retailBids)
         .values({
-          ...bid,
+          bidId: bid.bidId,
+          userId: bid.userId,
+          flightId: bid.flightId,
+          submittedAmount: bid.submittedAmount,
+          passengerCount: bid.passengerCount,
+          status: bid.status || 'submitted',
           createdAt: new Date(),
           updatedAt: new Date()
         })
