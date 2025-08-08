@@ -61,6 +61,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import BreadcrumbNav from "@/components/breadcrumb/breadcrumb";
+import dayjs from "dayjs";
 const { Title, Text } = Typography;
 
 export default function BidManagement() {
@@ -192,18 +193,18 @@ export default function BidManagement() {
           bid.bidStatus === "active"
             ? "Active bid submitted"
             : bid.bidStatus === "accepted"
-            ? "Bid accepted"
-            : bid.bidStatus === "rejected"
-            ? "Bid declined"
-            : "Bid created";
+              ? "Bid accepted"
+              : bid.bidStatus === "rejected"
+                ? "Bid declined"
+                : "Bid created";
         color =
           bid.bidStatus === "active"
             ? "var(--ant-color-success)"
             : bid.bidStatus === "accepted"
-            ? "var(--infiniti-lighter-green)"
-            : bid.bidStatus === "rejected"
-            ? "var(--ant-color-error)"
-            : "var(--infiniti-lighter-blue)";
+              ? "var(--infiniti-lighter-green)"
+              : bid.bidStatus === "rejected"
+                ? "var(--ant-color-error)"
+                : "var(--infiniti-lighter-blue)";
       }
 
       return {
@@ -361,7 +362,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "POST",
         "/api/bid-configurations",
-        formattedData
+        formattedData,
       );
 
       if (!response.ok) {
@@ -379,7 +380,7 @@ export default function BidManagement() {
           result.message ||
             `Bid configuration "${
               finalValues.bidTitle || "New Bid"
-            }" created successfully!`
+            }" created successfully!`,
         );
 
         // Refetch bid configurations and recent bids to update the Recent Bid Activity
@@ -440,6 +441,10 @@ export default function BidManagement() {
       title: "Fare Terms & Ancillaries",
       content: "fare-terms",
     },
+    {
+      title: "Review & Confirm",
+      content: "review-confirm",
+    },
   ];
 
   const renderActiveBidsContent = () => {
@@ -479,13 +484,13 @@ export default function BidManagement() {
             configData.origin && configData.destination
               ? `${configData.origin} → ${configData.destination}`
               : bid.flight
-              ? `${bid.flight.origin} → ${bid.flight.destination}`
-              : "Route not available",
+                ? `${bid.flight.origin} → ${bid.flight.destination}`
+                : "Route not available",
           date: configData.travelDate
             ? new Date(configData.travelDate).toLocaleDateString()
             : bid.flight?.departureTime
-            ? new Date(bid.flight.departureTime).toLocaleDateString()
-            : "N/A",
+              ? new Date(bid.flight.departureTime).toLocaleDateString()
+              : "N/A",
         },
         upgrade: configData.fareType
           ? `Economy → ${configData.fareType}`
@@ -533,7 +538,7 @@ export default function BidManagement() {
             bid.status.toLowerCase() === statusFilter.toLowerCase();
 
           return matchesSearch && matchesStatus;
-        }
+        },
       );
     }, [searchText, statusFilter, activeBids]);
     return (
@@ -594,11 +599,11 @@ export default function BidManagement() {
                 const bidData = (recentBidsData || []).find(
                   (bid) =>
                     `BID${bid?.id?.toString().padStart(3, "0")}` ===
-                    record.bidId
+                    record.bidId,
                 );
 
                 const baseBidAmount = parseFloat(
-                  record.bidAmount.replace("$", "")
+                  record.bidAmount.replace("$", ""),
                 );
 
                 let retailUsers = [],
@@ -649,18 +654,18 @@ export default function BidManagement() {
                         i === 0 && record.status.toLowerCase() === "approved"
                           ? "approved"
                           : record.status.toLowerCase() === "pending"
-                          ? "pending_approval"
-                          : "pending_approval",
+                            ? "pending_approval"
+                            : "pending_approval",
                     });
                   }
                   highestBidAmount = Math.max(
-                    ...retailUsers.map((user) => user.bidAmount)
+                    ...retailUsers.map((user) => user.bidAmount),
                   );
                 }
 
                 console.log(
                   record?.status?.toLowerCase() === '"approved"',
-                  record?.status
+                  record?.status,
                 );
 
                 return (
@@ -692,8 +697,8 @@ export default function BidManagement() {
                                 user.status === "approved"
                                   ? "border-green-500 bg-green-50"
                                   : user.bidAmount === highestBidAmount
-                                  ? "border-yellow-500 bg-yellow-50"
-                                  : "bg-white border"
+                                    ? "border-yellow-500 bg-yellow-50"
+                                    : "bg-white border"
                               }
                             `}
                           >
@@ -738,8 +743,8 @@ export default function BidManagement() {
                                   user.status === "approved"
                                     ? "green"
                                     : user.status === "rejected"
-                                    ? "red"
-                                    : "orange"
+                                      ? "red"
+                                      : "orange"
                                 }
                               >
                                 {user.status.replace("_", " ").toUpperCase()}
@@ -758,7 +763,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.id,
                                         "approve",
-                                        record.bidId
+                                        record.bidId,
                                       )
                                     }
                                     loading={loading}
@@ -772,7 +777,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.id,
                                         "reject",
-                                        record.bidId
+                                        record.bidId,
                                       )
                                     }
                                     loading={loading}
@@ -792,7 +797,7 @@ export default function BidManagement() {
                         approval:{" "}
                         {
                           retailUsers.filter(
-                            (u) => u.status === "pending_approval"
+                            (u) => u.status === "pending_approval",
                           ).length
                         }{" "}
                         | Approved:{" "}
@@ -899,7 +904,7 @@ export default function BidManagement() {
                       case "completed":
                         return "Under Review";
                       case "approved":
-                        return "Approved";
+                        return "Accepted";
                       case "accepted":
                         return "Accepted";
                       case "rejected":
@@ -977,7 +982,7 @@ export default function BidManagement() {
 
     // Find the actual bid data from recentBidsData
     const bidData = (recentBidsData || []).find(
-      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId
+      (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
     );
 
     console.log("Found bidData:", bidData);
@@ -1005,14 +1010,14 @@ export default function BidManagement() {
           ? new Date(
               `${configData.travelDate}T${
                 configData.departureTimeRange?.split(" - ")[0] || "09:00"
-              }`
+              }`,
             ).toISOString()
           : bidData.createdAt,
         arrivalTime: configData.travelDate
           ? new Date(
               `${configData.travelDate}T${
                 configData.departureTimeRange?.split(" - ")[1] || "12:00"
-              }`
+              }`,
             ).toISOString()
           : null,
         price: bidData.bidAmount || 0,
@@ -1075,7 +1080,7 @@ export default function BidManagement() {
         `/api/bid-configurations/${bid.id}/status`,
         {
           status: newStatus,
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1088,7 +1093,7 @@ export default function BidManagement() {
         message.success(
           `Bid configuration ${
             checked ? "activated" : "deactivated"
-          } successfully`
+          } successfully`,
         );
         // Refetch bid configurations to update the display
         refetchBids();
@@ -1124,7 +1129,7 @@ export default function BidManagement() {
 
       if (result.success) {
         message.success(
-          `Bid ${action === "accept" ? "accepted" : "rejected"} successfully`
+          `Bid ${action === "accept" ? "accepted" : "rejected"} successfully`,
         );
 
         // Refresh data
@@ -1164,7 +1169,7 @@ export default function BidManagement() {
       }
 
       console.log(
-        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`
+        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
       );
 
       // Validate that we have a valid numeric ID
@@ -1176,7 +1181,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "PUT",
         `/api/bids/${numericBidId}/retail-users/${userId}/status`,
-        { action }
+        { action },
       );
 
       if (!response.ok) {
@@ -1189,37 +1194,27 @@ export default function BidManagement() {
         if (action === "approve") {
           message.success(
             result.message ||
-              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'."
+              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
           );
         } else {
           message.success(
-            result.message || "Retail user rejected successfully"
+            result.message || "Retail user rejected successfully",
           );
         }
 
-        // Refresh all data to ensure UI reflects the status changes
-        await Promise.all([
-          queryClient.invalidateQueries(["recent-bids"]),
-          queryClient.invalidateQueries(["bid-configurations"]),
-          queryClient.refetchQueries(["recent-bids"]),
-          queryClient.refetchQueries(["bid-configurations"])
-        ]);
+        // Refresh the data to update the UI with new bid status and retail user statuses
+        queryClient.invalidateQueries(["recent-bids"]);
+        queryClient.invalidateQueries(["bid-configurations"]);
 
         // Force refetch to get latest data
-        await refetchBids();
-
-        // If a bid was approved, update the status in the active tab display immediately
-        if (action === "approve" && result.newBidStatus) {
-          // Force a re-render by updating the active tab
-          setActiveTab("2"); // Active Bids tab
-        }
+        refetchBids();
       } else {
         throw new Error(result.message || `Failed to ${action} retail user`);
       }
     } catch (error) {
       console.error(`Error ${action}ing retail user:`, error);
       message.error(
-        error.message || `Failed to ${action} retail user. Please try again.`
+        error.message || `Failed to ${action} retail user. Please try again.`,
       );
     } finally {
       setLoading(false);
@@ -1254,7 +1249,7 @@ export default function BidManagement() {
       const response = await apiRequest(
         "PUT",
         `/api/bid-configurations/${selectedBid.id}`,
-        updateData
+        updateData,
       );
 
       if (!response.ok) {
@@ -1291,8 +1286,8 @@ export default function BidManagement() {
                     updatedAt: new Date().toISOString(),
                   }),
                 }
-              : bid
-          )
+              : bid,
+          ),
         );
       } else {
         message.error(result.message || "Failed to update bid configuration");
@@ -1374,14 +1369,14 @@ export default function BidManagement() {
               bid.bidStatus === "active"
                 ? "green"
                 : bid.bidStatus === "pending"
-                ? "orange"
-                : "red";
+                  ? "orange"
+                  : "red";
             const statusText =
               bid.bidStatus === "active"
                 ? "Active"
                 : bid.bidStatus === "pending"
-                ? "Pending"
-                : "Inactive";
+                  ? "Pending"
+                  : "Inactive";
 
             return (
               <Card
@@ -1943,7 +1938,7 @@ export default function BidManagement() {
                     <Text className="font-semibold">
                       {selectedBidForReview.createdAt
                         ? new Date(
-                            selectedBidForReview.createdAt
+                            selectedBidForReview.createdAt,
                           ).toLocaleDateString()
                         : "Unknown"}
                     </Text>
@@ -1957,7 +1952,7 @@ export default function BidManagement() {
                     <Text className="font-semibold text-orange-600">
                       {selectedBidForReview.validUntil
                         ? new Date(
-                            selectedBidForReview.validUntil
+                            selectedBidForReview.validUntil,
                           ).toLocaleDateString()
                         : "No expiry"}
                     </Text>
@@ -2022,7 +2017,7 @@ export default function BidManagement() {
                     <Text className="font-semibold">
                       {selectedBidForReview.configData?.travelDate
                         ? new Date(
-                            selectedBidForReview.configData.travelDate
+                            selectedBidForReview.configData.travelDate,
                           ).toLocaleDateString()
                         : "N/A"}
                     </Text>
@@ -2447,8 +2442,8 @@ export default function BidManagement() {
                     status === "Completed"
                       ? "green"
                       : status === "Pending"
-                      ? "orange"
-                      : "red"
+                        ? "orange"
+                        : "red"
                   }
                 >
                   {status}
@@ -3118,8 +3113,8 @@ export default function BidManagement() {
                                     demand === "Very High"
                                       ? "red"
                                       : demand === "High"
-                                      ? "blue"
-                                      : "orange"
+                                        ? "blue"
+                                        : "orange"
                                   }
                                 >
                                   {demand}
@@ -3381,6 +3376,95 @@ export default function BidManagement() {
     },
   ];
 
+  const ReviewConfirm = ({ formData }) => {
+    // Format values for display
+    const formatValue = (key, value) => {
+      if (value === undefined || value === null) return "-";
+
+      switch (key) {
+        case "travelDate":
+          return dayjs(value).format("MMMM D, YYYY");
+        case "bidStartTime":
+        case "bidEndTime":
+          return dayjs(value).format("MMMM D, YYYY h:mm A");
+        case "mealIncluded":
+          return value ? "Yes" : "No";
+        case "bidAmount":
+        case "suggestedMarketValue":
+        case "bidIncrement":
+          return `$${value}`;
+        default:
+          return value.toString();
+      }
+    };
+
+    // Step groups configuration
+    const stepGroups = {
+      "Flight & Route Details": [
+        "bidTitle",
+        "flightType",
+        "origin",
+        "destination",
+        "travelDate",
+        "departureTimeRange",
+      ],
+      "Seat Configurations & Limits": [
+        "totalSeatsAvailable",
+        "minSeatsPerBid",
+        "maxSeatsPerBid",
+      ],
+      "Bid Pricing & Currency": [
+        "bidAmount",
+        "suggestedMarketValue",
+        "currency",
+        "bidIncrement",
+      ],
+      "Bidding Schedule & Rules": ["bidStartTime", "bidEndTime"],
+      "Fare Terms & Ancillaries": [
+        "fareType",
+        "baggageAllowance",
+        "cancellationTerms",
+        "mealIncluded",
+        "otherNotes",
+      ],
+    };
+
+    return (
+      <div className="space-y-6">
+        {Object.entries(stepGroups).map(([title, fields]) => (
+          <>
+            <Title
+              level={5}
+              className="text-gray-700 font-semibold mt-6"
+              style={{ marginBlockEnd: 0 }}
+            >
+              {title}
+            </Title>
+            <Card key={title} className="shadow-sm">
+              <Row gutter={[16, 16]}>
+                {fields.map((field) => (
+                  <Col span={8} key={field}>
+                    <div className="mb-2">
+                      <Text
+                        type="secondary"
+                        className="block text-xs uppercase"
+                      >
+                        {field.replace(/([A-Z])/g, " $1").trim()}
+                      </Text>
+                      <Text strong className="block">
+                        {formatValue(field, formData[field])}
+                      </Text>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            </Card>
+          </>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       {/* Main Content */}
@@ -3470,8 +3554,8 @@ export default function BidManagement() {
                           index < currentStep
                             ? "bg-green-500 border-green-500 text-white"
                             : index === currentStep
-                            ? "bg-blue-500 border-blue-500 text-white"
-                            : "bg-white border-gray-300 text-gray-500"
+                              ? "bg-blue-500 border-blue-500 text-white"
+                              : "bg-white border-gray-300 text-gray-500"
                         }
                       `}
                       >
@@ -3815,7 +3899,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ","
+                                    ",",
                                   )
                                 : ""
                             }
@@ -3846,7 +3930,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ","
+                                    ",",
                                   )
                                 : ""
                             }
@@ -3899,7 +3983,7 @@ export default function BidManagement() {
                               value
                                 ? `$ ${value}`.replace(
                                     /\B(?=(\d{3})+(?!\d))/g,
-                                    ","
+                                    ",",
                                   )
                                 : ""
                             }
@@ -4170,6 +4254,24 @@ export default function BidManagement() {
                   </div>
                 </div>
               )}
+
+              {/* Step 6: Review & Confirm */}
+              {currentStep === 5 && (
+                <div>
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-5 bg-yellow-500 rounded"></div>
+                      <Title level={5} className="!mb-0 text-yellow-600">
+                        Review & Confirm
+                      </Title>
+                    </div>
+                    <Text className="text-gray-500 text-sm">
+                      Review all configurations before creating the bid
+                    </Text>
+                  </div>
+                  <ReviewConfirm formData={form.getFieldsValue(true)} />
+                </div>
+              )}
             </div>
 
             {/* Navigation Footer */}
@@ -4189,7 +4291,12 @@ export default function BidManagement() {
                 {currentStep < steps.length - 1 ? (
                   <Button
                     type="primary"
-                    onClick={handleNext}
+                    onClick={
+                      () => handleNext()
+                      // currentStep === steps.length - 2
+                      //   ? (handleFormattedData(), handleNext())
+                      //   : handleNext()
+                    }
                     className="px-4 bg-blue-600 hover:bg-blue-700"
                   >
                     Next

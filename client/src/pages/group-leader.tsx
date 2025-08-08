@@ -26,7 +26,9 @@ export default function GroupLeader() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   // Check if this is an admin booking
-  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  const adminMode = JSON.parse(
+    localStorage.getItem("adminLoggedIn") || "false",
+  );
   const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const [isLoading, setIsLoading] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
@@ -59,20 +61,20 @@ export default function GroupLeader() {
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     const userName = localStorage.getItem("userName");
     const userEmail = localStorage.getItem("userEmail");
-    
+
     let currentUserInfo = null;
     if (isAuthenticated && userName) {
       const nameParts = userName.trim().split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
-      
+
       currentUserInfo = {
         firstName,
         lastName,
         email: userEmail || "",
-        fullName: userName
+        fullName: userName,
       };
-      
+
       // Update userInfo state
       setUserInfo(currentUserInfo);
     }
@@ -124,18 +126,20 @@ export default function GroupLeader() {
       // Filter out empty values to avoid storing unnecessary data
       const filteredValues = Object.fromEntries(
         Object.entries(currentValues).filter(
-          ([_, value]) => value !== undefined && value !== ""
-        )
+          ([_, value]) => value !== undefined && value !== "",
+        ),
       );
       localStorage.setItem(
         "tempGroupLeaderData",
-        JSON.stringify(filteredValues)
+        JSON.stringify(filteredValues),
       );
       console.log("Saved group leader data:", filteredValues);
     } catch (error) {
       console.warn("Could not save group leader data:", error);
     }
-    navigate(adminMode ? "/admin/add-services-bundles" : "/add-services-bundles");
+    navigate(
+      adminMode ? "/admin/add-services-bundles" : "/add-services-bundles",
+    );
   };
 
   const handleContinue = () => {
@@ -158,16 +162,16 @@ export default function GroupLeader() {
 
       // Calculate and store total booking amount
       const bookingData = JSON.parse(
-        localStorage.getItem("bookingFormData") || "{}"
+        localStorage.getItem("bookingFormData") || "{}",
       );
       const flightData = JSON.parse(
-        localStorage.getItem("selectedFlightData") || "{}"
+        localStorage.getItem("selectedFlightData") || "{}",
       );
       const bundleData = JSON.parse(
-        localStorage.getItem("selectedBundleData") || "{}"
+        localStorage.getItem("selectedBundleData") || "{}",
       );
       const servicesData = JSON.parse(
-        localStorage.getItem("selectedServices") || "[]"
+        localStorage.getItem("selectedServices") || "[]",
       );
 
       const passengerCount = bookingData.totalPassengers || 1;
@@ -235,7 +239,7 @@ export default function GroupLeader() {
         {/* Page Header */}
         <div className="mb-6">
           <Title level={2} className="!mb-2 text-gray-900">
-            Group Leader Review
+            Group Leader
           </Title>
           <Text className="text-gray-600">
             Please provide the details of the group leader who will be the main
@@ -358,8 +362,8 @@ export default function GroupLeader() {
                       ? bookingData.tripType === "oneWay"
                         ? "One-way"
                         : bookingData.tripType === "roundTrip"
-                        ? "Round-trip"
-                        : "Multi-city"
+                          ? "Round-trip"
+                          : "Multi-city"
                       : "One-way"}
                   </Text>
                 </div>

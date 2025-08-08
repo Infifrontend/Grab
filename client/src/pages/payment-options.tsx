@@ -1134,7 +1134,7 @@ export default function PaymentOptions() {
             //   borderColor: "#2a0a22",
             // }}
           >
-            Continue
+            Submit booking request
           </Button>
         </div>
       </div>

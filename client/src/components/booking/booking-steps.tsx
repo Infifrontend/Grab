@@ -23,7 +23,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
       title: "Add Services",
     },
     {
-      title: "Group Leader Review",
+      title: "Group Leader",
     },
     {
       title: "Payment",
@@ -38,7 +38,7 @@ const BookingSteps: React.FC<BookingStepsProps> = ({
       <Steps
         current={currentStep}
         size={size}
-        items={steps?.map((step:any, index:number) => ({
+        items={steps?.map((step: any, index: number) => ({
           title: step.title,
           description: step.description,
           status:
