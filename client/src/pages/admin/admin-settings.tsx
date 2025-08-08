@@ -706,7 +706,6 @@ export default function AdminSettings() {
             </Form.Item>
           </Form>
         </Modal>
-      </div>
-    );
-  }
+    </div>
+  );
 }
