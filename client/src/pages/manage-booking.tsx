@@ -421,14 +421,12 @@ export default function ManageBooking() {
                   className: "px-6 pb-4",
                 }}
                 className="w-full"
-                scroll={{ x: "max-content" }}
                 columns={[
                   {
                     title: "PNR",
                     dataIndex: "pnr",
                     key: "pnr",
-                    fixed: "left",
-                    width: 150,
+                    width: "12%",
                     render: (text) => (
                       <span className="font-semibold text-[var(--infiniti-primary)]">
                         {text}
@@ -436,28 +434,13 @@ export default function ManageBooking() {
                     ),
                     sorter: (a, b) => a.pnr.localeCompare(b.pnr),
                   },
-                  // {
-                  //   title: "Group Type",
-                  //   dataIndex: "groupType",
-                  //   key: "groupType",
-                  //   width: 120,
-                  //   render: (text) => (
-                  //     <span className="text-gray-700 capitalize">{text}</span>
-                  //   ),
-                  //   filters: [
-                  //     { text: "Group Travel", value: "Group Travel" },
-                  //     { text: "Corporate", value: "Corporate" },
-                  //     { text: "Family", value: "Family" },
-                  //   ],
-                  //   onFilter: (value, record) => record.groupType === value,
-                  // },
                   {
                     title: "Route",
                     dataIndex: "route",
                     key: "route",
-                    width: 200,
+                    width: "18%",
                     render: (text) => (
-                      <span className="text-gray-900 font-medium">{text}</span>
+                      <span className="text-gray-900 font-medium text-sm">{text}</span>
                     ),
                     sorter: (a, b) => a.route.localeCompare(b.route),
                   },
@@ -465,25 +448,25 @@ export default function ManageBooking() {
                     title: "Departure",
                     dataIndex: "date",
                     key: "date",
-                    width: 120,
+                    width: "12%",
                     render: (date) => {
                       if (!date || date === "Date not available")
                         return (
-                          <span className="text-gray-500">Not available</span>
+                          <span className="text-gray-500 text-sm">N/A</span>
                         );
                       try {
                         return (
-                          <span className="text-gray-600">
+                          <span className="text-gray-600 text-sm">
                             {new Date(date).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
-                              year: "numeric",
+                              year: "2-digit",
                             })}
                           </span>
                         );
                       } catch (e) {
                         return (
-                          <span className="text-gray-500">Invalid date</span>
+                          <span className="text-gray-500 text-sm">Invalid</span>
                         );
                       }
                     },
@@ -509,32 +492,32 @@ export default function ManageBooking() {
                     title: "Return",
                     dataIndex: "returnDate",
                     key: "returnDate",
-                    width: 120,
+                    width: "12%",
                     render: (returnDate) => {
                       if (!returnDate)
-                        return <span className="text-gray-500">One-way</span>;
+                        return <span className="text-gray-500 text-sm">One-way</span>;
                       try {
                         return (
-                          <span className="text-gray-600">
+                          <span className="text-gray-600 text-sm">
                             {new Date(returnDate).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
-                              year: "numeric",
+                              year: "2-digit",
                             })}
                           </span>
                         );
                       } catch (e) {
                         return (
-                          <span className="text-gray-500">Invalid date</span>
+                          <span className="text-gray-500 text-sm">Invalid</span>
                         );
                       }
                     },
                   },
                   {
-                    title: "Passengers",
+                    title: "Pax",
                     dataIndex: "passengers",
                     key: "passengers",
-                    width: 100,
+                    width: "8%",
                     render: (passengers) => (
                       <span className="text-gray-700 font-medium">
                         {passengers}
@@ -546,33 +529,33 @@ export default function ManageBooking() {
                     title: "Amount",
                     dataIndex: "totalAmount",
                     key: "totalAmount",
-                    width: 120,
+                    width: "12%",
                     render: (amount) => (
-                      <span className="text-gray-900 font-semibold">
+                      <span className="text-gray-900 font-semibold text-sm">
                         {amount ? `₹${parseFloat(amount).toLocaleString()}` : 'N/A'}
                       </span>
                     ),
                     sorter: (a, b) => parseFloat(a.totalAmount || 0) - parseFloat(b.totalAmount || 0),
                   },
                   {
-                    title: "Booking Date",
+                    title: "Booked",
                     dataIndex: "bookingDate",
                     key: "bookingDate",
-                    width: 130,
+                    width: "12%",
                     render: (date) => {
-                      if (!date) return <span className="text-gray-500">N/A</span>;
+                      if (!date) return <span className="text-gray-500 text-sm">N/A</span>;
                       try {
                         return (
-                          <span className="text-gray-600">
+                          <span className="text-gray-600 text-sm">
                             {new Date(date).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
-                              year: "numeric",
+                              year: "2-digit",
                             })}
                           </span>
                         );
                       } catch (e) {
-                        return <span className="text-gray-500">Invalid date</span>;
+                        return <span className="text-gray-500 text-sm">Invalid</span>;
                       }
                     },
                     sorter: (a, b) => {
@@ -590,10 +573,10 @@ export default function ManageBooking() {
                     title: "Status",
                     dataIndex: "status",
                     key: "status",
-                    width: 120,
+                    width: "10%",
                     render: (status) => (
                       <Tag
-                        className="px-3 py-1 text-xs font-semibold capitalize"
+                        className="px-2 py-1 text-xs font-semibold capitalize"
                         color={getStatusColor(status)}
                       >
                         {status}
@@ -609,8 +592,7 @@ export default function ManageBooking() {
                   {
                     title: "Actions",
                     key: "actions",
-                    fixed: "right",
-                    width: 120,
+                    width: "10%",
                     render: (value, record) => {
                       console.log(record, "recordrecord");
 
@@ -618,7 +600,7 @@ export default function ManageBooking() {
                         <>
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-2"
                             onClick={() => handleViewBooking(record.pnr)}
                             title="view"
                           >
@@ -626,7 +608,7 @@ export default function ManageBooking() {
                           </Button>
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
                             onClick={() => handleEditBooking(record.pnr)}
                             title="edit"
                           >
