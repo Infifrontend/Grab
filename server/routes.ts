@@ -314,14 +314,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let comprehensiveData = null;
       let searchMethod = "";
 
-      // Enhanced search - try multiple patterns and variations
+      // Debug: Log the search variations
       const searchVariations = [
         id, // Original ID
         id.toUpperCase(), // Uppercase version
         id.toLowerCase(), // Lowercase version
         id.replace(/[^a-zA-Z0-9]/g, ''), // Remove special characters
         id.trim(), // Remove whitespace
+        id.replace(/\s+/g, ''), // Remove all spaces
+        id.replace(/-/g, ''), // Remove dashes
       ];
+      console.log(`Will search for booking using variations: ${searchVariations.join(', ')}`);
 
       // Get all flight bookings first to perform comprehensive search
       let allFlightBookings = [];
@@ -2471,6 +2474,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to create test booking",
+        error: error.message
+      });
+    }
+  });
+
+  // Create specific booking for I1W1M7
+  app.post("/api/debug/create-i1w1m7-booking", async (req, res) => {
+    try {
+      // Check if booking already exists
+      const existing = await storage.getFlightBookingByPNR("I1W1M7");
+      if (existing) {
+        return res.json({
+          success: true,
+          message: "Booking I1W1M7 already exists",
+          booking: existing
+        });
+      }
+
+      const testBookingData = {
+        bookingReference: "GB-2024-I1W1M7",
+        pnr: "I1W1M7",
+        flightId: 1, // Default flight ID
+        passengerCount: 3,
+        totalAmount: "6750.00",
+        bookingStatus: "confirmed",
+        paymentStatus: "pending"
+      };
+
+      const booking = await storage.createFlightBooking(testBookingData);
+      
+      // Create test passengers
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Mr",
+        firstName: "John",
+        lastName: "Smith",
+        dateOfBirth: new Date("1985-03-15"),
+        nationality: "Indian"
+      });
+
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Ms",
+        firstName: "Sarah",
+        lastName: "Smith",
+        dateOfBirth: new Date("1987-08-22"),
+        nationality: "Indian"
+      });
+
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Master",
+        firstName: "Tommy",
+        lastName: "Smith",
+        dateOfBirth: new Date("2015-12-10"),
+        nationality: "Indian"
+      });
+
+      res.json({
+        success: true,
+        message: "Booking I1W1M7 created successfully",
+        booking: {
+          id: booking.id,
+          bookingReference: booking.bookingReference,
+          pnr: booking.pnr,
+          passengerCount: booking.passengerCount
+        }
+      });
+    } catch (error) {
+      console.error("Error creating I1W1M7 booking:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create I1W1M7 booking",
         error: error.message
       });
     }
