@@ -1319,6 +1319,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get retail bids by bid ID
+  async getRetailBidsByBid(bidId: number): Promise<RetailBid[]> {
+    try {
+      const retailBidsList = await db
+        .select()
+        .from(retailBids)
+        .where(eq(retailBids.bidId, bidId))
+        .orderBy(desc(retailBids.createdAt));
+
+      return retailBidsList;
+    } catch (error) {
+      console.error("Error getting retail bids by bid ID:", error);
+      throw error;
+    }
+  }
+
   // Retail Bids
   async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
     console.log("Creating retail bid with data:", bid);
@@ -1329,15 +1345,42 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`User ${bid.userId} does not have retail access.`);
     }
 
-    // Fetch flight details to check available seats and maxSeatsPerUser limit
+    // Get the original bid configuration to validate limits
+    const bidConfiguration = await this.getBidById(bid.bidId);
+    if (!bidConfiguration) {
+      throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
+    }
+
+    // Parse bid configuration data to get limits
+    let configData = {};
+    try {
+      configData = bidConfiguration.bid.notes ? JSON.parse(bidConfiguration.bid.notes) : {};
+    } catch (e) {
+      configData = {};
+    }
+
+    // Get validation limits from bid configuration
+    const maxSeatsPerUser = configData.maxSeatsPerUser || bidConfiguration.bid.maxSeatsPerBid || 5;
+    const minSeatsPerBid = configData.minSeatsPerBid || bidConfiguration.bid.minSeatsPerBid || 1;
+    const maxSeatsPerBid = configData.maxSeatsPerBid || bidConfiguration.bid.maxSeatsPerBid || 10;
+
+    // Validate passenger count against bid configuration limits
+    if (bid.passengerCount < minSeatsPerBid) {
+      throw new Error(`Minimum passenger count is ${minSeatsPerBid}.`);
+    }
+
+    if (bid.passengerCount > maxSeatsPerBid) {
+      throw new Error(`Maximum passenger count per bid is ${maxSeatsPerBid}.`);
+    }
+
+    if (bid.passengerCount > maxSeatsPerUser) {
+      throw new Error(`Maximum passenger count per user is ${maxSeatsPerUser}.`);
+    }
+
+    // Fetch flight details to check available seats
     const flight = await this.getFlight(bid.flightId);
     if (!flight) {
       throw new Error(`Flight with ID ${bid.flightId} not found.`);
-    }
-
-    // Check if the bid exceeds the maximum seats per user for this flight
-    if (bid.passengerCount > flight.maxSeatsPerUser) {
-      throw new Error(`Bid exceeds maximum seats per user (${flight.maxSeatsPerUser}) for flight ${bid.flightId}.`);
     }
 
     // Check if the requested seats are available on the flight
