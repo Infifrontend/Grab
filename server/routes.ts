@@ -312,22 +312,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let passengers = [];
       let flightData = null;
       let comprehensiveData = null;
+      let searchMethod = "";
+
+      // Enhanced search - try multiple patterns and variations
+      const searchVariations = [
+        id, // Original ID
+        id.toUpperCase(), // Uppercase version
+        id.toLowerCase(), // Lowercase version
+        id.replace(/[^a-zA-Z0-9]/g, ''), // Remove special characters
+        id.trim(), // Remove whitespace
+      ];
 
       // Try to find in flight bookings first by PNR
-      try {
-        booking = await storage.getFlightBookingByPNR(id);
-        console.log("Found booking by PNR:", booking ? "Yes" : "No");
-      } catch (error) {
-        console.log("Error finding booking by PNR:", error.message);
+      for (const searchId of searchVariations) {
+        if (booking) break;
+        
+        try {
+          booking = await storage.getFlightBookingByPNR(searchId);
+          if (booking) {
+            searchMethod = `PNR (${searchId})`;
+            console.log(`Found booking by PNR: ${searchId}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`Error finding booking by PNR (${searchId}):`, error.message);
+        }
       }
 
       // If not found by PNR, try booking reference
       if (!booking) {
-        try {
-          booking = await storage.getFlightBookingByReference(id);
-          console.log("Found booking by reference:", booking ? "Yes" : "No");
-        } catch (error) {
-          console.log("Error finding booking by reference:", error.message);
+        for (const searchId of searchVariations) {
+          if (booking) break;
+          
+          try {
+            booking = await storage.getFlightBookingByReference(searchId);
+            if (booking) {
+              searchMethod = `Reference (${searchId})`;
+              console.log(`Found booking by reference: ${searchId}`);
+              break;
+            }
+          } catch (error) {
+            console.log(`Error finding booking by reference (${searchId}):`, error.message);
+          }
         }
       }
 
@@ -335,10 +361,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!booking) {
         try {
           const allFlightBookings = await storage.getFlightBookings();
-          booking = allFlightBookings.find(
-            (b) => b.id.toString() === id,
-          );
-          console.log("Found booking by numeric ID:", booking ? "Yes" : "No");
+          
+          for (const searchId of searchVariations) {
+            booking = allFlightBookings.find(
+              (b) => b.id.toString() === searchId || 
+                     b.bookingReference === searchId ||
+                     b.pnr === searchId
+            );
+            if (booking) {
+              searchMethod = `Numeric ID (${searchId})`;
+              console.log(`Found booking by numeric ID: ${searchId}`);
+              break;
+            }
+          }
         } catch (error) {
           console.log("Error finding booking by numeric ID:", error.message);
         }
@@ -348,10 +383,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!booking) {
         try {
           const legacyBookings = await storage.getBookings();
-          booking = legacyBookings.find(
-            (b) => b.id.toString() === id || b.bookingId === id,
-          );
-          console.log("Found booking in legacy bookings:", booking ? "Yes" : "No");
+          
+          for (const searchId of searchVariations) {
+            booking = legacyBookings.find(
+              (b) => b.id.toString() === searchId || 
+                     b.bookingId === searchId ||
+                     (b.bookingReference && b.bookingReference === searchId)
+            );
+            if (booking) {
+              searchMethod = `Legacy (${searchId})`;
+              console.log(`Found booking in legacy bookings: ${searchId}`);
+              break;
+            }
+          }
 
           if (booking) {
             return res.json({
@@ -359,6 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               passengers: [],
               flightData: null,
               comprehensiveData: null,
+              searchMethod,
             });
           }
         } catch (error) {
@@ -367,8 +412,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!booking) {
-        console.log(`No booking found for ID: ${id}`);
-        return res.status(404).json({ message: "Booking not found" });
+        console.log(`No booking found for ID: ${id} (tried variations: ${searchVariations.join(', ')})`);
+        
+        // Debug: Show available bookings
+        try {
+          const allBookings = await storage.getFlightBookings();
+          console.log(`Available bookings in system: ${allBookings.length}`);
+          console.log(`Sample booking IDs:`, allBookings.slice(0, 5).map(b => ({
+            id: b.id,
+            reference: b.bookingReference,
+            pnr: b.pnr
+          })));
+        } catch (debugError) {
+          console.log("Could not fetch bookings for debug:", debugError.message);
+        }
+        
+        return res.status(404).json({ 
+          message: `Booking not found with ID: ${id}. Please check the booking reference, PNR, or contact support.`,
+          searchedVariations: searchVariations
+        });
       }
 
       // Get passengers for this booking

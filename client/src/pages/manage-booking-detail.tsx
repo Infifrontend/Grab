@@ -63,11 +63,28 @@ export default function ManageBookingDetail() {
     queryKey: ["/api/booking-details", bookingId],
     queryFn: async () => {
       if (!bookingId) throw new Error("No booking ID provided");
+      
+      console.log(`Attempting to fetch booking with ID: ${bookingId}`);
+      
       const response = await fetch(`/api/booking-details/${bookingId}`);
-      if (!response.ok) throw new Error("Failed to fetch booking details");
-      return response.json();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+        console.error(`Booking lookup failed for ID: ${bookingId}`, errorData);
+        
+        if (response.status === 404) {
+          throw new Error(`Booking not found with ID: ${bookingId}. Please check the booking reference, PNR, or contact support.`);
+        }
+        
+        throw new Error(errorData.message || "Failed to fetch booking details");
+      }
+      
+      const result = await response.json();
+      console.log(`Successfully fetched booking:`, result);
+      return result;
     },
     enabled: !!bookingId,
+    retry: 1, // Only retry once for booking lookups
   });
 
   // Initialize passengers state with fetched data
@@ -164,15 +181,33 @@ export default function ManageBookingDetail() {
 
   if (error || !bookingDetails) {
     console.error("Booking error details:", error);
+    
+    const errorMessage = error?.message || "Booking not found";
+    const isNotFoundError = errorMessage.includes("not found") || errorMessage.includes("404");
+    
     return (
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
-          message="Booking Not Found"
-          description={`The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`}
+          message={isNotFoundError ? "Booking Not Found" : "Error Loading Booking"}
+          description={
+            <div>
+              <p>{errorMessage}</p>
+              <br />
+              <strong>Troubleshooting tips:</strong>
+              <ul className="mt-2 list-disc list-inside">
+                <li>Verify your booking reference or PNR is correct</li>
+                <li>Try using the PNR from your confirmation email</li>
+                <li>Check if the booking reference includes any special characters</li>
+                <li>Contact support if the issue persists</li>
+              </ul>
+              <br />
+              <p><strong>Booking ID attempted:</strong> {bookingId}</p>
+            </div>
+          }
           type="error"
           showIcon
         />
-        <div className="mt-4">
+        <div className="mt-4 space-x-3">
           <Button
             onClick={() =>
               navigate(adminMode ? "/admin/manage-booking" : "/manage-booking")
@@ -180,6 +215,14 @@ export default function ManageBookingDetail() {
             type="primary"
           >
             Back to Manage Booking
+          </Button>
+          <Button
+            onClick={() => {
+              console.log("Retrying booking fetch...");
+              refetch();
+            }}
+          >
+            Try Again
           </Button>
         </div>
       </div>
