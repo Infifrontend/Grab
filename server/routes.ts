@@ -2391,7 +2391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Original bid found:", originalBid.bid);
 
-      // Parse bid configuration data to get limits
+      // Parse bid configuration data for reference only (no validation)
       let configData = {};
       try {
         configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
@@ -2401,54 +2401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         configData = {};
       }
 
-      // Use the actual bid values as the primary source, with config as override only if explicitly set
-      const actualPassengerCount = originalBid.bid.passengerCount || 1;
-      const actualTotalSeats = originalBid.bid.totalSeatsAvailable || 50;
-      const actualMinSeats = originalBid.bid.minSeatsPerBid || actualPassengerCount;
-      const actualMaxSeats = originalBid.bid.maxSeatsPerBid || actualTotalSeats;
-
-      // Only use config data if it's explicitly set and reasonable, otherwise use bid table values
-      const maxSeatsPerUser = (configData.maxSeatsPerUser && configData.maxSeatsPerUser > 0) ? configData.maxSeatsPerUser : actualTotalSeats;
-      const minSeatsPerBid = (configData.minSeatsPerBid && configData.minSeatsPerBid > 0) ? configData.minSeatsPerBid : actualMinSeats;
-      const maxSeatsPerBid = (configData.maxSeatsPerBid && configData.maxSeatsPerBid > 0) ? configData.maxSeatsPerBid : actualMaxSeats;
-
-      console.log("Validation limits:", {
-        maxSeatsPerUser,
-        minSeatsPerBid,
-        maxSeatsPerBid,
-        actualPassengerCount,
-        actualTotalSeats,
-        actualMinSeats,
-        actualMaxSeats,
-        configDataUsed: {
-          maxSeatsPerUser: configData.maxSeatsPerUser,
-          minSeatsPerBid: configData.minSeatsPerBid,
-          maxSeatsPerBid: configData.maxSeatsPerBid
-        },
-        requestedPassengerCount: passengerCount
-      });
-
-      // Validate passenger count limits
-      if (passengerCount < minSeatsPerBid) {
-        return res.status(400).json({
-          success: false,
-          message: `Minimum passenger count is ${minSeatsPerBid}`
-        });
-      }
-
-      if (passengerCount > maxSeatsPerBid) {
-        return res.status(400).json({
-          success: false,
-          message: `Maximum passenger count per bid is ${maxSeatsPerBid}`
-        });
-      }
-
-      if (passengerCount > maxSeatsPerUser) {
-        return res.status(400).json({
-          success: false,
-          message: `Maximum passenger count per user is ${maxSeatsPerUser} (configured in bid settings)`
-        });
-      }
+      console.log("Bid submission without validation for bid:", bidId, "passenger count:", passengerCount);
 
       // Check if user has already submitted a bid for this configuration
       const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
@@ -2461,14 +2414,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Validate submitted amount (should be >= original bid amount)
-      const originalBidAmount = parseFloat(originalBid.bid.bidAmount);
-      if (parseFloat(submittedAmount) < originalBidAmount) {
-        return res.status(400).json({
-          success: false,
-          message: `Submitted amount must be at least $${originalBidAmount}`
-        });
-      }
+      // Allow any submitted amount (validation removed)
+      console.log("Submitted amount:", submittedAmount, "Original bid amount:", originalBid.bid.bidAmount);
 
       // Create retail bid submission
       const retailBidData = {

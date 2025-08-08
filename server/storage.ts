@@ -1351,64 +1351,13 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
     }
 
-    // Parse bid configuration data to get limits
-    let configData = {};
-    try {
-      configData = bidConfiguration.bid.notes ? JSON.parse(bidConfiguration.bid.notes) : {};
-    } catch (e) {
-      configData = {};
-    }
-
-    // Use actual bid table values as primary source
-    const actualPassengerCount = bidConfiguration.bid.passengerCount || 1;
-    const actualTotalSeats = bidConfiguration.bid.totalSeatsAvailable || 50;
-    const actualMinSeats = bidConfiguration.bid.minSeatsPerBid || actualPassengerCount;
-    const actualMaxSeats = bidConfiguration.bid.maxSeatsPerBid || actualTotalSeats;
-
-    // Only override with config data if explicitly set and reasonable
-    const maxSeatsPerUser = (configData.maxSeatsPerUser && configData.maxSeatsPerUser > 0) ? configData.maxSeatsPerUser : actualTotalSeats;
-    const minSeatsPerBid = (configData.minSeatsPerBid && configData.minSeatsPerBid > 0) ? configData.minSeatsPerBid : actualMinSeats;
-    const maxSeatsPerBid = (configData.maxSeatsPerBid && configData.maxSeatsPerBid > 0) ? configData.maxSeatsPerBid : actualMaxSeats;
-
-    console.log("Storage validation limits:", {
-      maxSeatsPerUser,
-      minSeatsPerBid,
-      maxSeatsPerBid,
-      actualPassengerCount,
-      actualTotalSeats,
-      actualMinSeats,
-      actualMaxSeats,
-      configDataUsed: {
-        maxSeatsPerUser: configData.maxSeatsPerUser,
-        minSeatsPerBid: configData.minSeatsPerBid,
-        maxSeatsPerBid: configData.maxSeatsPerBid
-      },
-      requestedPassengerCount: bid.passengerCount
+    // Validation removed - allow any bid submission
+    console.log("Creating retail bid without validation:", {
+      bidId: bid.bidId,
+      userId: bid.userId,
+      passengerCount: bid.passengerCount,
+      submittedAmount: bid.submittedAmount
     });
-
-    // Validate passenger count against bid configuration limits
-    if (bid.passengerCount < minSeatsPerBid) {
-      throw new Error(`Minimum passenger count is ${minSeatsPerBid}.`);
-    }
-
-    if (bid.passengerCount > maxSeatsPerBid) {
-      throw new Error(`Maximum passenger count per bid is ${maxSeatsPerBid}.`);
-    }
-
-    if (bid.passengerCount > maxSeatsPerUser) {
-      throw new Error(`Maximum passenger count per user is ${maxSeatsPerUser}.`);
-    }
-
-    // Fetch flight details to check available seats
-    const flight = await this.getFlight(bid.flightId);
-    if (!flight) {
-      throw new Error(`Flight with ID ${bid.flightId} not found.`);
-    }
-
-    // Check if the requested seats are available on the flight
-    if (bid.passengerCount > flight.availableSeats) {
-      throw new Error(`Not enough available seats (${flight.availableSeats}) for flight ${bid.flightId}.`);
-    }
 
     try {
       // Insert the retail bid into the database
@@ -1421,8 +1370,7 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
 
-      // Decrease the available seats on the flight
-      await this.updateFlightSeats(bid.flightId, bid.passengerCount);
+      // Flight seat update removed to allow unlimited bidding
 
       console.log("Retail bid created successfully:", newRetailBid);
       return newRetailBid;
