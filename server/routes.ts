@@ -1407,6 +1407,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { passengers } = req.body;
 
+      console.log(`Updating passengers for booking: ${id}`);
+      console.log(`Passenger data received:`, passengers);
+
+      // Validate input
+      if (!passengers || !Array.isArray(passengers)) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid passenger data provided" 
+        });
+      }
+
       // Find the booking by ID or reference
       let booking = await storage.getFlightBookingByReference(id);
       if (!booking) {
@@ -1415,54 +1426,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!booking) {
-        return res.status(404).json({ message: "Booking not found" });
+        console.log(`Booking not found for ID: ${id}`);
+        return res.status(404).json({ 
+          success: false,
+          message: "Booking not found" 
+        });
       }
 
+      console.log(`Found booking with ID: ${booking.id}`);
+
       // Get existing passengers
-      const existingPassengers = await storage.getPassengersByBooking(
-        booking.id,
-      );
+      const existingPassengers = await storage.getPassengersByBooking(booking.id);
+      console.log(`Found ${existingPassengers.length} existing passengers`);
 
       // Update existing passengers or create new ones
       for (let i = 0; i < passengers.length; i++) {
         const passengerData = passengers[i];
+        
+        // Skip empty passenger entries
+        if (!passengerData.firstName && !passengerData.lastName) {
+          continue;
+        }
+
+        const passengerInfo = {
+          title: passengerData.title || "Mr",
+          firstName: passengerData.firstName || "",
+          lastName: passengerData.lastName || "",
+          dateOfBirth: passengerData.dateOfBirth ? new Date(passengerData.dateOfBirth) : new Date("1990-01-01"),
+          nationality: passengerData.nationality || "Indian",
+          passportNumber: passengerData.passportNumber || null,
+          passportExpiry: passengerData.passportExpiry ? new Date(passengerData.passportExpiry) : null,
+          seatPreference: passengerData.seatPreference || null,
+          mealPreference: passengerData.mealPreference || null,
+          specialAssistance: passengerData.specialRequests || null,
+        };
 
         if (existingPassengers[i]) {
           // Update existing passenger
-          await storage.updatePassenger(existingPassengers[i].id, {
-            firstName: passengerData.firstName,
-            lastName: passengerData.lastName,
-          });
+          console.log(`Updating existing passenger ${i + 1}`);
+          await storage.updatePassenger(existingPassengers[i].id, passengerInfo);
         } else {
           // Create new passenger
+          console.log(`Creating new passenger ${i + 1}`);
           await storage.createPassenger({
             bookingId: booking.id,
-            title: "Mr",
-            firstName: passengerData.firstName,
-            lastName: passengerData.lastName,
-            dateOfBirth: new Date("1990-01-01"), // Default date
-            nationality: "Indian", // Default nationality
+            ...passengerInfo,
           });
         }
       }
 
       // Remove excess passengers if the new list is shorter
       if (existingPassengers.length > passengers.length) {
+        console.log(`Removing ${existingPassengers.length - passengers.length} excess passengers`);
         for (let i = passengers.length; i < existingPassengers.length; i++) {
           await storage.deletePassenger(existingPassengers[i].id);
         }
       }
 
       // Update the booking's passenger count to match the actual number of passengers
-      await storage.updateBookingPassengerCount(booking.id, passengers.length);
+      const validPassengerCount = passengers.filter(p => p.firstName || p.lastName).length;
+      await storage.updateBookingPassengerCount(booking.id, validPassengerCount);
+
+      console.log(`Successfully updated passengers for booking ${id}`);
 
       res.json({
         success: true,
         message: "Passengers updated successfully",
+        passengerCount: validPassengerCount,
       });
     } catch (error) {
       console.error("Error updating passengers:", error);
-      res.status(500).json({ message: "Failed to update passengers" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update passengers",
+        error: error.message 
+      });
     }
   });
 

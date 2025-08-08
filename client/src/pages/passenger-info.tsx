@@ -184,6 +184,8 @@ export default function PassengerInfo() {
   const handleContinue = async () => {
     try {
       console.log("Saving passenger information...");
+      
+      // Filter out passengers with at least first name or last name
       const validPassengers = passengers.filter(
         (p) => p.firstName.trim() || p.lastName.trim()
       );
@@ -192,6 +194,11 @@ export default function PassengerInfo() {
         `Saving ${validPassengers.length} passengers:`,
         validPassengers
       );
+
+      // Validate that we have the booking reference
+      if (!bookingReference) {
+        throw new Error("No booking reference found");
+      }
 
       const passengersResponse = await fetch(
         `/api/booking-passengers/${bookingReference}`,
@@ -207,25 +214,26 @@ export default function PassengerInfo() {
       );
 
       if (!passengersResponse.ok) {
-        const errorData = await passengersResponse.text();
+        const errorData = await passengersResponse.json().catch(() => ({ message: "Unknown error" }));
         console.error("Passenger update failed:", errorData);
-        throw new Error("Failed to update passenger information");
+        throw new Error(errorData.message || "Failed to update passenger information");
       }
 
-      console.log("Passenger information saved successfully");
+      const responseData = await passengersResponse.json();
+      console.log("Passenger information saved successfully:", responseData);
 
-      message.success("Changes saved successfully");
+      message.success("Passenger information saved successfully");
 
-      // Refresh the booking details to reflect the changes
-      // console.log("Refetching booking details...");
-      // await refetch();
+      // Clear temporary passenger data
+      localStorage.removeItem("tempPassengerData");
+
       // Get PNR from booking data or use the booking reference as fallback
-                const pnr = localStorage.getItem("currentPNR") || bookingReference;
-                navigate(adminMode ? `/admin/booking-details/${pnr}` : `/booking-details/${pnr}`);
-      console.log("Booking details refetched successfully");
+      const pnr = localStorage.getItem("currentPNR") || bookingReference;
+      navigate(adminMode ? `/admin/booking-details/${pnr}` : `/booking-details/${pnr}`);
+      
     } catch (error) {
       console.error("Error saving changes:", error);
-      message.error("Failed to save changes. Please try again.");
+      message.error(`Failed to save changes: ${error.message}`);
     }
   };
 
