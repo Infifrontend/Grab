@@ -19,7 +19,7 @@ import {
   CalendarOutlined,
   TeamOutlined,
   EditOutlined,
-  EyeOutlined
+  EyeOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,9 @@ const { Title, Text } = Typography;
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
   const navigate = useNavigate();
-  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  const adminMode = JSON.parse(
+    localStorage.getItem("adminLoggedIn") || "false",
+  );
   const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -105,7 +107,7 @@ export default function ManageBooking() {
       navigate(
         adminMode
           ? `/admin/manage-booking/${bookingId}`
-          : `/manage-booking/${bookingId}`
+          : `/manage-booking/${bookingId}`,
       );
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -147,7 +149,7 @@ export default function ManageBooking() {
       navigate(
         adminMode
           ? `/admin/manage-booking/${bookingId}`
-          : `/manage-booking/${bookingId}`
+          : `/manage-booking/${bookingId}`,
       );
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -159,7 +161,7 @@ export default function ManageBooking() {
     navigate(
       adminMode
         ? `/admin/manage-booking/${bookingId}`
-        : `/manage-booking/${bookingId}`
+        : `/manage-booking/${bookingId}`,
     );
   };
 
@@ -187,7 +189,11 @@ export default function ManageBooking() {
   };
 
   const handleViewBooking = (bookingId: any) => {
-    navigate(adminMode ? `/admin/booking-details/${bookingId}` : `/booking-details/${bookingId}`);
+    navigate(
+      adminMode
+        ? `/admin/booking-details/${bookingId}`
+        : `/booking-details/${bookingId}`,
+    );
   };
 
   // Transform real booking data for table and sort by creation date (latest first)
@@ -277,9 +283,7 @@ export default function ManageBooking() {
     });
 
   return (
-    <div
-      className={`${adminMode ? "flex-1" : "max-w-7xl p-6"} mx-auto`}
-    >
+    <div className={`${adminMode ? "flex-1" : "max-w-7xl p-6"} mx-auto`}>
       {/* Page Header */}
       <div className="mb-8">
         <Title level={2} className="!mb-2 text-gray-900">
@@ -301,8 +305,7 @@ export default function ManageBooking() {
                 Find Your Booking
               </Title>
               <Text className="text-gray-600">
-                Enter your booking details to access and manage your
-                reservation
+                Enter your booking details to access and manage your reservation
               </Text>
             </div>
 
@@ -343,8 +346,7 @@ export default function ManageBooking() {
               </Title>
               <Text className="text-gray-600">
                 Can't find your booking or need assistance? Check your booking
-                to view confirmed passenger counts and manage your
-                reservation.
+                to view confirmed passenger counts and manage your reservation.
               </Text>
             </div>
 
@@ -374,7 +376,7 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      {(userMode || adminMode) &&
+      {(userMode || adminMode) && (
         <div>
           {/* Bookings Header */}
           <div className="flex justify-between items-center mb-6">
@@ -551,7 +553,7 @@ export default function ManageBooking() {
                     fixed: "right",
                     width: 120,
                     render: (value, record) => {
-                      console.log(record, 'recordrecord');
+                      console.log(record, "recordrecord");
 
                       return (
                         <>
@@ -572,8 +574,8 @@ export default function ManageBooking() {
                             <EditOutlined />
                           </Button>
                         </>
-                      )
-                    }
+                      );
+                    },
                   },
                 ]}
               />
@@ -597,7 +599,7 @@ export default function ManageBooking() {
             )}
           </Card>
         </div>
-      }
+      )}
     </div>
   );
 }
