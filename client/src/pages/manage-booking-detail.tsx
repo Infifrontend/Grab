@@ -164,14 +164,40 @@ export default function ManageBookingDetail() {
 
   if (error || !bookingDetails) {
     console.error("Booking error details:", error);
+    
+    // Parse error response if available
+    let errorMessage = `The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`;
+    let debugInfo = null;
+    
+    if (error?.message) {
+      try {
+        const errorData = JSON.parse(error.message);
+        if (errorData.availablePNRs || errorData.availableReferences) {
+          debugInfo = errorData;
+          errorMessage = `Booking "${bookingId}" not found. Available bookings: ${[...errorData.availablePNRs, ...errorData.availableReferences].join(", ")}`;
+        }
+      } catch (e) {
+        // Error message is not JSON, use as is
+        errorMessage = error.message || errorMessage;
+      }
+    }
+    
     return (
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
           message="Booking Not Found"
-          description={`The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`}
+          description={errorMessage}
           type="error"
           showIcon
         />
+        {debugInfo && (
+          <Card className="mt-4">
+            <Title level={5}>Debug Information</Title>
+            <Text>Available PNRs: {debugInfo.availablePNRs?.join(", ") || "None"}</Text>
+            <br />
+            <Text>Available References: {debugInfo.availableReferences?.join(", ") || "None"}</Text>
+          </Card>
+        )}
         <div className="mt-4">
           <Button
             onClick={() =>

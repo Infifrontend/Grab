@@ -313,35 +313,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let flightData = null;
       let comprehensiveData = null;
 
-      // Try to find in flight bookings first by PNR
-      try {
-        booking = await storage.getFlightBookingByPNR(id);
-        console.log("Found booking by PNR:", booking ? "Yes" : "No");
-      } catch (error) {
-        console.log("Error finding booking by PNR:", error.message);
+      // Get all flight bookings first for comprehensive search
+      const allFlightBookings = await storage.getFlightBookings();
+      console.log(`Total flight bookings available: ${allFlightBookings.length}`);
+
+      // Try multiple search strategies
+      if (!booking) {
+        // Strategy 1: Search by PNR (exact match)
+        booking = allFlightBookings.find(b => b.pnr && b.pnr.toUpperCase() === id.toUpperCase());
+        if (booking) console.log("Found booking by PNR exact match");
       }
 
-      // If not found by PNR, try booking reference
       if (!booking) {
-        try {
-          booking = await storage.getFlightBookingByReference(id);
-          console.log("Found booking by reference:", booking ? "Yes" : "No");
-        } catch (error) {
-          console.log("Error finding booking by reference:", error.message);
-        }
+        // Strategy 2: Search by booking reference (exact match)
+        booking = allFlightBookings.find(b => b.bookingReference && b.bookingReference.toUpperCase() === id.toUpperCase());
+        if (booking) console.log("Found booking by booking reference exact match");
       }
 
-      // If not found by reference, try by numeric ID
       if (!booking) {
-        try {
-          const allFlightBookings = await storage.getFlightBookings();
-          booking = allFlightBookings.find(
-            (b) => b.id.toString() === id,
-          );
-          console.log("Found booking by numeric ID:", booking ? "Yes" : "No");
-        } catch (error) {
-          console.log("Error finding booking by numeric ID:", error.message);
-        }
+        // Strategy 3: Search by ID (numeric)
+        booking = allFlightBookings.find(b => b.id.toString() === id);
+        if (booking) console.log("Found booking by numeric ID");
+      }
+
+      if (!booking) {
+        // Strategy 4: Partial match in PNR or booking reference
+        booking = allFlightBookings.find(b => 
+          (b.pnr && b.pnr.toUpperCase().includes(id.toUpperCase())) ||
+          (b.bookingReference && b.bookingReference.toUpperCase().includes(id.toUpperCase()))
+        );
+        if (booking) console.log("Found booking by partial match");
       }
 
       // If still not found, try legacy bookings
@@ -368,7 +369,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!booking) {
         console.log(`No booking found for ID: ${id}`);
-        return res.status(404).json({ message: "Booking not found" });
+        
+        // Debug information
+        console.log("Available PNRs:", allFlightBookings.map(b => b.pnr).filter(Boolean));
+        console.log("Available booking references:", allFlightBookings.map(b => b.bookingReference).filter(Boolean));
+        console.log("Available IDs:", allFlightBookings.map(b => b.id));
+        
+        return res.status(404).json({ 
+          message: "Booking not found",
+          searchedId: id,
+          availablePNRs: allFlightBookings.map(b => b.pnr).filter(Boolean),
+          availableReferences: allFlightBookings.map(b => b.bookingReference).filter(Boolean)
+        });
       }
 
       // Get passengers for this booking
