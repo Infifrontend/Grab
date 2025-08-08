@@ -197,13 +197,14 @@ export default function ManageBooking() {
   };
 
   // Transform real booking data for table and sort by creation date (latest first)
-  const bookingsTableData = flightBookingsData
+  const bookingsTableData = (flightBookingsData || [])
+    .filter(booking => booking && booking.id) // Filter out invalid bookings
     .sort((a, b) => {
       const dateA = new Date(a.bookedAt || a.createdAt || 0);
       const dateB = new Date(b.bookedAt || b.createdAt || 0);
       return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
     })
-    .map((booking, index) => {
+    .map((booking) => {
       // Extract route information from flight data or comprehensive data
       let route = "Route not available";
       let departureDate = "Date not available";
@@ -278,6 +279,8 @@ export default function ManageBooking() {
         returnDate: returnDate,
         passengers: booking.passengerCount,
         status: booking.bookingStatus,
+        totalAmount: booking.totalAmount,
+        bookingDate: booking.bookedAt || booking.createdAt,
         booking: booking, // Keep reference to original booking for debugging
       };
     });
@@ -376,19 +379,31 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      {(userMode || adminMode) && (
-        <div>
-          {/* Bookings Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <Title level={3} className="!mb-1 text-gray-900">
-                Your Bookings
-              </Title>
-              <Text className="text-gray-600">
-                Manage and track all your group bookings
-              </Text>
-            </div>
+      {/* Always show bookings section, but content depends on login status */}
+      <div className="mt-8">
+        {/* Bookings Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <Title level={3} className="!mb-1 text-gray-900">
+              {(userMode || adminMode) ? "Your Bookings" : "Recent Bookings"}
+            </Title>
+            <Text className="text-gray-600">
+              {(userMode || adminMode) 
+                ? "Manage and track all your group bookings"
+                : "View and manage your flight bookings"
+              }
+            </Text>
           </div>
+          {(userMode || adminMode) && (
+            <Button
+              type="primary"
+              className="infiniti-btn-primary"
+              onClick={handleNewBooking}
+            >
+              Create New Booking
+            </Button>
+          )}
+        </div>
 
           {/* Bookings Table */}
           <Card className="border-0 shadow-sm">
@@ -528,6 +543,50 @@ export default function ManageBooking() {
                     sorter: (a, b) => a.passengers - b.passengers,
                   },
                   {
+                    title: "Amount",
+                    dataIndex: "totalAmount",
+                    key: "totalAmount",
+                    width: 120,
+                    render: (amount) => (
+                      <span className="text-gray-900 font-semibold">
+                        {amount ? `₹${parseFloat(amount).toLocaleString()}` : 'N/A'}
+                      </span>
+                    ),
+                    sorter: (a, b) => parseFloat(a.totalAmount || 0) - parseFloat(b.totalAmount || 0),
+                  },
+                  {
+                    title: "Booking Date",
+                    dataIndex: "bookingDate",
+                    key: "bookingDate",
+                    width: 130,
+                    render: (date) => {
+                      if (!date) return <span className="text-gray-500">N/A</span>;
+                      try {
+                        return (
+                          <span className="text-gray-600">
+                            {new Date(date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        );
+                      } catch (e) {
+                        return <span className="text-gray-500">Invalid date</span>;
+                      }
+                    },
+                    sorter: (a, b) => {
+                      if (!a.bookingDate && !b.bookingDate) return 0;
+                      if (!a.bookingDate) return 1;
+                      if (!b.bookingDate) return -1;
+                      try {
+                        return new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime();
+                      } catch (e) {
+                        return 0;
+                      }
+                    },
+                  },
+                  {
                     title: "Status",
                     dataIndex: "status",
                     key: "status",
@@ -599,7 +658,6 @@ export default function ManageBooking() {
             )}
           </Card>
         </div>
-      )}
     </div>
   );
 }
