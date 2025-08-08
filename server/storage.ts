@@ -135,6 +135,7 @@ export interface IStorage {
 
   // Retail Bids
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
+  getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -175,10 +176,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserRetailAccess(userId: number, isAllowed: boolean) {
-    await db
-      .update(usersTable)
-      .set({ isRetailAllowed: isAllowed })
-      .where(eq(usersTable.id, userId));
+    try {
+      await db
+        .update(usersTable)
+        .set({ isRetailAllowed: isAllowed })
+        .where(eq(usersTable.id, userId));
+    } catch (error) {
+      console.error("Error updating user retail access:", error);
+      throw error;
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
