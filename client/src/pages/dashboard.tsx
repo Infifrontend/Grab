@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Row,
@@ -38,7 +38,28 @@ const { Title, Text } = Typography;
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      // Check for user authentication - you can modify this based on your auth system
+      const userToken = localStorage.getItem("userToken");
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      const userData = localStorage.getItem("userData");
+      
+      setIsAuthenticated(!!(userToken || isLoggedIn || userData));
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    const handleStorageChange = () => checkAuth();
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Fetch booking overview data for charts
   const { data: bookingOverview } = useQuery({
@@ -438,14 +459,14 @@ export default function Dashboard() {
       key: "overview",
       label: "Overview",
     },
-    {
+    ...(isAuthenticated ? [{
       key: "bookings",
       label: "Bookings",
-    },
-    {
+    }] : []),
+    ...(isAuthenticated ? [{
       key: "payments",
       label: "Payments",
-    },
+    }] : []),
     {
       key: "insights",
       label: "Insights",
@@ -837,7 +858,7 @@ export default function Dashboard() {
         </>
       )}
 
-      {activeTab === "bookings" && (
+      {activeTab === "bookings" && isAuthenticated && (
         <div>
           {/* Bookings Header */}
           <div className="flex justify-between items-center mb-6">
@@ -1054,7 +1075,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {activeTab === "payments" && (
+      {activeTab === "payments" && isAuthenticated && (
         <div>
           {/* Payment History Header */}
           <div className="mb-6">

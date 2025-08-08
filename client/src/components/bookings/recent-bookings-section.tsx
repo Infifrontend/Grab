@@ -1,12 +1,38 @@
-import { Table, Tag } from "antd";
+import { Table, Tag, Button, Typography } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { Booking } from "@shared/schema";
 import type { ColumnsType } from "antd/es/table";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { BookOpen } from "lucide-react";
+
+const { Title, Text } = Typography;
 export default function RecentBookingsSection() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const userToken = localStorage.getItem("userToken");
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      const userData = localStorage.getItem("userData");
+      
+      setIsAuthenticated(!!(userToken || isLoggedIn || userData));
+    };
+    
+    checkAuth();
+    
+    const handleStorageChange = () => checkAuth();
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const { data: flightBookings, isLoading } = useQuery({
     queryKey: ["/api/recent-flight-bookings"],
+    enabled: isAuthenticated, // Only fetch if authenticated
   });
 
   // Sort and limit to last 3 bookings based on creation date
@@ -17,7 +43,6 @@ export default function RecentBookingsSection() {
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 3) || [];
-  const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -113,6 +138,11 @@ export default function RecentBookingsSection() {
       ),
     },
   ];
+
+  // Don't render anything if user is not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="deal-card">
