@@ -621,15 +621,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.query;
       const requestingUserId = userId ? parseInt(userId as string) : null;
       
-      // Get all admin-created bids
-      const bids = await db
+      // Get all admin-created bids from the database
+      const allBids = await db
         .select()
-        .from(bids as any)
+        .from(bids)
         .execute();
 
       // Enhanced bids with conditional status logic
       const enhancedBids = await Promise.all(
-        bids.map(async (bid) => {
+        allBids.map(async (bid) => {
           try {
             // Get all retail bids for this bid to calculate total booked seats
             const allRetailBids = await db
@@ -750,7 +750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the specific bid
       const bidResult = await db
         .select()
-        .from(bids as any)
+        .from(bids)
         .where(eq(bids.id, parseInt(id)))
         .execute();
 

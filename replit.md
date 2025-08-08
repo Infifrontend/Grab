@@ -153,6 +153,8 @@ The application is structured as a monorepo with clear separation between client
 - **Enhanced API Endpoints**: Updated /api/bids and /api/bids/:id with retail_bids integration
 - **Payment Status Tracking**: Added payment_status column to retail_bids table
 - **Business Logic**: Complete seat calculation and user-specific status visibility
+- **API Structure**: Implemented structured response with id, title, seat_limit, bid_amount, remaining_seats, computed_status, and retail_bids array for collapsible UI
+- **Working Implementation**: Both bids listing API and bid detail API are functional with conditional status rules
 
 ### July 2025 - Database Integration & Quick Booking
 - **2025-07-14**: Implemented complete flight booking system with PostgreSQL database
