@@ -466,7 +466,14 @@ const MenuRoutes = {
     ],
   },
   guest: {
-    menu: [],
+    menu: [
+      {
+        menu_code: "Bids",
+        path: "/bids",
+        key: "bids",
+        subMenu: [],
+      },
+    ],
     routes: [
       {
         route_id: 301,
@@ -530,6 +537,20 @@ const MenuRoutes = {
         path: "/payment-details/:bidId",
         layout: "RetailLayout",
         component: "PaymentDetails",
+        permission: [],
+      },
+      {
+        route_id: 208,
+        path: "/bids",
+        layout: "RetailLayout",
+        component: "Bids",
+        permission: [],
+      },
+      {
+        route_id: 209,
+        path: "/bid-details/:id",
+        layout: "RetailLayout",
+        component: "BidDetails",
         permission: [],
       },
       {

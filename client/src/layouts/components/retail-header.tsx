@@ -171,6 +171,17 @@ export default function Header() {
                 >
                   Find your booking
                 </Link>
+                <Link
+                  to="/bids"
+                  onClick={() =>
+                    localStorage.setItem("activeMenu", "bids")
+                  }
+                  className={`infiniti-nav-item transition-colors duration-200 ${
+                    activeMenu === "bids" ? "active" : ""
+                  }`}
+                >
+                  Bids
+                </Link>
               </nav>
             )}
             {/* User Profile - Remaining unchanged  */}
