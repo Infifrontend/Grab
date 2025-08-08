@@ -194,6 +194,36 @@ export default function PaymentDetails() {
       const formValues =
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
+      // First, submit the retail bid
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("Please log in to submit a bid");
+      }
+
+      console.log("Submitting retail bid before payment...");
+      const retailBidResponse = await fetch("/api/retail-bids", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bidId: parseInt(bidId),
+          userId: parseInt(userId),
+          submittedAmount: bidParticipationData.bidAmount,
+          passengerCount: bidParticipationData.passengerCount,
+        }),
+      });
+
+      if (!retailBidResponse.ok) {
+        const retailBidError = await retailBidResponse.json().catch(() => ({}));
+        throw new Error(
+          retailBidError.message || "Failed to submit bid"
+        );
+      }
+
+      const retailBidResult = await retailBidResponse.json();
+      console.log("Retail bid submitted successfully:", retailBidResult);
+
       // Create payment record using bid ID
       const paymentResponse = await fetch("/api/payments", {
         method: "POST",
@@ -253,7 +283,7 @@ export default function PaymentDetails() {
       // Clear localStorage
       localStorage.removeItem("bidParticipationData");
 
-      message.success("Payment processed successfully!");
+      message.success("Bid submitted and payment processed successfully!");
 
       // Show success modal
       setShowSuccessModal(true);
@@ -538,8 +568,7 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit
-                Bid
+                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit Bid
               </Button>
             </Card>
           </Col>
@@ -571,10 +600,10 @@ export default function PaymentDetails() {
               <CheckCircleOutlined className="text-green-600 text-2xl" />
             </div>
             <Typography.Title level={3} className="!mb-2 text-gray-900">
-              Payment Successful!
+              Bid Submitted Successfully!
             </Typography.Title>
             <Typography.Text className="text-gray-600 text-lg">
-              Your bid participation has been confirmed and payment processed.
+              Your bid has been submitted and payment processed successfully.
             </Typography.Text>
           </div>
 
