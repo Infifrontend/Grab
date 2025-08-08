@@ -323,10 +323,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id.trim(), // Remove whitespace
       ];
 
-      // Try to find in flight bookings first by PNR
+      // Get all flight bookings first to perform comprehensive search
+      let allFlightBookings = [];
+      try {
+        allFlightBookings = await storage.getFlightBookings();
+        console.log(`Total bookings in database: ${allFlightBookings.length}`);
+        
+        if (allFlightBookings.length > 0) {
+          console.log(`Sample booking references:`, allFlightBookings.slice(0, 3).map(b => ({
+            id: b.id,
+            reference: b.bookingReference,
+            pnr: b.pnr
+          })));
+        }
+      } catch (error) {
+        console.error("Error fetching all bookings:", error.message);
+      }
+
+      // Try to find in flight bookings by various methods
       for (const searchId of searchVariations) {
         if (booking) break;
         
+        // Method 1: Search by PNR
         try {
           booking = await storage.getFlightBookingByPNR(searchId);
           if (booking) {
@@ -337,13 +355,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.log(`Error finding booking by PNR (${searchId}):`, error.message);
         }
-      }
 
-      // If not found by PNR, try booking reference
-      if (!booking) {
-        for (const searchId of searchVariations) {
-          if (booking) break;
-          
+        // Method 2: Search by booking reference
+        if (!booking) {
           try {
             booking = await storage.getFlightBookingByReference(searchId);
             if (booking) {
@@ -355,27 +369,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Error finding booking by reference (${searchId}):`, error.message);
           }
         }
-      }
 
-      // If not found by reference, try by numeric ID
-      if (!booking) {
-        try {
-          const allFlightBookings = await storage.getFlightBookings();
+        // Method 3: Manual search through all bookings
+        if (!booking && allFlightBookings.length > 0) {
+          booking = allFlightBookings.find((b) => {
+            return b.id.toString() === searchId || 
+                   (b.bookingReference && b.bookingReference === searchId) ||
+                   (b.pnr && b.pnr === searchId) ||
+                   (b.bookingReference && b.bookingReference.toLowerCase() === searchId.toLowerCase()) ||
+                   (b.pnr && b.pnr.toLowerCase() === searchId.toLowerCase());
+          });
           
-          for (const searchId of searchVariations) {
-            booking = allFlightBookings.find(
-              (b) => b.id.toString() === searchId || 
-                     b.bookingReference === searchId ||
-                     b.pnr === searchId
-            );
-            if (booking) {
-              searchMethod = `Numeric ID (${searchId})`;
-              console.log(`Found booking by numeric ID: ${searchId}`);
-              break;
-            }
+          if (booking) {
+            searchMethod = `Manual search (${searchId})`;
+            console.log(`Found booking by manual search: ${searchId}`);
+            break;
           }
-        } catch (error) {
-          console.log("Error finding booking by numeric ID:", error.message);
         }
       }
 
@@ -2207,6 +2216,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to list all bookings (for troubleshooting)
+  app.get("/api/debug/bookings", async (req, res) => {
+    try {
+      const allBookings = await storage.getFlightBookings();
+      const legacyBookings = await storage.getBookings();
+      
+      res.json({
+        success: true,
+        flightBookings: {
+          count: allBookings.length,
+          bookings: allBookings.map(b => ({
+            id: b.id,
+            bookingReference: b.bookingReference,
+            pnr: b.pnr,
+            passengerCount: b.passengerCount,
+            totalAmount: b.totalAmount,
+            bookingStatus: b.bookingStatus,
+            createdAt: b.bookedAt || b.createdAt
+          }))
+        },
+        legacyBookings: {
+          count: legacyBookings.length,
+          bookings: legacyBookings.map(b => ({
+            id: b.id,
+            bookingId: b.bookingId,
+            bookingReference: b.bookingReference || 'N/A',
+            status: b.status,
+            createdAt: b.createdAt
+          }))
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching debug bookings:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch debug booking data",
+        error: error.message
+      });
+    }
+  });
+
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
@@ -2360,6 +2410,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to update retail access"
+      });
+    }
+  });
+
+  // Create test booking for debugging
+  app.post("/api/debug/create-test-booking", async (req, res) => {
+    try {
+      const testBookingData = {
+        bookingReference: "T6A7B9",
+        flightId: 1, // Default flight ID
+        passengerCount: 2,
+        totalAmount: "4500.00",
+        bookingStatus: "confirmed",
+        paymentStatus: "pending"
+      };
+
+      const booking = await storage.createFlightBooking(testBookingData);
+      
+      // Create test passengers
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Mr",
+        firstName: "John",
+        lastName: "Doe",
+        dateOfBirth: new Date("1990-01-01"),
+        nationality: "Indian"
+      });
+
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Ms",
+        firstName: "Jane",
+        lastName: "Doe",
+        dateOfBirth: new Date("1992-06-15"),
+        nationality: "Indian"
+      });
+
+      res.json({
+        success: true,
+        message: "Test booking created successfully",
+        booking: {
+          id: booking.id,
+          bookingReference: booking.bookingReference,
+          pnr: booking.pnr,
+          passengerCount: booking.passengerCount
+        }
+      });
+    } catch (error) {
+      console.error("Error creating test booking:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create test booking",
+        error: error.message
       });
     }
   });
