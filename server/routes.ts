@@ -2488,7 +2488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
-        status: "submitted"
+        status: "paid" // Set as paid to indicate user has completed payment
       };
 
       const newRetailBid = await storage.createRetailBid(retailBidData);
@@ -2555,6 +2555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bid-status/:bidId", async (req, res) => {
     try {
       const { bidId } = req.params;
+      const { userId } = req.query;
       
       // Get the bid configuration
       const bidDetails = await storage.getBidById(parseInt(bidId));
@@ -2587,14 +2588,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const seatsRemaining = totalSeatsAvailable - totalSeatsBooked;
       const isClosed = seatsRemaining <= 0;
 
-      // Determine display status for retail users
+      // Check if current user has paid for this bid
+      let userPaymentStatus = null;
+      let userBidStatus = null;
+      
+      if (userId) {
+        const userRetailBid = retailBids.find(rb => rb.userId === parseInt(userId as string));
+        if (userRetailBid) {
+          userBidStatus = userRetailBid.status;
+          userPaymentStatus = userRetailBid.status === 'paid' || userRetailBid.status === 'approved';
+        }
+      }
+
+      // Determine display status based on user-specific logic
       let displayStatus = 'Open';
+      
       if (isClosed) {
+        // If seats are full, everyone sees "Closed"
         displayStatus = 'Closed';
       } else if (bidDetails.bid.bidStatus === 'expired') {
         displayStatus = 'Expired';
       } else if (bidDetails.bid.bidStatus === 'rejected') {
         displayStatus = 'Declined';
+      } else if (userId && userPaymentStatus) {
+        // If user has paid, they see "Under Review"
+        displayStatus = 'Under Review';
+      } else {
+        // If user hasn't paid or no user specified, show "Open"
+        displayStatus = 'Open';
       }
 
       res.json({
@@ -2604,7 +2625,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSeatsBooked: totalSeatsBooked,
         seatsRemaining: seatsRemaining,
         isClosed: isClosed,
-        originalBidStatus: bidDetails.bid.bidStatus
+        originalBidStatus: bidDetails.bid.bidStatus,
+        userPaymentStatus: userPaymentStatus,
+        userBidStatus: userBidStatus,
+        hasUserPaid: userPaymentStatus || false
       });
 
     } catch (error) {

@@ -110,10 +110,12 @@ export default function Bids() {
             ? formatDateToDDMMMYYYY(bid.createdAt)
             : "N/A";
 
-          // Fetch dynamic status based on seat availability
+          // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
+          const userId = localStorage.getItem("userId");
+          
           try {
-            const statusResponse = await fetch(`/api/bid-status/${bid.id}`);
+            const statusResponse = await fetch(`/api/bid-status/${bid.id}?userId=${userId || ''}`);
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";

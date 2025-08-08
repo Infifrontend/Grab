@@ -48,10 +48,12 @@ export default function BidDetails() {
 
         const data = await response.json();
 
-        // Fetch dynamic status based on seat availability
+        // Fetch dynamic status based on seat availability and user payment status
         let seatAvailabilityData = null;
+        const userId = localStorage.getItem("userId");
+        
         try {
-          const statusResponse = await fetch(`/api/bid-status/${params.id}`);
+          const statusResponse = await fetch(`/api/bid-status/${params.id}?userId=${userId || ''}`);
           if (statusResponse.ok) {
             seatAvailabilityData = await statusResponse.json();
           }
@@ -330,12 +332,27 @@ export default function BidDetails() {
               <strong>{transformedBidData.seatAvailability.totalSeatsAvailable}</strong> total seats.
               {transformedBidData.seatAvailability.isClosed ? (
                 <span className="text-red-600 font-semibold"> This bid is now closed.</span>
+              ) : transformedBidData.seatAvailability.hasUserPaid ? (
+                <span className="text-blue-600 font-semibold"> Your payment is being processed.</span>
               ) : (
                 <span className="text-green-600"> Bid is still open for submissions.</span>
               )}
             </span>
           }
-          type={transformedBidData.seatAvailability.isClosed ? "warning" : "success"}
+          type={transformedBidData.seatAvailability.isClosed ? "warning" : 
+                transformedBidData.seatAvailability.hasUserPaid ? "info" : "success"}
+          icon={<InfoCircleOutlined />}
+          showIcon
+          className="mb-6"
+        />
+      )}
+
+      {/* User Payment Status Alert */}
+      {transformedBidData.seatAvailability?.hasUserPaid && !transformedBidData.seatAvailability.isClosed && (
+        <Alert
+          message="Payment Status"
+          description="You have successfully submitted payment for this bid. Your booking is under review and you will be notified once confirmed."
+          type="info"
           icon={<InfoCircleOutlined />}
           showIcon
           className="mb-6"
@@ -776,7 +793,7 @@ export default function BidDetails() {
             Cancel
           </Button>
           
-          {transformedBidData.status === "Open" && (
+          {transformedBidData.status === "Open" && !transformedBidData.seatAvailability?.hasUserPaid && (
               <Button
                 type="primary"
                 size="large"
@@ -789,6 +806,18 @@ export default function BidDetails() {
                   : "Continue to Payment"}
               </Button>
             )}
+
+          {transformedBidData.status === "Under Review" && transformedBidData.seatAvailability?.hasUserPaid && (
+            <div className="flex justify-end">
+              <Button
+                size="large"
+                disabled
+                className="px-8 py-2 h-auto font-semibold bg-blue-100 text-blue-700"
+              >
+                Payment Submitted - Under Review
+              </Button>
+            </div>
+          )}
 
           {transformedBidData.status === "Closed" && (
             <div className="flex justify-end">

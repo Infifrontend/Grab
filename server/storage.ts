@@ -1355,6 +1355,30 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Check if user has paid for a specific bid
+  async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
+    try {
+      const userRetailBid = await db
+        .select()
+        .from(retailBids)
+        .where(and(
+          eq(retailBids.bidId, bidId),
+          eq(retailBids.userId, userId)
+        ))
+        .limit(1);
+
+      if (userRetailBid.length === 0) {
+        return false;
+      }
+
+      const status = userRetailBid[0].status;
+      return status === 'paid' || status === 'approved';
+    } catch (error) {
+      console.error("Error checking user payment status:", error);
+      return false;
+    }
+  }
+
   async updateRetailBidStatus(retailBidId: number, status: string): Promise<any> {
     try {
       return await db
