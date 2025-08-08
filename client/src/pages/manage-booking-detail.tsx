@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import {
   Card,
+  Row,
+  Col,
   Typography,
   Space,
   Tabs,
@@ -17,8 +19,6 @@ import {
   Alert,
   Modal,
   Form,
-  Row,
-  Col,
 } from "antd";
 import {
   DownloadOutlined,
@@ -63,28 +63,11 @@ export default function ManageBookingDetail() {
     queryKey: ["/api/booking-details", bookingId],
     queryFn: async () => {
       if (!bookingId) throw new Error("No booking ID provided");
-      
-      console.log(`Attempting to fetch booking with ID: ${bookingId}`);
-      
       const response = await fetch(`/api/booking-details/${bookingId}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
-        console.error(`Booking lookup failed for ID: ${bookingId}`, errorData);
-        
-        if (response.status === 404) {
-          throw new Error(`Booking not found with ID: ${bookingId}. Please check the booking reference, PNR, or contact support.`);
-        }
-        
-        throw new Error(errorData.message || "Failed to fetch booking details");
-      }
-      
-      const result = await response.json();
-      console.log(`Successfully fetched booking:`, result);
-      return result;
+      if (!response.ok) throw new Error("Failed to fetch booking details");
+      return response.json();
     },
     enabled: !!bookingId,
-    retry: 1, // Only retry once for booking lookups
   });
 
   // Initialize passengers state with fetched data
@@ -181,33 +164,15 @@ export default function ManageBookingDetail() {
 
   if (error || !bookingDetails) {
     console.error("Booking error details:", error);
-    
-    const errorMessage = error?.message || "Booking not found";
-    const isNotFoundError = errorMessage.includes("not found") || errorMessage.includes("404");
-    
     return (
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
-          message={isNotFoundError ? "Booking Not Found" : "Error Loading Booking"}
-          description={
-            <div>
-              <p>{errorMessage}</p>
-              <br />
-              <strong>Troubleshooting tips:</strong>
-              <ul className="mt-2 list-disc list-inside">
-                <li>Verify your booking reference or PNR is correct</li>
-                <li>Try using the PNR from your confirmation email</li>
-                <li>Check if the booking reference includes any special characters</li>
-                <li>Contact support if the issue persists</li>
-              </ul>
-              <br />
-              <p><strong>Booking ID attempted:</strong> {bookingId}</p>
-            </div>
-          }
+          message="Booking Not Found"
+          description={`The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`}
           type="error"
           showIcon
         />
-        <div className="mt-4 space-x-3">
+        <div className="mt-4">
           <Button
             onClick={() =>
               navigate(adminMode ? "/admin/manage-booking" : "/manage-booking")
@@ -215,14 +180,6 @@ export default function ManageBookingDetail() {
             type="primary"
           >
             Back to Manage Booking
-          </Button>
-          <Button
-            onClick={() => {
-              console.log("Retrying booking fetch...");
-              refetch();
-            }}
-          >
-            Try Again
           </Button>
         </div>
       </div>
@@ -244,31 +201,12 @@ export default function ManageBookingDetail() {
     setPassengers([...passengers, { firstName: "", lastName: "" }]);
   };
 
-  const handleRemovePassenger = (index: number) => {
-    if (passengers.length > 1) {
-      const updatedPassengers = passengers.filter((_, i) => i !== index);
-      setPassengers(updatedPassengers);
-    }
-  };
-
   const handlePassengerChange = (
     index: number,
     field: string,
     value: string,
   ) => {
-    // Validate input
-    if (field === "firstName" || field === "lastName") {
-      // Allow only letters, spaces, hyphens, and apostrophes
-      const nameRegex = /^[a-zA-Z\s\-']*$/;
-      if (!nameRegex.test(value)) {
-        return; // Don't update if invalid characters
-      }
-    }
-
     const updated = [...passengers];
-    if (!updated[index]) {
-      updated[index] = { firstName: "", lastName: "" };
-    }
     updated[index] = { ...updated[index], [field]: value };
     setPassengers(updated);
   };
@@ -282,19 +220,6 @@ export default function ManageBookingDetail() {
     try {
       console.log("Starting to save changes for booking:", bookingId);
 
-      // Validate that we have a booking ID
-      if (!bookingId) {
-        throw new Error("No booking ID available");
-      }
-
-      // Validate group leader information if provided
-      if (groupLeaderInfo.email && groupLeaderInfo.email.trim()) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(groupLeaderInfo.email.trim())) {
-          throw new Error("Please enter a valid email address");
-        }
-      }
-
       // Save group leader information
       console.log("Saving group leader information...");
       const groupLeaderResponse = await fetch(
@@ -305,17 +230,17 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            groupLeaderName: groupLeaderInfo.name || "",
-            groupLeaderEmail: groupLeaderInfo.email || "",
-            groupLeaderPhone: groupLeaderInfo.phone || "",
+            groupLeaderName: groupLeaderInfo.name,
+            groupLeaderEmail: groupLeaderInfo.email,
+            groupLeaderPhone: groupLeaderInfo.phone,
           }),
         },
       );
 
       if (!groupLeaderResponse.ok) {
-        const errorData = await groupLeaderResponse.json().catch(() => ({}));
+        const errorData = await groupLeaderResponse.text();
         console.error("Group leader update failed:", errorData);
-        throw new Error(errorData.message || "Failed to update group leader information");
+        throw new Error("Failed to update group leader information");
       }
 
       console.log("Group leader information saved successfully");
@@ -323,27 +248,13 @@ export default function ManageBookingDetail() {
       // Save passenger information
       console.log("Saving passenger information...");
       const validPassengers = passengers.filter(
-        (p) => p.firstName && p.firstName.trim() && p.lastName && p.lastName.trim(),
+        (p) => p.firstName.trim() || p.lastName.trim(),
       );
 
       console.log(
-        `Saving ${validPassengers.length} valid passengers out of ${passengers.length} total:`,
+        `Saving ${validPassengers.length} passengers:`,
         validPassengers,
       );
-
-      // Prepare passenger data with proper structure
-      const passengerData = validPassengers.map((passenger, index) => ({
-        firstName: passenger.firstName.trim(),
-        lastName: passenger.lastName.trim(),
-        title: "Mr", // Default title
-        dateOfBirth: null,
-        nationality: "Indian", // Default nationality
-        passportNumber: null,
-        passportExpiry: null,
-        seatPreference: null,
-        mealPreference: null,
-        specialRequests: null,
-      }));
 
       const passengersResponse = await fetch(
         `/api/booking-passengers/${bookingId}`,
@@ -353,19 +264,18 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            passengers: passengerData,
+            passengers: validPassengers,
           }),
         },
       );
 
       if (!passengersResponse.ok) {
-        const errorData = await passengersResponse.json().catch(() => ({}));
+        const errorData = await passengersResponse.text();
         console.error("Passenger update failed:", errorData);
-        throw new Error(errorData.message || "Failed to update passenger information");
+        throw new Error("Failed to update passenger information");
       }
 
-      const passengerResult = await passengersResponse.json();
-      console.log("Passenger information saved successfully:", passengerResult);
+      console.log("Passenger information saved successfully");
 
       message.success("Changes saved successfully");
 
@@ -375,13 +285,7 @@ export default function ManageBookingDetail() {
       console.log("Booking details refetched successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
-      if (error.message.includes("email")) {
-        message.error(error.message);
-      } else if (error.message.includes("booking")) {
-        message.error("Booking not found. Please check the booking reference and try again.");
-      } else {
-        message.error(error.message || "Failed to save changes. Please try again.");
-      }
+      message.error("Failed to save changes. Please try again.");
     }
   };
 
@@ -581,7 +485,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   </Text>
                   <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
                     <Text className="text-green-700 font-semibold text-lg">
-                      {groupSize} confirmed Passengers
+                      {confirmedPassengersCount} confirmed Passengers
                     </Text>
                   </div>
                 </div>
@@ -670,10 +574,10 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
 
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {passengers.map((passenger, index) => (
-                        <div key={index} className="flex gap-3 items-center">
+                        <div key={index} className="flex gap-3">
                           <Input
                             placeholder={`Passenger ${index + 1} - First Name`}
-                            value={passenger.firstName || ""}
+                            value={passenger.firstName}
                             onChange={(e) =>
                               handlePassengerChange(
                                 index,
@@ -682,11 +586,10 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               )
                             }
                             className="flex-1"
-                            maxLength={50}
                           />
                           <Input
                             placeholder={`Passenger ${index + 1} - Last Name`}
-                            value={passenger.lastName || ""}
+                            value={passenger.lastName}
                             onChange={(e) =>
                               handlePassengerChange(
                                 index,
@@ -695,18 +598,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                               )
                             }
                             className="flex-1"
-                            maxLength={50}
                           />
-                          {passengers.length > 1 && (
-                            <Button
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleRemovePassenger(index)}
-                              className="flex-shrink-0"
-                              title="Remove passenger"
-                            />
-                          )}
                         </div>
                       ))}
                     </div>

@@ -19,7 +19,7 @@ import {
   CalendarOutlined,
   TeamOutlined,
   EditOutlined,
-  EyeOutlined,
+  EyeOutlined
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -32,9 +32,7 @@ const { Title, Text } = Typography;
 export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
   const navigate = useNavigate();
-  const adminMode = JSON.parse(
-    localStorage.getItem("adminLoggedIn") || "false",
-  );
+  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
   const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -107,7 +105,7 @@ export default function ManageBooking() {
       navigate(
         adminMode
           ? `/admin/manage-booking/${bookingId}`
-          : `/manage-booking/${bookingId}`,
+          : `/manage-booking/${bookingId}`
       );
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -115,17 +113,17 @@ export default function ManageBooking() {
     }
   };
 
-  const handleEditBooking = async (pnrOrBookingId: any) => {
-    console.log("Finding booking:", { pnrOrBookingId });
+  const handleEditBooking = async (bookingId: any) => {
+    console.log("Finding booking:", { bookingId });
 
-    if (!pnrOrBookingId) {
+    if (!bookingId) {
       message.error("Please enter a PNR.");
       return;
     }
 
     try {
       // Fetch booking details from the API using the booking ID
-      const response = await fetch(`/api/booking-details/${pnrOrBookingId}`);
+      const response = await fetch(`/api/booking-details/${bookingId}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -148,8 +146,8 @@ export default function ManageBooking() {
       // Navigate to the booking details page with the retrieved data
       navigate(
         adminMode
-          ? `/admin/manage-booking/${pnrOrBookingId}`
-          : `/manage-booking/${pnrOrBookingId}`,
+          ? `/admin/manage-booking/${bookingId}`
+          : `/manage-booking/${bookingId}`
       );
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -160,8 +158,8 @@ export default function ManageBooking() {
   const handleManageBooking = (booking: Booking) => {
     navigate(
       adminMode
-        ? `/admin/manage-booking/${booking.id}`
-        : `/manage-booking/${booking.id}`,
+        ? `/admin/manage-booking/${bookingId}`
+        : `/manage-booking/${bookingId}`
     );
   };
 
@@ -189,44 +187,17 @@ export default function ManageBooking() {
   };
 
   const handleViewBooking = (bookingId: any) => {
-    navigate(
-      adminMode
-        ? `/admin/booking-details/${bookingId}`
-        : `/booking-details/${bookingId}`,
-    );
+    navigate(adminMode ? `/admin/booking-details/${bookingId}` : `/booking-details/${bookingId}`);
   };
 
-  // Get current user info from localStorage
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const currentUserId = currentUser.id;
-
   // Transform real booking data for table and sort by creation date (latest first)
-  const bookingsTableData = (flightBookingsData || [])
-    .filter(booking => {
-      if (!booking || !booking.id) return false; // Filter out invalid bookings
-      
-      // For admin mode, show all bookings
-      if (adminMode) return true;
-      
-      // For user mode, show bookings belonging to the current user OR bookings without userId (legacy bookings)
-      if (userMode) {
-        // If user has an ID, show their bookings + any bookings without userId
-        if (currentUserId) {
-          return booking.userId === currentUserId || !booking.userId;
-        }
-        // If no current user ID, show bookings without userId
-        return !booking.userId;
-      }
-      
-      // For non-logged-in users, show recent bookings without userId
-      return !booking.userId;
-    })
+  const bookingsTableData = flightBookingsData
     .sort((a, b) => {
       const dateA = new Date(a.bookedAt || a.createdAt || 0);
       const dateB = new Date(b.bookedAt || b.createdAt || 0);
       return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
     })
-    .map((booking) => {
+    .map((booking, index) => {
       // Extract route information from flight data or comprehensive data
       let route = "Route not available";
       let departureDate = "Date not available";
@@ -301,14 +272,14 @@ export default function ManageBooking() {
         returnDate: returnDate,
         passengers: booking.passengerCount,
         status: booking.bookingStatus,
-        totalAmount: booking.totalAmount,
-        bookingDate: booking.bookedAt || booking.createdAt,
         booking: booking, // Keep reference to original booking for debugging
       };
     });
 
   return (
-    <div className={`${adminMode ? "flex-1" : "max-w-7xl p-6"} mx-auto`}>
+    <div
+      className={`${adminMode ? "flex-1" : "max-w-7xl p-6"} mx-auto`}
+    >
       {/* Page Header */}
       <div className="mb-8">
         <Title level={2} className="!mb-2 text-gray-900">
@@ -330,7 +301,8 @@ export default function ManageBooking() {
                 Find Your Booking
               </Title>
               <Text className="text-gray-600">
-                Enter your booking details to access and manage your reservation
+                Enter your booking details to access and manage your
+                reservation
               </Text>
             </div>
 
@@ -371,7 +343,8 @@ export default function ManageBooking() {
               </Title>
               <Text className="text-gray-600">
                 Can't find your booking or need assistance? Check your booking
-                to view confirmed passenger counts and manage your reservation.
+                to view confirmed passenger counts and manage your
+                reservation.
               </Text>
             </div>
 
@@ -401,31 +374,19 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      {/* Always show bookings section, but content depends on login status */}
-      <div className="mt-8">
-        {/* Bookings Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <Title level={3} className="!mb-1 text-gray-900">
-              {(userMode || adminMode) ? "Your Bookings" : "Recent Bookings"}
-            </Title>
-            <Text className="text-gray-600">
-              {(userMode || adminMode) 
-                ? "Manage and track all your group bookings"
-                : "View and manage your flight bookings"
-              }
-            </Text>
+      {(userMode || adminMode) &&
+        <div>
+          {/* Bookings Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <Title level={3} className="!mb-1 text-gray-900">
+                Your Bookings
+              </Title>
+              <Text className="text-gray-600">
+                Manage and track all your group bookings
+              </Text>
+            </div>
           </div>
-          {(userMode || adminMode) && (
-            <Button
-              type="primary"
-              className="infiniti-btn-primary"
-              onClick={handleNewBooking}
-            >
-              Create New Booking
-            </Button>
-          )}
-        </div>
 
           {/* Bookings Table */}
           <Card className="border-0 shadow-sm">
@@ -443,12 +404,14 @@ export default function ManageBooking() {
                   className: "px-6 pb-4",
                 }}
                 className="w-full"
+                scroll={{ x: "max-content" }}
                 columns={[
                   {
                     title: "PNR",
                     dataIndex: "pnr",
                     key: "pnr",
-                    width: "12%",
+                    fixed: "left",
+                    width: 150,
                     render: (text) => (
                       <span className="font-semibold text-[var(--infiniti-primary)]">
                         {text}
@@ -456,13 +419,28 @@ export default function ManageBooking() {
                     ),
                     sorter: (a, b) => a.pnr.localeCompare(b.pnr),
                   },
+                  // {
+                  //   title: "Group Type",
+                  //   dataIndex: "groupType",
+                  //   key: "groupType",
+                  //   width: 120,
+                  //   render: (text) => (
+                  //     <span className="text-gray-700 capitalize">{text}</span>
+                  //   ),
+                  //   filters: [
+                  //     { text: "Group Travel", value: "Group Travel" },
+                  //     { text: "Corporate", value: "Corporate" },
+                  //     { text: "Family", value: "Family" },
+                  //   ],
+                  //   onFilter: (value, record) => record.groupType === value,
+                  // },
                   {
                     title: "Route",
                     dataIndex: "route",
                     key: "route",
-                    width: "18%",
+                    width: 200,
                     render: (text) => (
-                      <span className="text-gray-900 font-medium text-sm">{text}</span>
+                      <span className="text-gray-900 font-medium">{text}</span>
                     ),
                     sorter: (a, b) => a.route.localeCompare(b.route),
                   },
@@ -470,25 +448,25 @@ export default function ManageBooking() {
                     title: "Departure",
                     dataIndex: "date",
                     key: "date",
-                    width: "12%",
+                    width: 120,
                     render: (date) => {
                       if (!date || date === "Date not available")
                         return (
-                          <span className="text-gray-500 text-sm">N/A</span>
+                          <span className="text-gray-500">Not available</span>
                         );
                       try {
                         return (
-                          <span className="text-gray-600 text-sm">
+                          <span className="text-gray-600">
                             {new Date(date).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
-                              year: "2-digit",
+                              year: "numeric",
                             })}
                           </span>
                         );
                       } catch (e) {
                         return (
-                          <span className="text-gray-500 text-sm">Invalid</span>
+                          <span className="text-gray-500">Invalid date</span>
                         );
                       }
                     },
@@ -514,32 +492,32 @@ export default function ManageBooking() {
                     title: "Return",
                     dataIndex: "returnDate",
                     key: "returnDate",
-                    width: "12%",
+                    width: 120,
                     render: (returnDate) => {
                       if (!returnDate)
-                        return <span className="text-gray-500 text-sm">One-way</span>;
+                        return <span className="text-gray-500">One-way</span>;
                       try {
                         return (
-                          <span className="text-gray-600 text-sm">
+                          <span className="text-gray-600">
                             {new Date(returnDate).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
-                              year: "2-digit",
+                              year: "numeric",
                             })}
                           </span>
                         );
                       } catch (e) {
                         return (
-                          <span className="text-gray-500 text-sm">Invalid</span>
+                          <span className="text-gray-500">Invalid date</span>
                         );
                       }
                     },
                   },
                   {
-                    title: "Pax",
+                    title: "Passengers",
                     dataIndex: "passengers",
                     key: "passengers",
-                    width: "8%",
+                    width: 100,
                     render: (passengers) => (
                       <span className="text-gray-700 font-medium">
                         {passengers}
@@ -548,57 +526,13 @@ export default function ManageBooking() {
                     sorter: (a, b) => a.passengers - b.passengers,
                   },
                   {
-                    title: "Amount",
-                    dataIndex: "totalAmount",
-                    key: "totalAmount",
-                    width: "12%",
-                    render: (amount) => (
-                      <span className="text-gray-900 font-semibold text-sm">
-                        {amount ? `₹${parseFloat(amount).toLocaleString()}` : 'N/A'}
-                      </span>
-                    ),
-                    sorter: (a, b) => parseFloat(a.totalAmount || 0) - parseFloat(b.totalAmount || 0),
-                  },
-                  {
-                    title: "Booked",
-                    dataIndex: "bookingDate",
-                    key: "bookingDate",
-                    width: "12%",
-                    render: (date) => {
-                      if (!date) return <span className="text-gray-500 text-sm">N/A</span>;
-                      try {
-                        return (
-                          <span className="text-gray-600 text-sm">
-                            {new Date(date).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "2-digit",
-                            })}
-                          </span>
-                        );
-                      } catch (e) {
-                        return <span className="text-gray-500 text-sm">Invalid</span>;
-                      }
-                    },
-                    sorter: (a, b) => {
-                      if (!a.bookingDate && !b.bookingDate) return 0;
-                      if (!a.bookingDate) return 1;
-                      if (!b.bookingDate) return -1;
-                      try {
-                        return new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime();
-                      } catch (e) {
-                        return 0;
-                      }
-                    },
-                  },
-                  {
                     title: "Status",
                     dataIndex: "status",
                     key: "status",
-                    width: "10%",
+                    width: 120,
                     render: (status) => (
                       <Tag
-                        className="px-2 py-1 text-xs font-semibold capitalize"
+                        className="px-3 py-1 text-xs font-semibold capitalize"
                         color={getStatusColor(status)}
                       >
                         {status}
@@ -614,15 +548,16 @@ export default function ManageBooking() {
                   {
                     title: "Actions",
                     key: "actions",
-                    width: "10%",
+                    fixed: "right",
+                    width: 120,
                     render: (value, record) => {
-                      console.log(record, "recordrecord");
+                      console.log(record, 'recordrecord');
 
                       return (
                         <>
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-2"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
                             onClick={() => handleViewBooking(record.pnr)}
                             title="view"
                           >
@@ -630,15 +565,15 @@ export default function ManageBooking() {
                           </Button>
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
                             onClick={() => handleEditBooking(record.pnr)}
                             title="edit"
                           >
                             <EditOutlined />
                           </Button>
                         </>
-                      );
-                    },
+                      )
+                    }
                   },
                 ]}
               />
@@ -662,6 +597,7 @@ export default function ManageBooking() {
             )}
           </Card>
         </div>
+      }
     </div>
   );
 }
