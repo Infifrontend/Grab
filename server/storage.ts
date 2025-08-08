@@ -335,13 +335,13 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
-  async getFlightBookingByPNR(pnr: string): Promise<any> {
+  async getFlightBookingByPNR(pnr: string): Promise<FlightBooking | undefined> {
     const [booking] = await db
       .select()
       .from(flightBookings)
       .where(eq(flightBookings.pnr, pnr))
       .limit(1);
-    return booking;
+    return booking || undefined;
   }
 
   // Generate unique PNR (Passenger Name Record)

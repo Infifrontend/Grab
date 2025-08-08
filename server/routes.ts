@@ -344,9 +344,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const searchId of searchVariations) {
         if (booking) break;
         
-        // Method 1: Search by PNR
+        // Method 1: Search by PNR (case-insensitive)
         try {
+          // First try exact match
           booking = await storage.getFlightBookingByPNR(searchId);
+          if (!booking && allFlightBookings.length > 0) {
+            // Then try case-insensitive search
+            booking = allFlightBookings.find((b) => 
+              b.pnr && b.pnr.toLowerCase() === searchId.toLowerCase()
+            );
+          }
           if (booking) {
             searchMethod = `PNR (${searchId})`;
             console.log(`Found booking by PNR: ${searchId}`);
@@ -356,10 +363,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Error finding booking by PNR (${searchId}):`, error.message);
         }
 
-        // Method 2: Search by booking reference
+        // Method 2: Search by booking reference (case-insensitive)
         if (!booking) {
           try {
             booking = await storage.getFlightBookingByReference(searchId);
+            if (!booking && allFlightBookings.length > 0) {
+              // Try case-insensitive search
+              booking = allFlightBookings.find((b) => 
+                b.bookingReference && b.bookingReference.toLowerCase() === searchId.toLowerCase()
+              );
+            }
             if (booking) {
               searchMethod = `Reference (${searchId})`;
               console.log(`Found booking by reference: ${searchId}`);
@@ -370,19 +383,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Method 3: Manual search through all bookings
+        // Method 3: Search by numeric ID
         if (!booking && allFlightBookings.length > 0) {
           booking = allFlightBookings.find((b) => {
-            return b.id.toString() === searchId || 
-                   (b.bookingReference && b.bookingReference === searchId) ||
-                   (b.pnr && b.pnr === searchId) ||
-                   (b.bookingReference && b.bookingReference.toLowerCase() === searchId.toLowerCase()) ||
-                   (b.pnr && b.pnr.toLowerCase() === searchId.toLowerCase());
+            return b.id.toString() === searchId;
           });
           
           if (booking) {
-            searchMethod = `Manual search (${searchId})`;
-            console.log(`Found booking by manual search: ${searchId}`);
+            searchMethod = `ID search (${searchId})`;
+            console.log(`Found booking by ID search: ${searchId}`);
             break;
           }
         }
@@ -2462,6 +2471,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to create test booking",
+        error: error.message
+      });
+    }
+  });
+
+  // Create multiple test bookings with different formats
+  app.post("/api/debug/create-multiple-test-bookings", async (req, res) => {
+    try {
+      const testBookings = [
+        {
+          bookingReference: "T6A7B9",
+          flightId: 1,
+          passengerCount: 2,
+          totalAmount: "4500.00",
+          bookingStatus: "confirmed",
+          paymentStatus: "pending"
+        },
+        {
+          bookingReference: "GB-2024-ABC123",
+          flightId: 1,
+          passengerCount: 3,
+          totalAmount: "6750.00",
+          bookingStatus: "confirmed",
+          paymentStatus: "completed"
+        },
+        {
+          bookingReference: "FB-2024-XYZ789",
+          flightId: 1,
+          passengerCount: 1,
+          totalAmount: "2250.00",
+          bookingStatus: "pending",
+          paymentStatus: "pending"
+        }
+      ];
+
+      const createdBookings = [];
+
+      for (const bookingData of testBookings) {
+        const booking = await storage.createFlightBooking(bookingData);
+        
+        // Create test passengers for each booking
+        for (let i = 0; i < bookingData.passengerCount; i++) {
+          await storage.createPassenger({
+            bookingId: booking.id,
+            title: i % 2 === 0 ? "Mr" : "Ms",
+            firstName: `Passenger${i + 1}`,
+            lastName: `Test${booking.id}`,
+            dateOfBirth: new Date("1990-01-01"),
+            nationality: "Indian"
+          });
+        }
+
+        createdBookings.push({
+          id: booking.id,
+          bookingReference: booking.bookingReference,
+          pnr: booking.pnr,
+          passengerCount: booking.passengerCount
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `${createdBookings.length} test bookings created successfully`,
+        bookings: createdBookings
+      });
+    } catch (error) {
+      console.error("Error creating test bookings:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create test bookings",
         error: error.message
       });
     }
