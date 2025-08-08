@@ -34,7 +34,7 @@ export default function GroupLeader() {
   const [bundleData, setBundleData] = useState<any>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
 
-  // Scroll to top on page load and fetch user info
+  // Scroll to top on page load and load stored data
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     const storedBookingData = localStorage.getItem("bookingFormData");
@@ -51,29 +51,33 @@ export default function GroupLeader() {
     if (storedBundleData) {
       setBundleData(JSON.parse(storedBundleData));
     }
-
-    // Fetch logged-in user information
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    const userName = localStorage.getItem("userName");
-    const userEmail = localStorage.getItem("userEmail");
-    
-    if (isAuthenticated && userName) {
-      // Parse the name to get first and last name
-      const nameParts = userName.trim().split(" ");
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
-      
-      setUserInfo({
-        firstName,
-        lastName,
-        email: userEmail || "",
-        fullName: userName
-      });
-    }
   }, []);
 
   // Load previously saved form data or user info if available
   useEffect(() => {
+    // Get user info first
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+    const userName = localStorage.getItem("userName");
+    const userEmail = localStorage.getItem("userEmail");
+    
+    let currentUserInfo = null;
+    if (isAuthenticated && userName) {
+      const nameParts = userName.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
+      currentUserInfo = {
+        firstName,
+        lastName,
+        email: userEmail || "",
+        fullName: userName
+      };
+      
+      // Update userInfo state
+      setUserInfo(currentUserInfo);
+    }
+
+    // Then handle form population
     const tempData = localStorage.getItem("tempGroupLeaderData");
     if (tempData) {
       try {
@@ -82,36 +86,36 @@ export default function GroupLeader() {
         const mergedData = {
           ...savedData,
           // Always use logged-in user's email if available
-          email: userInfo?.email || savedData.email || "",
+          email: currentUserInfo?.email || savedData.email || "",
           // Fill in name fields if empty in saved data
-          firstName: savedData.firstName || userInfo?.firstName || "",
-          lastName: savedData.lastName || userInfo?.lastName || "",
+          firstName: savedData.firstName || currentUserInfo?.firstName || "",
+          lastName: savedData.lastName || currentUserInfo?.lastName || "",
         };
         form.setFieldsValue(mergedData);
       } catch (error) {
         console.warn("Could not restore group leader data:", error);
         // Fallback to user info if saved data is corrupted
-        if (userInfo) {
+        if (currentUserInfo) {
           form.setFieldsValue({
             title: "mr",
-            firstName: userInfo.firstName,
-            lastName: userInfo.lastName,
-            email: userInfo.email,
+            firstName: currentUserInfo.firstName,
+            lastName: currentUserInfo.lastName,
+            email: currentUserInfo.email,
             phoneNumber: "",
           });
         }
       }
-    } else if (userInfo) {
+    } else if (currentUserInfo) {
       // Auto-fill with logged-in user data if no saved data exists
       form.setFieldsValue({
         title: "mr",
-        firstName: userInfo.firstName,
-        lastName: userInfo.lastName,
-        email: userInfo.email,
+        firstName: currentUserInfo.firstName,
+        lastName: currentUserInfo.lastName,
+        email: currentUserInfo.email,
         phoneNumber: "",
       });
     }
-  }, [form, userInfo]);
+  }, [form]);
 
   const handleBack = () => {
     // Save current form data before navigating back (without validation)
