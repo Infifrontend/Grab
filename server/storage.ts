@@ -460,6 +460,11 @@ export class DatabaseStorage implements IStorage {
     await db.update(passengers).set(passenger).where(eq(passengers.id, id));
   }
 
+  async deletePassenger(passengerId: number): Promise<void> {
+    await db.delete(passengers)
+      .where(eq(passengers.id, passengerId));
+  }
+
   // Bids
   async getBids(userId?: number, flightId?: number): Promise<Bid[]> {
     const conditions = [];
