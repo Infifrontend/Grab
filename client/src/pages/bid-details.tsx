@@ -161,10 +161,10 @@ export default function BidDetails() {
     // Pricing Information
     bidAmount: bidAmount,
 
-    // Contact Information - Updated with John Smith dummy data
-    contactName: "John Smith",
-    email: "john.smith@email.com",
-    phone: "+1 (555) 123-4567",
+    // Contact Information from logged-in user
+    contactName: localStorage.getItem("userName") || "Not provided",
+    email: localStorage.getItem("userEmail") || "Not provided",
+    phone: "+1 (555) 123-4567", // Keep as placeholder since phone isn't stored
 
     // Additional Information from database
     specialRequests:
