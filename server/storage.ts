@@ -1345,27 +1345,41 @@ export class DatabaseStorage implements IStorage {
   async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
     console.log("Creating retail bid with data:", bid);
 
-    // Validate that the user has retail access
-    const hasRetailAccess = await this.checkRetailAccess(bid.userId);
-    if (!hasRetailAccess) {
-      throw new Error(`User ${bid.userId} does not have retail access.`);
-    }
-
-    // Get the original bid configuration to validate limits
-    const bidConfiguration = await this.getBidById(bid.bidId);
-    if (!bidConfiguration) {
-      throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
-    }
-
-    // Validation removed - allow any bid submission
-    console.log("Creating retail bid without validation:", {
-      bidId: bid.bidId,
-      userId: bid.userId,
-      passengerCount: bid.passengerCount,
-      submittedAmount: bid.submittedAmount
-    });
-
     try {
+      // Validate that the user has retail access
+      const hasRetailAccess = await this.checkRetailAccess(bid.userId);
+      if (!hasRetailAccess) {
+        throw new Error(`User ${bid.userId} does not have retail access.`);
+      }
+
+      // Get the original bid configuration to validate limits
+      const bidConfiguration = await this.getBidById(bid.bidId);
+      if (!bidConfiguration) {
+        throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
+      }
+
+      console.log("Creating retail bid without validation:", {
+        bidId: bid.bidId,
+        userId: bid.userId,
+        passengerCount: bid.passengerCount,
+        submittedAmount: bid.submittedAmount
+      });
+
+      // Ensure the retail_bids table exists and has the correct structure
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "retail_bids" (
+          "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+          "bid_id" integer NOT NULL,
+          "user_id" integer NOT NULL,
+          "flight_id" integer NOT NULL,
+          "submitted_amount" numeric(10,2) NOT NULL,
+          "passenger_count" integer NOT NULL,
+          "status" text DEFAULT 'submitted' NOT NULL,
+          "created_at" timestamp DEFAULT now(),
+          "updated_at" timestamp DEFAULT now()
+        );
+      `);
+
       // Insert the retail bid into the database
       const [newRetailBid] = await db
         .insert(retailBids)
@@ -1375,32 +1389,51 @@ export class DatabaseStorage implements IStorage {
           flightId: bid.flightId,
           submittedAmount: bid.submittedAmount,
           passengerCount: bid.passengerCount,
-          status: bid.status || 'submitted',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          status: bid.status || 'submitted'
         })
         .returning();
-
-      // Flight seat update removed to allow unlimited bidding
 
       console.log("Retail bid created successfully:", newRetailBid);
       return newRetailBid;
     } catch (error) {
+      console.error("Error creating retail bid:", error);
+      
       // Handle potential sequence errors for retailBids table
-      if (error.code === '23505' && error.constraint === 'retail_bids_pkey') {
+      if (error.code === '23505' || error.message.includes('retail_bids_id_seq')) {
         console.log('Fixing retail_bids sequence...');
-        // Attempt to fix the sequence and retry insertion
-        await db.execute(`
-          SELECT setval('retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM retail_bids), 0) + 1, false);
-        `);
-        await db.execute(`
-          ALTER TABLE retail_bids ALTER COLUMN id SET DEFAULT nextval('retail_bids_id_seq');
-        `);
-        console.log('Retrying retail bid creation after sequence fix...');
-        return this.createRetailBid(bid); // Retry the operation
+        try {
+          // Create sequence if it doesn't exist
+          await db.execute(`
+            CREATE SEQUENCE IF NOT EXISTS retail_bids_id_seq;
+          `);
+          
+          // Set the sequence to the correct value
+          await db.execute(`
+            SELECT setval('retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM retail_bids), 0) + 1, false);
+          `);
+          
+          console.log('Retrying retail bid creation after sequence fix...');
+          // Try the insert again without recursion to avoid infinite loops
+          const [newRetailBid] = await db
+            .insert(retailBids)
+            .values({
+              bidId: bid.bidId,
+              userId: bid.userId,
+              flightId: bid.flightId,
+              submittedAmount: bid.submittedAmount,
+              passengerCount: bid.passengerCount,
+              status: bid.status || 'submitted'
+            })
+            .returning();
+
+          console.log("Retail bid created successfully after sequence fix:", newRetailBid);
+          return newRetailBid;
+        } catch (retryError) {
+          console.error("Failed to create retail bid even after sequence fix:", retryError);
+          throw new Error("Failed to submit retail bid due to database issues");
+        }
       } else {
-        console.error("Error creating retail bid:", error);
-        throw error;
+        throw new Error(`Failed to submit retail bid: ${error.message}`);
       }
     }
   }
