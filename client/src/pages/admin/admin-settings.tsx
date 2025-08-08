@@ -18,6 +18,7 @@ import {
   Upload,
   Divider,
   Badge,
+  Checkbox,
 } from "antd";
 import {
   PlusOutlined,
@@ -42,8 +43,11 @@ export default function AdminSettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isUserModalVisible, setIsUserModalVisible] = useState(false);
+  const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [activeTab, setActiveTab] = useState("users");
   const [form] = Form.useForm();
+  const [editUserForm] = Form.useForm();
 
   useEffect(() => {
     // Check if admin is logged in
@@ -61,21 +65,21 @@ export default function AdminSettings() {
     try {
       setUsersLoading(true);
       const response = await fetch('/api/users');
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error:', response.status, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-      
+
       const data = await response.json();
       console.log('Fetched users data:', data);
-      
+
       // Check if response has the expected structure
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch users');
       }
-      
+
       // Transform database user data to match table format
       const transformedUsers = (data.users || []).map(user => ({
         id: user.id,
@@ -86,7 +90,7 @@ export default function AdminSettings() {
         lastLogin: "N/A", // We don't track last login in current schema
         permissions: user.isRetailAllowed ? ["Retail Access"] : ["Basic Access"],
       }));
-      
+
       console.log('Transformed users:', transformedUsers);
       setUsers(transformedUsers);
     } catch (error) {
@@ -109,7 +113,7 @@ export default function AdminSettings() {
   const handleCreateUser = async (values) => {
     try {
       setLoading(true);
-      
+
       const userData = {
         firstName: values.firstName,
         lastName: values.lastName,
@@ -140,18 +144,102 @@ export default function AdminSettings() {
       if (!responseData.success) {
         throw new Error(responseData.message || 'User creation failed');
       }
-      
+
       // Refresh users list from database
       await fetchUsers();
       setIsUserModalVisible(false);
       form.resetFields();
-      
+
       console.log('User created successfully:', responseData.user);
       alert('User created successfully!');
-      
+
     } catch (error) {
       console.error('Error creating user:', error);
       alert('Failed to create user: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    editUserForm.setFieldsValue({
+      firstName: user.name.split(' ')[0],
+      lastName: user.name.split(' ')[1] || '',
+      email: user.email,
+      status: user.status === "Active",
+    });
+    setIsEditUserModalVisible(true);
+  };
+
+  const handleUpdateUser = async (values) => {
+    try {
+      setLoading(true);
+      const userId = editingUser.id;
+
+      const userData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        isRetailAllowed: values.status,
+      };
+
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to update user');
+      }
+
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'User update failed');
+      }
+
+      await fetchUsers(); // Refresh users list
+      setIsEditUserModalVisible(false);
+      setEditingUser(null);
+      editUserForm.resetFields();
+
+      alert('User updated successfully!');
+
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Failed to update user: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to delete user');
+      }
+
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'User deletion failed');
+      }
+
+      await fetchUsers(); // Refresh users list
+      alert('User deleted successfully!');
+
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -181,8 +269,8 @@ export default function AdminSettings() {
       render: (role) => {
         const colors = {
           "Super Admin": "red",
-          Admin: "blue",
-          Operator: "green",
+          "Retail User": "blue",
+          "Regular User": "green",
         };
         return <Tag color={colors[role]}>{role}</Tag>;
       },
@@ -203,10 +291,21 @@ export default function AdminSettings() {
     {
       title: "Actions",
       key: "actions",
-      render: () => (
+      render: (_, record) => (
         <Space>
-          <Button type="text" icon={<EditOutlined />} size="small" />
-          <Button type="text" icon={<DeleteOutlined />} size="small" />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => handleEditUser(record)}
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            size="small"
+            onClick={() => handleDeleteUser(record.id)}
+            danger
+          />
         </Space>
       ),
     },
@@ -534,8 +633,8 @@ export default function AdminSettings() {
               <Button onClick={() => setIsUserModalVisible(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 onClick={() => form.validateFields().then(handleCreateUser)}
                 loading={loading}
               >
@@ -545,6 +644,69 @@ export default function AdminSettings() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
-  );
+
+        {/* Edit User Modal */}
+        <Modal
+          title="Edit User"
+          open={isEditUserModalVisible}
+          onOk={() => editUserForm.submit()}
+          onCancel={() => {
+            setIsEditUserModalVisible(false);
+            setEditingUser(null);
+            editUserForm.resetFields();
+          }}
+          confirmLoading={loading}
+          width={600}
+        >
+          <Form
+            form={editUserForm}
+            layout="vertical"
+            onFinish={handleUpdateUser}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="firstName"
+                  label="First Name"
+                  rules={[
+                    { required: true, message: "Please enter first name" },
+                    { min: 2, message: "First name must be at least 2 characters" },
+                  ]}
+                >
+                  <Input placeholder="Enter first name" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="lastName"
+                  label="Last Name"
+                  rules={[
+                    { required: true, message: "Please enter last name" },
+                    { min: 2, message: "Last name must be at least 2 characters" },
+                  ]}
+                >
+                  <Input placeholder="Enter last name" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: "Please enter email address" },
+                { type: "email", message: "Please enter a valid email address" },
+              ]}
+            >
+              <Input placeholder="Enter email address" />
+            </Form.Item>
+
+            <Form.Item name="status" valuePropName="checked">
+              <Checkbox>Allow Retail Access</Checkbox>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    );
+  }
 }

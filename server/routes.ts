@@ -11,11 +11,11 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-import { eq, and, desc, sql, asc, inArray } from "drizzle-orm";
+import { eq, desc, and, or, like, sql, isNull, isNotNull, ne } from "drizzle-orm";
 import type { Request, Response } from "express";
 import { db } from "./db.js";
 import {
-  users,
+  users as usersTable, // Alias users to usersTable to avoid conflict with the variable name 'users'
   flights,
   bookings,
   passengers,
@@ -369,12 +369,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!booking) {
         console.log(`No booking found for ID: ${id}`);
-        
+
         // Debug information
         console.log("Available PNRs:", allFlightBookings.map(b => b.pnr).filter(Boolean));
         console.log("Available booking references:", allFlightBookings.map(b => b.bookingReference).filter(Boolean));
         console.log("Available IDs:", allFlightBookings.map(b => b.id));
-        
+
         return res.status(404).json({ 
           message: "Booking not found",
           searchedId: id,
@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find the booking using multiple strategies
       let booking = null;
-      
+
       // Strategy 1: Search by PNR
       try {
         booking = await storage.getFlightBookingByPNR(id);
@@ -1482,7 +1482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find the booking by ID, reference, or PNR
       let booking = null;
-      
+
       // Try by booking reference first
       try {
         booking = await storage.getFlightBookingByReference(id);
@@ -1514,7 +1514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!booking) {
         console.log(`Booking not found for ID: ${id}`);
-        
+
         // Debug: Show what bookings actually exist
         try {
           const allBookings = await storage.getFlightBookings();
@@ -1526,7 +1526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (debugError) {
           console.log("Could not fetch bookings for debug:", debugError.message);
         }
-        
+
         return res.status(404).json({ 
           success: false,
           message: "Booking not found" 
@@ -1542,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update existing passengers or create new ones
       for (let i = 0; i < passengers.length; i++) {
         const passengerData = passengers[i];
-        
+
         // Skip empty passenger entries
         if (!passengerData.firstName && !passengerData.lastName) {
           continue;
@@ -2206,7 +2206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching all users...");
       const allUsers = await storage.getAllUsers();
       console.log(`Found ${allUsers.length} users`);
-      
+
       res.json({
         success: true,
         users: allUsers,
@@ -2375,6 +2375,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating notification:", error);
     }
   };
+
+  // Add API endpoints for fetching, updating, and deleting users
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await db.select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        username: usersTable.username,
+        isRetailAllowed: usersTable.isRetailAllowed,
+        role: sql`CASE 
+          WHEN ${usersTable.username} = 'admin' THEN 'Super Admin'
+          WHEN ${usersTable.isRetailAllowed} = true THEN 'User'
+          ELSE 'Guest'
+        END`.as('role'),
+        status: sql`'Active'`.as('status'),
+        lastLogin: sql`'2024-01-15'`.as('lastLogin')
+      }).from(usersTable);
+
+      return res.json({
+        success: true,
+        users: users
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return res.json(
+        { success: false, message: "Failed to fetch users" },
+        500
+      );
+    }
+  });
+
+  // Update user
+  app.put("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { name, email, isRetailAllowed } = req.body;
+
+      if (!userId) {
+        return res.json(
+          { success: false, message: "User ID is required" },
+          400
+        );
+      }
+
+      // Check if user exists
+      const existingUser = await db.select()
+        .from(usersTable)
+        .where(eq(usersTable.id, userId))
+        .limit(1);
+
+      if (existingUser.length === 0) {
+        return res.json(
+          { success: false, message: "User not found" },
+          404
+        );
+      }
+
+      // Check if email is already taken by another user
+      const emailExists = await db.select()
+        .from(usersTable)
+        .where(and(
+          eq(usersTable.email, email),
+          ne(usersTable.id, userId)
+        ))
+        .limit(1);
+
+      if (emailExists.length > 0) {
+        return res.json(
+          { success: false, message: "Email is already taken" },
+          400
+        );
+      }
+
+      // Update user
+      await db.update(usersTable)
+        .set({
+          name: name,
+          email: email,
+          isRetailAllowed: isRetailAllowed || false,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(usersTable.id, userId));
+
+      return res.json({
+        success: true,
+        message: "User updated successfully"
+      });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return res.json(
+        { success: false, message: "Failed to update user" },
+        500
+      );
+    }
+  });
+
+  // Delete user
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      if (!userId) {
+        return res.json(
+          { success: false, message: "User ID is required" },
+          400
+        );
+      }
+
+      // Check if user exists
+      const existingUser = await db.select()
+        .from(usersTable)
+        .where(eq(usersTable.id, userId))
+        .limit(1);
+
+      if (existingUser.length === 0) {
+        return res.json(
+          { success: false, message: "User not found" },
+          404
+        );
+      }
+
+      // Prevent deletion of admin user
+      if (existingUser[0].username === 'admin') {
+        return res.json(
+          { success: false, message: "Cannot delete admin user" },
+          400
+        );
+      }
+
+      // Delete user
+      await db.delete(usersTable)
+        .where(eq(usersTable.id, userId));
+
+      return res.json({
+        success: true,
+        message: "User deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return res.json(
+        { success: false, message: "Failed to delete user" },
+        500
+      );
+    }
+  });
+
+  // User management endpoints
+  app.post("/api/users", async (req, res) => {
+    try {
+      const { name, email, username, password, isRetailAllowed } = req.body;
+
+      // Validate required fields
+      if (!username || !password || !name || !email) {
+        return res.status(400).json({
+          success: false,
+          message: "Username, password, name, and email are required"
+        });
+      }
+
+      // Check if user already exists by username or email
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "User with this username already exists"
+        });
+      }
+
+      const existingEmailUser = await storage.getUserByEmail(email);
+      if (existingEmailUser) {
+        return res.status(400).json({
+          success: false,
+          message: "User with this email already exists"
+        });
+      }
+
+      // Hash password before storing (basic hashing - in production use bcrypt)
+      const hashedPassword = Buffer.from(password).toString('base64');
+
+      const newUser = await storage.createUser({
+        username,
+        password: hashedPassword,
+        name,
+        email,
+        isRetailAllowed: isRetailAllowed || false
+      });
+
+      res.json({
+        success: true,
+        message: "User created successfully",
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          name: newUser.name,
+          email: newUser.email,
+          isRetailAllowed: newUser.isRetailAllowed
+        }
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
+    }
+  });
+
 
   const httpServer = createServer(app);
   return httpServer;
