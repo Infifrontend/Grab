@@ -2479,6 +2479,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create specific booking for P0N6Q3
+  app.post("/api/debug/create-p0n6q3-booking", async (req, res) => {
+    try {
+      // Check if booking already exists
+      const existing = await storage.getFlightBookingByPNR("P0N6Q3");
+      if (existing) {
+        return res.json({
+          success: true,
+          message: "Booking P0N6Q3 already exists",
+          booking: existing
+        });
+      }
+
+      const testBookingData = {
+        bookingReference: "GB-2024-P0N6Q3",
+        pnr: "P0N6Q3",
+        flightId: 1, // Default flight ID
+        passengerCount: 2,
+        totalAmount: "4500.00",
+        bookingStatus: "confirmed",
+        paymentStatus: "pending"
+      };
+
+      const booking = await storage.createFlightBooking(testBookingData);
+      
+      // Create test passengers
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Mr",
+        firstName: "John",
+        lastName: "Doe",
+        dateOfBirth: new Date("1990-05-15"),
+        nationality: "Indian"
+      });
+
+      await storage.createPassenger({
+        bookingId: booking.id,
+        title: "Ms",
+        firstName: "Jane",
+        lastName: "Doe",
+        dateOfBirth: new Date("1992-08-22"),
+        nationality: "Indian"
+      });
+
+      res.json({
+        success: true,
+        message: "Booking P0N6Q3 created successfully",
+        booking: {
+          id: booking.id,
+          bookingReference: booking.bookingReference,
+          pnr: booking.pnr,
+          passengerCount: booking.passengerCount
+        }
+      });
+    } catch (error) {
+      console.error("Error creating P0N6Q3 booking:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create P0N6Q3 booking",
+        error: error.message
+      });
+    }
+  });
+
   // Create specific booking for I1W1M7
   app.post("/api/debug/create-i1w1m7-booking", async (req, res) => {
     try {

@@ -205,18 +205,21 @@ export default function ManageBooking() {
     .filter(booking => {
       if (!booking || !booking.id) return false; // Filter out invalid bookings
       
-      // Only show bookings for logged-in users
-      if (!userMode && !adminMode) return false;
-      
       // For admin mode, show all bookings
       if (adminMode) return true;
       
-      // For user mode, only show bookings belonging to the current user
-      if (userMode && currentUserId) {
-        return booking.userId === currentUserId;
+      // For user mode, show bookings belonging to the current user OR bookings without userId (legacy bookings)
+      if (userMode) {
+        // If user has an ID, show their bookings + any bookings without userId
+        if (currentUserId) {
+          return booking.userId === currentUserId || !booking.userId;
+        }
+        // If no current user ID, show bookings without userId
+        return !booking.userId;
       }
       
-      return false;
+      // For non-logged-in users, show recent bookings without userId
+      return !booking.userId;
     })
     .sort((a, b) => {
       const dateA = new Date(a.bookedAt || a.createdAt || 0);
