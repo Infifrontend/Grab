@@ -2589,7 +2589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isClosed = seatsRemaining <= 0;
 
       // Check if current user has paid for this bid
-      let userPaymentStatus = false;
+      let userPaymentStatus = null;
       let userBidStatus = null;
       
       if (userId) {
@@ -2597,23 +2597,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (userRetailBid) {
           userBidStatus = userRetailBid.status;
           userPaymentStatus = userRetailBid.status === 'paid' || userRetailBid.status === 'approved';
-        }
-
-        // Also check if bid has payment completion in notes (fallback check)
-        if (!userPaymentStatus && bidDetails.bid.notes) {
-          try {
-            const paymentInfo = configData.paymentInfo;
-            if (paymentInfo && paymentInfo.paymentCompleted === true) {
-              userPaymentStatus = true;
-            }
-          } catch (e) {
-            // Ignore parsing errors
-          }
-        }
-
-        // Additional check: if bid status is 'completed', user has likely paid
-        if (!userPaymentStatus && bidDetails.bid.bidStatus === 'completed' && bidDetails.bid.userId === parseInt(userId as string)) {
-          userPaymentStatus = true;
         }
       }
 
@@ -2635,14 +2618,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         displayStatus = 'Open';
       }
 
-      console.log(`Bid Status Check for Bid ${bidId}, User ${userId}:`, {
-        userPaymentStatus,
-        userBidStatus,
-        bidStatus: bidDetails.bid.bidStatus,
-        displayStatus,
-        retailBidsCount: retailBids.length
-      });
-
       res.json({
         success: true,
         bidStatus: displayStatus,
@@ -2653,7 +2628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalBidStatus: bidDetails.bid.bidStatus,
         userPaymentStatus: userPaymentStatus,
         userBidStatus: userBidStatus,
-        hasUserPaid: userPaymentStatus
+        hasUserPaid: userPaymentStatus || false
       });
 
     } catch (error) {
