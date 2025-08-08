@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
   Card,
-  Row,
-  Col,
   Typography,
   Space,
   Tabs,
@@ -19,6 +17,8 @@ import {
   Alert,
   Modal,
   Form,
+  Row,
+  Col,
 } from "antd";
 import {
   DownloadOutlined,
@@ -485,7 +485,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   </Text>
                   <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
                     <Text className="text-green-700 font-semibold text-lg">
-                      {confirmedPassengersCount} confirmed Passengers
+                      {groupSize} confirmed Passengers
                     </Text>
                   </div>
                 </div>
