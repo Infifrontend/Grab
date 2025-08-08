@@ -2389,17 +2389,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Parse bid configuration data
+      console.log("Original bid found:", originalBid.bid);
+
+      // Parse bid configuration data to get limits
       let configData = {};
       try {
         configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
+        console.log("Parsed config data:", configData);
       } catch (e) {
+        console.log("Could not parse config data, using defaults");
         configData = {};
       }
 
-      const maxSeatsPerUser = configData.maxSeatsPerUser || originalBid.bid.maxSeatsPerBid || 5;
-      const minSeatsPerBid = configData.minSeatsPerBid || originalBid.bid.minSeatsPerBid || 1;
-      const maxSeatsPerBid = configData.maxSeatsPerBid || originalBid.bid.maxSeatsPerBid || 10;
+      // Get validation limits from bid configuration with proper fallbacks
+      const maxSeatsPerUser = configData.maxSeatsPerUser || originalBid.bid.maxSeatsPerBid || originalBid.bid.passengerCount || 50;
+      const minSeatsPerBid = configData.minSeatsPerBid || originalBid.bid.minSeatsPerBid || originalBid.bid.passengerCount || 1;
+      const maxSeatsPerBid = configData.maxSeatsPerBid || originalBid.bid.maxSeatsPerBid || originalBid.bid.passengerCount || 50;
+
+      console.log("Validation limits:", {
+        maxSeatsPerUser,
+        minSeatsPerBid,
+        maxSeatsPerBid,
+        requestedPassengerCount: passengerCount
+      });
 
       // Validate passenger count limits
       if (passengerCount < minSeatsPerBid) {
@@ -2419,7 +2431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (passengerCount > maxSeatsPerUser) {
         return res.status(400).json({
           success: false,
-          message: `Maximum passenger count per user is ${maxSeatsPerUser}`
+          message: `Maximum passenger count per user is ${maxSeatsPerUser} (configured in bid settings)`
         });
       }
 

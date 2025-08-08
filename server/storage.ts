@@ -1359,10 +1359,18 @@ export class DatabaseStorage implements IStorage {
       configData = {};
     }
 
-    // Get validation limits from bid configuration
-    const maxSeatsPerUser = configData.maxSeatsPerUser || bidConfiguration.bid.maxSeatsPerBid || 5;
-    const minSeatsPerBid = configData.minSeatsPerBid || bidConfiguration.bid.minSeatsPerBid || 1;
-    const maxSeatsPerBid = configData.maxSeatsPerBid || bidConfiguration.bid.maxSeatsPerBid || 10;
+    // Get validation limits from bid configuration with more lenient defaults
+    const maxSeatsPerUser = configData.maxSeatsPerUser || bidConfiguration.bid.maxSeatsPerBid || bidConfiguration.bid.passengerCount || 50;
+    const minSeatsPerBid = configData.minSeatsPerBid || bidConfiguration.bid.minSeatsPerBid || bidConfiguration.bid.passengerCount || 1;
+    const maxSeatsPerBid = configData.maxSeatsPerBid || bidConfiguration.bid.maxSeatsPerBid || bidConfiguration.bid.passengerCount || 50;
+
+    console.log("Storage validation limits:", {
+      maxSeatsPerUser,
+      minSeatsPerBid,
+      maxSeatsPerBid,
+      originalPassengerCount: bidConfiguration.bid.passengerCount,
+      requestedPassengerCount: bid.passengerCount
+    });
 
     // Validate passenger count against bid configuration limits
     if (bid.passengerCount < minSeatsPerBid) {
