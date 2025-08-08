@@ -413,9 +413,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
-    await db.update(flightBookings)
-      .set(updates)
-      .where(eq(flightBookings.id, bookingId));
+    try {
+      console.log(`Updating booking ${bookingId} with:`, updates);
+      
+      const result = await db.update(flightBookings)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(flightBookings.id, bookingId))
+        .returning();
+
+      if (result.length === 0) {
+        throw new Error(`No booking found with ID ${bookingId}`);
+      }
+
+      console.log(`Successfully updated booking ${bookingId}`);
+    } catch (error) {
+      console.error(`Error updating booking ${bookingId}:`, error);
+      throw error;
+    }
   }
 
   async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
@@ -1127,6 +1144,31 @@ export class DatabaseStorage implements IStorage {
   async deletePassenger(passengerId: number): Promise<void> {
     await db.delete(passengers)
       .where(eq(passengers.id, passengerId));
+  }
+
+  async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
+    try {
+      console.log(`Updating passenger count for booking ${bookingId} to ${passengerCount}`);
+      
+      const result = await db
+        .update(flightBookings)
+        .set({ 
+          passengerCount: passengerCount,
+          updatedAt: new Date()
+        })
+        .where(eq(flightBookings.id, bookingId))
+        .returning();
+
+      if (result.length === 0) {
+        throw new Error(`No booking found with ID ${bookingId}`);
+      }
+
+      console.log(`Successfully updated passenger count for booking ${bookingId}`);
+      return result[0];
+    } catch (error) {
+      console.error(`Error updating passenger count for booking ${bookingId}:`, error);
+      throw error;
+    }
   }
 
   async updateBidDetails(bidId: number, updateData: any): Promise<any> {

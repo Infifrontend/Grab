@@ -245,9 +245,17 @@ export default function ManageBookingDetail() {
   const handleSaveChanges = async () => {
     try {
       console.log("Starting to save changes for booking:", bookingId);
+      
+      if (!bookingId) {
+        console.error("No booking ID available");
+        message.error("No booking ID found. Please try again.");
+        return;
+      }
 
       // Save group leader information
       console.log("Saving group leader information...");
+      console.log("Group leader data:", groupLeaderInfo);
+      
       const groupLeaderResponse = await fetch(
         `/api/booking-details/${bookingId}`,
         {
@@ -256,17 +264,25 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            groupLeaderName: groupLeaderInfo.name,
-            groupLeaderEmail: groupLeaderInfo.email,
-            groupLeaderPhone: groupLeaderInfo.phone,
+            groupLeaderName: groupLeaderInfo.name || '',
+            groupLeaderEmail: groupLeaderInfo.email || '',
+            groupLeaderPhone: groupLeaderInfo.phone || '',
           }),
         },
       );
 
+      let groupLeaderResult;
+      try {
+        groupLeaderResult = await groupLeaderResponse.json();
+      } catch (parseError) {
+        const textResult = await groupLeaderResponse.text();
+        console.error("Failed to parse group leader response:", textResult);
+        throw new Error("Invalid response from server when updating group leader");
+      }
+
       if (!groupLeaderResponse.ok) {
-        const errorData = await groupLeaderResponse.text();
-        console.error("Group leader update failed:", errorData);
-        throw new Error("Failed to update group leader information");
+        console.error("Group leader update failed:", groupLeaderResult);
+        throw new Error(groupLeaderResult.message || "Failed to update group leader information");
       }
 
       console.log("Group leader information saved successfully");
@@ -274,7 +290,7 @@ export default function ManageBookingDetail() {
       // Save passenger information
       console.log("Saving passenger information...");
       const validPassengers = passengers.filter(
-        (p) => p.firstName.trim() || p.lastName.trim(),
+        (p) => p.firstName && p.firstName.trim() || p.lastName && p.lastName.trim(),
       );
 
       console.log(
@@ -282,26 +298,38 @@ export default function ManageBookingDetail() {
         validPassengers,
       );
 
-      const passengersResponse = await fetch(
-        `/api/booking-passengers/${bookingId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
+      if (validPassengers.length > 0) {
+        const passengersResponse = await fetch(
+          `/api/booking-passengers/${bookingId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              passengers: validPassengers,
+            }),
           },
-          body: JSON.stringify({
-            passengers: validPassengers,
-          }),
-        },
-      );
+        );
 
-      if (!passengersResponse.ok) {
-        const errorData = await passengersResponse.text();
-        console.error("Passenger update failed:", errorData);
-        throw new Error("Failed to update passenger information");
+        let passengersResult;
+        try {
+          passengersResult = await passengersResponse.json();
+        } catch (parseError) {
+          const textResult = await passengersResponse.text();
+          console.error("Failed to parse passengers response:", textResult);
+          throw new Error("Invalid response from server when updating passengers");
+        }
+
+        if (!passengersResponse.ok) {
+          console.error("Passenger update failed:", passengersResult);
+          throw new Error(passengersResult.message || "Failed to update passenger information");
+        }
+
+        console.log("Passenger information saved successfully");
+      } else {
+        console.log("No valid passengers to save");
       }
-
-      console.log("Passenger information saved successfully");
 
       message.success("Changes saved successfully");
 
@@ -309,9 +337,22 @@ export default function ManageBookingDetail() {
       console.log("Refetching booking details...");
       await refetch();
       console.log("Booking details refetched successfully");
+      
     } catch (error) {
       console.error("Error saving changes:", error);
-      message.error("Failed to save changes. Please try again.");
+      
+      let errorMessage = "Failed to save changes. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes("Booking not found")) {
+          errorMessage = "Booking not found. Please check the booking reference.";
+        } else if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
     }
   };
 

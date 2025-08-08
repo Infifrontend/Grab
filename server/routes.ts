@@ -1375,16 +1375,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { groupLeaderName, groupLeaderEmail, groupLeaderPhone } = req.body;
 
-      // Find the booking by ID or reference
-      let booking = await storage.getFlightBookingByReference(id);
+      console.log(`Updating group leader info for booking: ${id}`);
+      console.log("Group leader data:", { groupLeaderName, groupLeaderEmail, groupLeaderPhone });
+
+      // Find the booking using multiple strategies
+      let booking = null;
+      
+      // Strategy 1: Search by PNR
+      try {
+        booking = await storage.getFlightBookingByPNR(id);
+        if (booking) console.log("Found booking by PNR");
+      } catch (error) {
+        console.log("Error finding by PNR:", error.message);
+      }
+
+      // Strategy 2: Search by booking reference
       if (!booking) {
-        const allFlightBookings = await storage.getFlightBookings();
-        booking = allFlightBookings.find((b) => b.id.toString() === id);
+        try {
+          booking = await storage.getFlightBookingByReference(id);
+          if (booking) console.log("Found booking by reference");
+        } catch (error) {
+          console.log("Error finding by reference:", error.message);
+        }
+      }
+
+      // Strategy 3: Search by ID
+      if (!booking) {
+        try {
+          const allFlightBookings = await storage.getFlightBookings();
+          booking = allFlightBookings.find((b) => b.id.toString() === id);
+          if (booking) console.log("Found booking by ID");
+        } catch (error) {
+          console.log("Error finding by ID:", error.message);
+        }
       }
 
       if (!booking) {
-        return res.status(404).json({ message: "Booking not found" });
+        console.log(`Booking not found for ID: ${id}`);
+        return res.status(404).json({ 
+          success: false,
+          message: "Booking not found" 
+        });
       }
+
+      console.log(`Found booking with ID: ${booking.id}`);
 
       // Parse existing comprehensive data if available
       let comprehensiveData = {};
@@ -1392,23 +1426,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           comprehensiveData = JSON.parse(booking.specialRequests);
         } catch (e) {
-          // If parsing fails, start with empty object
+          console.log("Could not parse existing special requests, using empty object");
+          comprehensiveData = {};
         }
       }
 
       // Update group leader information
       comprehensiveData.groupLeaderInfo = {
         ...comprehensiveData.groupLeaderInfo,
-        name: groupLeaderName,
-        email: groupLeaderEmail,
-        phone: groupLeaderPhone,
+        name: groupLeaderName || '',
+        email: groupLeaderEmail || '',
+        phone: groupLeaderPhone || '',
         updatedAt: new Date().toISOString(),
       };
+
+      console.log("Updated comprehensive data:", comprehensiveData);
 
       // Save back to database
       await storage.updateBookingDetails(booking.id, {
         specialRequests: JSON.stringify(comprehensiveData),
       });
+
+      console.log("Group leader information updated successfully");
 
       res.json({
         success: true,
@@ -1416,7 +1455,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating booking details:", error);
-      res.status(500).json({ message: "Failed to update booking details" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update booking details",
+        error: error.message 
+      });
     }
   });
 
