@@ -2523,7 +2523,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/debug/create-p0n6q3-booking", async (req, res) => {
     try {
       // Check if booking already exists
-      const existing = await storage.getFlightBookingByPNR("P0N6Q3");
+      let existing = null;
+      try {
+        existing = await storage.getFlightBookingByPNR("P0N6Q3");
+      } catch (error) {
+        console.log("Error checking existing booking:", error.message);
+      }
+      
       if (existing) {
         return res.json({
           success: true,
@@ -2533,33 +2539,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const testBookingData = {
-        bookingReference: "GB-2024-P0N6Q3",
+        bookingReference: "GB-2025-WYWNDA6M",
         pnr: "P0N6Q3",
-        flightId: 1, // Default flight ID
-        passengerCount: 2,
-        totalAmount: "4500.00",
+        flightId: 191,
+        passengerCount: 1,
+        totalAmount: "23240.52",
         bookingStatus: "confirmed",
-        paymentStatus: "pending"
+        paymentStatus: "pending",
+        specialRequests: JSON.stringify({
+          "bookingReference": "GB-2025-WYWNDA6M",
+          "tripDetails": {
+            "origin": "Chennai",
+            "destination": "Dubai",
+            "departureDate": "2025-09-30T18:30:00.000Z",
+            "tripType": "oneWay",
+            "adults": 1,
+            "kids": 0,
+            "infants": 0,
+            "cabin": "economy",
+            "totalPassengers": 1
+          },
+          "flightDetails": {
+            "outbound": {
+              "id": 191,
+              "airline": "Infiniti Airline",
+              "flightNumber": "RM701",
+              "price": 21500,
+              "departureTime": "2025-10-01T02:30:00.000Z",
+              "arrivalTime": "2025-10-01T05:15:00.000Z"
+            },
+            "return": null
+          },
+          "bundleSelection": {
+            "selectedMeals": [
+              {
+                "id": "standard-meal",
+                "name": "Standard Meal",
+                "price": 0,
+                "included": true,
+                "features": [
+                  "Complimentary meal service",
+                  "Hot meal",
+                  "Soft drinks",
+                  "Tea/Coffee"
+                ]
+              }
+            ],
+            "bundleCost": 0
+          },
+          "selectedServices": [
+            {
+              "id": "booknow-complete-later",
+              "name": "BookNow Complete Later",
+              "price": 19,
+              "type": "bundle"
+            }
+          ],
+          "groupLeaderInfo": {
+            "title": "mr",
+            "firstName": "Jegan",
+            "lastName": "SP",
+            "email": "jegansp@gmail.com",
+            "phoneNumber": "7667706481"
+          },
+          "paymentInfo": {
+            "paymentSchedule": "full",
+            "paymentMethod": "bankTransfer",
+            "totalAmount": 23240.52,
+            "discountedTotal": 22775.7096,
+            "paymentDiscount": 0.02,
+            "dueNow": 22775.7096,
+            "selectedPaymentOption": {
+              "id": "bankTransfer",
+              "name": "Bank Transfer",
+              "discount": 0.02
+            },
+            "formData": null,
+            "passengerCount": 1
+          },
+          "pricingSummary": {
+            "subtotal": 21519,
+            "taxes": 1721.52,
+            "groupDiscount": 0,
+            "totalAmount": 23240.52,
+            "passengerCount": 1,
+            "calculatedAt": "2025-08-08T07:02:43.475Z"
+          },
+          "createdAt": "2025-08-08T07:02:47.890Z",
+          "status": "confirmed"
+        })
       };
 
       const booking = await storage.createFlightBooking(testBookingData);
       
-      // Create test passengers
+      // Create test passenger
       await storage.createPassenger({
         bookingId: booking.id,
         title: "Mr",
-        firstName: "John",
-        lastName: "Doe",
+        firstName: "Jegan",
+        lastName: "SP",
         dateOfBirth: new Date("1990-05-15"),
-        nationality: "Indian"
-      });
-
-      await storage.createPassenger({
-        bookingId: booking.id,
-        title: "Ms",
-        firstName: "Jane",
-        lastName: "Doe",
-        dateOfBirth: new Date("1992-08-22"),
         nationality: "Indian"
       });
 
