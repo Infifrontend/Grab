@@ -1508,35 +1508,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Find the booking by ID, reference, or PNR
+      // Find the booking by ID, reference, or PNR with comprehensive search
       let booking = null;
-      
-      // Try by booking reference first
+      const searchVariations = [
+        id, // Original ID
+        id.toUpperCase(), // Uppercase version
+        id.toLowerCase(), // Lowercase version
+        id.replace(/[^a-zA-Z0-9]/g, ''), // Remove special characters
+        id.trim(), // Remove whitespace
+      ];
+
+      console.log(`Searching for booking with variations: ${searchVariations.join(', ')}`);
+
+      // Get all flight bookings for comprehensive search
+      let allFlightBookings = [];
       try {
-        booking = await storage.getFlightBookingByReference(id);
-        console.log("Found booking by reference:", booking ? "Yes" : "No");
+        allFlightBookings = await storage.getFlightBookings();
+        console.log(`Total bookings available: ${allFlightBookings.length}`);
       } catch (error) {
-        console.log("Error finding booking by reference:", error.message);
+        console.log("Error fetching all bookings:", error.message);
       }
 
-      // If not found by reference, try by PNR
-      if (!booking) {
+      // Try each search variation
+      for (const searchId of searchVariations) {
+        if (booking) break;
+
+        // Method 1: Search by PNR (case-insensitive)
         try {
-          booking = await storage.getFlightBookingByPNR(id);
-          console.log("Found booking by PNR:", booking ? "Yes" : "No");
+          booking = await storage.getFlightBookingByPNR(searchId);
+          if (!booking && allFlightBookings.length > 0) {
+            booking = allFlightBookings.find((b) => 
+              b.pnr && b.pnr.toLowerCase() === searchId.toLowerCase()
+            );
+          }
+          if (booking) {
+            console.log(`Found booking by PNR: ${searchId}`);
+            break;
+          }
         } catch (error) {
-          console.log("Error finding booking by PNR:", error.message);
+          console.log(`Error finding booking by PNR (${searchId}):`, error.message);
         }
-      }
 
-      // If not found by PNR, try by numeric ID
-      if (!booking) {
-        try {
-          const allFlightBookings = await storage.getFlightBookings();
-          booking = allFlightBookings.find((b) => b.id.toString() === id);
-          console.log("Found booking by numeric ID:", booking ? "Yes" : "No");
-        } catch (error) {
-          console.log("Error finding booking by numeric ID:", error.message);
+        // Method 2: Search by booking reference (case-insensitive)
+        if (!booking) {
+          try {
+            booking = await storage.getFlightBookingByReference(searchId);
+            if (!booking && allFlightBookings.length > 0) {
+              booking = allFlightBookings.find((b) => 
+                b.bookingReference && b.bookingReference.toLowerCase() === searchId.toLowerCase()
+              );
+            }
+            if (booking) {
+              console.log(`Found booking by reference: ${searchId}`);
+              break;
+            }
+          } catch (error) {
+            console.log(`Error finding booking by reference (${searchId}):`, error.message);
+          }
+        }
+
+        // Method 3: Search by numeric ID
+        if (!booking && allFlightBookings.length > 0) {
+          booking = allFlightBookings.find((b) => {
+            return b.id.toString() === searchId;
+          });
+          
+          if (booking) {
+            console.log(`Found booking by ID search: ${searchId}`);
+            break;
+          }
         }
       }
 
@@ -2538,6 +2578,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to create P0N6Q3 booking",
+        error: error.message
+      });
+    }
+  });
+
+  // Debug endpoint to check if P0N6Q3 booking exists
+  app.get("/api/debug/check-booking/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`Checking for booking: ${id}`);
+
+      // Get all bookings to see what's available
+      const allBookings = await storage.getFlightBookings();
+      console.log(`Total bookings: ${allBookings.length}`);
+
+      // Try different search methods
+      const searchResults = {
+        exactPNR: await storage.getFlightBookingByPNR(id),
+        exactReference: await storage.getFlightBookingByReference(id),
+        caseSensitivePNR: allBookings.find(b => b.pnr === id),
+        caseInsensitivePNR: allBookings.find(b => b.pnr && b.pnr.toLowerCase() === id.toLowerCase()),
+        caseInsensitiveReference: allBookings.find(b => b.bookingReference && b.bookingReference.toLowerCase() === id.toLowerCase()),
+        numericId: allBookings.find(b => b.id.toString() === id)
+      };
+
+      // Get passengers if booking found
+      let passengers = [];
+      const foundBooking = searchResults.exactPNR || searchResults.exactReference || 
+                           searchResults.caseSensitivePNR || searchResults.caseInsensitivePNR || 
+                           searchResults.caseInsensitiveReference || searchResults.numericId;
+      
+      if (foundBooking) {
+        passengers = await storage.getPassengersByBooking(foundBooking.id);
+      }
+
+      res.json({
+        success: true,
+        searchId: id,
+        searchResults,
+        foundBooking: foundBooking ? {
+          id: foundBooking.id,
+          pnr: foundBooking.pnr,
+          bookingReference: foundBooking.bookingReference,
+          passengerCount: foundBooking.passengerCount
+        } : null,
+        passengers: passengers.map(p => ({
+          id: p.id,
+          firstName: p.firstName,
+          lastName: p.lastName
+        })),
+        availableBookings: allBookings.slice(0, 5).map(b => ({
+          id: b.id,
+          pnr: b.pnr,
+          bookingReference: b.bookingReference
+        }))
+      });
+    } catch (error) {
+      console.error("Error checking booking:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to check booking",
         error: error.message
       });
     }

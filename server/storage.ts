@@ -1,12 +1,12 @@
 import { db } from "./db";
-import { 
-  users, 
-  deals, 
-  packages, 
-  bookings, 
-  searchRequests, 
-  flights, 
-  flightBookings, 
+import {
+  users,
+  deals,
+  packages,
+  bookings,
+  searchRequests,
+  flights,
+  flightBookings,
   passengers,
   bids,
   payments,
@@ -54,7 +54,7 @@ export interface IStorage {
   getFlightBookings(userId?: number): Promise<FlightBooking[]>;
   getFlightBooking(id: number): Promise<FlightBooking | undefined>;
   getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
-  getFlightBookingByPNR(pnr: string): Promise<any>;
+  getFlightBookingByPNR(pnr: string): Promise<FlightBooking | null>;
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
   updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
   updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void>;
@@ -186,7 +186,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const allPackages = await db.select().from(packages);
-    return allPackages.filter(pkg => 
+    return allPackages.filter(pkg =>
       pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
       pkg.title.toLowerCase().includes(destination.toLowerCase())
     );
@@ -335,13 +335,28 @@ export class DatabaseStorage implements IStorage {
     return booking || undefined;
   }
 
-  async getFlightBookingByPNR(pnr: string): Promise<FlightBooking | undefined> {
-    const [booking] = await db
+  async getFlightBookingByPNR(pnr: string): Promise<FlightBooking | null> {
+    // First try exact match
+    let result = await this.db
       .select()
       .from(flightBookings)
       .where(eq(flightBookings.pnr, pnr))
       .limit(1);
-    return booking || undefined;
+
+    if (result.length > 0) {
+      return result[0];
+    }
+
+    // If not found, try case-insensitive search
+    const allBookings = await this.db
+      .select()
+      .from(flightBookings);
+
+    const foundBooking = allBookings.find(booking =>
+      booking.pnr && booking.pnr.toLowerCase() === pnr.toLowerCase()
+    );
+
+    return foundBooking || null;
   }
 
   // Generate unique PNR (Passenger Name Record)
@@ -421,7 +436,7 @@ export class DatabaseStorage implements IStorage {
   async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
     return await db
       .update(flightBookings)
-      .set({ 
+      .set({
         passengerCount: passengerCount,
         updatedAt: new Date()
       })
@@ -686,7 +701,7 @@ export class DatabaseStorage implements IStorage {
       // Filter by status if provided
       let filteredPayments = allPayments;
       if (statusFilter && statusFilter !== 'All Status') {
-        filteredPayments = allPayments.filter(p => 
+        filteredPayments = allPayments.filter(p =>
           p.paymentStatus.toLowerCase() === statusFilter.toLowerCase()
         );
       }
@@ -1200,9 +1215,9 @@ export class DatabaseStorage implements IStorage {
         const bookingRef = payment.bookingId ? payment.bookingId.toString() : '';
 
         // Look for bid ID in various fields
-        return paymentRef.includes(bidId.toString()) || 
+        return paymentRef.includes(bidId.toString()) ||
                bookingRef.includes(bidId.toString()) ||
-               (payment.userId === bidDetails.bid?.userId && 
+               (payment.userId === bidDetails.bid?.userId &&
                 Math.abs(new Date(payment.createdAt).getTime() - new Date(bidDetails.bid?.createdAt || 0).getTime()) < 24 * 60 * 60 * 1000); // Within 24 hours
       });
 
