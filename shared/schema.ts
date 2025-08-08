@@ -182,7 +182,6 @@ export const retailBids = pgTable("retail_bids", {
   submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   status: text("status").notNull().default("submitted"), // submitted, approved, rejected
-  paymentStatus: text("payment_status").notNull().default("pending"), // pending, paid, failed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
