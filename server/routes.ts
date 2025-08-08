@@ -2012,13 +2012,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Parse existing notes to get retail users data
+      // Parse existing notes to get retail users data and seat availability
       let existingNotes = {};
       try {
         existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
       } catch (e) {
         existingNotes = {};
       }
+
+      // Get seat availability information
+      const totalSeatsAvailable = existingBid.bid.totalSeatsAvailable || existingNotes.totalSeatsAvailable || 100;
+      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      const currentSeatsBooked = retailBids
+        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       // Initialize retail users array if it doesn't exist or ensure we have enough users
       if (!existingNotes.retailUsers || existingNotes.retailUsers.length === 0) {
@@ -2038,6 +2045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bookingRef: `GR00123${i + 4}`,
             seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
             bidAmount: baseBidAmount + randomIncrement,
+            passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
             status: existingBid.bid.bidStatus === 'approved' && i === 0 ? 'approved' : 'pending_approval'
           });
         }
@@ -2061,6 +2069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bookingRef: `GR00123${userIdNum + 3}`,
           seatNumber: `1${2 + userIdNum - 1}${String.fromCharCode(64 + userIdNum)}`, // 12A, 13B, etc.
           bidAmount: baseBidAmount + randomIncrement,
+          passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
           status: 'pending_approval'
         };
 
@@ -2071,8 +2080,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let newBidStatus = existingBid.bid.bidStatus; // Keep current bid status by default
+      let seatsWillBeBooked = 0;
 
       if (action === 'approve') {
+        const userPassengerCount = existingNotes.retailUsers[retailUserIndex].passengerCount || 1;
+        
+        // Check if approving this user would exceed seat limit
+        if (currentSeatsBooked + userPassengerCount > totalSeatsAvailable) {
+          return res.status(400).json({
+            success: false,
+            message: `Cannot approve: Not enough seats available. User needs ${userPassengerCount} seats but only ${totalSeatsAvailable - currentSeatsBooked} remaining.`
+          });
+        }
+
+        seatsWillBeBooked = userPassengerCount;
+
         // If approving this user, reject all other users automatically
         existingNotes.retailUsers.forEach((user, index) => {
           if (index === retailUserIndex) {
@@ -2089,14 +2111,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Update bid status to "approved" when a retail user is approved
-        // This should happen regardless of current status
         newBidStatus = 'approved';
-        console.log(`Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}`);
+        
+        // Update the retail bid status in the retail_bids table
+        const retailBid = retailBids.find(rb => rb.userId === parseInt(userId));
+        if (retailBid) {
+          await storage.updateRetailBidStatus(retailBid.id, 'approved');
+        }
+
+        // Check if the bid should be closed due to seat capacity
+        const newTotalSeatsBooked = currentSeatsBooked + seatsWillBeBooked;
+        if (newTotalSeatsBooked >= totalSeatsAvailable) {
+          // Update bid notes to indicate it's closed due to capacity
+          existingNotes.closedDueToCapacity = true;
+          existingNotes.closedAt = new Date().toISOString();
+        }
+
+        console.log(`Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}. Seats booked: ${newTotalSeatsBooked}/${totalSeatsAvailable}`);
       } else {
         // If rejecting this user, just update their status
         existingNotes.retailUsers[retailUserIndex].status = 'rejected';
         existingNotes.retailUsers[retailUserIndex].updatedAt = new Date().toISOString();
         existingNotes.retailUsers[retailUserIndex].updatedBy = 'Admin';
+
+        // Update the retail bid status in the retail_bids table
+        const retailBid = retailBids.find(rb => rb.userId === parseInt(userId));
+        if (retailBid) {
+          await storage.updateRetailBidStatus(retailBid.id, 'rejected');
+        }
       }
 
       // Update the bid with new notes and potentially new bid status
@@ -2108,12 +2150,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateBidDetails(parseInt(bidId), updateData);
 
+      // Calculate final seat availability
+      const finalSeatsBooked = currentSeatsBooked + (action === 'approve' ? seatsWillBeBooked : 0);
+      const seatsRemaining = totalSeatsAvailable - finalSeatsBooked;
+
       // Create notification for the action
       await createNotification(
         'retail_user_status_updated',
         `Retail User ${action === 'approve' ? 'Approved' : 'Rejected'}`,
         action === 'approve' 
-          ? `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been approved for bid ${bidId}. All other pending users have been automatically rejected. Bid status updated to "Approved".`
+          ? `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been approved for bid ${bidId}. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
           : `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been rejected for bid ${bidId}`,
         'medium',
         {
@@ -2121,19 +2167,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: parseInt(userId),
           action: action === 'approve' ? 'approved' : 'rejected',
           userName: existingNotes.retailUsers[retailUserIndex].name,
-          bidStatusUpdated: action === 'approve' && existingBid.bid.bidStatus === 'completed'
+          seatsBooked: seatsWillBeBooked,
+          seatsRemaining: seatsRemaining,
+          totalSeatsAvailable: totalSeatsAvailable
         }
       );
 
       res.json({
         success: true,
         message: action === 'approve' 
-          ? `Retail user approved successfully. All other users have been automatically rejected. Bid status updated to "Approved".`
+          ? `Retail user approved successfully. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
           : `Retail user rejected successfully`,
         retailUser: existingNotes.retailUsers[retailUserIndex],
         bidStatusUpdated: newBidStatus !== existingBid.bid.bidStatus,
         newBidStatus: newBidStatus,
-        previousBidStatus: existingBid.bid.bidStatus
+        previousBidStatus: existingBid.bid.bidStatus,
+        seatsRemaining: seatsRemaining,
+        totalSeatsAvailable: totalSeatsAvailable,
+        isClosed: seatsRemaining <= 0
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
@@ -2391,7 +2442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Original bid found:", originalBid.bid);
 
-      // Parse bid configuration data for reference only (no validation)
+      // Parse bid configuration data for seat availability checking
       let configData = {};
       try {
         configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
@@ -2401,10 +2452,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         configData = {};
       }
 
-      console.log("Bid submission without validation for bid:", bidId, "passenger count:", passengerCount);
+      // Check seat availability
+      const totalSeatsAvailable = originalBid.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      
+      // Calculate total seats already booked by approved/paid bids
+      const totalSeatsBooked = existingRetailBids
+        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+
+      // Check if there are enough seats available
+      if (totalSeatsBooked + parseInt(passengerCount) > totalSeatsAvailable) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough seats available. ${totalSeatsAvailable - totalSeatsBooked} seats remaining.`
+        });
+      }
 
       // Check if user has already submitted a bid for this configuration
-      const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
       const userExistingBid = existingRetailBids.find(rb => rb.userId === parseInt(userId));
       
       if (userExistingBid) {
@@ -2414,8 +2479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Allow any submitted amount (validation removed)
-      console.log("Submitted amount:", submittedAmount, "Original bid amount:", originalBid.bid.bidAmount);
+      console.log("Bid submission for bid:", bidId, "passenger count:", passengerCount);
 
       // Create retail bid submission
       const retailBidData = {
@@ -2429,25 +2493,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newRetailBid = await storage.createRetailBid(retailBidData);
 
+      // Check if bid should be closed after this submission (when approved/paid)
+      const newTotalSeatsBooked = totalSeatsBooked + parseInt(passengerCount);
+      const shouldCloseBid = newTotalSeatsBooked >= totalSeatsAvailable;
+
       // Create notification
       await createNotification(
         'retail_bid_submitted',
         'New Retail Bid Submitted',
-        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}`,
+        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${totalSeatsAvailable - newTotalSeatsBooked} seats remaining.`,
         'medium',
         {
           retailBidId: newRetailBid.id,
           bidId: parseInt(bidId),
           userId: parseInt(userId),
           amount: submittedAmount,
-          passengerCount: parseInt(passengerCount)
+          passengerCount: parseInt(passengerCount),
+          seatsRemaining: totalSeatsAvailable - newTotalSeatsBooked
         }
       );
 
       res.json({
         success: true,
         message: "Retail bid submitted successfully",
-        retailBid: newRetailBid
+        retailBid: newRetailBid,
+        seatsRemaining: totalSeatsAvailable - totalSeatsBooked,
+        totalSeatsAvailable: totalSeatsAvailable
       });
 
     } catch (error) {
@@ -2475,6 +2546,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to fetch retail bids",
+        error: error.message
+      });
+    }
+  });
+
+  // Get bid status with seat availability for retail users
+  app.get("/api/bid-status/:bidId", async (req, res) => {
+    try {
+      const { bidId } = req.params;
+      
+      // Get the bid configuration
+      const bidDetails = await storage.getBidById(parseInt(bidId));
+      if (!bidDetails) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      // Parse configuration data
+      let configData = {};
+      try {
+        configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
+
+      // Get total seats available
+      const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+
+      // Get all retail bids for this configuration
+      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+
+      // Calculate total seats booked by approved/paid bids
+      const totalSeatsBooked = retailBids
+        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+
+      const seatsRemaining = totalSeatsAvailable - totalSeatsBooked;
+      const isClosed = seatsRemaining <= 0;
+
+      // Determine display status for retail users
+      let displayStatus = 'Open';
+      if (isClosed) {
+        displayStatus = 'Closed';
+      } else if (bidDetails.bid.bidStatus === 'expired') {
+        displayStatus = 'Expired';
+      } else if (bidDetails.bid.bidStatus === 'rejected') {
+        displayStatus = 'Declined';
+      }
+
+      res.json({
+        success: true,
+        bidStatus: displayStatus,
+        totalSeatsAvailable: totalSeatsAvailable,
+        totalSeatsBooked: totalSeatsBooked,
+        seatsRemaining: seatsRemaining,
+        isClosed: isClosed,
+        originalBidStatus: bidDetails.bid.bidStatus
+      });
+
+    } catch (error) {
+      console.error("Error fetching bid status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch bid status",
         error: error.message
       });
     }

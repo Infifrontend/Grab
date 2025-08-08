@@ -136,6 +136,7 @@ export interface IStorage {
   // Retail Bids
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
+  updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1328,15 +1329,44 @@ export class DatabaseStorage implements IStorage {
   // Get retail bids by bid ID
   async getRetailBidsByBid(bidId: number): Promise<RetailBid[]> {
     try {
-      const retailBidsList = await db
-        .select()
+      return await db
+        .select({
+          id: retailBids.id,
+          bidId: retailBids.bidId,
+          userId: retailBids.userId,
+          flightId: retailBids.flightId,
+          submittedAmount: retailBids.submittedAmount,
+          passengerCount: retailBids.passengerCount,
+          status: retailBids.status,
+          createdAt: retailBids.createdAt,
+          updatedAt: retailBids.updatedAt,
+          user: {
+            id: usersTable.id,
+            name: usersTable.name,
+            email: usersTable.email
+          }
+        })
         .from(retailBids)
-        .where(eq(retailBids.bidId, bidId))
-        .orderBy(desc(retailBids.createdAt));
-
-      return retailBidsList;
+        .leftJoin(usersTable, eq(retailBids.userId, usersTable.id))
+        .where(eq(retailBids.bidId, bidId));
     } catch (error) {
-      console.error("Error getting retail bids by bid ID:", error);
+      console.error("Error getting retail bids by bid:", error);
+      throw error;
+    }
+  }
+
+  async updateRetailBidStatus(retailBidId: number, status: string): Promise<any> {
+    try {
+      return await db
+        .update(retailBids)
+        .set({
+          status: status,
+          updatedAt: new Date()
+        })
+        .where(eq(retailBids.id, retailBidId))
+        .returning();
+    } catch (error) {
+      console.error("Error updating retail bid status:", error);
       throw error;
     }
   }
@@ -1397,7 +1427,7 @@ export class DatabaseStorage implements IStorage {
       return newRetailBid;
     } catch (error) {
       console.error("Error creating retail bid:", error);
-      
+
       // Handle potential sequence errors for retailBids table
       if (error.code === '23505' || error.message.includes('retail_bids_id_seq')) {
         console.log('Fixing retail_bids sequence...');
@@ -1406,12 +1436,12 @@ export class DatabaseStorage implements IStorage {
           await db.execute(`
             CREATE SEQUENCE IF NOT EXISTS retail_bids_id_seq;
           `);
-          
+
           // Set the sequence to the correct value
           await db.execute(`
             SELECT setval('retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM retail_bids), 0) + 1, false);
           `);
-          
+
           console.log('Retrying retail bid creation after sequence fix...');
           // Try the insert again without recursion to avoid infinite loops
           const [newRetailBid] = await db

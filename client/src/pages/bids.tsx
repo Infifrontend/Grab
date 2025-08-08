@@ -75,8 +75,8 @@ export default function Bids() {
         const bidsResponse = await fetch("/api/bids");
         const bids = await bidsResponse.json();
 
-        // Transform bids data to match table format
-        const transformedBids = bids.map((bid: any) => {
+        // Transform bids data to match table format with dynamic status checking
+        const transformedBidsPromises = bids.map(async (bid: any) => {
           // Parse configuration data from notes to get flight information
           let configData = {};
           try {
@@ -110,18 +110,18 @@ export default function Bids() {
             ? formatDateToDDMMMYYYY(bid.createdAt)
             : "N/A";
 
-          return {
-            bidId: `BID-${bid.id}`,
-            route: flightRoute,
-            passengers: bid.passengerCount,
-            travelDate: travelDate,
-            bidAmount: `$${bid.bidAmount}`,
-            deposit: `$${(
-              parseFloat(bid.bidAmount.toString()) *
-              bid.passengerCount *
-              0.1
-            ).toFixed(2)}`,
-            status:
+          // Fetch dynamic status based on seat availability
+          let dynamicStatus = "Open";
+          try {
+            const statusResponse = await fetch(`/api/bid-status/${bid.id}`);
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              dynamicStatus = statusData.bidStatus || "Open";
+            }
+          } catch (error) {
+            console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
+            // Fallback to original static status mapping
+            dynamicStatus = 
               bid.bidStatus === "active"
                 ? "Open"
                 : bid.bidStatus === "accepted"
@@ -136,7 +136,21 @@ export default function Bids() {
                 ? "Under Review"
                 : bid.bidStatus === "pending"
                 ? "Under Review"
-                : "Under Review",
+                : "Under Review";
+          }
+
+          return {
+            bidId: `BID-${bid.id}`,
+            route: flightRoute,
+            passengers: bid.passengerCount,
+            travelDate: travelDate,
+            bidAmount: `$${bid.bidAmount}`,
+            deposit: `$${(
+              parseFloat(bid.bidAmount.toString()) *
+              bid.passengerCount *
+              0.1
+            ).toFixed(2)}`,
+            status: dynamicStatus,
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
@@ -144,7 +158,7 @@ export default function Bids() {
                 ? "Converted to Booking"
                 : bid.bidStatus === "approved"
                 ? "Accepted for Booking"
-                : bid.bidStatus === "active"
+                : dynamicStatus === "Open"
                 ? "Open"
                 : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
                 ? "Refunded"
@@ -153,6 +167,8 @@ export default function Bids() {
             actions: "View Details",
           };
         });
+
+        const transformedBids = await Promise.all(transformedBidsPromises);
 
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);

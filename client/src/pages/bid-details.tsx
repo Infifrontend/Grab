@@ -48,8 +48,22 @@ export default function BidDetails() {
 
         const data = await response.json();
 
-        // Set the fetched data
-        setBidData(data);
+        // Fetch dynamic status based on seat availability
+        let seatAvailabilityData = null;
+        try {
+          const statusResponse = await fetch(`/api/bid-status/${params.id}`);
+          if (statusResponse.ok) {
+            seatAvailabilityData = await statusResponse.json();
+          }
+        } catch (statusError) {
+          console.warn("Could not fetch seat availability data:", statusError);
+        }
+
+        // Set the fetched data with dynamic status
+        setBidData({
+          ...data,
+          seatAvailability: seatAvailabilityData
+        });
         setPassengers(data.bid.passengerCount);
         setBidAmount(parseFloat(data.bid.bidAmount));
         setOriginalBidAmount(parseFloat(data.bid.bidAmount));
@@ -91,7 +105,13 @@ export default function BidDetails() {
     return dayjs(dateString).format("DD/MM/YYYY");
   };
 
-  const getStatusDisplay = (status) => {
+  const getStatusDisplay = (status, seatAvailabilityData) => {
+    // Use dynamic status from seat availability if available
+    if (seatAvailabilityData && seatAvailabilityData.bidStatus) {
+      return seatAvailabilityData.bidStatus;
+    }
+
+    // Fallback to original status mapping
     switch (status) {
       case "active":
         return "Open";
@@ -131,8 +151,9 @@ export default function BidDetails() {
   // Transform the fetched data from database records
   const transformedBidData = {
     bidId: bidData.bid.id.toString(),
-    status: getStatusDisplay(bidData.bid.bidStatus),
+    status: getStatusDisplay(bidData.bid.bidStatus, bidData.seatAvailability),
     timeLeft: getTimeLeft(bidData.bid.validUntil),
+    seatAvailability: bidData.seatAvailability,
 
     // Group Information from database
     groupName:
@@ -298,6 +319,28 @@ export default function BidDetails() {
           borderColor: "#e0f2fe",
         }}
       />
+
+      {/* Seat Availability Alert */}
+      {transformedBidData.seatAvailability && (
+        <Alert
+          message="Seat Availability"
+          description={
+            <span>
+              <strong>{transformedBidData.seatAvailability.seatsRemaining}</strong> seats remaining out of{" "}
+              <strong>{transformedBidData.seatAvailability.totalSeatsAvailable}</strong> total seats.
+              {transformedBidData.seatAvailability.isClosed ? (
+                <span className="text-red-600 font-semibold"> This bid is now closed.</span>
+              ) : (
+                <span className="text-green-600"> Bid is still open for submissions.</span>
+              )}
+            </span>
+          }
+          type={transformedBidData.seatAvailability.isClosed ? "warning" : "success"}
+          icon={<InfoCircleOutlined />}
+          showIcon
+          className="mb-6"
+        />
+      )}
 
       {/* Main Form Card */}
       <Card className="mb-6 shadow-sm">
@@ -733,18 +776,31 @@ export default function BidDetails() {
             Cancel
           </Button>
           
-          {(transformedBidData.status === "Open" ||
-            transformedBidData.status === "open") &&
-            transformedBidData.status !== "Under Review" && (
+          {transformedBidData.status === "Open" && (
               <Button
                 type="primary"
                 size="large"
                 onClick={handleContinueToPayment}
                 className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+                disabled={transformedBidData.seatAvailability?.isClosed}
               >
-                Continue to Payment
+                {transformedBidData.seatAvailability?.isClosed 
+                  ? "Bid Closed - No Seats Available" 
+                  : "Continue to Payment"}
               </Button>
             )}
+
+          {transformedBidData.status === "Closed" && (
+            <div className="flex justify-end">
+              <Button
+                size="large"
+                disabled
+                className="px-8 py-2 h-auto font-semibold"
+              >
+                Bid Closed - Seats Full
+              </Button>
+            </div>
+          )}
 
           {transformedBidData.status === "completed" && (
             <div className="flex justify-end">
