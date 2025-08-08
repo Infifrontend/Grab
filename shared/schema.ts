@@ -124,6 +124,9 @@ export const bids = pgTable("bids", {
   bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
   validUntil: timestamp("valid_until").notNull(),
   notes: text("notes"),
+  totalSeatsAvailable: integer("total_seats_available").default(50),
+  minSeatsPerBid: integer("min_seats_per_bid").default(1),
+  maxSeatsPerBid: integer("max_seats_per_bid").default(10),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

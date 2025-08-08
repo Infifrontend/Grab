@@ -415,7 +415,7 @@ export class DatabaseStorage implements IStorage {
   async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
     try {
       console.log(`Updating booking ${bookingId} with:`, updates);
-      
+
       const result = await db.update(flightBookings)
         .set({
           ...updates,
@@ -1149,7 +1149,7 @@ export class DatabaseStorage implements IStorage {
   async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
     try {
       console.log(`Updating passenger count for booking ${bookingId} to ${passengerCount}`);
-      
+
       const result = await db
         .update(flightBookings)
         .set({ 
@@ -1172,27 +1172,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBidDetails(bidId: number, updateData: any): Promise<any> {
-    try {
-      console.log(`Updating bid ${bidId} with data:`, updateData);
+    // Ensure we handle the new seat configuration columns
+    const sanitizedData = {
+      ...updateData,
+      totalSeatsAvailable: updateData.totalSeatsAvailable || undefined,
+      minSeatsPerBid: updateData.minSeatsPerBid || undefined,
+      maxSeatsPerBid: updateData.maxSeatsPerBid || undefined
+    };
 
-      const [updatedBid] = await db
-        .update(bids)
-        .set({...updateData,
-          updatedAt: new Date()
-        })
-        .where(eq(bids.id, bidId))
-        .returning();
-
-      if (!updatedBid) {
-        throw new Error(`Bid with ID ${bidId} not found`);
-      }
-
-      console.log('Bid updated in database:', updatedBid);
-      return updatedBid;
-    } catch (error) {
-      console.error("Error updating bid details:", error);
-      throw error;
-    }
+    return await db.update(bids)
+      .set(sanitizedData)
+      .where(eq(bids.id, bidId))
+      .returning();
   }
 
   async getPaymentsByUserId(userId: number) {

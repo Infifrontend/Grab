@@ -907,6 +907,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: JSON.stringify(updatedConfigurationData),
         passengerCount: updatedConfigurationData.minSeatsPerBid,
         bidAmount: bidAmount !== undefined ? bidAmount.toString() : existingBid.bid.bidAmount,
+        totalSeatsAvailable: updatedConfigurationData.totalSeatsAvailable,
+        minSeatsPerBid: updatedConfigurationData.minSeatsPerBid,
+        maxSeatsPerBid: updatedConfigurationData.maxSeatsPerBid,
         updatedAt: new Date()
       });
 
@@ -1184,14 +1187,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active"
       };
 
-      // Create bid configuration record
+      // Create bid configuration record with seat values in dedicated columns
       const bidData = {
         userId: 1, // Default admin user - you might want to get this from session/auth
         flightId: flightId,
         bidAmount: validBidAmount.toString(), // Use the validated bid amount
-        passengerCount: minSeatsPerBid || 1,
+        passengerCount: minSeatsPerBid || 1, // Keep minimum seats as passenger count reference
         bidStatus: "active",
         validUntil: validUntilDate,
+        totalSeatsAvailable: totalSeatsAvailable || 50,
+        minSeatsPerBid: minSeatsPerBid || 1,
+        maxSeatsPerBid: maxSeatsPerBid || 10,
         notes: JSON.stringify(configurationData)
       };
 
