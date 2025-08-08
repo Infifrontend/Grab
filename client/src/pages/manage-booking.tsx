@@ -114,45 +114,19 @@ export default function ManageBooking() {
   };
 
   const handleEditBooking = async (bookingId: any) => {
-    console.log("Finding booking:", { bookingId });
+    console.log("Editing booking:", { bookingId });
 
     if (!bookingId) {
-      message.error("Please enter a PNR.");
+      message.error("Invalid booking ID.");
       return;
     }
 
-    try {
-      // Fetch booking details from the API using the booking ID
-      const response = await fetch(`/api/booking-details/${bookingId}`);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          message.error("Booking not found. Please check your PNR.");
-        } else {
-          message.error("Error fetching booking details. Please try again.");
-        }
-        return;
-      }
-
-      const bookingDetails = await response.json();
-
-      // Show success message with passenger count
-      const passengerCount =
-        bookingDetails.booking?.passengerCount ||
-        bookingDetails.passengers?.length ||
-        1;
-      message.success(`Booking found! ${passengerCount} confirmed passengers`);
-
-      // Navigate to the booking details page with the retrieved data
-      navigate(
-        adminMode
-          ? `/admin/manage-booking/${bookingId}`
-          : `/manage-booking/${bookingId}`
-      );
-    } catch (error) {
-      console.error("Error fetching booking:", error);
-      message.error("Error fetching booking details. Please try again.");
-    }
+    // Navigate directly to the manage booking detail page
+    navigate(
+      adminMode
+        ? `/admin/manage-booking/${bookingId}`
+        : `/manage-booking/${bookingId}`
+    );
   };
 
   const handleManageBooking = (booking: Booking) => {
@@ -191,90 +165,92 @@ export default function ManageBooking() {
   };
 
   // Transform real booking data for table and sort by creation date (latest first)
-  const bookingsTableData = flightBookingsData
-    .sort((a, b) => {
-      const dateA = new Date(a.bookedAt || a.createdAt || 0);
-      const dateB = new Date(b.bookedAt || b.createdAt || 0);
-      return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
-    })
-    .map((booking, index) => {
-      // Extract route information from flight data or comprehensive data
-      let route = "Route not available";
-      let departureDate = "Date not available";
-      let returnDate = null;
+  const bookingsTableData = flightBookingsData && flightBookingsData.length > 0
+    ? flightBookingsData
+        .sort((a, b) => {
+          const dateA = new Date(a.bookedAt || a.createdAt || 0);
+          const dateB = new Date(b.bookedAt || b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime(); // Descending order (latest first)
+        })
+        .map((booking, index) => {
+          // Extract route information from flight data or comprehensive data
+          let route = "Route not available";
+          let departureDate = "Date not available";
+          let returnDate = null;
 
-      if (booking.flight) {
-        // Use flight data if available
-        route = `${booking.flight.origin} → ${booking.flight.destination}`;
-        departureDate = new Date(booking.flight.departureTime)
-          .toISOString()
-          .split("T")[0];
-        returnDate = booking.flight.arrivalTime
-          ? new Date(booking.flight.arrivalTime).toISOString().split("T")[0]
-          : null;
-      } else if (booking.specialRequests) {
-        // Try to parse comprehensive data from specialRequests
-        try {
-          const comprehensiveData = JSON.parse(booking.specialRequests);
+          if (booking.flight) {
+            // Use flight data if available
+            route = `${booking.flight.origin} → ${booking.flight.destination}`;
+            departureDate = new Date(booking.flight.departureTime)
+              .toISOString()
+              .split("T")[0];
+            returnDate = booking.flight.arrivalTime
+              ? new Date(booking.flight.arrivalTime).toISOString().split("T")[0]
+              : null;
+          } else if (booking.specialRequests) {
+            // Try to parse comprehensive data from specialRequests
+            try {
+              const comprehensiveData = JSON.parse(booking.specialRequests);
 
-          // Check for trip details
-          if (comprehensiveData.tripDetails) {
-            const tripDetails = comprehensiveData.tripDetails;
-            if (tripDetails.origin && tripDetails.destination) {
-              route = `${tripDetails.origin} → ${tripDetails.destination}`;
-            }
-            if (tripDetails.departureDate) {
-              departureDate = new Date(tripDetails.departureDate)
-                .toISOString()
-                .split("T")[0];
-            }
-            if (tripDetails.returnDate) {
-              returnDate = new Date(tripDetails.returnDate)
-                .toISOString()
-                .split("T")[0];
+              // Check for trip details
+              if (comprehensiveData.tripDetails) {
+                const tripDetails = comprehensiveData.tripDetails;
+                if (tripDetails.origin && tripDetails.destination) {
+                  route = `${tripDetails.origin} → ${tripDetails.destination}`;
+                }
+                if (tripDetails.departureDate) {
+                  departureDate = new Date(tripDetails.departureDate)
+                    .toISOString()
+                    .split("T")[0];
+                }
+                if (tripDetails.returnDate) {
+                  returnDate = new Date(tripDetails.returnDate)
+                    .toISOString()
+                    .split("T")[0];
+                }
+              }
+
+              // Check for flight details
+              if (comprehensiveData.flightDetails) {
+                const flightDetails = comprehensiveData.flightDetails;
+                if (flightDetails.outbound) {
+                  if (
+                    flightDetails.outbound.origin &&
+                    flightDetails.outbound.destination
+                  ) {
+                    route = `${flightDetails.outbound.origin} → ${flightDetails.outbound.destination}`;
+                  }
+                  if (flightDetails.outbound.departureTime) {
+                    departureDate = new Date(flightDetails.outbound.departureTime)
+                      .toISOString()
+                      .split("T")[0];
+                  }
+                }
+                if (flightDetails.return && flightDetails.return.arrivalTime) {
+                  returnDate = new Date(flightDetails.return.arrivalTime)
+                    .toISOString()
+                    .split("T")[0];
+                }
+              }
+            } catch (e) {
+              // If parsing fails, keep default values
+              console.warn("Could not parse comprehensive booking data:", e);
             }
           }
 
-          // Check for flight details
-          if (comprehensiveData.flightDetails) {
-            const flightDetails = comprehensiveData.flightDetails;
-            if (flightDetails.outbound) {
-              if (
-                flightDetails.outbound.origin &&
-                flightDetails.outbound.destination
-              ) {
-                route = `${flightDetails.outbound.origin} → ${flightDetails.outbound.destination}`;
-              }
-              if (flightDetails.outbound.departureTime) {
-                departureDate = new Date(flightDetails.outbound.departureTime)
-                  .toISOString()
-                  .split("T")[0];
-              }
-            }
-            if (flightDetails.return && flightDetails.return.arrivalTime) {
-              returnDate = new Date(flightDetails.return.arrivalTime)
-                .toISOString()
-                .split("T")[0];
-            }
-          }
-        } catch (e) {
-          // If parsing fails, keep default values
-          console.warn("Could not parse comprehensive booking data:", e);
-        }
-      }
-
-      return {
-        key: booking.id,
-        pnr: booking.pnr,
-        groupType: "Group Travel", // Default since we don't have this field
-        route: route,
-        date: departureDate,
-        returnDate: returnDate,
-        passengers: booking.passengerCount,
-        status: booking.bookingStatus,
-        booking: booking, // Keep reference to original booking for debugging
-      };
-    });
+          return {
+            key: booking.id,
+            pnr: booking.pnr || `BOOKING-${booking.id}`,
+            groupType: "Group Travel", // Default since we don't have this field
+            route: route,
+            date: departureDate,
+            returnDate: returnDate,
+            passengers: booking.passengerCount || 1,
+            status: booking.bookingStatus || 'pending',
+            booking: booking, // Keep reference to original booking for debugging
+          };
+        })
+    : [];
 
   return (
     <div
@@ -374,7 +350,7 @@ export default function ManageBooking() {
           </Card>
         </Col>
       </Row>
-      {(userMode || adminMode) &&
+      {(userMode || adminMode || localStorage.getItem("userLoggedIn")) &&
         <div>
           {/* Bookings Header */}
           <div className="flex justify-between items-center mb-6">
@@ -390,7 +366,12 @@ export default function ManageBooking() {
 
           {/* Bookings Table */}
           <Card className="border-0 shadow-sm">
-            {bookingsTableData.length > 0 ? (
+            {isFlightBookingsLoading ? (
+              <div className="text-center py-12">
+                <Spin size="large" />
+                <Text className="block mt-4 text-gray-600">Loading your bookings...</Text>
+              </div>
+            ) : bookingsTableData.length > 0 ? (
               <Table
                 dataSource={bookingsTableData}
                 rowKey="key"
@@ -551,28 +532,26 @@ export default function ManageBooking() {
                     fixed: "right",
                     width: 120,
                     render: (value, record) => {
-                      console.log(record, 'recordrecord');
-
                       return (
-                        <>
+                        <Space size="small">
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
                             onClick={() => handleViewBooking(record.pnr)}
-                            title="view"
+                            title="View booking details"
                           >
                             <EyeOutlined />
                           </Button>
                           <Button
                             type="link"
-                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline mr-3"
+                            className="text-[var(--infiniti-primary)] p-0 font-medium hover:underline"
                             onClick={() => handleEditBooking(record.pnr)}
-                            title="edit"
+                            title="Edit booking"
                           >
                             <EditOutlined />
                           </Button>
-                        </>
-                      )
+                        </Space>
+                      );
                     }
                   },
                 ]}
