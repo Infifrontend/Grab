@@ -195,13 +195,26 @@ export default function PassengerInfo() {
         validPassengers
       );
 
-      // Validate that we have the booking reference
-      if (!bookingReference) {
-        throw new Error("No booking reference found");
+      // Get booking reference from multiple sources
+      let bookingId = bookingReference || 
+                     localStorage.getItem("currentPNR") || 
+                     localStorage.getItem("bookingReference");
+
+      console.log("Available booking identifiers:", {
+        bookingReference,
+        currentPNR: localStorage.getItem("currentPNR"),
+        storedBookingReference: localStorage.getItem("bookingReference")
+      });
+
+      // Validate that we have a booking identifier
+      if (!bookingId) {
+        throw new Error("No booking reference or PNR found. Please go back and ensure your booking was created successfully.");
       }
 
+      console.log(`Using booking ID: ${bookingId}`);
+
       const passengersResponse = await fetch(
-        `/api/booking-passengers/${bookingReference}`,
+        `/api/booking-passengers/${bookingId}`,
         {
           method: "PUT",
           headers: {
@@ -216,6 +229,12 @@ export default function PassengerInfo() {
       if (!passengersResponse.ok) {
         const errorData = await passengersResponse.json().catch(() => ({ message: "Unknown error" }));
         console.error("Passenger update failed:", errorData);
+        console.error("Response status:", passengersResponse.status);
+        
+        if (passengersResponse.status === 404) {
+          throw new Error(`Booking not found with ID: ${bookingId}. The booking may have expired or been cancelled.`);
+        }
+        
         throw new Error(errorData.message || "Failed to update passenger information");
       }
 
@@ -227,13 +246,12 @@ export default function PassengerInfo() {
       // Clear temporary passenger data
       localStorage.removeItem("tempPassengerData");
 
-      // Get PNR from booking data or use the booking reference as fallback
-      const pnr = localStorage.getItem("currentPNR") || bookingReference;
-      navigate(adminMode ? `/admin/booking-details/${pnr}` : `/booking-details/${pnr}`);
+      // Navigate to booking details
+      navigate(adminMode ? `/admin/booking-details/${bookingId}` : `/booking-details/${bookingId}`);
       
     } catch (error) {
       console.error("Error saving changes:", error);
-      message.error(`Failed to save changes: ${error.message}`);
+      message.error(`Failed to save changes. ${error.message}`);
     }
   };
 

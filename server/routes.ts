@@ -540,6 +540,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail the entire booking for this
       }
 
+      // Store booking details in a way that can be easily retrieved
+      console.log("Group booking created successfully:", {
+        bookingId: booking.id,
+        bookingReference,
+        pnr: booking.pnr
+      });
+
       res.json({
         success: true,
         booking,
@@ -1418,15 +1425,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Find the booking by ID or reference
-      let booking = await storage.getFlightBookingByReference(id);
+      // Find the booking by ID, reference, or PNR
+      let booking = null;
+      
+      // Try by booking reference first
+      try {
+        booking = await storage.getFlightBookingByReference(id);
+        console.log("Found booking by reference:", booking ? "Yes" : "No");
+      } catch (error) {
+        console.log("Error finding booking by reference:", error.message);
+      }
+
+      // If not found by reference, try by PNR
       if (!booking) {
-        const allFlightBookings = await storage.getFlightBookings();
-        booking = allFlightBookings.find((b) => b.id.toString() === id);
+        try {
+          booking = await storage.getFlightBookingByPNR(id);
+          console.log("Found booking by PNR:", booking ? "Yes" : "No");
+        } catch (error) {
+          console.log("Error finding booking by PNR:", error.message);
+        }
+      }
+
+      // If not found by PNR, try by numeric ID
+      if (!booking) {
+        try {
+          const allFlightBookings = await storage.getFlightBookings();
+          booking = allFlightBookings.find((b) => b.id.toString() === id);
+          console.log("Found booking by numeric ID:", booking ? "Yes" : "No");
+        } catch (error) {
+          console.log("Error finding booking by numeric ID:", error.message);
+        }
       }
 
       if (!booking) {
         console.log(`Booking not found for ID: ${id}`);
+        
+        // Debug: Show what bookings actually exist
+        try {
+          const allBookings = await storage.getFlightBookings();
+          console.log(`Available bookings:`, allBookings.map(b => ({ 
+            id: b.id, 
+            reference: b.bookingReference, 
+            pnr: b.pnr 
+          })));
+        } catch (debugError) {
+          console.log("Could not fetch bookings for debug:", debugError.message);
+        }
+        
         return res.status(404).json({ 
           success: false,
           message: "Booking not found" 
