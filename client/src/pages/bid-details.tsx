@@ -56,6 +56,7 @@ export default function BidDetails() {
           const statusResponse = await fetch(`/api/bid-status/${params.id}?userId=${userId || ''}`);
           if (statusResponse.ok) {
             seatAvailabilityData = await statusResponse.json();
+            console.log(`Status for User ${userId}:`, seatAvailabilityData);
           }
         } catch (statusError) {
           console.warn("Could not fetch seat availability data:", statusError);

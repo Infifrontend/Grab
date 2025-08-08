@@ -137,6 +137,7 @@ export interface IStorage {
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
+  hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1358,6 +1359,9 @@ export class DatabaseStorage implements IStorage {
   // Check if user has paid for a specific bid
   async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
     try {
+      console.log(`Checking payment status for User ${userId} and Bid ${bidId}`);
+
+      // Check retail_bids table first - this is the most reliable source
       const userRetailBid = await db
         .select()
         .from(retailBids)
@@ -1367,12 +1371,52 @@ export class DatabaseStorage implements IStorage {
         ))
         .limit(1);
 
-      if (userRetailBid.length === 0) {
-        return false;
+      if (userRetailBid.length > 0) {
+        const status = userRetailBid[0].status;
+        console.log(`Found retail bid with status: ${status} for User ${userId}`);
+        if (status === 'paid' || status === 'approved') {
+          return true;
+        }
       }
 
-      const status = userRetailBid[0].status;
-      return status === 'paid' || status === 'approved';
+      // Check payments table for user-specific payments
+      const userPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.userId, userId));
+
+      // Look for payments that might be related to this bid
+      for (const payment of userPayments) {
+        if (payment.paymentStatus === 'completed' || payment.paymentStatus === 'paid') {
+          // Check if payment reference or creation date suggests it's for this bid
+          const paymentRef = payment.paymentReference || '';
+          if (paymentRef.includes(bidId.toString())) {
+            console.log(`Found matching payment for User ${userId} and Bid ${bidId}`);
+            return true;
+          }
+        }
+      }
+
+      // Fallback: check if the bid itself is completed and belongs to this user
+      const bidDetails = await this.getBidById(bidId);
+      if (bidDetails && bidDetails.bid.userId === userId && bidDetails.bid.bidStatus === 'completed') {
+        console.log(`Bid ${bidId} is completed and belongs to User ${userId}`);
+        // Check for payment info in notes
+        try {
+          const notes = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+          if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
+            console.log(`Payment completion found in bid notes for User ${userId}`);
+            return true;
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+        // If bid is completed and belongs to user, consider it paid
+        return true;
+      }
+
+      console.log(`No payment found for User ${userId} and Bid ${bidId}`);
+      return false;
     } catch (error) {
       console.error("Error checking user payment status:", error);
       return false;

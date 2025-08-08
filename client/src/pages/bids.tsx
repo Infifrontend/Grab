@@ -119,6 +119,7 @@ export default function Bids() {
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
+              console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus);
             }
           } catch (error) {
             console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
