@@ -1359,16 +1359,30 @@ export class DatabaseStorage implements IStorage {
       configData = {};
     }
 
-    // Get validation limits from bid configuration with more lenient defaults
-    const maxSeatsPerUser = configData.maxSeatsPerUser || bidConfiguration.bid.maxSeatsPerBid || bidConfiguration.bid.passengerCount || 50;
-    const minSeatsPerBid = configData.minSeatsPerBid || bidConfiguration.bid.minSeatsPerBid || bidConfiguration.bid.passengerCount || 1;
-    const maxSeatsPerBid = configData.maxSeatsPerBid || bidConfiguration.bid.maxSeatsPerBid || bidConfiguration.bid.passengerCount || 50;
+    // Use actual bid table values as primary source
+    const actualPassengerCount = bidConfiguration.bid.passengerCount || 1;
+    const actualTotalSeats = bidConfiguration.bid.totalSeatsAvailable || 50;
+    const actualMinSeats = bidConfiguration.bid.minSeatsPerBid || actualPassengerCount;
+    const actualMaxSeats = bidConfiguration.bid.maxSeatsPerBid || actualTotalSeats;
+
+    // Only override with config data if explicitly set and reasonable
+    const maxSeatsPerUser = (configData.maxSeatsPerUser && configData.maxSeatsPerUser > 0) ? configData.maxSeatsPerUser : actualTotalSeats;
+    const minSeatsPerBid = (configData.minSeatsPerBid && configData.minSeatsPerBid > 0) ? configData.minSeatsPerBid : actualMinSeats;
+    const maxSeatsPerBid = (configData.maxSeatsPerBid && configData.maxSeatsPerBid > 0) ? configData.maxSeatsPerBid : actualMaxSeats;
 
     console.log("Storage validation limits:", {
       maxSeatsPerUser,
       minSeatsPerBid,
       maxSeatsPerBid,
-      originalPassengerCount: bidConfiguration.bid.passengerCount,
+      actualPassengerCount,
+      actualTotalSeats,
+      actualMinSeats,
+      actualMaxSeats,
+      configDataUsed: {
+        maxSeatsPerUser: configData.maxSeatsPerUser,
+        minSeatsPerBid: configData.minSeatsPerBid,
+        maxSeatsPerBid: configData.maxSeatsPerBid
+      },
       requestedPassengerCount: bid.passengerCount
     });
 

@@ -2401,15 +2401,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         configData = {};
       }
 
-      // Get validation limits from bid configuration with proper fallbacks
-      const maxSeatsPerUser = configData.maxSeatsPerUser || originalBid.bid.maxSeatsPerBid || originalBid.bid.passengerCount || 50;
-      const minSeatsPerBid = configData.minSeatsPerBid || originalBid.bid.minSeatsPerBid || originalBid.bid.passengerCount || 1;
-      const maxSeatsPerBid = configData.maxSeatsPerBid || originalBid.bid.maxSeatsPerBid || originalBid.bid.passengerCount || 50;
+      // Use the actual bid values as the primary source, with config as override only if explicitly set
+      const actualPassengerCount = originalBid.bid.passengerCount || 1;
+      const actualTotalSeats = originalBid.bid.totalSeatsAvailable || 50;
+      const actualMinSeats = originalBid.bid.minSeatsPerBid || actualPassengerCount;
+      const actualMaxSeats = originalBid.bid.maxSeatsPerBid || actualTotalSeats;
+
+      // Only use config data if it's explicitly set and reasonable, otherwise use bid table values
+      const maxSeatsPerUser = (configData.maxSeatsPerUser && configData.maxSeatsPerUser > 0) ? configData.maxSeatsPerUser : actualTotalSeats;
+      const minSeatsPerBid = (configData.minSeatsPerBid && configData.minSeatsPerBid > 0) ? configData.minSeatsPerBid : actualMinSeats;
+      const maxSeatsPerBid = (configData.maxSeatsPerBid && configData.maxSeatsPerBid > 0) ? configData.maxSeatsPerBid : actualMaxSeats;
 
       console.log("Validation limits:", {
         maxSeatsPerUser,
         minSeatsPerBid,
         maxSeatsPerBid,
+        actualPassengerCount,
+        actualTotalSeats,
+        actualMinSeats,
+        actualMaxSeats,
+        configDataUsed: {
+          maxSeatsPerUser: configData.maxSeatsPerUser,
+          minSeatsPerBid: configData.minSeatsPerBid,
+          maxSeatsPerBid: configData.maxSeatsPerBid
+        },
         requestedPassengerCount: passengerCount
       });
 
