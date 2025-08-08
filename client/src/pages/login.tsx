@@ -23,10 +23,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/check-retail-access', {
-        method: 'POST',
+      const response = await fetch("/api/check-retail-access", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: values.username,
@@ -37,25 +37,28 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || "Login failed");
       }
 
       if (!data.success) {
-        throw new Error(data.message || 'Access denied');
+        throw new Error(data.message || "Access denied");
       }
 
       // Store user data
-      localStorage.setItem('userRole', 'retail');
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userId', data.user.id.toString());
-      localStorage.setItem('userName', data.user.name);
-      localStorage.setItem('userEmail', data.user.email || values.username);
+      localStorage.setItem("userRole", "retail");
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userId", data.user.id.toString());
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email || values.username);
 
-      message.success('Login successful!');
-      navigate('/');
+      message.success("Login successful!");
+      navigate("/");
     } catch (error) {
-      console.error('Login error:', error);
-      message.error(error.message || 'Login failed. Please check your credentials and try again.');
+      console.error("Login error:", error);
+      message.error(
+        error.message ||
+          "Login failed. Please check your credentials and try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -106,7 +109,7 @@ export default function Login() {
                 fontWeight: "bold",
               }}
             >
-              Group Airline Booking
+              Group Retail Airline Booking
             </div>
             <div
               style={{
@@ -198,24 +201,6 @@ export default function Login() {
           </Form>
 
           {/* Demo Credentials */}
-          <div
-            className="mt-8 p-4 rounded-lg border"
-            style={{
-              backgroundColor: "#f8f4f7",
-              borderColor: "#80206a33",
-            }}
-          >
-            <Text
-              className="block font-medium mb-1"
-              style={{ color: "#80206a" }}
-            >
-              🎯 Demo Credentials
-            </Text>
-            <Text className="text-xs" style={{ color: "#80206a" }}>
-              Username: <strong>john smith</strong> • Password:{" "}
-              <strong>Infi@123</strong>
-            </Text>
-          </div>
         </div>
       </div>
 
