@@ -1,0 +1,84 @@
+Task: Make Payment Status User-Specific in All Bids Table
+Goal:
+Update the All Bids table so the paymentStatus is determined dynamically for the currently logged-in user and is not shared across all users.
+
+Current Issue:
+
+When one user pays for a bid, the paymentStatus changes to "Payment Completed" for everyone, even if they haven’t paid.
+
+This happens because the status is stored globally for the bid rather than per user.
+
+Required Changes:
+
+Dynamic User Identification
+
+Always use the currently logged-in user’s userId from the authentication/session/token in both backend and frontend logic.
+
+Do not use static IDs like 3 or 6 anywhere in the code.
+
+Payment Status Logic
+
+For each bid in the All Bids list:
+
+Check if there is a record in retail_bids (or equivalent payment table) where:
+
+bid_id matches the current bid
+
+user_id matches the logged-in user’s ID (dynamic)
+
+payment_status is "completed"
+
+If a match is found → paymentStatus = "Payment Completed"
+
+If no match → paymentStatus = "Open"
+
+Backend Implementation
+
+Modify the API that fetches All Bids so it returns paymentStatus based on the logged-in user.
+
+Example SQL (dynamic userId passed from session/auth):
+
+sql
+Copy
+Edit
+SELECT 
+  b.id, 
+  b.title, 
+  CASE 
+    WHEN EXISTS (
+      SELECT 1 
+      FROM retail_bids rb 
+      WHERE rb.bid_id = b.id 
+        AND rb.user_id = :currentUserId 
+        AND rb.payment_status = 'completed'
+    ) THEN 'Payment Completed'
+    ELSE 'Open'
+  END AS paymentStatus
+FROM bids b
+:currentUserId must come from the logged-in user context, not a hardcoded value.
+
+Frontend Implementation
+
+Use the paymentStatus returned from the backend as-is.
+
+Do not store or reuse another user’s status in the global state.
+
+Ensure re-fetch after payment so the logged-in user’s view updates immediately.
+
+Testing Requirements
+
+Log in as different users and confirm that:
+
+A user sees "Payment Completed" only if they have paid.
+
+All unpaid users see "Open" for the same bid until they pay.
+
+No payment or seat logic should be broken.
+
+Expected Result:
+
+Payment status is isolated per user.
+
+No static userId values in the code.
+
+The status updates instantly for the current user after payment without affecting others’ views.
