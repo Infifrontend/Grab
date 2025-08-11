@@ -1242,25 +1242,35 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching payments for bid ID: ${bidId}`);
 
-      // Get all payments and filter those related to the bid
+      // Get all payments
       const allPayments = await db.select().from(payments);
 
       // Filter payments that are related to this bid
       const bidRelatedPayments = allPayments.filter(payment => {
-        // Check if payment reference or transaction ID contains the bid ID
         const paymentRef = payment.paymentReference || '';
         const transactionId = payment.transactionId || '';
 
-        // Also check if bookingId matches (in case bid ID was used as booking ID)
+        // Check if payment reference contains the bid ID (most reliable method)
+        const refContainsBidId = paymentRef.includes(`-${bidId}-`) || paymentRef.includes(`BID-${bidId}`) || paymentRef.includes(`${bidId}-`);
+        
+        // Check transaction ID
+        const transactionContainsBidId = transactionId.includes(bidId.toString());
+
+        // Also check if bookingId matches (less common but possible)
         const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
 
-        // Check if payment reference contains the bid ID
-        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
-
-        return bookingMatches || refMatches;
+        return refContainsBidId || transactionContainsBidId || bookingMatches;
       });
 
-      console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
+      console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}:`, 
+        bidRelatedPayments.map(p => ({ 
+          id: p.id, 
+          userId: p.userId, 
+          ref: p.paymentReference, 
+          status: p.paymentStatus 
+        }))
+      );
+      
       return bidRelatedPayments;
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
