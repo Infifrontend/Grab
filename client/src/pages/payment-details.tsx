@@ -209,6 +209,8 @@ export default function PaymentDetails() {
         throw new Error("Please log in to submit a bid");
       }
 
+      console.log(`Creating payment for user ${userId} and bid ${bidId}`);
+
       console.log("Submitting retail bid before payment...");
       const retailBidResponse = await fetch("/api/retail-bids", {
         method: "POST",
@@ -239,6 +241,7 @@ export default function PaymentDetails() {
         },
         body: JSON.stringify({
           bidId: parseInt(bidId),
+          userId: parseInt(userId), // Explicitly pass user ID
           bookingId: parseInt(bidId), // Use bid ID as booking reference for now
           amount: bidParticipationData.totalBid.toString(),
           currency: "USD",

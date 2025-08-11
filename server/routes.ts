@@ -1753,7 +1753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
     try {
-      const { bidId, bookingId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
+      const { bidId, userId: requestUserId, bookingId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
 
       // Validate required fields
       if (!amount || parseFloat(amount) <= 0) {
@@ -1776,32 +1776,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const bidDetails = await storage.getBidById(parseInt(bidId));
           console.log(`Checking bid ${bidId} for user ${userId} payment status`);
 
-          // Check if this specific user has already paid
-          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const userRetailBid = retailBids.find(rb => rb.userId === userId);
+          // Get the current user ID from the request
+          const currentUserId = parseInt(requestUserId || userId);
           
-          if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) {
-            return res.status(400).json({ 
-              success: false, 
-              message: "You have already completed payment for this bid" 
+          if (!currentUserId) {
+            console.log("No valid user ID found for payment validation");
+            // Allow payment to proceed if we can't determine user ID
+          } else {
+            // Check if this specific user has already paid
+            const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+            const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
+            
+            if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) {
+              return res.status(400).json({ 
+                success: false, 
+                message: "You have already completed payment for this bid" 
+              });
+            }
+
+            // Check if this user has already made a payment for this bid
+            const existingPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+            const userPayment = existingPayments.find(payment => {
+              return payment.userId === currentUserId || 
+                     (payment.notes && payment.notes.includes(`"userId":${currentUserId}`));
             });
+
+            if (userPayment) {
+              return res.status(400).json({ 
+                success: false, 
+                message: "You have already completed payment for this bid" 
+              });
+            }
+
+            // Check bid notes for user-specific payment completion
+            let userPaidFromBidNotes = false;
+            try {
+              const notes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+              const userPayments = notes.userPayments || [];
+              const userPayment = userPayments.find(up => up.userId === currentUserId);
+              userPaidFromBidNotes = userPayment && userPayment.paymentCompleted === true;
+              
+              if (userPaidFromBidNotes) {
+                return res.status(400).json({ 
+                  success: false, 
+                  message: "You have already completed payment for this bid" 
+                });
+              }
+            } catch (noteError) {
+              console.log("Could not parse bid notes for user payment check:", noteError.message);
+            }
+
+            console.log(`User ${currentUserId} has not paid for bid ${bidId} yet, allowing payment`);
           }
-
-          // Check if this user has already made a payment for this bid
-          const existingPayments = await storage.getPaymentsByBidId(parseInt(bidId));
-          const userPayment = existingPayments.find(payment => {
-            return payment.userId === userId || 
-                   (payment.notes && payment.notes.includes(`"userId":${userId}`));
-          });
-
-          if (userPayment) {
-            return res.status(400).json({ 
-              success: false, 
-              message: "You have already completed payment for this bid" 
-            });
-          }
-
-          console.log(`User ${userId} has not paid for bid ${bidId} yet, allowing payment`);
         } catch (error) {
           console.log("Error checking user payment status:", error.message);
         }
