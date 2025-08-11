@@ -137,8 +137,7 @@ export default function BidDetails() {
           currentUserPaid = userPayment && userPayment.paymentCompleted === true;
         }
       } catch (e) {
-        console.warn("Error determining bid status:", e);
-        status = "Open";
+        currentUserPaid = false;
       }
 
       // Determine current status based on THIS user's payment status
