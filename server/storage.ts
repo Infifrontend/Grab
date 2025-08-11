@@ -1245,43 +1245,25 @@ export class DatabaseStorage implements IStorage {
       // Get all payments and filter those related to the bid
       const allPayments = await db.select().from(payments);
 
-      // Filter payments that are related to this bid by checking payment reference
+      // Filter payments that are related to this bid
       const bidRelatedPayments = allPayments.filter(payment => {
+        // Check if payment reference or transaction ID contains the bid ID
         const paymentRef = payment.paymentReference || '';
         const transactionId = payment.transactionId || '';
 
-        // Check if payment reference contains the bid ID (format: PAY-{bidId}-USER{userId})
-        const refContainsBidId = paymentRef.includes(`-${bidId}-`) || paymentRef.includes(`PAY-${bidId}`);
-        const transactionContainsBidId = transactionId.includes(bidId.toString());
+        // Also check if bookingId matches (in case bid ID was used as booking ID)
+        const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
 
-        return refContainsBidId || transactionContainsBidId;
+        // Check if payment reference contains the bid ID
+        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+
+        return bookingMatches || refMatches;
       });
 
       console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
       return bidRelatedPayments;
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
-      throw error;
-    }
-  }
-
-  // Add method to get payments by specific user and bid
-  async getPaymentsByUserAndBid(userId: number, bidId: number) {
-    try {
-      console.log(`Fetching payments for user ${userId} and bid ${bidId}`);
-
-      const allPayments = await db.select().from(payments).where(eq(payments.userId, userId));
-
-      // Filter payments that are related to this specific bid
-      const userBidPayments = allPayments.filter(payment => {
-        const paymentRef = payment.paymentReference || '';
-        return paymentRef.includes(`-${bidId}-`) || paymentRef.includes(`PAY-${bidId}`);
-      });
-
-      console.log(`Found ${userBidPayments.length} payments for user ${userId} and bid ${bidId}`);
-      return userBidPayments;
-    } catch (error) {
-      console.error("Error getting payments by user and bid:", error);
       throw error;
     }
   }
