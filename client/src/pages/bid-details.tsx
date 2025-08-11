@@ -276,6 +276,7 @@ export default function BidDetails() {
     // Fallback to original status mapping if dynamic status is not applicable
     switch (status) {
       case "active":
+      case "Open":
         return "Open";
       case "accepted":
       case "approved":
@@ -287,7 +288,7 @@ export default function BidDetails() {
       case "completed":
         return "Under Review"; // Mapping 'completed' to 'Under Review' as per logic
       default:
-        return "Draft";
+        return "Open"; // Default to Open to allow payment button to show
     }
   };
 
@@ -890,7 +891,7 @@ export default function BidDetails() {
             Cancel
           </Button>
 
-          {!isBidClosed && !hasUserPaid && currentStatus === "Open" && (
+          {!isBidClosed && !hasUserPaid && (currentStatus === "Open" || currentStatus === "Draft") && (
               <Button
                 type="primary"
                 size="large"
