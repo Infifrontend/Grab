@@ -2740,12 +2740,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if THIS user has a retail bid for this bid_id
         const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
         
-        // Check if this user has made a payment for this bid (check by userId in payments table)
+        // Check if this user has made a payment for this bid - ONLY check by actual userId in payments table
         const userPayment = bidPayments.find(payment => {
-          return payment.userId === currentUserId;
+          return payment.userId === currentUserId && payment.paymentStatus === 'completed';
         });
 
-        // Check bid notes for payment completion by this user (user-specific tracking)
+        // Check bid notes for payment completion by this user - ONLY for this specific user
         let userPaidFromBidNotes = false;
         try {
           const userPayments = configData.userPayments || [];
@@ -2755,17 +2755,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userPaidFromBidNotes = false;
         }
 
-        // Determine if this specific user has paid
+        // Determine if THIS SPECIFIC user has paid - strict per-user checking
         hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) ||
-                      userPayment !== undefined ||
+                      (userPayment !== undefined) ||
                       userPaidFromBidNotes;
 
         if (hasUserPaid) {
-          // User has paid - show their specific status
+          // This user has paid - show their specific status
           if (userRetailBid?.status === 'approved') {
             displayStatus = "Approved";
             statusForUser = 'approved';
-            userPaymentStatus = 'approved';
+            userPaymentStatus = 'completed';
           } else if (userRetailBid?.status === 'rejected') {
             displayStatus = "Rejected";
             statusForUser = 'rejected';
@@ -2773,11 +2773,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             displayStatus = "Under Review";
             statusForUser = 'under_review';
-            userPaymentStatus = 'under_review';
+            userPaymentStatus = 'completed';
           }
           console.log(`User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}`);
         } else {
-          // User hasn't paid - check if seats are available for booking
+          // This user hasn't paid - check if seats are available for booking
           if (availableSeats > 0) {
             displayStatus = "Open";
             statusForUser = 'open';

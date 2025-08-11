@@ -1245,19 +1245,20 @@ export class DatabaseStorage implements IStorage {
       // Get all payments and filter those related to the bid
       const allPayments = await db.select().from(payments);
 
-      // Filter payments that are related to this bid
+      // Filter payments that are related to this bid with more specific matching
       const bidRelatedPayments = allPayments.filter(payment => {
-        // Check if payment reference or transaction ID contains the bid ID
+        // Check if payment reference contains the bid ID in the expected format
         const paymentRef = payment.paymentReference || '';
         const transactionId = payment.transactionId || '';
 
-        // Also check if bookingId matches (in case bid ID was used as booking ID)
-        const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
+        // Look for patterns like "PAY-37-USER3" or "BID-37" in payment reference
+        const bidPattern = new RegExp(`(PAY-${bidId}-|BID-${bidId}|${bidId}-USER)`);
+        const refMatches = bidPattern.test(paymentRef) || bidPattern.test(transactionId);
 
-        // Check if payment reference contains the bid ID
-        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+        // Also check if bookingId is null (which indicates bid payment) and reference matches
+        const isBidPayment = payment.bookingId === null && refMatches;
 
-        return bookingMatches || refMatches;
+        return refMatches || isBidPayment;
       });
 
       console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
