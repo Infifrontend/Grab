@@ -135,7 +135,6 @@ export const bids = pgTable("bids", {
 export const payments = pgTable("payments", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: integer("booking_id").references(() => flightBookings.id),
-  bidId: integer("bid_id").references(() => bids.id),
   userId: integer("user_id").references(() => users.id),
   paymentReference: text("payment_reference").notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
