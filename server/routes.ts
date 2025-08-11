@@ -1770,33 +1770,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if bid is already completed (prevent duplicate payments)
+      // Check if THIS SPECIFIC USER has already paid for this bid (prevent duplicate payments by same user)
       if (bidId) {
         try {
           const bidDetails = await storage.getBidById(parseInt(bidId));
-          console.log(`Checking bid ${bidId} status:`, bidDetails?.bid?.bidStatus);
+          console.log(`Checking bid ${bidId} for user ${userId} payment status`);
 
-          if (bidDetails?.bid?.bidStatus === 'completed') {
+          // Check if this specific user has already paid
+          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+          const userRetailBid = retailBids.find(rb => rb.userId === userId);
+          
+          if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) {
             return res.status(400).json({ 
               success: false, 
-              message: "Payment has already been completed for this bid" 
+              message: "You have already completed payment for this bid" 
             });
           }
 
-          // Also check payment completion in notes
-          try {
-            const notes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
-            if (notes.paymentInfo?.paymentCompleted === true) {
-              return res.status(400).json({ 
-                success: false, 
-                message: "Payment has already been completed for this bid" 
-              });
-            }
-          } catch (noteError) {
-            console.log("Could not parse bid notes for payment check:", noteError.message);
+          // Check if this user has already made a payment for this bid
+          const existingPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+          const userPayment = existingPayments.find(payment => {
+            return payment.userId === userId || 
+                   (payment.notes && payment.notes.includes(`"userId":${userId}`));
+          });
+
+          if (userPayment) {
+            return res.status(400).json({ 
+              success: false, 
+              message: "You have already completed payment for this bid" 
+            });
           }
+
+          console.log(`User ${userId} has not paid for bid ${bidId} yet, allowing payment`);
         } catch (error) {
-          console.log("Error checking bid status:", error.message);
+          console.log("Error checking user payment status:", error.message);
         }
       }
 
@@ -1895,17 +1902,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Add payment information to bid notes with user-specific tracking
+          const userPayments = existingNotes.userPayments || [];
+          userPayments.push({
+            paymentId: payment.id,
+            paymentReference: paymentReference,
+            paymentStatus: paymentStatus || "completed",
+            paymentDate: new Date().toISOString(),
+            amount: amount,
+            paymentMethod: paymentMethod,
+            paymentCompleted: true,
+            userId: userId
+          });
+
           const updatedNotes = {
             ...existingNotes,
+            userPayments: userPayments,
+            // Keep legacy paymentInfo for backwards compatibility, but don't use it for validation
             paymentInfo: {
-              paymentId: payment.id,
-              paymentReference: paymentReference,
-              paymentStatus: paymentStatus || "completed",
-              paymentDate: new Date().toISOString(),
-              amount: amount,
-              paymentMethod: paymentMethod,
-              paymentCompleted: true,
-              userId: userId // Track which user made the payment
+              latestPaymentId: payment.id,
+              latestPaymentReference: paymentReference,
+              lastPaymentDate: new Date().toISOString(),
+              totalPaymentsReceived: userPayments.length
             }
           };
 
@@ -2729,10 +2746,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check bid notes for payment completion by this user
         let userPaidFromBidNotes = false;
         try {
-          const paymentInfo = configData.paymentInfo;
-          if (paymentInfo && paymentInfo.userId === parseInt(userId as string)) {
-            userPaidFromBidNotes = paymentInfo.paymentCompleted === true;
-          }
+          const userPayments = configData.userPayments || [];
+          const userPayment = userPayments.find(up => up.userId === parseInt(userId as string));
+          userPaidFromBidNotes = userPayment && userPayment.paymentCompleted === true;
         } catch (e) {
           userPaidFromBidNotes = false;
         }

@@ -128,49 +128,46 @@ export default function BidDetails() {
     } else {
       // Fallback to static status determination if bidStatus fetch fails or is not successful
       console.warn("Could not fetch dynamic bid status, falling back to static status.");
-      let isPaymentCompleted = false;
+      // Check if THIS specific user has paid by looking at userPayments array
+      let currentUserPaid = false;
       try {
-        const paymentInfo = configData.paymentInfo;
-        isPaymentCompleted = paymentInfo?.paymentCompleted === true;
-        const paymentStatus = paymentInfo?.paymentStatus;
-
-        // Determine current status with enhanced logic
-
-        if (isPaymentCompleted) {
-          if (paymentStatus === "Payment Completed") {
-            status = "Under Review";
-          } else if (paymentStatus === "Accepted for Booking") {
-            status = "Accepted";
-          } else if (paymentStatus === "Open") {
-            status = "Open";
-          } else {
-            status = "Under Review";
-          }
-        } else {
-          // Check bid status and ensure active/open bids show as "Open"
-          switch (bid.bidStatus?.toLowerCase()) {
-            case 'active':
-            case 'open':
-              status = "Open";
-              break;
-            case 'accepted':
-            case 'approved':
-              status = "Approved";
-              break;
-            case 'rejected':
-              status = "Rejected";
-              break;
-            case 'completed':
-              // Only show completed if payment is actually completed
-              status = isPaymentCompleted ? "Completed" : "Open";
-              break;
-            case 'expired':
-              status = "Expired";
-              break;
-            default:
-              status = "Open"; // Default to Open to allow payment
-          }
+        const userId = localStorage.getItem("userId");
+        if (userId && configData.userPayments) {
+          const userPayment = configData.userPayments.find(up => up.userId === parseInt(userId));
+          currentUserPaid = userPayment && userPayment.paymentCompleted === true;
         }
+      } catch (e) {
+        currentUserPaid = false;
+      }
+
+      // Determine current status based on THIS user's payment status
+      if (currentUserPaid) {
+        status = "Under Review";
+      } else {
+        // Check bid status and ensure active/open bids show as "Open"
+        switch (bid.bidStatus?.toLowerCase()) {
+          case 'active':
+          case 'open':
+            status = "Open";
+            break;
+          case 'accepted':
+          case 'approved':
+            status = "Approved";
+            break;
+          case 'rejected':
+            status = "Rejected";
+            break;
+          case 'completed':
+            // For completed bids, if current user hasn't paid, still show as Open if seats available
+            status = "Open";
+            break;
+          case 'expired':
+            status = "Expired";
+            break;
+          default:
+            status = "Open"; // Default to Open to allow payment
+        }
+      }
       } catch (e) {
         console.warn("Error determining bid status:", e);
         status = "Open";
