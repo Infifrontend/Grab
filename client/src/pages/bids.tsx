@@ -82,9 +82,8 @@ export default function Bids() {
         const stats = await statsResponse.json();
         setStatistics(stats);
 
-        // Fetch bids data with current user ID
-        const userId = localStorage.getItem("userId");
-        const bidsResponse = await fetch(`/api/bids${userId ? `?userId=${userId}` : ""}`);
+        // Fetch bids data
+        const bidsResponse = await fetch("/api/bids");
         const bids = await bidsResponse.json();
 
         // Transform bids data to match table format with dynamic status checking
@@ -200,31 +199,6 @@ export default function Bids() {
             }
           }
 
-          // Determine user-specific payment status
-          let userSpecificPaymentStatus = "Open";
-          
-          // Use the user-specific payment status from backend if available
-          if (bid.userSpecificPaymentStatus) {
-            userSpecificPaymentStatus = bid.userSpecificPaymentStatus;
-          } else if (seatAvailability) {
-            // Use seat availability info to determine payment status
-            if (seatAvailability.hasUserPaid) {
-              if (seatAvailability.userRetailBidStatus === 'approved') {
-                userSpecificPaymentStatus = "Accepted for Booking";
-              } else if (seatAvailability.userRetailBidStatus === 'rejected') {
-                userSpecificPaymentStatus = "Refunded";
-              } else {
-                userSpecificPaymentStatus = "Payment Completed";
-              }
-            } else {
-              if (seatAvailability.isClosed) {
-                userSpecificPaymentStatus = "Closed";
-              } else {
-                userSpecificPaymentStatus = "Open";
-              }
-            }
-          }
-
           return {
             bidId: `BID-${bid.id}`,
             route: flightRoute,
@@ -238,7 +212,19 @@ export default function Bids() {
             ).toFixed(2)}`,
             status: dynamicStatus,
             seatAvailability: seatAvailability,
-            payment: userSpecificPaymentStatus, // Use user-specific payment status
+            payment:
+              bid.bidStatus === "completed"
+                ? "Payment Completed"
+                : bid.bidStatus === "accepted"
+                  ? "Converted to Booking"
+                  : bid.bidStatus === "approved"
+                    ? "Accepted for Booking"
+                    : dynamicStatus === "Open"
+                      ? "Open"
+                      : bid.bidStatus === "rejected" ||
+                          bid.bidStatus === "expired"
+                        ? "Refunded"
+                        : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };

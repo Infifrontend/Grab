@@ -615,93 +615,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all bids with user-specific payment status
+  // Get all bids
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      const allBids = await storage.getBids(); // Get all bids, not filtered by user
-
-      // Enhance each bid with user-specific payment status
-      const enhancedBidsPromises = allBids.map(async (bid) => {
-        let userSpecificPaymentStatus = null;
-        let hasUserPaid = false;
-        let userRetailBidStatus = null;
-
-        if (userId) {
-          const currentUserId = parseInt(userId as string);
-          
-          // Check if this user has a retail bid for this configuration
-          const retailBids = await storage.getRetailBidsByBid(bid.id);
-          const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
-          
-          if (userRetailBid) {
-            userRetailBidStatus = userRetailBid.status;
-            hasUserPaid = userRetailBid.status === 'under_review' || 
-                          userRetailBid.status === 'paid' || 
-                          userRetailBid.status === 'approved';
-          }
-
-          // Check if this user has made a payment for this bid
-          const bidPayments = await storage.getPaymentsByBidId(bid.id);
-          const userPayment = bidPayments.find(payment => payment.userId === currentUserId);
-          
-          if (userPayment) {
-            hasUserPaid = true;
-          }
-
-          // Check bid notes for user-specific payment completion
-          try {
-            const notes = bid.notes ? JSON.parse(bid.notes) : {};
-            const userPayments = notes.userPayments || [];
-            const userPaymentRecord = userPayments.find(up => up.userId === currentUserId);
-            if (userPaymentRecord && userPaymentRecord.paymentCompleted === true) {
-              hasUserPaid = true;
-            }
-          } catch (e) {
-            // Ignore parsing errors
-          }
-
-          // Determine user-specific payment status
-          if (hasUserPaid) {
-            if (userRetailBidStatus === 'approved') {
-              userSpecificPaymentStatus = "Accepted for Booking";
-            } else if (userRetailBidStatus === 'rejected') {
-              userSpecificPaymentStatus = "Refunded";
-            } else {
-              userSpecificPaymentStatus = "Payment Completed";
-            }
-          } else {
-            // Check if bid is still open for this user
-            try {
-              const statusResponse = await fetch(`http://localhost:5000/api/bid-status/${bid.id}?userId=${userId}`);
-              if (statusResponse.ok) {
-                const statusData = await statusResponse.json();
-                if (statusData.isClosed) {
-                  userSpecificPaymentStatus = "Closed";
-                } else {
-                  userSpecificPaymentStatus = "Open";
-                }
-              } else {
-                userSpecificPaymentStatus = "Open";
-              }
-            } catch (error) {
-              userSpecificPaymentStatus = "Open";
-            }
-          }
-        }
-
-        return {
-          ...bid,
-          userSpecificPaymentStatus,
-          hasUserPaid,
-          userRetailBidStatus
-        };
-      });
-
-      const enhancedBids = await Promise.all(enhancedBidsPromises);
+      const bids = await storage.getBids(
+        userId ? parseInt(userId as string) : undefined,
+      );
 
       // Sort bids by creation date (newest first) for recent activity display
-      const sortedBids = enhancedBids.sort((a, b) => 
+      const sortedBids = bids.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
