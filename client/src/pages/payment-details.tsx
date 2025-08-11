@@ -241,8 +241,8 @@ export default function PaymentDetails() {
         },
         body: JSON.stringify({
           bidId: parseInt(bidId),
-          userId: parseInt(userId), // Explicitly pass user ID
-          bookingId: parseInt(bidId), // Use bid ID as booking reference for now
+          userId: parseInt(userId), // Current user ID from localStorage
+          bookingId: null, // Set to null for bid payments to avoid foreign key issues
           amount: bidParticipationData.totalBid.toString(),
           currency: "USD",
           paymentMethod: paymentMethod,
