@@ -1820,6 +1820,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Confirm payment for retail bid
+  app.post("/api/retail-bids/:retailBidId/confirm-payment", async (req, res) => {
+    try {
+      const { retailBidId } = req.params;
+      const { paymentReference, transactionId } = req.body;
+
+      // Get the retail bid
+      const retailBid = await db
+        .select()
+        .from(retailBids)
+        .where(eq(retailBids.id, parseInt(retailBidId)))
+        .limit(1);
+
+      if (retailBid.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Retail bid not found"
+        });
+      }
+
+      // Update retail bid status to 'under_review'
+      await db
+        .update(retailBids)
+        .set({
+          status: 'under_review',
+          updatedAt: new Date()
+        })
+        .where(eq(retailBids.id, parseInt(retailBidId)));
+
+      // Create notification
+      await createNotification(
+        'payment_confirmed',
+        'Payment Confirmed for Retail Bid',
+        `Payment has been confirmed for retail bid ${retailBidId}. Status updated to under review.`,
+        'medium',
+        {
+          retailBidId: parseInt(retailBidId),
+          bidId: retailBid[0].bidId,
+          userId: retailBid[0].userId,
+          paymentReference,
+          transactionId
+        }
+      );
+
+      res.json({
+        success: true,
+        message: "Payment confirmed successfully. Bid status updated to under review.",
+        retailBid: {
+          ...retailBid[0],
+          status: 'under_review'
+        }
+      });
+
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to confirm payment",
+        error: error.message
+      });
+    }
+  });
+
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
     try {
@@ -2518,68 +2581,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log("Original bid found:", originalBid.bid);
-
-      // Parse bid configuration data for seat availability checking
+      // Parse bid configuration data
       let configData = {};
       try {
         configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
-        console.log("Parsed config data:", configData);
       } catch (e) {
-        console.log("Could not parse config data, using defaults");
         configData = {};
       }
 
-      // Check seat availability
       const totalSeatsAvailable = originalBid.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-      const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      const maxSeatsPerUser = originalBid.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 5;
 
-      // Calculate total seats already booked by approved/paid bids
-      const totalSeatsBooked = existingRetailBids
-        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+      // Calculate current available seats using the specified logic
+      const retailBidsResult = await db
+        .select({
+          totalBookedSeats: sql<number>`COALESCE(SUM(${retailBids.passengerCount}), 0)`
+        })
+        .from(retailBids)
+        .where(
+          and(
+            eq(retailBids.bidId, parseInt(bidId)),
+            or(
+              eq(retailBids.status, 'under_review'),
+              eq(retailBids.status, 'paid')
+            )
+          )
+        );
 
-      // Check if there are enough seats available
-      if (totalSeatsBooked + parseInt(passengerCount) > totalSeatsAvailable) {
+      const totalBookedSeats = retailBidsResult[0]?.totalBookedSeats || 0;
+      const availableSeats = totalSeatsAvailable - totalBookedSeats;
+
+      // Validate passenger count against available seats
+      if (parseInt(passengerCount) > availableSeats) {
         return res.status(400).json({
           success: false,
-          message: `Not enough seats available. ${totalSeatsAvailable - totalSeatsBooked} seats remaining.`
+          message: `Not enough seats available. Only ${availableSeats} seats remaining.`
+        });
+      }
+
+      // Validate passenger count against max seats per user
+      if (parseInt(passengerCount) > maxSeatsPerUser) {
+        return res.status(400).json({
+          success: false,
+          message: `Passenger count exceeds maximum allowed (${maxSeatsPerUser}) per user.`
         });
       }
 
       // Check if user has already submitted a bid for this configuration
-      const userExistingBid = existingRetailBids.find(rb => rb.userId === parseInt(userId));
+      const existingUserBid = await db
+        .select()
+        .from(retailBids)
+        .where(
+          and(
+            eq(retailBids.bidId, parseInt(bidId)),
+            eq(retailBids.userId, parseInt(userId))
+          )
+        )
+        .limit(1);
 
-      if (userExistingBid) {
+      if (existingUserBid.length > 0) {
         return res.status(400).json({
           success: false,
           message: "You have already submitted a bid for this configuration"
         });
       }
 
-      console.log("Bid submission for bid:", bidId, "passenger count:", passengerCount);
-
-      // Create retail bid submission
+      // Create retail bid submission with 'submitted' status initially
       const retailBidData = {
         bidId: parseInt(bidId),
         userId: parseInt(userId),
         flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
-        status: "paid" // Set as paid to indicate user has completed payment
+        status: "submitted" // Initial status is 'submitted'
       };
 
       const newRetailBid = await storage.createRetailBid(retailBidData);
-
-      // Check if bid should be closed after this submission (when approved/paid)
-      const newTotalSeatsBooked = totalSeatsBooked + parseInt(passengerCount);
-      const shouldCloseBid = newTotalSeatsBooked >= totalSeatsAvailable;
 
       // Create notification
       await createNotification(
         'retail_bid_submitted',
         'New Retail Bid Submitted',
-        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${totalSeatsAvailable - newTotalSeatsBooked} seats remaining.`,
+        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${availableSeats - parseInt(passengerCount)} seats remaining after submission.`,
         'medium',
         {
           retailBidId: newRetailBid.id,
@@ -2587,7 +2670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: parseInt(userId),
           amount: submittedAmount,
           passengerCount: parseInt(passengerCount),
-          seatsRemaining: totalSeatsAvailable - newTotalSeatsBooked
+          seatsRemaining: availableSeats - parseInt(passengerCount)
         }
       );
 
@@ -2595,7 +2678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message: "Retail bid submitted successfully",
         retailBid: newRetailBid,
-        seatsRemaining: totalSeatsAvailable - totalSeatsBooked,
+        availableSeats: availableSeats - parseInt(passengerCount),
         totalSeatsAvailable: totalSeatsAvailable
       });
 
@@ -2652,91 +2735,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
         configData = {};
       }
 
-      // Get total seats available
+      // Get total seats available from bid configuration
       const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const maxSeatsPerUser = bidDetails.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 5;
 
-      // Get all retail bids for this configuration
-      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      // Calculate available seats using the specified logic
+      const retailBidsResult = await db
+        .select({
+          totalBookedSeats: sql<number>`COALESCE(SUM(${retailBids.passengerCount}), 0)`
+        })
+        .from(retailBids)
+        .where(
+          and(
+            eq(retailBids.bidId, parseInt(bidId)),
+            or(
+              eq(retailBids.status, 'under_review'),
+              eq(retailBids.status, 'paid')
+            )
+          )
+        );
 
-      // Calculate total seats booked by approved/paid bids
-      const totalSeatsBooked = retailBids
-        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+      const totalBookedSeats = retailBidsResult[0]?.totalBookedSeats || 0;
+      const availableSeats = totalSeatsAvailable - totalBookedSeats;
 
-      const seatsRemaining = totalSeatsAvailable - totalSeatsBooked;
-      const isClosed = seatsRemaining <= 0;
-
-      // Check if current user has paid for this bid
-      let userPaymentStatus = false;
-      let userBidStatus = null;
+      // Check if current user has a retail bid with status 'under_review' or 'paid'
+      let userRetailBid = null;
+      let displayStatus = 'open';
 
       if (userId) {
-        // Check retail_bids table for user's payment status
-        const userRetailBid = retailBids.find(rb => rb.userId === parseInt(userId as string));
-        if (userRetailBid) {
-          userBidStatus = userRetailBid.status;
-          userPaymentStatus = userRetailBid.status === 'paid' || userRetailBid.status === 'approved';
+        // Check if user is allowed retail access
+        const user = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.id, parseInt(userId as string)))
+          .limit(1);
+
+        if (user.length === 0 || !user[0].isRetailAllowed) {
+          return res.status(403).json({
+            success: false,
+            message: "User not authorized for retail access"
+          });
         }
 
-        // Check if this specific user has payment completion in bid notes
-        if (!userPaymentStatus && bidDetails.bid.notes) {
-          try {
-            const notes = JSON.parse(bidDetails.bid.notes);
-            if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
-              // Additional check: ensure this payment is for the current user
-              // This could be based on userId in payment info or other user-specific data
-              userPaymentStatus = true;
-            }
-          } catch (e) {
-            // Ignore parsing errors
-          }
+        // Get user's retail bid for this bid
+        const userRetailBids = await db
+          .select()
+          .from(retailBids)
+          .where(
+            and(
+              eq(retailBids.bidId, parseInt(bidId)),
+              eq(retailBids.userId, parseInt(userId as string))
+            )
+          );
+
+        userRetailBid = userRetailBids[0] || null;
+
+        // Apply the specified logic for status determination
+        if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) {
+          displayStatus = 'under_review';
+        } else if (availableSeats > 0) {
+          displayStatus = 'open';
+        } else {
+          displayStatus = 'closed';
         }
-
-        // Check if bid is completed AND belongs to this specific user
-        if (!userPaymentStatus && bidDetails.bid.bidStatus === 'completed' && bidDetails.bid.userId === parseInt(userId as string)) {
-          userPaymentStatus = true;
-        }
-
-        // Check payment table for this user and bid combination
-        if (!userPaymentStatus) {
-          try {
-            const hasUserPaid = await storage.hasUserPaidForBid(parseInt(bidId), parseInt(userId as string));
-            userPaymentStatus = hasUserPaid;
-          } catch (error) {
-            console.log("Error checking user payment status:", error.message);
-          }
-        }
-      }
-
-      // Determine display status based on user-specific logic
-      let displayStatus = 'Open';
-
-      if (isClosed) {
-        // If seats are full, everyone sees "Closed"
-        displayStatus = 'Closed';
-      } else if (bidDetails.bid.bidStatus === 'expired') {
-        displayStatus = 'Expired';
-      } else if (bidDetails.bid.bidStatus === 'rejected') {
-        displayStatus = 'Declined';
-      } else if (userId && userPaymentStatus) {
-        // If this specific user has paid, they see "Under Review"
-        displayStatus = 'Under Review';
       } else {
-        // If user hasn't paid or no user specified, show "Open"
-        displayStatus = 'Open';
+        // For non-authenticated requests
+        if (availableSeats > 0) {
+          displayStatus = 'open';
+        } else {
+          displayStatus = 'closed';
+        }
       }
 
       res.json({
         success: true,
         bidStatus: displayStatus,
         totalSeatsAvailable: totalSeatsAvailable,
-        totalSeatsBooked: totalSeatsBooked,
-        seatsRemaining: seatsRemaining,
-        isClosed: isClosed,
+        totalSeatsBooked: totalBookedSeats,
+        availableSeats: availableSeats,
+        maxSeatsPerUser: maxSeatsPerUser,
+        isClosed: availableSeats <= 0,
         originalBidStatus: bidDetails.bid.bidStatus,
-        userPaymentStatus: userPaymentStatus,
-        userBidStatus: userBidStatus,
-        hasUserPaid: userPaymentStatus || false
+        userRetailBid: userRetailBid,
+        hasUserPaid: userRetailBid ? (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid') : false
       });
 
     } catch (error) {

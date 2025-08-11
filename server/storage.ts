@@ -38,7 +38,7 @@ import {
   type Refund,
   type RetailBid
 } from "../shared/schema.js";
-import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
+import { eq, and, gte, lte, like, or, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export interface IStorage {
@@ -138,6 +138,8 @@ export interface IStorage {
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
+  getBidStatusForUser(bidId: number, userId: number): Promise<any>;
+  confirmRetailBidPayment(retailBidId: number): Promise<any>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1359,85 +1361,115 @@ export class DatabaseStorage implements IStorage {
   // Check if user has paid for a specific bid
   async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
     try {
-      console.log(`Checking payment status for User ${userId} and Bid ${bidId}`);
-
-      // Check retail_bids table first - this is the most reliable source
-      const userRetailBid = await db
+      // Check retail_bids table for this user and bid with 'under_review' or 'paid' status
+      const retailBid = await db
         .select()
         .from(retailBids)
-        .where(and(
-          eq(retailBids.bidId, bidId),
-          eq(retailBids.userId, userId)
-        ))
+        .where(
+          and(
+            eq(retailBids.bidId, bidId),
+            eq(retailBids.userId, userId),
+            or(
+              eq(retailBids.status, 'under_review'),
+              eq(retailBids.status, 'paid')
+            )
+          )
+        )
         .limit(1);
 
-      if (userRetailBid.length > 0) {
-        const status = userRetailBid[0].status;
-        console.log(`Found retail bid with status: ${status} for User ${userId}`);
-        if (status === 'paid' || status === 'approved') {
-          return true;
-        }
-      }
-
-      // Check payments table for user-specific payments
-      const userPayments = await db
-        .select()
-        .from(payments)
-        .where(eq(payments.userId, userId));
-
-      // Look for payments that might be related to this bid
-      for (const payment of userPayments) {
-        if (payment.paymentStatus === 'completed' || payment.paymentStatus === 'paid') {
-          // Check if payment reference or creation date suggests it's for this bid
-          const paymentRef = payment.paymentReference || '';
-          if (paymentRef.includes(bidId.toString())) {
-            console.log(`Found matching payment for User ${userId} and Bid ${bidId}`);
-            return true;
-          }
-        }
-      }
-
-      // Fallback: check if the bid itself is completed and belongs to this user
-      const bidDetails = await this.getBidById(bidId);
-      if (bidDetails && bidDetails.bid.userId === userId && bidDetails.bid.bidStatus === 'completed') {
-        console.log(`Bid ${bidId} is completed and belongs to User ${userId}`);
-        // Check for payment info in notes
-        try {
-          const notes = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
-          if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
-            console.log(`Payment completion found in bid notes for User ${userId}`);
-            return true;
-          }
-        } catch (e) {
-          // Ignore parsing errors
-        }
-        // If bid is completed and belongs to user, consider it paid
-        return true;
-      }
-
-      console.log(`No payment found for User ${userId} and Bid ${bidId}`);
-      return false;
+      return retailBid.length > 0;
     } catch (error) {
-      console.error("Error checking user payment status:", error);
+      console.error("Error checking user payment for bid:", error);
       return false;
+    }
+  }
+
+  async getBidStatusForUser(bidId: number, userId: number) {
+    try {
+      const result = await db
+        .select({
+          bidId: bids.id,
+          availableSeats: sql<number>`${bids.totalSeatsAvailable} - COALESCE(SUM(${retailBids.passengerCount}), 0)`,
+          statusForUser: sql<string>`
+            CASE 
+              WHEN EXISTS (
+                SELECT 1 
+                FROM ${retailBids} rb2
+                WHERE rb2.bid_id = ${bids.id}
+                  AND rb2.user_id = ${userId}
+                  AND rb2.status IN ('under_review', 'paid')
+              ) THEN 'under_review'
+              WHEN ${bids.totalSeatsAvailable} - COALESCE(SUM(${retailBids.passengerCount}), 0) > 0 THEN 'open'
+              ELSE 'closed'
+            END
+          `
+        })
+        .from(bids)
+        .leftJoin(
+          retailBids,
+          and(
+            eq(bids.id, retailBids.bidId),
+            or(
+              eq(retailBids.status, 'under_review'),
+              eq(retailBids.status, 'paid')
+            )
+          )
+        )
+        .where(
+          and(
+            eq(bids.id, bidId),
+            sql`EXISTS (
+              SELECT 1 FROM ${usersTable} u 
+              WHERE u.id = ${userId} 
+              AND u.is_retail_allowed = true
+            )`
+          )
+        )
+        .groupBy(bids.id)
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error("Error getting bid status for user:", error);
+      return null;
     }
   }
 
   async updateRetailBidStatus(retailBidId: number, status: string): Promise<any> {
     try {
-      return await db
+      await db
         .update(retailBids)
         .set({
-          status: status,
+          status,
           updatedAt: new Date()
         })
-        .where(eq(retailBids.id, retailBidId))
-        .returning();
+        .where(eq(retailBids.id, retailBidId));
+
+      return { success: true };
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       throw error;
     }
   }
+
+  async confirmRetailBidPayment(retailBidId: number) {
+    try {
+      // Update retail bid status from 'submitted' to 'under_review'
+      await db
+        .update(retailBids)
+        .set({
+          status: 'under_review',
+          updatedAt: new Date()
+        })
+        .where(eq(retailBids.id, retailBidId));
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error confirming retail bid payment:", error);
+      throw error;
+    }
+  }
+
 
   // Retail Bids
   async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
