@@ -68,6 +68,9 @@ export default function Bids() {
   });
   const [filteredBidsData, setFilteredBidsData] = useState([]);
 
+  useEffect(() => {
+    console.log(filteredBidsData, "filteredBidsData");
+  }, [filteredBidsData]);
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -86,6 +89,7 @@ export default function Bids() {
         // Transform bids data to match table format with dynamic status checking
         const transformedBidsPromises = bids.map(async (bid: any) => {
           // Parse configuration data from notes to get flight information
+          console.log("Bidsss:", bid);
           let configData = {};
           try {
             configData = bid.notes ? JSON.parse(bid.notes) : {};
@@ -113,10 +117,10 @@ export default function Bids() {
           const travelDate = configData.travelDate
             ? formatDateToDDMMMYYYY(configData.travelDate)
             : bid.flight?.departureTime
-            ? formatDateToDDMMMYYYY(bid.flight.departureTime)
-            : bid.createdAt
-            ? formatDateToDDMMMYYYY(bid.createdAt)
-            : "N/A";
+              ? formatDateToDDMMMYYYY(bid.flight.departureTime)
+              : bid.createdAt
+                ? formatDateToDDMMMYYYY(bid.createdAt)
+                : "N/A";
 
           // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
@@ -124,7 +128,9 @@ export default function Bids() {
           const userId = localStorage.getItem("userId");
 
           try {
-            const statusResponse = await fetch(`/api/bid-status/${bid.id}?userId=${userId || ''}`);
+            const statusResponse = await fetch(
+              `/api/bid-status/${bid.id}?userId=${userId || ""}`,
+            );
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
@@ -134,17 +140,25 @@ export default function Bids() {
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
                 userRetailBidStatus: statusData.userRetailBidStatus,
-                paymentStatus: statusData.paymentStatus // Added for user-specific payment status
+                paymentStatus: statusData.paymentStatus, // Added for user-specific payment status
               };
-              console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus, seatAvailability);
+              console.log(
+                `Status for Bid ${bid.id}, User ${userId}:`,
+                dynamicStatus,
+                seatAvailability,
+              );
             }
           } catch (error) {
-            console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
+            console.warn(
+              `Could not fetch dynamic status for bid ${bid.id}:`,
+              error,
+            );
             // Fallback to enhanced static status mapping
             try {
               const notes = bid.notes ? JSON.parse(bid.notes) : {};
               const paymentStatus = notes.paymentInfo?.paymentStatus;
-              const paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
+              const paymentCompleted =
+                notes.paymentInfo?.paymentCompleted === true;
 
               if (paymentCompleted) {
                 if (paymentStatus === "Payment Completed") {
@@ -156,20 +170,20 @@ export default function Bids() {
                 }
               } else {
                 switch (bid.bidStatus?.toLowerCase()) {
-                  case 'active':
+                  case "active":
                     dynamicStatus = "Open";
                     break;
-                  case 'accepted':
-                  case 'approved':
+                  case "accepted":
+                  case "approved":
                     dynamicStatus = "Approved";
                     break;
-                  case 'rejected':
+                  case "rejected":
                     dynamicStatus = "Rejected";
                     break;
-                  case 'completed':
+                  case "completed":
                     dynamicStatus = "Completed";
                     break;
-                  case 'expired':
+                  case "expired":
                     dynamicStatus = "Expired";
                     break;
                   default:
@@ -177,7 +191,10 @@ export default function Bids() {
                 }
               }
             } catch (parseError) {
-              console.warn(`Could not parse notes for bid ${bid.id}:`, parseError);
+              console.warn(
+                `Could not parse notes for bid ${bid.id}:`,
+                parseError,
+              );
               dynamicStatus = "Open";
             }
           }
@@ -199,14 +216,15 @@ export default function Bids() {
               bid.bidStatus === "completed"
                 ? "Payment Completed"
                 : bid.bidStatus === "accepted"
-                ? "Converted to Booking"
-                : bid.bidStatus === "approved"
-                ? "Accepted for Booking"
-                : dynamicStatus === "Open"
-                ? "Open"
-                : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
-                ? "Refunded"
-                : "Paid",
+                  ? "Converted to Booking"
+                  : bid.bidStatus === "approved"
+                    ? "Accepted for Booking"
+                    : dynamicStatus === "Open"
+                      ? "Open"
+                      : bid.bidStatus === "rejected" ||
+                          bid.bidStatus === "expired"
+                        ? "Refunded"
+                        : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
@@ -222,7 +240,7 @@ export default function Bids() {
         try {
           // Get all bid IDs to fetch related payments
           const bidIds = transformedBids.map((bid) =>
-            bid.bidId.replace("BID-", "")
+            bid.bidId.replace("BID-", ""),
           );
 
           // Fetch payments for each bid
@@ -250,7 +268,7 @@ export default function Bids() {
               const relatedBid = transformedBids.find(
                 (bid) =>
                   bid.bidId === `BID-${payment.relatedBidId}` ||
-                  bid.bidId === payment.bidId
+                  bid.bidId === payment.bidId,
               );
 
               const route = relatedBid ? relatedBid.route : "N/A";
@@ -268,7 +286,7 @@ export default function Bids() {
                 amount: payment.amount
                   ? `₹${parseFloat(payment.amount.toString()).toLocaleString(
                       "en-IN",
-                      { minimumFractionDigits: 2 }
+                      { minimumFractionDigits: 2 },
                     )}`
                   : "₹0",
                 type:
@@ -285,7 +303,7 @@ export default function Bids() {
                     ? new Date(payment.createdAt).toISOString().split("T")[0]
                     : new Date().toISOString().split("T")[0]),
               };
-            }
+            },
           );
 
           setPaymentHistoryData(transformedPayments);
@@ -295,29 +313,29 @@ export default function Bids() {
             .filter(
               (p) =>
                 (p.type === "Deposit" || p.type === "Payment") &&
-                (p.status === "Completed" || p.status === "completed")
+                (p.status === "Completed" || p.status === "completed"),
             )
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0
+              0,
             );
 
           const totalRefunds = transformedPayments
             .filter(
               (p) =>
                 p.type === "Refund" &&
-                (p.status === "Completed" || p.status === "completed")
+                (p.status === "Completed" || p.status === "completed"),
             )
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0
+              0,
             );
 
           const pendingPayments = transformedPayments
             .filter((p) => p.status === "Pending" || p.status === "pending")
             .reduce(
               (sum, p) => sum + parseFloat(p.amount.replace(/[₹,]/g, "")),
-              0
+              0,
             );
 
           setPaymentSummary({
@@ -353,14 +371,14 @@ export default function Bids() {
     // Filter by bid ID
     if (searchParams.bidId.trim()) {
       filtered = filtered.filter((bid) =>
-        bid.bidId.toLowerCase().includes(searchParams.bidId.toLowerCase())
+        bid.bidId.toLowerCase().includes(searchParams.bidId.toLowerCase()),
       );
     }
 
     // Filter by route
     if (searchParams.route.trim()) {
       filtered = filtered.filter((bid) =>
-        bid.route.toLowerCase().includes(searchParams.route.toLowerCase())
+        bid.route.toLowerCase().includes(searchParams.route.toLowerCase()),
       );
     }
 
@@ -371,7 +389,7 @@ export default function Bids() {
       searchParams.status !== ""
     ) {
       filtered = filtered.filter(
-        (bid) => bid.status.toLowerCase() === searchParams.status.toLowerCase()
+        (bid) => bid.status.toLowerCase() === searchParams.status.toLowerCase(),
       );
     }
 
@@ -400,7 +418,7 @@ export default function Bids() {
       if (!isNaN(minAmount)) {
         filtered = filtered.filter((bid) => {
           const bidAmount = parseFloat(
-            bid.bidAmount.replace("$", "").replace(/,/g, "")
+            bid.bidAmount.replace("$", "").replace(/,/g, ""),
           );
           return bidAmount >= minAmount;
         });
@@ -412,7 +430,7 @@ export default function Bids() {
       if (!isNaN(maxAmount)) {
         filtered = filtered.filter((bid) => {
           const bidAmount = parseFloat(
-            bid.bidAmount.replace("$", "").replace(/,/g, "")
+            bid.bidAmount.replace("$", "").replace(/,/g, ""),
           );
           return bidAmount <= maxAmount;
         });
@@ -983,8 +1001,7 @@ export default function Bids() {
                   <Spin size="small" />
                 ) : (
                   <Title level={3} className="!mb-0 text-green-600">
-                    ₹
-                    {formatCurrency(paymentSummary.totalDeposits)}
+                    ₹{formatCurrency(paymentSummary.totalDeposits)}
                   </Title>
                 )}
               </Card>
@@ -998,8 +1015,7 @@ export default function Bids() {
                   <Spin size="small" />
                 ) : (
                   <Title level={3} className="!mb-0 text-purple-600">
-                    ₹
-                    {formatCurrency(paymentSummary.totalRefunds)}
+                    ₹{formatCurrency(paymentSummary.totalRefunds)}
                   </Title>
                 )}
               </Card>
@@ -1013,8 +1029,7 @@ export default function Bids() {
                   <Spin size="small" />
                 ) : (
                   <Title level={3} className="!mb-0 text-blue-600">
-                    ₹
-                    {formatCurrency(paymentSummary.netAmount)}
+                    ₹{formatCurrency(paymentSummary.netAmount)}
                   </Title>
                 )}
               </Card>
@@ -1028,8 +1043,7 @@ export default function Bids() {
                   <Spin size="small" />
                 ) : (
                   <Title level={3} className="!mb-0 text-orange-600">
-                    ₹
-                    {formatCurrency(paymentSummary.pendingPayments)}
+                    ₹{formatCurrency(paymentSummary.pendingPayments)}
                   </Title>
                 )}
               </Card>
