@@ -135,7 +135,6 @@ export default function BidDetails() {
         const paymentStatus = paymentInfo?.paymentStatus;
 
         // Determine current status with enhanced logic
-        let status = "Open"; // Default status
         const isPaymentCompleted = paymentInfo?.paymentCompleted === true;
         const paymentStatus = paymentInfo?.paymentStatus;
 
