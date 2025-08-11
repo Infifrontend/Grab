@@ -134,34 +134,17 @@ export default function Bids() {
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
                 userRetailBidStatus: statusData.userRetailBidStatus,
-                paymentStatus: statusData.paymentStatus // User-specific payment status
+                paymentStatus: statusData.paymentStatus // Added for user-specific payment status
               };
               console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus, seatAvailability);
             }
           } catch (error) {
             console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
-            // Fallback to user-specific static status mapping
+            // Fallback to enhanced static status mapping
             try {
               const notes = bid.notes ? JSON.parse(bid.notes) : {};
-              
-              // Check user-specific payment status
-              if (userId) {
-                const userPayments = notes.userPayments || [];
-                const userPaymentRecord = userPayments.find(up => up.userId === parseInt(userId));
-                const userPaidFromNotes = userPaymentRecord && userPaymentRecord.paymentCompleted === true;
-                
-                if (userPaidFromNotes) {
-                  dynamicStatus = "Under Review";
-                  seatAvailability = { hasUserPaid: true, paymentStatus: 'completed' };
-                } else {
-                  dynamicStatus = "Open";
-                  seatAvailability = { hasUserPaid: false, paymentStatus: 'open' };
-                }
-              } else {
-                // No user context - show default status
-                dynamicStatus = "Open";
-                seatAvailability = { hasUserPaid: false, paymentStatus: 'open' };
-              }
+              const paymentStatus = notes.paymentInfo?.paymentStatus;
+              const paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
 
               if (paymentCompleted) {
                 if (paymentStatus === "Payment Completed") {

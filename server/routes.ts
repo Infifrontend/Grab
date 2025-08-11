@@ -1911,15 +1911,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             existingNotes = {};
           }
 
-          // Initialize userPayments array if it doesn't exist
-          if (!existingNotes.userPayments) {
-            existingNotes.userPayments = [];
-          }
-
-          // Check if user already has a payment record to avoid duplicates
-          const existingUserPaymentIndex = existingNotes.userPayments.findIndex(up => up.userId === userId);
-          
-          const userPaymentRecord = {
+          // Add payment information to bid notes with user-specific tracking
+          const userPayments = existingNotes.userPayments || [];
+          userPayments.push({
             paymentId: payment.id,
             paymentReference: paymentReference,
             paymentStatus: paymentStatus || "completed",
@@ -1928,25 +1922,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             paymentMethod: paymentMethod,
             paymentCompleted: true,
             userId: userId
-          };
-
-          if (existingUserPaymentIndex >= 0) {
-            // Update existing user payment record
-            existingNotes.userPayments[existingUserPaymentIndex] = userPaymentRecord;
-          } else {
-            // Add new user payment record
-            existingNotes.userPayments.push(userPaymentRecord);
-          }
+          });
 
           const updatedNotes = {
             ...existingNotes,
-            // Update summary info for admin reference only (not used for user-specific logic)
+            userPayments: userPayments,
+            // Keep legacy paymentInfo for backwards compatibility, but don't use it for global validation
             paymentInfo: {
               latestPaymentId: payment.id,
               latestPaymentReference: paymentReference,
               lastPaymentDate: new Date().toISOString(),
-              totalPaymentsReceived: existingNotes.userPayments.length,
-              totalUniqueUsersWhoHavePaid: [...new Set(existingNotes.userPayments.map(up => up.userId))].length
+              totalPaymentsReceived: userPayments.length
             }
           };
 
@@ -2779,7 +2765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (userRetailBid?.status === 'approved') {
             displayStatus = "Approved";
             statusForUser = 'approved';
-            userPaymentStatus = 'completed';
+            userPaymentStatus = 'approved';
           } else if (userRetailBid?.status === 'rejected') {
             displayStatus = "Rejected";
             statusForUser = 'rejected';
@@ -2787,7 +2773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             displayStatus = "Under Review";
             statusForUser = 'under_review';
-            userPaymentStatus = 'completed';
+            userPaymentStatus = 'under_review';
           }
           console.log(`User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}`);
         } else {

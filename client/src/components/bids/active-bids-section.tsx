@@ -108,8 +108,6 @@ export default function ActiveBidsSection() {
         // For active bids, use dynamic status from seatAvailability if available
         if (bid.seatAvailability?.paymentStatus) {
           switch (bid.seatAvailability.paymentStatus) {
-            case 'completed':
-              return { status: "Under Review", color: "blue" };
             case 'under_review':
               return { status: "Under Review", color: "blue" };
             case 'approved':
@@ -118,28 +116,16 @@ export default function ActiveBidsSection() {
               return { status: "Rejected", color: "red" };
             case 'closed':
               return { status: "Closed", color: "gray" };
-            case 'open':
+            case 'completed':
+              return { status: "Completed", color: "green" };
             default:
               return { status: "Open", color: "orange" };
           }
         }
         
-        // Fallback to checking user-specific payment status in notes
+        // Fallback to checking payment status in notes
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
-          const userId = localStorage.getItem("userId");
-          
-          // Check user-specific payment completion
-          if (userId) {
-            const userPayments = notes.userPayments || [];
-            const userPaymentRecord = userPayments.find(up => up.userId === parseInt(userId));
-            
-            if (userPaymentRecord && userPaymentRecord.paymentCompleted === true) {
-              return { status: "Under Review", color: "blue" };
-            }
-          }
-          
-          // If no user-specific payment found, check global status (legacy fallback)
           const paymentStatus = notes.paymentInfo?.paymentStatus;
           
           if (notes.paymentInfo?.paymentCompleted === true) {

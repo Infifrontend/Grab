@@ -1247,17 +1247,17 @@ export class DatabaseStorage implements IStorage {
 
       // Filter payments that are related to this bid
       const bidRelatedPayments = allPayments.filter(payment => {
-        // Check if payment reference contains the bid ID
+        // Check if payment reference or transaction ID contains the bid ID
         const paymentRef = payment.paymentReference || '';
         const transactionId = payment.transactionId || '';
-
-        // Check if payment reference contains the bid ID pattern
-        const refMatches = paymentRef.includes(`-${bidId}-`) || paymentRef.includes(`BID-${bidId}`) || transactionId.includes(bidId.toString());
 
         // Also check if bookingId matches (in case bid ID was used as booking ID)
         const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
 
-        return refMatches || bookingMatches;
+        // Check if payment reference contains the bid ID
+        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+
+        return bookingMatches || refMatches;
       });
 
       console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
@@ -1265,53 +1265,6 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
       throw error;
-    }
-  }
-
-  async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
-    try {
-      console.log(`Checking if user ${userId} has paid for bid ${bidId}`);
-
-      // Check retail bids table for user-specific payment status
-      const retailBids = await this.getRetailBidsByBid(bidId);
-      const userRetailBid = retailBids.find(rb => rb.userId === userId);
-      
-      if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) {
-        console.log(`User ${userId} has paid for bid ${bidId} via retail bid`);
-        return true;
-      }
-
-      // Check payments table for user-specific payments
-      const bidPayments = await this.getPaymentsByBidId(bidId);
-      const userPayment = bidPayments.find(payment => payment.userId === userId);
-      
-      if (userPayment) {
-        console.log(`User ${userId} has paid for bid ${bidId} via payments table`);
-        return true;
-      }
-
-      // Check bid notes for user-specific payment completion
-      const bidDetails = await this.getBidById(bidId);
-      if (bidDetails?.bid?.notes) {
-        try {
-          const configData = JSON.parse(bidDetails.bid.notes);
-          const userPayments = configData.userPayments || [];
-          const userPaymentRecord = userPayments.find(up => up.userId === userId);
-          
-          if (userPaymentRecord && userPaymentRecord.paymentCompleted === true) {
-            console.log(`User ${userId} has paid for bid ${bidId} via bid notes`);
-            return true;
-          }
-        } catch (e) {
-          console.log("Could not parse bid notes for payment check");
-        }
-      }
-
-      console.log(`User ${userId} has NOT paid for bid ${bidId}`);
-      return false;
-    } catch (error) {
-      console.error(`Error checking user payment for bid ${bidId}, user ${userId}:`, error);
-      return false;
     }
   }
 
