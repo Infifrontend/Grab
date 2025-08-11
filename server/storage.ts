@@ -1358,6 +1358,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Check if user has paid for a specific bid
+  async getRetailBidById(retailBidId: number): Promise<RetailBid | undefined> {
+    try {
+      const [retailBid] = await db
+        .select()
+        .from(retailBids)
+        .where(eq(retailBids.id, retailBidId))
+        .limit(1);
+      
+      return retailBid || undefined;
+    } catch (error) {
+      console.error("Error getting retail bid by ID:", error);
+      return undefined;
+    }
+  }
+
   async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
     try {
       console.log(`Checking payment status for User ${userId} and Bid ${bidId}`);
@@ -1457,7 +1472,20 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
       }
 
-      // Calculate total seats already under review or paid for this bid
+      // Parse configuration data for seat limits
+      let configData = {};
+      try {
+        configData = bidConfiguration.bid.notes ? JSON.parse(bidConfiguration.bid.notes) : {};
+      } catch (e) {
+        console.log("Could not parse bid configuration notes, using defaults");
+        configData = {};
+      }
+
+      // Get seat limits from bid configuration
+      const totalSeatsAvailable = bidConfiguration.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const maxSeatsPerUser = bidConfiguration.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
+
+      // Calculate seats already under review or paid for this bid
       const existingRetailBids = await this.getRetailBidsByBid(bid.bidId);
       const seatsUnderReviewOrPaid = existingRetailBids.reduce((sum, rb) => {
         if (rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved') {
@@ -1466,15 +1494,20 @@ export class DatabaseStorage implements IStorage {
         return sum;
       }, 0);
 
-      const availableSeats = bidConfiguration.flight.availableSeats;
-      const totalSeatsAvailable = availableSeats - seatsUnderReviewOrPaid;
+      const availableSeats = totalSeatsAvailable - seatsUnderReviewOrPaid;
 
       // Validation checks
-      if (bid.passengerCount > bidConfiguration.bid.maxSeatsPerBid) {
-        throw new Error(`Passenger count (${bid.passengerCount}) exceeds maximum allowed per bid (${bidConfiguration.bid.maxSeatsPerBid}).`);
+      if (bid.passengerCount > maxSeatsPerUser) {
+        throw new Error(`Passenger count (${bid.passengerCount}) exceeds maximum allowed per user (${maxSeatsPerUser}).`);
       }
-      if (bid.passengerCount > totalSeatsAvailable) {
-        throw new Error(`Passenger count (${bid.passengerCount}) exceeds available seats (${totalSeatsAvailable}).`);
+      if (bid.passengerCount > availableSeats) {
+        throw new Error(`Not enough seats available. ${availableSeats} seats remaining.`);
+      }
+
+      // Check if user has already submitted a bid for this configuration
+      const userExistingBid = existingRetailBids.find(rb => rb.userId === bid.userId);
+      if (userExistingBid) {
+        throw new Error("You have already submitted a bid for this configuration");
       }
 
       console.log("Creating retail bid with validation:", {
@@ -1483,7 +1516,8 @@ export class DatabaseStorage implements IStorage {
         passengerCount: bid.passengerCount,
         submittedAmount: bid.submittedAmount,
         totalSeatsAvailable: totalSeatsAvailable,
-        maxSeatsPerBid: bid.bid.maxSeatsPerBid
+        availableSeats: availableSeats,
+        maxSeatsPerUser: maxSeatsPerUser
       });
 
       // Ensure the retail_bids table exists and has the correct structure
