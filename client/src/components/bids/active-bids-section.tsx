@@ -72,16 +72,27 @@ export default function ActiveBidsSection() {
     // Check bid status first for different states
     switch (bid.bidStatus) {
       case "completed":
-        // For completed bids, check if payment is actually completed
+        // For completed bids, check payment status to determine correct display
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
+          const paymentStatus = notes.paymentInfo?.paymentStatus;
+          
           if (notes.paymentInfo?.paymentCompleted === true) {
-            return { status: "Payment Completed", color: "green" };
+            // Payment completed scenarios
+            if (paymentStatus === "Payment Completed") {
+              return { status: "Under Review", color: "blue" };
+            } else if (paymentStatus === "Accepted for Booking") {
+              return { status: "Accepted", color: "green" };
+            } else if (paymentStatus === "Open") {
+              return { status: "Open", color: "orange" };
+            } else {
+              return { status: "Under Review", color: "blue" };
+            }
           } else {
             return { status: "Awaiting Payment", color: "orange" };
           }
         } catch (e) {
-          return { status: "Under Review", color: "orange" };
+          return { status: "Under Review", color: "blue" };
         }
       case "accepted":
         return { status: "Accepted", color: "green" };
@@ -97,8 +108,19 @@ export default function ActiveBidsSection() {
         // For active bids, check payment status
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
+          const paymentStatus = notes.paymentInfo?.paymentStatus;
+          
           if (notes.paymentInfo?.paymentCompleted === true) {
-            return { status: "Payment Completed", color: "green" };
+            // Payment completed scenarios for active bids
+            if (paymentStatus === "Payment Completed") {
+              return { status: "Under Review", color: "blue" };
+            } else if (paymentStatus === "Accepted for Booking") {
+              return { status: "Accepted", color: "green" };
+            } else if (paymentStatus === "Open") {
+              return { status: "Open", color: "orange" };
+            } else {
+              return { status: "Under Review", color: "blue" };
+            }
           } else if (notes.paymentInfo?.paymentStatus === "Paid") {
             return { status: "Deposit Paid", color: "blue" };
           }

@@ -123,23 +123,61 @@ export default function Bids() {
             }
           } catch (error) {
             console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
-            // Fallback to original static status mapping
-            dynamicStatus = 
-              bid.bidStatus === "active"
-                ? "Open"
-                : bid.bidStatus === "accepted"
-                ? "Accepted"
-                : bid.bidStatus === "approved"
-                ? "Accepted"
-                : bid.bidStatus === "rejected"
-                ? "Declined"
-                : bid.bidStatus === "expired"
-                ? "Expired"
-                : bid.bidStatus === "completed"
-                ? "Under Review"
-                : bid.bidStatus === "pending"
-                ? "Under Review"
-                : "Under Review";
+            // Fallback to enhanced static status mapping with payment completion logic
+            try {
+              const notes = bid.notes ? JSON.parse(bid.notes) : {};
+              const paymentStatus = notes.paymentInfo?.paymentStatus;
+              const paymentCompleted = notes.paymentInfo?.paymentCompleted;
+
+              if (paymentCompleted === true) {
+                // Payment completed scenarios
+                if (paymentStatus === "Payment Completed") {
+                  dynamicStatus = "Under Review";
+                } else if (paymentStatus === "Accepted for Booking") {
+                  dynamicStatus = "Accepted";
+                } else if (paymentStatus === "Open") {
+                  dynamicStatus = "Open";
+                } else {
+                  dynamicStatus = "Under Review";
+                }
+              } else {
+                // Original fallback logic for non-payment scenarios
+                dynamicStatus = 
+                  bid.bidStatus === "active"
+                    ? "Open"
+                    : bid.bidStatus === "accepted"
+                    ? "Accepted"
+                    : bid.bidStatus === "approved"
+                    ? "Accepted"
+                    : bid.bidStatus === "rejected"
+                    ? "Declined"
+                    : bid.bidStatus === "expired"
+                    ? "Expired"
+                    : bid.bidStatus === "completed"
+                    ? "Under Review"
+                    : bid.bidStatus === "pending"
+                    ? "Under Review"
+                    : "Under Review";
+              }
+            } catch (noteError) {
+              // If note parsing fails, use original static mapping
+              dynamicStatus = 
+                bid.bidStatus === "active"
+                  ? "Open"
+                  : bid.bidStatus === "accepted"
+                  ? "Accepted"
+                  : bid.bidStatus === "approved"
+                  ? "Accepted"
+                  : bid.bidStatus === "rejected"
+                  ? "Declined"
+                  : bid.bidStatus === "expired"
+                  ? "Expired"
+                  : bid.bidStatus === "completed"
+                  ? "Under Review"
+                  : bid.bidStatus === "pending"
+                  ? "Under Review"
+                  : "Under Review";
+            }
           }
 
           return {
