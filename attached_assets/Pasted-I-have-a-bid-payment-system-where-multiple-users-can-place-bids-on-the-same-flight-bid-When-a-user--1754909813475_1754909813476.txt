@@ -1,0 +1,41 @@
+I have a bid payment system where multiple users can place bids on the same flight bid.
+When a user (e.g., user_id:3) submits a payment for a bid, only that user's payment status should update to "completed" and their bid status to "under review".
+Other users who have not paid for this bid should still see the bid status as "open" and payment status as "open", because seats are still available.
+The bid status should only change to "closed" for non-paying users when all seats for that bid are fully booked (i.e., total booked seats equal or exceed available seats).
+Currently, when one user pays, the bid status changes to "under review" and payment status "completed" for all users, which is incorrect.
+
+The request i send for user_id:3
+{
+    "id": 37,
+    "userId": 1,
+    "flightId": 48,
+    "bidAmount": "100.00",
+    "passengerCount": 10,
+    "bidStatus": "active",
+    "validUntil": "2025-08-18T18:30:00.000Z",
+    "notes": "{\"title\":\"Competitive Flight Services Proposal\",\"flightType\":\"International\",\"origin\":\"Guadalajara\",\"destination\":\"Oakland\",\"travelDate\":\"2025-08-20\",\"departureTimeRange\":null,\"totalSeatsAvailable\":100,\"minSeatsPerBid\":10,\"maxSeatsPerBid\":20,\"maxSeatsPerUser\":5,\"bidStartTime\":\"2025-08-07T18:30:00.000Z\",\"bidEndTime\":\"2025-08-18T18:30:00.000Z\",\"autoAwardTopBidder\":false,\"manualReviewOption\":false,\"autoRefundNonWinners\":false,\"fareType\":\"Premium Economy\",\"baggageAllowance\":20,\"cancellationTerms\":\"Standard\",\"mealIncluded\":false,\"otherNotes\":\"\",\"configType\":\"bid_configuration\",\"createdAt\":\"2025-08-08T12:09:28.200Z\",\"status\":\"active\"}",
+    "totalSeatsAvailable": 100,
+    "minSeatsPerBid": 10,
+    "maxSeatsPerBid": 20,
+    "createdAt": "2025-08-08T12:09:28.200Z",
+    "updatedAt": "2025-08-08T12:09:28.200Z"
+}
+
+The response sample i received:
+{
+        "id": 26,
+        "bookingId": null,
+        "userId": 3,
+        "paymentReference": "PAY-40-USER6",
+        "amount": "100.00",
+        "currency": "USD",
+        "paymentMethod": "credit_card",
+        "paymentStatus": "completed",
+        "transactionId": null,
+        "paymentGateway": null,
+        "failureReason": null,
+        "processedAt": null,
+        "createdAt": "2025-08-11T09:39:43.305Z",
+        "bidId": "BID-40",
+        "route": "Mexico City → Merida"
+}
