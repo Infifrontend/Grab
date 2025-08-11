@@ -706,7 +706,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getPayments(userId?: number, statusFilter?: string) {
+  async getPayments(userId?: number, statusFilter?: string): Promise<any[]> {
     try {
       let query = db
         .select({
