@@ -265,14 +265,15 @@ export default function BidDetails() {
 
     // If we have seat availability data, use the dynamic status
     if (seatAvailability) {
+      // Check if THIS specific user has paid
       if (seatAvailability.hasUserPaid) {
-        console.log("User has paid, showing Under Review");
+        console.log("Current user has paid, showing Under Review");
         return "Under Review";
       } else if (seatAvailability.isClosed) {
-        console.log("Bid is closed, showing Closed");
+        console.log("Bid is closed due to capacity, showing Closed");
         return "Closed";
       } else {
-        console.log("Bid is open, showing Open");
+        console.log("Bid is open for current user, showing Open");
         return "Open";
       }
     }
@@ -288,11 +289,11 @@ export default function BidDetails() {
       case "rejected":
         return "Rejected";
       case "completed":
-        return "Under Review"; // Mapping 'completed' to 'Under Review' as per logic
+        return "Under Review";
       case "under review":
         return "Under Review";
       default:
-        return "Open"; // Default to Open to allow payment button to show
+        return "Open";
     }
   };
 
@@ -895,7 +896,7 @@ export default function BidDetails() {
             Cancel
           </Button>
 
-          {!isBidClosed && !hasUserPaid && (currentStatus === "Open" || currentStatus === "Draft") && (
+          {!isBidClosed && !hasUserPaid && currentStatus === "Open" && (
               <Button
                 type="primary"
                 size="large"

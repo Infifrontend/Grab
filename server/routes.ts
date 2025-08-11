@@ -2737,33 +2737,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userPaidFromBidNotes = false;
         }
 
+        // More precise payment status checking
         hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) ||
                       userPayment !== undefined ||
                       userPaidFromBidNotes;
 
         if (hasUserPaid) {
-          // User has paid - show "Under Review" for this user
+          // User has paid - show "Under Review" for this specific user only
           displayStatus = "Under Review";
           statusForUser = 'under_review';
-          console.log(`User ${userId} has paid for bid ${bidId}, status: Under Review`);
-        } else if (userRetailBid && userRetailBid.status === 'submitted') {
-          // User has submitted but not paid - still show as open if seats available
-          if (availableSeats > 0) {
-            displayStatus = "Open";
-            statusForUser = 'open';
-          } else {
-            displayStatus = "Closed";
-            statusForUser = 'closed';
-          }
+          console.log(`User ${userId} has paid for bid ${bidId}, showing: Under Review`);
         } else {
-          // User hasn't submitted a bid yet or hasn't paid
+          // User hasn't paid - check seat availability
           if (availableSeats > 0) {
             displayStatus = "Open";
             statusForUser = 'open';
-            console.log(`User ${userId} has not paid for bid ${bidId}, status: Open (${availableSeats} seats available)`);
+            console.log(`User ${userId} has not paid for bid ${bidId}, showing: Open (${availableSeats} seats available)`);
           } else {
             displayStatus = "Closed";
             statusForUser = 'closed';
+            console.log(`User ${userId} - bid ${bidId} closed due to no seats available`);
           }
         }
       } else {
