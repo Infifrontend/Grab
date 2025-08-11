@@ -23,7 +23,7 @@ import dayjs from "dayjs";
 import { useQuery } from '@tanstack/react-query';
 
 // Helper functions (assuming these are defined elsewhere or need to be included if not globally available)
-const formatDateToDDMMMYYYY = (dateString)bid-details/ => {
+const formatDateToDDMMMYYYY = (dateString) => {
   return dayjs(dateString).format("DD MMM YYYY");
 };
 
