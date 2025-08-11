@@ -1240,39 +1240,31 @@ export class DatabaseStorage implements IStorage {
 
   async getPaymentsByBidId(bidId: number) {
     try {
-      console.log(`Looking for payments for bid ID: ${bidId}`);
+      console.log(`Fetching payments for bid ID: ${bidId}`);
 
-      // Since we don't have a direct bidId column in payments table,
-      // we need to find payments that are related to this bid through other means
-
-      // First, get the bid details to understand what we're looking for
-      const bidDetails = await this.getBidById(bidId);
-      if (!bidDetails) {
-        console.log(`No bid found with ID: ${bidId}`);
-        return [];
-      }
-
-      // Get all payments and filter for ones that might be related to this bid
+      // Get all payments and filter those related to the bid
       const allPayments = await db.select().from(payments);
 
-      // Filter payments that might be related to this bid
-      const relatedPayments = allPayments.filter(payment => {
-        // Check if payment reference or booking contains the bid ID
+      // Filter payments that are related to this bid
+      const bidRelatedPayments = allPayments.filter(payment => {
+        // Check if payment reference or transaction ID contains the bid ID
         const paymentRef = payment.paymentReference || '';
-        const bookingRef = payment.bookingId ? payment.bookingId.toString() : '';
+        const transactionId = payment.transactionId || '';
 
-        // Look for bid ID in various fields
-        return paymentRef.includes(bidId.toString()) ||
-               bookingRef.includes(bidId.toString()) ||
-               (payment.userId === bidDetails.bid?.userId &&
-                Math.abs(new Date(payment.createdAt).getTime() - new Date(bidDetails.bid?.createdAt || 0).getTime()) < 24 * 60 * 60 * 1000); // Within 24 hours
+        // Also check if bookingId matches (in case bid ID was used as booking ID)
+        const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
+
+        // Check if payment reference contains the bid ID
+        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+
+        return bookingMatches || refMatches;
       });
 
-      console.log(`Found ${relatedPayments.length} related payments for bid ${bidId}`);
-      return relatedPayments;
+      console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
+      return bidRelatedPayments;
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
-      return [];
+      throw error;
     }
   }
 
@@ -1330,126 +1322,52 @@ export class DatabaseStorage implements IStorage {
   // Get retail bids by bid ID
   async getRetailBidsByBid(bidId: number): Promise<RetailBid[]> {
     try {
-      return await db
-        .select({
-          id: retailBids.id,
-          bidId: retailBids.bidId,
-          userId: retailBids.userId,
-          flightId: retailBids.flightId,
-          submittedAmount: retailBids.submittedAmount,
-          passengerCount: retailBids.passengerCount,
-          status: retailBids.status,
-          createdAt: retailBids.createdAt,
-          updatedAt: retailBids.updatedAt,
-          user: {
-            id: users.id,
-            name: users.name,
-            email: users.email
-          }
-        })
+      console.log(`Fetching retail bids for bid ID: ${bidId}`);
+
+      const retailBidsList = await db
+        .select()
         .from(retailBids)
-        .leftJoin(users, eq(retailBids.userId, users.id))
-        .where(eq(retailBids.bidId, bidId));
+        .where(eq(retailBids.bidId, bidId))
+        .orderBy(desc(retailBids.createdAt));
+
+      console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
+      return retailBidsList;
     } catch (error) {
       console.error("Error getting retail bids by bid:", error);
       throw error;
     }
   }
 
-  // Check if user has paid for a specific bid
-  async getRetailBidById(retailBidId: number): Promise<RetailBid | undefined> {
+  async updateRetailBidStatus(retailBidId: number, status: string) {
     try {
-      const [retailBid] = await db
-        .select()
-        .from(retailBids)
-        .where(eq(retailBids.id, retailBidId))
-        .limit(1);
+      console.log(`Updating retail bid ${retailBidId} status to: ${status}`);
 
-      return retailBid || undefined;
-    } catch (error) {
-      console.error("Error getting retail bid by ID:", error);
-      return undefined;
-    }
-  }
-
-  async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
-    try {
-      console.log(`Checking payment status for User ${userId} and Bid ${bidId}`);
-
-      // Check retail_bids table first - this is the most reliable source
-      const userRetailBid = await db
-        .select()
-        .from(retailBids)
-        .where(and(
-          eq(retailBids.bidId, bidId),
-          eq(retailBids.userId, userId)
-        ))
-        .limit(1);
-
-      if (userRetailBid.length > 0) {
-        const status = userRetailBid[0].status;
-        console.log(`Found retail bid with status: ${status} for User ${userId}`);
-        if (status === 'paid' || status === 'approved') {
-          return true;
-        }
-      }
-
-      // Check payments table for user-specific payments
-      const userPayments = await db
-        .select()
-        .from(payments)
-        .where(eq(payments.userId, userId));
-
-      // Look for payments that might be related to this bid
-      for (const payment of userPayments) {
-        if (payment.paymentStatus === 'completed' || payment.paymentStatus === 'paid') {
-          // Check if payment reference or creation date suggests it's for this bid
-          const paymentRef = payment.paymentReference || '';
-          if (paymentRef.includes(bidId.toString())) {
-            console.log(`Found matching payment for User ${userId} and Bid ${bidId}`);
-            return true;
-          }
-        }
-      }
-
-      // Fallback: check if the bid itself is completed and belongs to this user
-      const bidDetails = await this.getBidById(bidId);
-      if (bidDetails && bidDetails.bid.userId === userId && bidDetails.bid.bidStatus === 'completed') {
-        console.log(`Bid ${bidId} is completed and belongs to User ${userId}`);
-        // Check for payment info in notes
-        try {
-          const notes = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
-          if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
-            console.log(`Payment completion found in bid notes for User ${userId}`);
-            return true;
-          }
-        } catch (e) {
-          // Ignore parsing errors
-        }
-        // If bid is completed and belongs to user, consider it paid
-        return true;
-      }
-
-      console.log(`No payment found for User ${userId} and Bid ${bidId}`);
-      return false;
-    } catch (error) {
-      console.error("Error checking user payment status:", error);
-      return false;
-    }
-  }
-
-  async updateRetailBidStatus(retailBidId: number, status: string): Promise<any> {
-    try {
-      return await db
+      await db
         .update(retailBids)
         .set({
           status: status,
           updatedAt: new Date()
         })
-        .where(eq(retailBids.id, retailBidId))
-        .returning();
+        .where(eq(retailBids.id, retailBidId));
+
+      console.log(`Successfully updated retail bid ${retailBidId} status to ${status}`);
     } catch (error) {
       console.error("Error updating retail bid status:", error);
+      throw error;
+    }
+  }
+
+  async getRetailBidById(retailBidId: number) {
+    try {
+      const retailBid = await db
+        .select()
+        .from(retailBids)
+        .where(eq(retailBids.id, retailBidId))
+        .limit(1);
+
+      return retailBid[0] || null;
+    } catch (error) {
+      console.error("Error getting retail bid by ID:", error);
       throw error;
     }
   }

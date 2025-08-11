@@ -260,33 +260,37 @@ export default function BidDetails() {
     return dayjs(dateString).format("DD/MM/YYYY");
   };
 
-  const getStatusDisplay = (status, seatAvailabilityData) => {
-    // Use dynamic status from seat availability if available
-    if (seatAvailabilityData && seatAvailabilityData.userRetailBidStatus) {
-      return seatAvailabilityData.userRetailBidStatus;
-    }
-    if (seatAvailabilityData && seatAvailabilityData.isClosed && !seatAvailabilityData.hasUserPaid) {
-        return "Closed";
-    }
-    if (seatAvailabilityData && seatAvailabilityData.hasUserPaid && !seatAvailabilityData.isClosed) {
-        return "Under Review";
-    }
+  const getStatusDisplay = (status: string, seatAvailability: any) => {
+    console.log(`Getting status display for: ${status}`, seatAvailability);
 
+    // If we have seat availability data, use the dynamic status
+    if (seatAvailability) {
+      if (seatAvailability.hasUserPaid) {
+        console.log("User has paid, showing Under Review");
+        return "Under Review";
+      } else if (seatAvailability.isClosed) {
+        console.log("Bid is closed, showing Closed");
+        return "Closed";
+      } else {
+        console.log("Bid is open, showing Open");
+        return "Open";
+      }
+    }
 
     // Fallback to original status mapping if dynamic status is not applicable
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "active":
-      case "Open":
+      case "open":
         return "Open";
       case "accepted":
       case "approved":
-        return "Accepted";
+        return "Approved";
       case "rejected":
-        return "Declined";
-      case "expired":
-        return "Expired";
+        return "Rejected";
       case "completed":
         return "Under Review"; // Mapping 'completed' to 'Under Review' as per logic
+      case "under review":
+        return "Under Review";
       default:
         return "Open"; // Default to Open to allow payment button to show
     }
@@ -896,23 +900,22 @@ export default function BidDetails() {
                 type="primary"
                 size="large"
                 onClick={handleContinueToPayment}
-                className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
+                className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
                 Continue to Payment
               </Button>
             )}
 
-          {hasUserPaid && !isBidClosed && currentStatus === "Under Review" && (
-            <div className="flex justify-end">
+            {hasUserPaid && currentStatus === "Under Review" && (
               <Button
+                type="default"
                 size="large"
                 disabled
-                className="px-8 py-2 h-auto font-semibold bg-blue-100 text-blue-700"
+                className="bg-gray-100 text-gray-500 cursor-not-allowed"
               >
-                Payment Submitted - Under Review
+                Payment Under Review
               </Button>
-            </div>
-          )}
+            )}
 
           {isBidClosed && (
             <div className="flex justify-end">

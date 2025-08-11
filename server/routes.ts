@@ -1894,7 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             existingNotes = {};
           }
 
-          // Add payment information to bid notes
+          // Add payment information to bid notes with user-specific tracking
           const updatedNotes = {
             ...existingNotes,
             paymentInfo: {
@@ -1904,16 +1904,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               paymentDate: new Date().toISOString(),
               amount: amount,
               paymentMethod: paymentMethod,
-              paymentCompleted: true
+              paymentCompleted: true,
+              userId: userId // Track which user made the payment
             }
           };
 
+          // Update bid status based on payment completion
+          let newBidStatus = bidDetails.bid.bidStatus;
+          if (paymentStatus === "completed") {
+            newBidStatus = 'completed';
+          }
+
           await storage.updateBidDetails(parseInt(bidId), {
-            bidStatus: 'completed',
+            bidStatus: newBidStatus,
             notes: JSON.stringify(updatedNotes),
             updatedAt: new Date()
           });
-          console.log(`Updated bid ${bidId} status to completed and linked payment ${payment.id}`);
+          console.log(`Updated bid ${bidId} status and linked payment ${payment.id} for user ${userId}`);
+
+          // Also mark the retail bid as 'under_review' if it exists
+          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+          const userRetailBid = retailBids.find(rb => rb.userId === userId);
+          if (userRetailBid) {
+            await storage.updateRetailBidStatus(userRetailBid.id, 'under_review');
+            console.log(`Updated retail bid ${userRetailBid.id} status to under_review for user ${userId}`);
+          }
         } catch (error) {
           console.log("Could not update bid status:", error.message);
         }
@@ -2655,6 +2670,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bidId } = req.params;
       const { userId } = req.query;
 
+      console.log(`Fetching bid status for bidId: ${bidId}, userId: ${userId}`);
+
       // Get the bid configuration
       const bidDetails = await storage.getBidById(parseInt(bidId));
       if (!bidDetails) {
@@ -2678,6 +2695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all retail bids for this configuration
       const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
 
+      // Get all payments related to this bid to check for payment completion
+      const bidPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+
       // Calculate booked seats from retail bids with status 'under_review' or 'paid'
       const bookedSeats = retailBids
         .filter(rb => rb.status === 'under_review' || rb.status === 'paid')
@@ -2693,29 +2713,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId) {
         // Check if THIS user has a retail bid for this bid_id
         const userRetailBid = retailBids.find(rb => rb.userId === parseInt(userId as string));
-
-        if (userRetailBid) {
-          hasUserPaid = userRetailBid.status === 'under_review' || userRetailBid.status === 'paid';
-          
-          if (hasUserPaid) {
-            // User has paid - show "Under Review" for this user
-            displayStatus = "Under Review";
-            statusForUser = 'under_review';
-          } else if (userRetailBid.status === 'submitted') {
-            // User has submitted but not paid - still show as open if seats available
-            if (availableSeats > 0) {
-              displayStatus = "Open";
-              statusForUser = 'open';
-            } else {
-              displayStatus = "Closed";
-              statusForUser = 'closed';
-            }
+        
+        // Check if this user has made a payment for this bid
+        const userPayment = bidPayments.find(payment => {
+          // Check payment notes or other linking mechanisms
+          try {
+            const paymentNotes = payment.notes ? JSON.parse(payment.notes) : {};
+            return paymentNotes.userId === parseInt(userId as string) || 
+                   payment.userId === parseInt(userId as string);
+          } catch (e) {
+            return payment.userId === parseInt(userId as string);
           }
-        } else {
-          // User hasn't submitted a bid yet
+        });
+
+        // Check bid notes for payment completion by this user
+        let userPaidFromBidNotes = false;
+        try {
+          const paymentInfo = configData.paymentInfo;
+          if (paymentInfo && paymentInfo.userId === parseInt(userId as string)) {
+            userPaidFromBidNotes = paymentInfo.paymentCompleted === true;
+          }
+        } catch (e) {
+          userPaidFromBidNotes = false;
+        }
+
+        hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) ||
+                      userPayment !== undefined ||
+                      userPaidFromBidNotes;
+
+        if (hasUserPaid) {
+          // User has paid - show "Under Review" for this user
+          displayStatus = "Under Review";
+          statusForUser = 'under_review';
+          console.log(`User ${userId} has paid for bid ${bidId}, status: Under Review`);
+        } else if (userRetailBid && userRetailBid.status === 'submitted') {
+          // User has submitted but not paid - still show as open if seats available
           if (availableSeats > 0) {
             displayStatus = "Open";
             statusForUser = 'open';
+          } else {
+            displayStatus = "Closed";
+            statusForUser = 'closed';
+          }
+        } else {
+          // User hasn't submitted a bid yet or hasn't paid
+          if (availableSeats > 0) {
+            displayStatus = "Open";
+            statusForUser = 'open';
+            console.log(`User ${userId} has not paid for bid ${bidId}, status: Open (${availableSeats} seats available)`);
           } else {
             displayStatus = "Closed";
             statusForUser = 'closed';
@@ -2736,11 +2781,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentInfo = configData.paymentInfo;
       const adminPaymentCompleted = paymentInfo?.paymentCompleted === true;
       
-      if (adminPaymentCompleted) {
-        // Admin has completed payment for the entire bid
+      if (adminPaymentCompleted && !userId) {
+        // Admin has completed payment for the entire bid (only for general view)
         displayStatus = "Completed";
         statusForUser = 'completed';
       }
+
+      console.log(`Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser})`);
 
       res.json({
         success: true,
