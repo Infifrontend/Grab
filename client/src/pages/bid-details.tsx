@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   Row,
@@ -20,68 +20,215 @@ import {
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import { useQuery } from '@tanstack/react-query';
+
+// Helper functions (assuming these are defined elsewhere or need to be included if not globally available)
+const formatDateToDDMMMYYYY = (dateString) => {
+  return dayjs(dateString).format("DD MMM YYYY");
+};
+
+const formatCurrency = (amount) => {
+  return amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
 const { Title, Text } = Typography;
 
 export default function BidDetails() {
   const navigate = useNavigate();
-  // const [, params] = useRoute("/bid-details/:id");
   const params = useParams();
+  const bidId = params?.id; // Ensure bidId is correctly extracted
+
   const [passengers, setPassengers] = useState<any>(0);
   const [bidAmount, setBidAmount] = useState(0);
   const [originalBidAmount, setOriginalBidAmount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [bidData, setBidData] = useState<any>(null);
   const [error, setError] = useState(null);
   const [submittingBid, setSubmittingBid] = useState(false);
 
-  // Fetch bid details from database
-  useEffect(() => {
-    const fetchBidDetails = async () => {
-      if (!params?.id) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/bids/${params.id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch bid details");
-        }
-
-        const data = await response.json();
-
-        // Fetch dynamic status based on seat availability and user payment status
-        let seatAvailabilityData = null;
-        const userId = localStorage.getItem("userId");
-        
-        try {
-          const statusResponse = await fetch(`/api/bid-status/${params.id}?userId=${userId || ''}`);
-          if (statusResponse.ok) {
-            seatAvailabilityData = await statusResponse.json();
-            console.log(`Status for User ${userId}:`, seatAvailabilityData);
-          }
-        } catch (statusError) {
-          console.warn("Could not fetch seat availability data:", statusError);
-        }
-
-        // Set the fetched data with dynamic status
-        setBidData({
-          ...data,
-          seatAvailability: seatAvailabilityData
-        });
-        setPassengers(data.bid.passengerCount);
-        setBidAmount(parseFloat(data.bid.bidAmount));
-        setOriginalBidAmount(parseFloat(data.bid.bidAmount));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  // Fetch bid details from database using React Query
+  const { data: bidData, isLoading: isBidLoading, error: bidError, refetch: refetchBid } = useQuery({
+    queryKey: ["bid", bidId],
+    queryFn: async () => {
+      console.log(`Fetching bid details for ID: ${bidId}`);
+      const response = await fetch(`/api/bids/${bidId}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      console.log("Raw bid data received:", data);
+      return data;
+    },
+    enabled: !!bidId,
+    retry: 1,
+  });
+
+  // Fetch dynamic status for this user
+  const { data: bidStatus, isLoading: isBidStatusLoading, error: bidStatusError } = useQuery({
+    queryKey: ["bid-status", bidId],
+    queryFn: async () => {
+      const userId = localStorage.getItem("userId");
+      const response = await fetch(`/api/bid-status/${bidId}?userId=${userId || ''}`);
+      if (response.ok) {
+        return await response.json();
+      }
+      console.warn(`Failed to fetch bid status for bid ${bidId}, userId ${userId}`);
+      return null;
+    },
+    enabled: !!bidId,
+    refetchInterval: 30000, // Refetch every 30 seconds to keep status current
+  });
+
+  // Effect to set initial form values and handle bid data transformation
+  useEffect(() => {
+    if (bidData?.success && bidData.bid) {
+      setPassengers(bidData.bid.passengerCount);
+      setOriginalBidAmount(parseFloat(bidData.bid.bidAmount));
+      setBidAmount(parseFloat(bidData.bid.bidAmount));
+    }
+    if (bidError) {
+      setError(bidError.message || "Failed to load bid details");
+    }
+  }, [bidData, bidError]);
+
+  // Transform bid data for display, incorporating bidStatus
+  const transformedBidData = useMemo(() => {
+    if (!bidData?.success || !bidData.bid) {
+      console.log("No valid bid data to transform");
+      return null;
+    }
+
+    const bid = bidData.bid;
+    let configData = {};
+
+    try {
+      configData = bid.notes ? JSON.parse(bid.notes) : {};
+      console.log("Parsed configuration data:", configData);
+    } catch (e) {
+      console.warn("Could not parse bid notes:", e);
+      configData = {};
+    }
+
+    const origin = configData.origin || bid.flight?.origin || "Unknown";
+    const destination = configData.destination || bid.flight?.destination || "Unknown";
+
+    // Use dynamic status from bid status endpoint if available
+    let status = "Open";
+    let seatAvailabilityInfo = null;
+
+    if (bidStatus?.success) {
+      status = bidStatus.bidStatus || "Open";
+      seatAvailabilityInfo = {
+        totalSeatsAvailable: bidStatus.totalSeatsAvailable,
+        seatsRemaining: bidStatus.availableSeats,
+        isClosed: bidStatus.isClosed,
+        hasUserPaid: bidStatus.hasUserPaid,
+        userRetailBidStatus: bidStatus.userRetailBidStatus
+      };
+      console.log(`Using dynamic status: ${status}`, seatAvailabilityInfo);
+    } else {
+      // Fallback to static status determination if bidStatus fetch fails or is not successful
+      console.warn("Could not fetch dynamic bid status, falling back to static status.");
+      let isPaymentCompleted = false;
+      try {
+        const paymentInfo = configData.paymentInfo;
+        isPaymentCompleted = paymentInfo?.paymentCompleted === true;
+        const paymentStatus = paymentInfo?.paymentStatus;
+
+        if (isPaymentCompleted) {
+          if (paymentStatus === "Payment Completed") {
+            status = "Under Review";
+          } else if (paymentStatus === "Accepted for Booking") {
+            status = "Accepted";
+          } else if (paymentStatus === "Open") {
+            status = "Open";
+          } else {
+            status = "Under Review";
+          }
+        } else {
+          switch (bid.bidStatus?.toLowerCase()) {
+            case 'active':
+              status = "Open";
+              break;
+            case 'accepted':
+            case 'approved':
+              status = "Approved";
+              break;
+            case 'rejected':
+              status = "Rejected";
+              break;
+            case 'completed':
+              status = "Completed";
+              break;
+            case 'expired':
+              status = "Expired";
+              break;
+            default:
+              status = "Open";
+          }
+        }
+      } catch (e) {
+        console.warn("Error determining bid status:", e);
+        status = "Open";
+      }
+    }
+
+    console.log(`Final status for bid ${bid.id}:`, status);
+
+    // Create comprehensive bid data
+    const transformedData = {
+      id: bid.id,
+      title: configData.title || `Bid ${bid.id}`,
+      route: `${origin} → ${destination}`,
+      origin: origin,
+      destination: destination,
+      travelDate: configData.travelDate ? formatDateToDDMMMYYYY(configData.travelDate) : "N/A",
+      departureTime: configData.departureTimeRange || "Flexible",
+      bidAmount: `₹${formatCurrency(parseFloat(bid.bidAmount))}`,
+      totalPassengers: bid.passengerCount || configData.minSeatsPerBid || 1,
+      status: status,
+      seatAvailability: seatAvailabilityInfo,
+      isPaymentCompleted: seatAvailabilityInfo?.hasUserPaid || false,
+
+      // Flight & Booking Details
+      flightType: configData.flightType || "Domestic",
+      fareType: configData.fareType || "Economy",
+      baggageAllowance: `${configData.baggageAllowance || 20} kg`,
+      cancellationTerms: configData.cancellationTerms || "Standard",
+      mealIncluded: configData.mealIncluded || false,
+
+      // Bid Configuration Details
+      totalSeatsAvailable: configData.totalSeatsAvailable || bid.totalSeatsAvailable || 50,
+      minSeatsPerBid: configData.minSeatsPerBid || bid.minSeatsPerBid || 1,
+      maxSeatsPerBid: configData.maxSeatsPerBid || bid.maxSeatsPerBid || 10,
+      maxSeatsPerUser: configData.maxSeatsPerUser || 5,
+
+      // Timeline Information
+      bidStartTime: configData.bidStartTime ? formatDateToDDMMMYYYY(configData.bidStartTime) : "Active",
+      bidEndTime: configData.bidEndTime ? formatDateToDDMMMYYYY(configData.bidEndTime) : formatDateToDDMMMYYYY(bid.validUntil),
+
+      // Settings & Rules
+      autoAwardTopBidder: configData.autoAwardTopBidder || false,
+      manualReviewOption: configData.manualReviewOption || false,
+      autoRefundNonWinners: configData.autoRefundNonWinners || false,
+
+      // Additional Information
+      otherNotes: configData.otherNotes || "",
+      createdAt: bid.createdAt || new Date().toISOString(),
+
+      // Flight Information (if available)
+      flight: bidData.flight || null,
+
+      // Raw data for debugging
+      rawBidData: bid,
+      configData: configData,
     };
 
-    fetchBidDetails();
-  }, [params?.id]);
+    console.log("Transformed bid data:", transformedData);
+    return transformedData;
+  }, [bidData, bidStatus]); // Re-calculate when bidData or bidStatus changes
 
   // Show loading state
-  if (loading) {
+  if (isBidLoading || isBidStatusLoading) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
         <Spin size="large" />
@@ -90,12 +237,12 @@ export default function BidDetails() {
   }
 
   // Show error state
-  if (error || !bidData) {
+  if (error || bidError || bidStatusError || !transformedBidData) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
           message="Error"
-          description={error || "Bid not found"}
+          description={error?.message || bidError?.message || bidStatusError?.message || "Bid details could not be loaded."}
           type="error"
           showIcon
         />
@@ -110,16 +257,22 @@ export default function BidDetails() {
 
   const getStatusDisplay = (status, seatAvailabilityData) => {
     // Use dynamic status from seat availability if available
-    if (seatAvailabilityData && seatAvailabilityData.bidStatus) {
-      return seatAvailabilityData.bidStatus;
+    if (seatAvailabilityData && seatAvailabilityData.userRetailBidStatus) {
+      return seatAvailabilityData.userRetailBidStatus;
+    }
+    if (seatAvailabilityData && seatAvailabilityData.isClosed && !seatAvailabilityData.hasUserPaid) {
+        return "Closed";
+    }
+    if (seatAvailabilityData && seatAvailabilityData.hasUserPaid && !seatAvailabilityData.isClosed) {
+        return "Under Review";
     }
 
-    // Fallback to original status mapping
+
+    // Fallback to original status mapping if dynamic status is not applicable
     switch (status) {
       case "active":
         return "Open";
       case "accepted":
-        return "Accepted";
       case "approved":
         return "Accepted";
       case "rejected":
@@ -127,7 +280,7 @@ export default function BidDetails() {
       case "expired":
         return "Expired";
       case "completed":
-        return "Under Review";
+        return "Under Review"; // Mapping 'completed' to 'Under Review' as per logic
       default:
         return "Draft";
     }
@@ -136,74 +289,11 @@ export default function BidDetails() {
   const getTimeLeft = (validUntil) => {
     const now = dayjs();
     const expiry = dayjs(validUntil);
-    const diff = expiry.diff(now, "hour");
+    const diffInHours = expiry.diff(now, "hour");
 
-    if (diff <= 0) return "Expired";
-    if (diff < 24) return `${diff} hours`;
-    return `${Math.ceil(diff / 24)} days`;
-  };
-
-  // Parse bid configuration data if available
-  let configData = {};
-  try {
-    configData = bidData.bid.notes ? JSON.parse(bidData.bid.notes) : {};
-  } catch (e) {
-    console.warn("Could not parse bid notes:", e);
-  }
-
-  // Transform the fetched data from database records
-  const transformedBidData = {
-    bidId: bidData.bid.id.toString(),
-    status: getStatusDisplay(bidData.bid.bidStatus, bidData.seatAvailability),
-    timeLeft: getTimeLeft(bidData.bid.validUntil),
-    seatAvailability: bidData.seatAvailability,
-
-    // Group Information from database
-    groupName:
-      configData.title ||
-      configData.bidTitle ||
-      bidData.bid.notes ||
-      "Group Travel",
-    groupCategory: configData.flightType || "Domestic",
-
-    // Travel Details from database
-    origin: bidData.flight?.origin || configData.origin || "Unknown",
-    destination:
-      bidData.flight?.destination || configData.destination || "Unknown",
-    departureDate: bidData.flight?.departureTime
-      ? formatDate(bidData.flight.departureTime)
-      : configData.travelDate
-      ? formatDate(configData.travelDate)
-      : "Unknown",
-    returnDate: bidData.flight?.arrivalTime
-      ? formatDate(bidData.flight.arrivalTime)
-      : "N/A",
-    passengers: passengers,
-    cabinClass: configData.fareType || bidData.flight?.cabin || "Economy",
-
-    // Pricing Information
-    bidAmount: bidAmount,
-
-    // Contact Information from logged-in user
-    contactName: localStorage.getItem("userName") || "Not provided",
-    email: localStorage.getItem("userEmail") || "Not provided",
-    phone: "+1 (555) 123-4567", // Keep as placeholder since phone isn't stored
-
-    // Additional Information from database
-    specialRequests:
-      configData.otherNotes || bidData.bid.notes || "No special requests",
-    baggageAllowance: configData.baggageAllowance || "20 kg",
-    mealIncluded: configData.mealIncluded ? "Yes" : "No",
-    cancellationTerms:
-      configData.cancellationTerms || "Standard cancellation policy",
-
-    // Calculated fields
-    route: `${bidData.flight?.origin || configData.origin || "Unknown"} → ${
-      bidData.flight?.destination || configData.destination || "Unknown"
-    }`,
-    totalBid: passengers * bidAmount,
-    depositRequired: passengers * bidAmount * 0.1,
-    refundPolicy: "Full refund if bid not accepted",
+    if (diffInHours <= 0) return "Expired";
+    if (diffInHours < 24) return `${diffInHours} hours`;
+    return `${Math.ceil(diffInHours / 24)} days`;
   };
 
   const handleBack = () => {
@@ -211,50 +301,47 @@ export default function BidDetails() {
   };
 
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow any input during typing
-    setBidAmount(e.target.value === "" ? 0 : parseInt(e.target.value) || 0);
+    const value = e.target.value;
+    setBidAmount(value === "" ? 0 : parseFloat(value) || 0);
   };
 
   const handleBidAmountBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const newAmount = parseInt(e.target.value) || 0;
-    // Apply validation on blur
+    const newAmount = parseFloat(e.target.value) || 0;
     if (newAmount < originalBidAmount) {
       setBidAmount(originalBidAmount);
+      message.warning(`Bid amount cannot be less than the original bid amount ($${originalBidAmount}).`);
     } else {
       setBidAmount(newAmount);
     }
   };
 
   const handlePassengersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPassengers = e.target.value ? parseInt(e.target.value) : null;
-    if (newPassengers === null || newPassengers > 0) {
+    const value = e.target.value;
+    const newPassengers = value === "" ? null : parseInt(value);
+    if (newPassengers === null || newPassengers >= (bidData?.bid?.passengerCount || 0)) {
       setPassengers(newPassengers);
     }
   };
 
   const handleBlurPassengerChange = (e: React.FocusEvent<HTMLInputElement>) => {
     const newPaxCount = parseInt(e.target.value) || 0;
-
-    if (newPaxCount < bidData?.bid?.passengerCount) {
+    if (newPaxCount < (bidData?.bid?.passengerCount || 0)) {
       setPassengers(bidData?.bid?.passengerCount);
+      message.warning(`Passenger count cannot be less than the original passenger count (${bidData?.bid?.passengerCount}).`);
     } else {
       setPassengers(newPaxCount);
     }
   };
 
-  
-
   const handleContinueToPayment = () => {
-    // Store bid participation data for payment
     const bidParticipationData = {
+      bidId: bidId,
       totalBid: bidAmount * passengers,
       bidAmount: bidAmount,
       passengerCount: passengers,
-      configData: {
-        title: transformedBidData.title,
-        route: transformedBidData.route,
-        travelDate: transformedBidData.travelDate,
-      },
+      groupName: transformedBidData.title,
+      route: transformedBidData.route,
+      travelDate: transformedBidData.travelDate,
     };
 
     console.log("Storing bid participation data:", bidParticipationData);
@@ -262,8 +349,12 @@ export default function BidDetails() {
       "bidParticipationData",
       JSON.stringify(bidParticipationData)
     );
-    navigate(`/payment-details/${params.id}`);
+    navigate(`/payment-details/${bidId}`);
   };
+
+  const currentStatus = getStatusDisplay(transformedBidData.status, transformedBidData.seatAvailability);
+  const isBidClosed = transformedBidData.seatAvailability?.isClosed || false;
+  const hasUserPaid = transformedBidData.seatAvailability?.hasUserPaid || false;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
@@ -289,10 +380,10 @@ export default function BidDetails() {
               </Title>
               <div className="flex items-center gap-6 text-sm">
                 <span className="text-gray-600">
-                  <strong>Bid ID:</strong> {transformedBidData.bidId}
+                  <strong>Bid ID:</strong> {transformedBidData.id}
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  {transformedBidData.status}
+                  {currentStatus}
                 </span>
                 <span className="text-gray-600">
                   <strong>Time left:</strong> {transformedBidData.timeLeft}
@@ -340,7 +431,7 @@ export default function BidDetails() {
               )}
             </span>
           }
-          type={transformedBidData.seatAvailability.isClosed ? "warning" : 
+          type={transformedBidData.seatAvailability.isClosed ? "warning" :
                 transformedBidData.seatAvailability.hasUserPaid ? "info" : "success"}
           icon={<InfoCircleOutlined />}
           showIcon
@@ -392,7 +483,7 @@ export default function BidDetails() {
                     Group Name / Bid Title
                   </Text>
                   <Input
-                    value={transformedBidData.groupName}
+                    value={transformedBidData.title}
                     placeholder="Group name not specified"
                     size="large"
                     className="rounded-md"
@@ -410,7 +501,7 @@ export default function BidDetails() {
                     Flight Type
                   </Text>
                   <Input
-                    value={transformedBidData.groupCategory}
+                    value={transformedBidData.flightType}
                     placeholder="Flight type not specified"
                     size="large"
                     className="rounded-md"
@@ -479,7 +570,7 @@ export default function BidDetails() {
                     Cabin Class
                   </Text>
                   <Input
-                    value={transformedBidData.cabinClass}
+                    value={transformedBidData.fareType}
                     placeholder="Cabin class"
                     size="large"
                     className="rounded-md"
@@ -500,7 +591,7 @@ export default function BidDetails() {
                     Travel Date
                   </Text>
                   <Input
-                    value={transformedBidData.departureDate}
+                    value={transformedBidData.travelDate}
                     placeholder="Travel date"
                     size="large"
                     className="rounded-md"
@@ -536,7 +627,7 @@ export default function BidDetails() {
                     Meal Included
                   </Text>
                   <Input
-                    value={transformedBidData.mealIncluded}
+                    value={transformedBidData.mealIncluded ? "Yes" : "No"}
                     placeholder="Meal information"
                     size="large"
                     className="rounded-md"
@@ -595,11 +686,11 @@ export default function BidDetails() {
                     onBlur={handleBidAmountBlur}
                     placeholder="850"
                     size="large"
-                    prefix={<span className="text-gray-400">$</span>}
+                    prefix={<span className="text-gray-400">₹</span>}
                     className="rounded-md"
                   />
                   <Text className="text-gray-500 text-sm mt-1">
-                    Minimum bid amount: ${originalBidAmount} (can only increase)
+                    Minimum bid amount: ₹{originalBidAmount} (can only increase)
                   </Text>
                 </div>
               </Col>
@@ -644,7 +735,7 @@ export default function BidDetails() {
                     Contact Name
                   </Text>
                   <Input
-                    value={transformedBidData.contactName}
+                    value={localStorage.getItem("userName") || "Not provided"}
                     placeholder="Name not provided"
                     size="large"
                     className="rounded-md"
@@ -662,7 +753,7 @@ export default function BidDetails() {
                     Email
                   </Text>
                   <Input
-                    value={transformedBidData.email}
+                    value={localStorage.getItem("userEmail") || "Not provided"}
                     placeholder="Email not provided"
                     size="large"
                     className="rounded-md"
@@ -680,7 +771,7 @@ export default function BidDetails() {
                     Phone
                   </Text>
                   <Input
-                    value={transformedBidData.phone}
+                    value={"+1 (555) 123-4567"} // Placeholder as phone isn't stored
                     placeholder="Phone not provided"
                     size="large"
                     className="rounded-md"
@@ -698,7 +789,7 @@ export default function BidDetails() {
                     Bid Status
                   </Text>
                   <Input
-                    value={transformedBidData.status}
+                    value={currentStatus}
                     placeholder="Status"
                     size="large"
                     className="rounded-md"
@@ -747,7 +838,7 @@ export default function BidDetails() {
                   Bid per person
                 </Text>
                 <Text className="text-blue-600 font-bold text-lg">
-                  ${bidAmount}
+                  {transformedBidData.bidAmount}
                 </Text>
               </div>
             </Col>
@@ -757,7 +848,7 @@ export default function BidDetails() {
                   Total Bid
                 </Text>
                 <Text className="text-blue-600 font-bold text-2xl">
-                  ${(passengers * bidAmount).toLocaleString()}
+                  ₹{formatCurrency(passengers * bidAmount)}
                 </Text>
               </div>
             </Col>
@@ -771,7 +862,7 @@ export default function BidDetails() {
                 Deposit Required (10%)
               </Text>
               <Text className="text-orange-600 font-bold text-lg">
-                ${(passengers * bidAmount * 0.1).toLocaleString()}
+                ₹{formatCurrency(passengers * bidAmount * 0.1)}
               </Text>
             </div>
           </Col>
@@ -779,7 +870,7 @@ export default function BidDetails() {
             <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
               <Text className="text-gray-700 font-medium">Refund Policy</Text>
               <Text className="text-green-600 font-semibold">
-                {transformedBidData.refundPolicy}
+                {transformedBidData.cancellationTerms}
               </Text>
             </div>
           </Col>
@@ -793,22 +884,19 @@ export default function BidDetails() {
           >
             Cancel
           </Button>
-          
-          {transformedBidData.status === "Open" && !transformedBidData.seatAvailability?.hasUserPaid && (
+
+          {!isBidClosed && !hasUserPaid && currentStatus === "Open" && (
               <Button
                 type="primary"
                 size="large"
                 onClick={handleContinueToPayment}
                 className="bg-blue-600 hover:bg-blue-700 rounded-md px-8 font-semibold"
-                disabled={transformedBidData.seatAvailability?.isClosed}
               >
-                {transformedBidData.seatAvailability?.isClosed 
-                  ? "Bid Closed - No Seats Available" 
-                  : "Continue to Payment"}
+                Continue to Payment
               </Button>
             )}
 
-          {transformedBidData.status === "Under Review" && transformedBidData.seatAvailability?.hasUserPaid && (
+          {hasUserPaid && !isBidClosed && currentStatus === "Under Review" && (
             <div className="flex justify-end">
               <Button
                 size="large"
@@ -820,7 +908,7 @@ export default function BidDetails() {
             </div>
           )}
 
-          {transformedBidData.status === "Closed" && (
+          {isBidClosed && (
             <div className="flex justify-end">
               <Button
                 size="large"
@@ -832,7 +920,8 @@ export default function BidDetails() {
             </div>
           )}
 
-          {transformedBidData.status === "completed" && (
+          {/* This case might need refinement based on exact 'completed' status meaning */}
+          {currentStatus === "Completed" && (
             <div className="flex justify-end">
               <Button
                 size="large"

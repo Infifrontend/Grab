@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  users as usersTable,
+  usersTable,
   deals,
   packages,
   bookings,
@@ -24,7 +24,6 @@ import {
   type InsertBid,
   type InsertPayment,
   type InsertRefund,
-  type InsertRetailBid,
   type User,
   type Deal,
   type Package,
@@ -481,7 +480,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Passengers
-  async getPassengersByBooking(bookingId: number): Promise<Passenger[]> {
+  async getPassengersByBooking(bookingId: number): Promise<Passenger[]>{
     return await db.select().from(passengers).where(eq(passengers.bookingId, bookingId));
   }
 
@@ -1365,7 +1364,7 @@ export class DatabaseStorage implements IStorage {
         .from(retailBids)
         .where(eq(retailBids.id, retailBidId))
         .limit(1);
-      
+
       return retailBid || undefined;
     } catch (error) {
       console.error("Error getting retail bid by ID:", error);

@@ -29,6 +29,14 @@ import { useNavigate } from "react-router-dom";
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
+// Helper function to format currency
+const formatCurrency = (amount) => {
+  return parseFloat(amount).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
 export default function Bids() {
   const [activeTab, setActiveTab] = useState("management");
   const navigate = useNavigate();
@@ -112,71 +120,64 @@ export default function Bids() {
 
           // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
+          let seatAvailability = null;
           const userId = localStorage.getItem("userId");
-          
+
           try {
             const statusResponse = await fetch(`/api/bid-status/${bid.id}?userId=${userId || ''}`);
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
-              console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus);
+              seatAvailability = {
+                totalSeatsAvailable: statusData.totalSeatsAvailable,
+                seatsRemaining: statusData.availableSeats,
+                isClosed: statusData.isClosed,
+                hasUserPaid: statusData.hasUserPaid,
+                userRetailBidStatus: statusData.userRetailBidStatus
+              };
+              console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus, seatAvailability);
             }
           } catch (error) {
             console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
-            // Fallback to enhanced static status mapping with payment completion logic
+            // Fallback to enhanced static status mapping
             try {
               const notes = bid.notes ? JSON.parse(bid.notes) : {};
               const paymentStatus = notes.paymentInfo?.paymentStatus;
-              const paymentCompleted = notes.paymentInfo?.paymentCompleted;
+              const paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
 
-              if (paymentCompleted === true) {
-                // Payment completed scenarios
+              if (paymentCompleted) {
                 if (paymentStatus === "Payment Completed") {
                   dynamicStatus = "Under Review";
                 } else if (paymentStatus === "Accepted for Booking") {
                   dynamicStatus = "Accepted";
-                } else if (paymentStatus === "Open") {
-                  dynamicStatus = "Open";
                 } else {
                   dynamicStatus = "Under Review";
                 }
               } else {
-                // Original fallback logic for non-payment scenarios
-                dynamicStatus = 
-                  bid.bidStatus === "active"
-                    ? "Open"
-                    : bid.bidStatus === "accepted"
-                    ? "Accepted"
-                    : bid.bidStatus === "approved"
-                    ? "Accepted"
-                    : bid.bidStatus === "rejected"
-                    ? "Declined"
-                    : bid.bidStatus === "expired"
-                    ? "Expired"
-                    : bid.bidStatus === "completed"
-                    ? "Under Review"
-                    : bid.bidStatus === "pending"
-                    ? "Under Review"
-                    : "Under Review";
+                switch (bid.bidStatus?.toLowerCase()) {
+                  case 'active':
+                    dynamicStatus = "Open";
+                    break;
+                  case 'accepted':
+                  case 'approved':
+                    dynamicStatus = "Approved";
+                    break;
+                  case 'rejected':
+                    dynamicStatus = "Rejected";
+                    break;
+                  case 'completed':
+                    dynamicStatus = "Completed";
+                    break;
+                  case 'expired':
+                    dynamicStatus = "Expired";
+                    break;
+                  default:
+                    dynamicStatus = "Open";
+                }
               }
-            } catch (noteError) {
-              // If note parsing fails, use original static mapping
-              dynamicStatus = 
-                bid.bidStatus === "active"
-                  ? "Open"
-                  : bid.bidStatus === "accepted"
-                  ? "Accepted"
-                  : bid.bidStatus === "approved"
-                  ? "Accepted"
-                  : bid.bidStatus === "rejected"
-                  ? "Declined"
-                  : bid.bidStatus === "expired"
-                  ? "Expired"
-                  : bid.bidStatus === "completed"
-                  ? "Under Review"
-                  : bid.bidStatus === "pending"
-                  ? "Under Review"
-                  : "Under Review";
+            } catch (parseError) {
+              console.warn(`Could not parse notes for bid ${bid.id}:`, parseError);
+              dynamicStatus = "Open";
             }
           }
 
@@ -185,13 +186,14 @@ export default function Bids() {
             route: flightRoute,
             passengers: bid.passengerCount,
             travelDate: travelDate,
-            bidAmount: `$${bid.bidAmount}`,
+            bidAmount: `$${formatCurrency(parseFloat(bid.bidAmount))}`,
             deposit: `$${(
               parseFloat(bid.bidAmount.toString()) *
               bid.passengerCount *
               0.1
             ).toFixed(2)}`,
             status: dynamicStatus,
+            seatAvailability: seatAvailability,
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
@@ -450,6 +452,12 @@ export default function Bids() {
         return "orange";
       case "Converted":
         return "blue";
+      case "Approved":
+        return "green";
+      case "Rejected":
+        return "red";
+      case "Completed":
+        return "blue";
       default:
         return "default";
     }
@@ -686,7 +694,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-purple-600">
-                ${statistics.depositsPaid.toFixed(2)}
+                ${formatCurrency(statistics.depositsPaid)}
               </Title>
             )}
           </Card>
@@ -701,7 +709,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-orange-600">
-                ${statistics.refundsReceived.toFixed(2)}
+                ${formatCurrency(statistics.refundsReceived)}
               </Title>
             )}
           </Card>
@@ -975,9 +983,7 @@ export default function Bids() {
                 ) : (
                   <Title level={3} className="!mb-0 text-green-600">
                     ₹
-                    {paymentSummary.totalDeposits.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
+                    {formatCurrency(paymentSummary.totalDeposits)}
                   </Title>
                 )}
               </Card>
@@ -992,9 +998,7 @@ export default function Bids() {
                 ) : (
                   <Title level={3} className="!mb-0 text-purple-600">
                     ₹
-                    {paymentSummary.totalRefunds.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
+                    {formatCurrency(paymentSummary.totalRefunds)}
                   </Title>
                 )}
               </Card>
@@ -1009,9 +1013,7 @@ export default function Bids() {
                 ) : (
                   <Title level={3} className="!mb-0 text-blue-600">
                     ₹
-                    {paymentSummary.netAmount.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
+                    {formatCurrency(paymentSummary.netAmount)}
                   </Title>
                 )}
               </Card>
@@ -1026,9 +1028,7 @@ export default function Bids() {
                 ) : (
                   <Title level={3} className="!mb-0 text-orange-600">
                     ₹
-                    {paymentSummary.pendingPayments.toLocaleString("en-IN", {
-                      minimimFractionDigits: 2,
-                    })}
+                    {formatCurrency(paymentSummary.pendingPayments)}
                   </Title>
                 )}
               </Card>
