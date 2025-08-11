@@ -133,7 +133,8 @@ export default function Bids() {
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
-                userRetailBidStatus: statusData.userRetailBidStatus
+                userRetailBidStatus: statusData.userRetailBidStatus,
+                paymentStatus: statusData.paymentStatus // Added for user-specific payment status
               };
               console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus, seatAvailability);
             }

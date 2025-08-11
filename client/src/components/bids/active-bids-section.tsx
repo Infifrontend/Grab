@@ -105,7 +105,25 @@ export default function ActiveBidsSection() {
       case "pending":
         return { status: "Under Review", color: "blue" };
       case "active":
-        // For active bids, check payment status
+        // For active bids, use dynamic status from seatAvailability if available
+        if (bid.seatAvailability?.paymentStatus) {
+          switch (bid.seatAvailability.paymentStatus) {
+            case 'under_review':
+              return { status: "Under Review", color: "blue" };
+            case 'approved':
+              return { status: "Accepted", color: "green" };
+            case 'rejected':
+              return { status: "Rejected", color: "red" };
+            case 'closed':
+              return { status: "Closed", color: "gray" };
+            case 'completed':
+              return { status: "Completed", color: "green" };
+            default:
+              return { status: "Open", color: "orange" };
+          }
+        }
+        
+        // Fallback to checking payment status in notes
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
           const paymentStatus = notes.paymentInfo?.paymentStatus;
