@@ -168,9 +168,6 @@ export default function BidDetails() {
             status = "Open"; // Default to Open to allow payment
         }
       }
-    } catch (e) {
-      console.warn("Error determining bid status:", e);
-      status = "Open";
     }
 
     console.log(`Final status for bid ${bid.id}:`, status);
