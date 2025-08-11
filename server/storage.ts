@@ -138,6 +138,7 @@ export interface IStorage {
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
+  getRetailBidById(retailBidId: number): Promise<any>; // Added this line
 }
 
 // DatabaseStorage is the only storage implementation now

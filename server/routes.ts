@@ -2452,20 +2452,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         configData = {};
       }
 
-      // Check seat availability
+      // Get seat limits
       const totalSeatsAvailable = originalBid.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const maxSeatsPerUser = originalBid.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
       const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
 
-      // Calculate total seats already booked by approved/paid bids
-      const totalSeatsBooked = existingRetailBids
-        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+      // Calculate available seats = total_seats_available minus sum of passenger_count from retail_bids with status 'under_review' or 'paid'
+      const bookedSeats = existingRetailBids
+        .filter(rb => rb.status === 'under_review' || rb.status === 'paid')
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
-      // Check if there are enough seats available
-      if (totalSeatsBooked + parseInt(passengerCount) > totalSeatsAvailable) {
+      const availableSeats = totalSeatsAvailable - bookedSeats;
+
+      // Validate passenger count is <= available seats
+      if (parseInt(passengerCount) > availableSeats) {
         return res.status(400).json({
           success: false,
-          message: `Not enough seats available. ${totalSeatsAvailable - totalSeatsBooked} seats remaining.`
+          message: `Not enough seats available. ${availableSeats} seats remaining.`
+        });
+      }
+
+      // Validate passenger count is <= max_seats_per_user
+      if (parseInt(passengerCount) > maxSeatsPerUser) {
+        return res.status(400).json({
+          success: false,
+          message: `Maximum ${maxSeatsPerUser} seats allowed per user.`
         });
       }
 
@@ -2481,27 +2492,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Bid submission for bid:", bidId, "passenger count:", passengerCount);
 
-      // Create retail bid submission
+      // Create retail bid submission with status 'submitted'
       const retailBidData = {
         bidId: parseInt(bidId),
         userId: parseInt(userId),
         flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
-        status: "paid" // Set as paid to indicate user has completed payment
+        status: "submitted" // Set as submitted initially
       };
 
       const newRetailBid = await storage.createRetailBid(retailBidData);
-
-      // Check if bid should be closed after this submission (when approved/paid)
-      const newTotalSeatsBooked = totalSeatsBooked + parseInt(passengerCount);
-      const shouldCloseBid = newTotalSeatsBooked >= totalSeatsAvailable;
 
       // Create notification
       await createNotification(
         'retail_bid_submitted',
         'New Retail Bid Submitted',
-        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${totalSeatsAvailable - newTotalSeatsBooked} seats remaining.`,
+        `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${availableSeats - parseInt(passengerCount)} seats remaining.`,
         'medium',
         {
           retailBidId: newRetailBid.id,
@@ -2509,7 +2516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: parseInt(userId),
           amount: submittedAmount,
           passengerCount: parseInt(passengerCount),
-          seatsRemaining: totalSeatsAvailable - newTotalSeatsBooked
+          seatsRemaining: availableSeats - parseInt(passengerCount)
         }
       );
 
@@ -2517,7 +2524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message: "Retail bid submitted successfully",
         retailBid: newRetailBid,
-        seatsRemaining: totalSeatsAvailable - totalSeatsBooked,
+        availableSeats: availableSeats - parseInt(passengerCount),
         totalSeatsAvailable: totalSeatsAvailable
       });
 
@@ -2628,6 +2635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log("Error checking user payment status:", error.message);
           }
         }
+
       }
 
       // Determine display status based on user-specific logic
