@@ -1913,10 +1913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Add payment information to bid notes with user-specific tracking
           const userPayments = existingNotes.userPayments || [];
-          
-          // Check if this user already has a payment record and update it, or add new one
-          const existingUserPaymentIndex = userPayments.findIndex(up => up.userId === userId);
-          const userPaymentData = {
+          userPayments.push({
             paymentId: payment.id,
             paymentReference: paymentReference,
             paymentStatus: paymentStatus || "completed",
@@ -1925,26 +1922,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             paymentMethod: paymentMethod,
             paymentCompleted: true,
             userId: userId
-          };
-
-          if (existingUserPaymentIndex >= 0) {
-            // Update existing user payment record
-            userPayments[existingUserPaymentIndex] = userPaymentData;
-          } else {
-            // Add new user payment record
-            userPayments.push(userPaymentData);
-          }
+          });
 
           const updatedNotes = {
             ...existingNotes,
             userPayments: userPayments,
-            // Keep legacy paymentInfo for backwards compatibility, but only track latest payment metadata
+            // Keep legacy paymentInfo for backwards compatibility, but don't use it for global validation
             paymentInfo: {
               latestPaymentId: payment.id,
               latestPaymentReference: paymentReference,
               lastPaymentDate: new Date().toISOString(),
-              totalPaymentsReceived: userPayments.length,
-              // DO NOT set global paymentCompleted flag - this should only be user-specific
+              totalPaymentsReceived: userPayments.length
             }
           };
 
@@ -1955,7 +1943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             notes: JSON.stringify(updatedNotes),
             updatedAt: new Date()
           });
-          console.log(`Added user-specific payment tracking for user ${userId} on bid ${bidId} without changing global status. Total user payments: ${userPayments.length}`);
+          console.log(`Added user-specific payment tracking for user ${userId} on bid ${bidId} without changing global status`);
 
           // Mark the retail bid as 'under_review' for THIS user only
           const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
@@ -2749,15 +2737,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId) {
         const currentUserId = parseInt(userId as string);
         
-        // Check if THIS specific user has a retail bid for this bid_id
+        // Check if THIS user has a retail bid for this bid_id
         const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
         
-        // Check if THIS specific user has made a payment for this bid
+        // Check if this user has made a payment for this bid (check by userId in payments table)
         const userPayment = bidPayments.find(payment => {
           return payment.userId === currentUserId;
         });
 
-        // Check bid notes for payment completion by THIS specific user only
+        // Check bid notes for payment completion by this user (user-specific tracking)
         let userPaidFromBidNotes = false;
         try {
           const userPayments = configData.userPayments || [];
@@ -2767,24 +2755,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userPaidFromBidNotes = false;
         }
 
-        // Determine if THIS SPECIFIC user has paid (not any user)
+        // Determine if this specific user has paid
         hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) ||
                       userPayment !== undefined ||
                       userPaidFromBidNotes;
 
-        console.log(`Payment check for user ${currentUserId} on bid ${bidId}:`, {
-          userRetailBid: userRetailBid?.status,
-          userPaymentExists: !!userPayment,
-          userPaidFromBidNotes,
-          hasUserPaid
-        });
-
         if (hasUserPaid) {
-          // THIS user has paid - show their specific status
+          // User has paid - show their specific status
           if (userRetailBid?.status === 'approved') {
             displayStatus = "Approved";
             statusForUser = 'approved';
-            userPaymentStatus = 'completed';
+            userPaymentStatus = 'approved';
           } else if (userRetailBid?.status === 'rejected') {
             displayStatus = "Rejected";
             statusForUser = 'rejected';
@@ -2792,21 +2773,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             displayStatus = "Under Review";
             statusForUser = 'under_review';
-            userPaymentStatus = 'completed';
+            userPaymentStatus = 'under_review';
           }
-          console.log(`User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}, payment status: ${userPaymentStatus}`);
+          console.log(`User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}`);
         } else {
-          // THIS user hasn't paid - check if seats are available for booking
+          // User hasn't paid - check if seats are available for booking
           if (availableSeats > 0) {
             displayStatus = "Open";
             statusForUser = 'open';
             userPaymentStatus = 'open';
-            console.log(`User ${userId} has not paid for bid ${bidId}, showing: Open (${availableSeats} seats available), payment status: open`);
+            console.log(`User ${userId} has not paid for bid ${bidId}, showing: Open (${availableSeats} seats available)`);
           } else {
             displayStatus = "Closed";
             statusForUser = 'closed';
             userPaymentStatus = 'closed';
-            console.log(`User ${userId} - bid ${bidId} closed due to no seats available, payment status: closed`);
+            console.log(`User ${userId} - bid ${bidId} closed due to no seats available`);
           }
         }
       } else {
