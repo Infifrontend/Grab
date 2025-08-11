@@ -134,6 +134,11 @@ export default function BidDetails() {
         isPaymentCompleted = paymentInfo?.paymentCompleted === true;
         const paymentStatus = paymentInfo?.paymentStatus;
 
+        // Determine current status with enhanced logic
+        let status = "Open"; // Default status
+        const isPaymentCompleted = paymentInfo?.paymentCompleted === true;
+        const paymentStatus = paymentInfo?.paymentStatus;
+
         if (isPaymentCompleted) {
           if (paymentStatus === "Payment Completed") {
             status = "Under Review";
@@ -145,8 +150,10 @@ export default function BidDetails() {
             status = "Under Review";
           }
         } else {
+          // Check bid status and ensure active/open bids show as "Open"
           switch (bid.bidStatus?.toLowerCase()) {
             case 'active':
+            case 'open':
               status = "Open";
               break;
             case 'accepted':
@@ -157,13 +164,14 @@ export default function BidDetails() {
               status = "Rejected";
               break;
             case 'completed':
-              status = "Completed";
+              // Only show completed if payment is actually completed
+              status = isPaymentCompleted ? "Completed" : "Open";
               break;
             case 'expired':
               status = "Expired";
               break;
             default:
-              status = "Open";
+              status = "Open"; // Default to Open to allow payment
           }
         }
       } catch (e) {
