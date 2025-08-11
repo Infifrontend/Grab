@@ -638,7 +638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get bid configurations (formatted for admin display)
   app.get("/api/bid-configurations-list", async (req, res) => {
     try {
-      const bids = await storage.getBids();
+      const bids = await storage.getBids(); // Get all bids, don't filter by userId here
 
       // Filter and format bid configurations (those with configType)
       const bidConfigurations = bids
