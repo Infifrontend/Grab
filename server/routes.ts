@@ -615,16 +615,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all bids
+  // Get all bids with user-specific payment status
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bids = await storage.getBids(
-        userId ? parseInt(userId as string) : undefined,
-      );
+      const loggedInUserId = userId ? parseInt(userId as string) : null;
+      
+      // Get all bids (not filtered by userId for retail view)
+      const bids = await storage.getBids();
+
+      // For each bid, determine user-specific payment status
+      const bidsWithUserStatus = await Promise.all(bids.map(async (bid) => {
+        let userSpecificPaymentStatus = "Open";
+        let hasUserPaid = false;
+
+        if (loggedInUserId) {
+          // Check if the current user has paid for this specific bid
+          hasUserPaid = await storage.hasUserPaidForBid(bid.id, loggedInUserId);
+          
+          if (hasUserPaid) {
+            // Check the retail bid status for this user
+            const retailBids = await storage.getRetailBidsByBid(bid.id);
+            const userRetailBid = retailBids.find(rb => rb.userId === loggedInUserId);
+            
+            if (userRetailBid) {
+              switch (userRetailBid.status) {
+                case 'under_review':
+                  userSpecificPaymentStatus = "Under Review";
+                  break;
+                case 'approved':
+                  userSpecificPaymentStatus = "Approved";
+                  break;
+                case 'rejected':
+                  userSpecificPaymentStatus = "Rejected";
+                  break;
+                case 'paid':
+                  userSpecificPaymentStatus = "Payment Completed";
+                  break;
+                default:
+                  userSpecificPaymentStatus = "Under Review";
+              }
+            } else {
+              userSpecificPaymentStatus = "Payment Completed";
+            }
+          } else {
+            // Check if bid is closed due to seat availability
+            const bidStatus = await storage.getBidStatus(bid.id, loggedInUserId);
+            if (bidStatus && bidStatus.isClosed) {
+              userSpecificPaymentStatus = "Closed";
+            }
+          }
+        }
+
+        return {
+          ...bid,
+          userSpecificPaymentStatus,
+          hasUserPaid
+        };
+      }));
 
       // Sort bids by creation date (newest first) for recent activity display
-      const sortedBids = bids.sort((a, b) => 
+      const sortedBids = bidsWithUserStatus.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
@@ -1770,8 +1821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the actual user ID from request or localStorage
-      const currentUserId = parseInt(requestUserId) || parseInt(localStorage?.getItem("userId")) || null;
+      // Get the actual user ID from request (localStorage is not available on server)
+      const currentUserId = parseInt(requestUserId) || null;
 
       // Check if THIS SPECIFIC USER has already paid for this bid (prevent duplicate payments by same user)
       if (bidId && currentUserId) {

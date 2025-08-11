@@ -204,7 +204,8 @@ export default function PaymentDetails() {
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
       // First, submit the retail bid
-      const userId = localStorage.getItem("userId");
+      // Get current logged-in user information for payment
+      const userId = parseInt(localStorage.getItem("userId") || "1");
       if (!userId) {
         throw new Error("Please log in to submit a bid");
       }
@@ -219,7 +220,7 @@ export default function PaymentDetails() {
         },
         body: JSON.stringify({
           bidId: parseInt(bidId),
-          userId: parseInt(userId),
+          userId: userId,
           submittedAmount: bidParticipationData.bidAmount,
           passengerCount: bidParticipationData.passengerCount,
         }),
@@ -241,7 +242,7 @@ export default function PaymentDetails() {
         },
         body: JSON.stringify({
           bidId: parseInt(bidId),
-          userId: parseInt(userId), // Current user ID from localStorage
+          userId: userId, // Current user ID from localStorage
           bookingId: null, // Set to null for bid payments to avoid foreign key issues
           amount: bidParticipationData.totalBid.toString(),
           currency: "USD",

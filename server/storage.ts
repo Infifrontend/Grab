@@ -137,7 +137,8 @@ export interface IStorage {
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
-  getRetailBidById(retailBidId: number): Promise<any>; // Added this line
+  getRetailBidById(retailBidId: number): Promise<any>;
+  getBidStatus(bidId: number, userId?: number): Promise<any>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1369,6 +1370,108 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting retail bid by ID:", error);
       throw error;
+    }
+  }
+
+  async hasUserPaidForBid(bidId: number, userId: number): Promise<boolean> {
+    try {
+      console.log(`Checking if user ${userId} has paid for bid ${bidId}`);
+      
+      // Check retail_bids table for this specific user and bid combination
+      const retailBids = await this.getRetailBidsByBid(bidId);
+      const userRetailBid = retailBids.find(rb => rb.userId === userId);
+      
+      if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) {
+        console.log(`User ${userId} has paid for bid ${bidId} via retail_bids table`);
+        return true;
+      }
+
+      // Also check payments table for user-specific payments
+      const bidPayments = await this.getPaymentsByBidId(bidId);
+      const userPayment = bidPayments.find(payment => payment.userId === userId);
+      
+      if (userPayment) {
+        console.log(`User ${userId} has paid for bid ${bidId} via payments table`);
+        return true;
+      }
+
+      // Check bid notes for user-specific payment tracking
+      const bidDetails = await this.getBidById(bidId);
+      if (bidDetails?.bid?.notes) {
+        try {
+          const notes = JSON.parse(bidDetails.bid.notes);
+          const userPayments = notes.userPayments || [];
+          const userPaymentRecord = userPayments.find(up => up.userId === userId);
+          
+          if (userPaymentRecord && userPaymentRecord.paymentCompleted === true) {
+            console.log(`User ${userId} has paid for bid ${bidId} via bid notes`);
+            return true;
+          }
+        } catch (e) {
+          console.warn("Could not parse bid notes for payment check:", e);
+        }
+      }
+
+      console.log(`User ${userId} has NOT paid for bid ${bidId}`);
+      return false;
+    } catch (error) {
+      console.error("Error checking if user has paid for bid:", error);
+      return false;
+    }
+  }
+
+  async getBidStatus(bidId: number, userId?: number): Promise<any> {
+    try {
+      // Get the bid configuration
+      const bidDetails = await this.getBidById(bidId);
+      if (!bidDetails) {
+        return null;
+      }
+
+      // Parse configuration data
+      let configData = {};
+      try {
+        configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+      } catch (e) {
+        configData = {};
+      }
+
+      // Get total seats available
+      const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+
+      // Get all retail bids for this configuration
+      const retailBids = await this.getRetailBidsByBid(bidId);
+
+      // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
+      const bookedSeats = retailBids
+        .filter(rb => rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved')
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+
+      const availableSeats = totalSeatsAvailable - bookedSeats;
+      const isClosed = availableSeats <= 0;
+
+      // Determine user-specific status if userId provided
+      let hasUserPaid = false;
+      let userRetailBidStatus = null;
+
+      if (userId) {
+        hasUserPaid = await this.hasUserPaidForBid(bidId, userId);
+        const userRetailBid = retailBids.find(rb => rb.userId === userId);
+        userRetailBidStatus = userRetailBid?.status || null;
+      }
+
+      return {
+        totalSeatsAvailable,
+        bookedSeats,
+        availableSeats,
+        isClosed,
+        hasUserPaid,
+        userRetailBidStatus,
+        originalBidStatus: bidDetails.bid.bidStatus
+      };
+    } catch (error) {
+      console.error("Error getting bid status:", error);
+      return null;
     }
   }
 
