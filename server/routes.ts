@@ -628,75 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      // If userId is provided, enhance each bid with user-specific payment status
-      if (userId) {
-        const currentUserId = parseInt(userId as string);
-        
-        const enhancedBids = await Promise.all(sortedBids.map(async (bid) => {
-          try {
-            // Get user-specific payment status from retail_bids table
-            const retailBids = await storage.getRetailBidsByBid(bid.id);
-            const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
-            
-            // Check if user has made payment for this bid
-            const bidPayments = await storage.getPaymentsByBidId(bid.id);
-            const userPayment = bidPayments.find(payment => payment.userId === currentUserId);
-            
-            // Check bid notes for user-specific payment completion
-            let userPaidFromBidNotes = false;
-            try {
-              const notes = bid.notes ? JSON.parse(bid.notes) : {};
-              const userPayments = notes.userPayments || [];
-              const userPaymentRecord = userPayments.find(up => up.userId === currentUserId);
-              userPaidFromBidNotes = userPaymentRecord && userPaymentRecord.paymentCompleted === true;
-            } catch (e) {
-              userPaidFromBidNotes = false;
-            }
-            
-            // Determine if this specific user has paid
-            const hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) ||
-                                userPayment !== undefined ||
-                                userPaidFromBidNotes;
-            
-            // Get seat availability info
-            const configData = bid.notes ? JSON.parse(bid.notes) : {};
-            const totalSeatsAvailable = bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-            const bookedSeats = retailBids
-              .filter(rb => rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved')
-              .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
-            const availableSeats = totalSeatsAvailable - bookedSeats;
-            
-            return {
-              ...bid,
-              userSpecificPaymentStatus: {
-                hasUserPaid: hasUserPaid,
-                userRetailBidStatus: userRetailBid?.status || null,
-                paymentStatus: hasUserPaid ? 'paid' : 'open',
-                availableSeats: availableSeats,
-                totalSeatsAvailable: totalSeatsAvailable,
-                isClosed: availableSeats <= 0 && !hasUserPaid
-              }
-            };
-          } catch (error) {
-            console.warn(`Could not enhance bid ${bid.id} with user payment status:`, error);
-            return {
-              ...bid,
-              userSpecificPaymentStatus: {
-                hasUserPaid: false,
-                userRetailBidStatus: null,
-                paymentStatus: 'open',
-                availableSeats: 100,
-                totalSeatsAvailable: 100,
-                isClosed: false
-              }
-            };
-          }
-        }));
-        
-        res.json(enhancedBids);
-      } else {
-        res.json(sortedBids);
-      }
+      res.json(sortedBids);
     } catch (error) {
       console.error("Error fetching bids:", error);
       res.status(500).json({ message: "Failed to fetch bids" });
