@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  usersTable,
+  users,
   deals,
   packages,
   bookings,
@@ -145,23 +145,23 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
-      .insert(usersTable)
+      .insert(users)
       .values(insertUser)
       .returning();
     return user;
@@ -169,9 +169,9 @@ export class DatabaseStorage implements IStorage {
 
   async checkRetailAccess(userId: number): Promise<boolean> {
     const result = await db
-      .select({ isRetailAllowed: usersTable.isRetailAllowed })
-      .from(usersTable)
-      .where(eq(usersTable.id, userId))
+      .select({ isRetailAllowed: users.isRetailAllowed })
+      .from(users)
+      .where(eq(users.id, userId))
       .limit(1);
 
     return result[0]?.isRetailAllowed || false;
@@ -180,9 +180,9 @@ export class DatabaseStorage implements IStorage {
   async updateUserRetailAccess(userId: number, isAllowed: boolean) {
     try {
       await db
-        .update(usersTable)
+        .update(users)
         .set({ isRetailAllowed: isAllowed })
-        .where(eq(usersTable.id, userId));
+        .where(eq(users.id, userId));
     } catch (error) {
       console.error("Error updating user retail access:", error);
       throw error;
@@ -192,7 +192,7 @@ export class DatabaseStorage implements IStorage {
   async getAllUsers(): Promise<User[]> {
     try {
       console.log("Executing getAllUsers query...");
-      const allUsers = await db.select().from(usersTable);
+      const allUsers = await db.select().from(users);
       console.log(`getAllUsers returned ${allUsers.length} users`);
       return allUsers;
     } catch (error) {
@@ -1071,7 +1071,7 @@ export class DatabaseStorage implements IStorage {
       const bid = await db
         .select()
         .from(bids)
-        .leftJoin(usersTable, eq(bids.userId, usersTable.id))
+        .leftJoin(users, eq(bids.userId, users.id))
         .leftJoin(flights, eq(bids.flightId, flights.id))
         .where(eq(bids.id, id))
         .limit(1);
@@ -1342,13 +1342,13 @@ export class DatabaseStorage implements IStorage {
           createdAt: retailBids.createdAt,
           updatedAt: retailBids.updatedAt,
           user: {
-            id: usersTable.id,
-            name: usersTable.name,
-            email: usersTable.email
+            id: users.id,
+            name: users.name,
+            email: users.email
           }
         })
         .from(retailBids)
-        .leftJoin(usersTable, eq(retailBids.userId, usersTable.id))
+        .leftJoin(users, eq(retailBids.userId, users.id))
         .where(eq(retailBids.bidId, bidId));
     } catch (error) {
       console.error("Error getting retail bids by bid:", error);
