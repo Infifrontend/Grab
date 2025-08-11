@@ -122,8 +122,7 @@ export default function BidDetails() {
         seatsRemaining: bidStatus.availableSeats,
         isClosed: bidStatus.isClosed,
         hasUserPaid: bidStatus.hasUserPaid,
-        userRetailBidStatus: bidStatus.userRetailBidStatus,
-        paymentStatus: bidStatus.paymentStatus // User-specific payment status
+        userRetailBidStatus: bidStatus.userRetailBidStatus
       };
       console.log(`Using dynamic status: ${status}`, seatAvailabilityInfo);
     } else {
@@ -258,22 +257,14 @@ export default function BidDetails() {
   const getStatusDisplay = (status: string, seatAvailability: any) => {
     console.log(`Getting status display for: ${status}`, seatAvailability);
 
-    // If we have seat availability data, use the dynamic status based on user-specific payment status
+    // If we have seat availability data, use the dynamic status
     if (seatAvailability) {
-      // Check payment status for THIS specific user
-      const userPaymentStatus = seatAvailability.paymentStatus;
-      
-      if (userPaymentStatus === 'completed' || seatAvailability.hasUserPaid) {
-        console.log("Current user has completed payment, showing Under Review");
+      // Check if THIS specific user has paid
+      if (seatAvailability.hasUserPaid) {
+        console.log("Current user has paid, showing Under Review");
         return "Under Review";
-      } else if (userPaymentStatus === 'approved') {
-        console.log("Current user payment approved, showing Approved");
-        return "Approved";
-      } else if (userPaymentStatus === 'rejected') {
-        console.log("Current user payment rejected, showing Rejected");
-        return "Rejected";
-      } else if (seatAvailability.isClosed || userPaymentStatus === 'closed') {
-        console.log("Bid is closed for current user, showing Closed");
+      } else if (seatAvailability.isClosed) {
+        console.log("Bid is closed due to capacity, showing Closed");
         return "Closed";
       } else {
         console.log("Bid is open for current user, showing Open");
