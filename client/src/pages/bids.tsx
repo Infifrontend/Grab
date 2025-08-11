@@ -121,7 +121,6 @@ export default function Bids() {
           // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
           let seatAvailability = null;
-          let userSpecificPaymentStatus = "Open";
           const userId = localStorage.getItem("userId");
 
           try {
@@ -129,22 +128,58 @@ export default function Bids() {
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
-              userSpecificPaymentStatus = statusData.paymentStatus || "Open";
               seatAvailability = {
                 totalSeatsAvailable: statusData.totalSeatsAvailable,
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
                 userRetailBidStatus: statusData.userRetailBidStatus,
-                paymentStatus: statusData.paymentStatus
+                paymentStatus: statusData.paymentStatus // Added for user-specific payment status
               };
               console.log(`Status for Bid ${bid.id}, User ${userId}:`, dynamicStatus, seatAvailability);
             }
           } catch (error) {
             console.warn(`Could not fetch dynamic status for bid ${bid.id}:`, error);
-            // Fallback - don't assume any payment status
-            dynamicStatus = "Open";
-            userSpecificPaymentStatus = "Open";
+            // Fallback to enhanced static status mapping
+            try {
+              const notes = bid.notes ? JSON.parse(bid.notes) : {};
+              const paymentStatus = notes.paymentInfo?.paymentStatus;
+              const paymentCompleted = notes.paymentInfo?.paymentCompleted === true;
+
+              if (paymentCompleted) {
+                if (paymentStatus === "Payment Completed") {
+                  dynamicStatus = "Under Review";
+                } else if (paymentStatus === "Accepted for Booking") {
+                  dynamicStatus = "Accepted";
+                } else {
+                  dynamicStatus = "Under Review";
+                }
+              } else {
+                switch (bid.bidStatus?.toLowerCase()) {
+                  case 'active':
+                    dynamicStatus = "Open";
+                    break;
+                  case 'accepted':
+                  case 'approved':
+                    dynamicStatus = "Approved";
+                    break;
+                  case 'rejected':
+                    dynamicStatus = "Rejected";
+                    break;
+                  case 'completed':
+                    dynamicStatus = "Completed";
+                    break;
+                  case 'expired':
+                    dynamicStatus = "Expired";
+                    break;
+                  default:
+                    dynamicStatus = "Open";
+                }
+              }
+            } catch (parseError) {
+              console.warn(`Could not parse notes for bid ${bid.id}:`, parseError);
+              dynamicStatus = "Open";
+            }
           }
 
           return {
@@ -160,26 +195,18 @@ export default function Bids() {
             ).toFixed(2)}`,
             status: dynamicStatus,
             seatAvailability: seatAvailability,
-            payment: (() => {
-              // Use user-specific payment status from API
-              if (seatAvailability?.paymentStatus) {
-                switch (seatAvailability.paymentStatus) {
-                  case 'under_review':
-                    return "Payment Completed";
-                  case 'approved':
-                    return "Accepted for Booking";
-                  case 'rejected':
-                    return "Refunded";
-                  case 'closed':
-                    return "Closed";
-                  case 'open':
-                  default:
-                    return "Open";
-                }
-              }
-              // Fallback to Open if no user-specific status available
-              return "Open";
-            })(),
+            payment:
+              bid.bidStatus === "completed"
+                ? "Payment Completed"
+                : bid.bidStatus === "accepted"
+                ? "Converted to Booking"
+                : bid.bidStatus === "approved"
+                ? "Accepted for Booking"
+                : dynamicStatus === "Open"
+                ? "Open"
+                : bid.bidStatus === "rejected" || bid.bidStatus === "expired"
+                ? "Refunded"
+                : "Paid",
             submitted: formatDateToDDMMMYYYY(bid.createdAt),
             actions: "View Details",
           };
