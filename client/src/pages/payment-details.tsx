@@ -216,9 +216,7 @@ export default function PaymentDetails() {
 
       if (!retailBidResponse.ok) {
         const retailBidError = await retailBidResponse.json().catch(() => ({}));
-        throw new Error(
-          retailBidError.message || "Failed to submit bid"
-        );
+        throw new Error(retailBidError.message || "Failed to submit bid");
       }
 
       const retailBidResult = await retailBidResponse.json();
@@ -498,7 +496,7 @@ export default function PaymentDetails() {
                     Bid Configuration
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData.configData.title}
+                    {bidParticipationData?.configData.title}
                   </Text>
                 </div>
 
@@ -507,7 +505,7 @@ export default function PaymentDetails() {
                     Route
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData.configData.route}
+                    {bidParticipationData?.configData.route}
                   </Text>
                 </div>
 
@@ -568,7 +566,8 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit Bid
+                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit
+                Bid
               </Button>
             </Card>
           </Col>
