@@ -41,7 +41,16 @@ export default function PaymentDetails() {
       const storedData = localStorage.getItem("bidParticipationData");
 
       if (storedData) {
-        setBidParticipationData(JSON.parse(storedData));
+        const parsedData = JSON.parse(storedData);
+        // Ensure configData exists with fallback values
+        if (!parsedData.configData) {
+          parsedData.configData = {
+            title: "Bid Payment",
+            route: "Route not specified",
+            travelDate: "Date not specified"
+          };
+        }
+        setBidParticipationData(parsedData);
       } else {
         // If no localStorage data, try to fetch from API and create participation data
         const bidId = params.bidId;
@@ -496,7 +505,7 @@ export default function PaymentDetails() {
                     Bid Configuration
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData?.configData.title}
+                    {bidParticipationData?.configData?.title || "Bid Payment"}
                   </Text>
                 </div>
 
@@ -505,7 +514,7 @@ export default function PaymentDetails() {
                     Route
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData?.configData.route}
+                    {bidParticipationData?.configData?.route || "Route not specified"}
                   </Text>
                 </div>
 
@@ -514,7 +523,7 @@ export default function PaymentDetails() {
                     Travel Date
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData.configData.travelDate}
+                    {bidParticipationData?.configData?.travelDate || "Date not specified"}
                   </Text>
                 </div>
 
