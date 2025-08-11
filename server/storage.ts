@@ -1457,11 +1457,33 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Bid configuration with ID ${bid.bidId} not found.`);
       }
 
-      console.log("Creating retail bid without validation:", {
+      // Calculate total seats already under review or paid for this bid
+      const existingRetailBids = await this.getRetailBidsByBid(bid.bidId);
+      const seatsUnderReviewOrPaid = existingRetailBids.reduce((sum, rb) => {
+        if (rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved') {
+          return sum + rb.passengerCount;
+        }
+        return sum;
+      }, 0);
+
+      const availableSeats = bidConfiguration.flight.availableSeats;
+      const totalSeatsAvailable = availableSeats - seatsUnderReviewOrPaid;
+
+      // Validation checks
+      if (bid.passengerCount > bidConfiguration.bid.maxSeatsPerBid) {
+        throw new Error(`Passenger count (${bid.passengerCount}) exceeds maximum allowed per bid (${bidConfiguration.bid.maxSeatsPerBid}).`);
+      }
+      if (bid.passengerCount > totalSeatsAvailable) {
+        throw new Error(`Passenger count (${bid.passengerCount}) exceeds available seats (${totalSeatsAvailable}).`);
+      }
+
+      console.log("Creating retail bid with validation:", {
         bidId: bid.bidId,
         userId: bid.userId,
         passengerCount: bid.passengerCount,
-        submittedAmount: bid.submittedAmount
+        submittedAmount: bid.submittedAmount,
+        totalSeatsAvailable: totalSeatsAvailable,
+        maxSeatsPerBid: bid.bid.maxSeatsPerBid
       });
 
       // Ensure the retail_bids table exists and has the correct structure

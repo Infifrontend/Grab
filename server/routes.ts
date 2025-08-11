@@ -2538,6 +2538,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mark retail bid as under_review after payment
+  app.put("/api/retail-bids/:retailBidId/mark-under-review", async (req, res) => {
+    try {
+      const { retailBidId } = req.params;
+      const { paymentReference, transactionId } = req.body;
+
+      console.log(`Marking retail bid ${retailBidId} as under_review after payment`);
+
+      // Get the retail bid
+      const retailBid = await storage.getRetailBidById(parseInt(retailBidId));
+      if (!retailBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Retail bid not found"
+        });
+      }
+
+      // Validate that the bid is currently in 'submitted' status
+      if (retailBid.status !== 'submitted') {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot mark bid as under_review. Current status: ${retailBid.status}`
+        });
+      }
+
+      // Update the retail bid status to 'under_review'
+      await storage.updateRetailBidStatus(parseInt(retailBidId), 'under_review');
+
+      // Create notification for payment received
+      await createNotification(
+        'retail_bid_payment_received',
+        'Retail Bid Payment Received',
+        `Payment received for retail bid ${retailBidId}. Bid is now under review.`,
+        'medium',
+        {
+          retailBidId: parseInt(retailBidId),
+          paymentReference: paymentReference || null,
+          transactionId: transactionId || null,
+          bidId: retailBid.bidId,
+          userId: retailBid.userId
+        }
+      );
+
+      res.json({
+        success: true,
+        message: "Retail bid marked as under review successfully",
+        retailBidId: parseInt(retailBidId),
+        newStatus: 'under_review'
+      });
+
+    } catch (error) {
+      console.error("Error marking retail bid as under review:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to mark retail bid as under review",
+        error: error.message
+      });
+    }
+  });
+
   // Get retail bids for a bid configuration
   app.get("/api/retail-bids/:bidId", async (req, res) => {
     try {
@@ -2587,86 +2647,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all retail bids for this configuration
       const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
 
-      // Calculate total seats booked by approved/paid bids
-      const totalSeatsBooked = retailBids
-        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+      // Calculate available_seats = total_seats_available minus sum of passenger_count from retail_bids with status 'under_review' or 'paid'
+      const bookedSeats = retailBids
+        .filter(rb => rb.status === 'under_review' || rb.status === 'paid')
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
-      const seatsRemaining = totalSeatsAvailable - totalSeatsBooked;
-      const isClosed = seatsRemaining <= 0;
+      const availableSeats = totalSeatsAvailable - bookedSeats;
 
-      // Check if current user has paid for this bid
-      let userPaymentStatus = false;
-      let userBidStatus = null;
+      // Determine status_for_user based on the specific user logic
+      let statusForUser = 'open';
 
       if (userId) {
-        // Check retail_bids table for user's payment status
-        const userRetailBid = retailBids.find(rb => rb.userId === parseInt(userId as string));
+        // Check if THIS user has a retail bid for this bid_id with status 'under_review' or 'paid'
+        const userRetailBid = retailBids.find(rb => 
+          rb.userId === parseInt(userId as string) && 
+          (rb.status === 'under_review' || rb.status === 'paid')
+        );
+
         if (userRetailBid) {
-          userBidStatus = userRetailBid.status;
-          userPaymentStatus = userRetailBid.status === 'paid' || userRetailBid.status === 'approved';
+          // (1) If THIS user has a retail bid with status 'under_review' or 'paid', return under_review
+          statusForUser = 'under_review';
+        } else if (availableSeats > 0) {
+          // (2) Else if available seats > 0, return open
+          statusForUser = 'open';
+        } else {
+          // (3) Else return closed
+          statusForUser = 'closed';
         }
-
-        // Check if this specific user has payment completion in bid notes
-        if (!userPaymentStatus && bidDetails.bid.notes) {
-          try {
-            const notes = JSON.parse(bidDetails.bid.notes);
-            if (notes.paymentInfo && notes.paymentInfo.paymentCompleted === true) {
-              // Additional check: ensure this payment is for the current user
-              // This could be based on userId in payment info or other user-specific data
-              userPaymentStatus = true;
-            }
-          } catch (e) {
-            // Ignore parsing errors
-          }
-        }
-
-        // Check if bid is completed AND belongs to this specific user
-        if (!userPaymentStatus && bidDetails.bid.bidStatus === 'completed' && bidDetails.bid.userId === parseInt(userId as string)) {
-          userPaymentStatus = true;
-        }
-
-        // Check payment table for this user and bid combination
-        if (!userPaymentStatus) {
-          try {
-            const hasUserPaid = await storage.hasUserPaidForBid(parseInt(bidId), parseInt(userId as string));
-            userPaymentStatus = hasUserPaid;
-          } catch (error) {
-            console.log("Error checking user payment status:", error.message);
-          }
-        }
-
-      }
-
-      // Determine display status based on user-specific logic
-      let displayStatus = 'Open';
-
-      if (isClosed) {
-        // If seats are full, everyone sees "Closed"
-        displayStatus = 'Closed';
-      } else if (bidDetails.bid.bidStatus === 'expired') {
-        displayStatus = 'Expired';
-      } else if (bidDetails.bid.bidStatus === 'rejected') {
-        displayStatus = 'Declined';
-      } else if (userId && userPaymentStatus) {
-        // If this specific user has paid, they see "Under Review"
-        displayStatus = 'Under Review';
       } else {
-        // If user hasn't paid or no user specified, show "Open"
-        displayStatus = 'Open';
+        // No user specified - use general logic
+        if (availableSeats > 0) {
+          statusForUser = 'open';
+        } else {
+          statusForUser = 'closed';
+        }
       }
+
+      // Convert to display format
+      const displayStatus = statusForUser === 'under_review' ? 'Under Review' : 
+                           statusForUser === 'open' ? 'Open' : 'Closed';
 
       res.json({
         success: true,
         bidStatus: displayStatus,
+        statusForUser: statusForUser,
         totalSeatsAvailable: totalSeatsAvailable,
-        totalSeatsBooked: totalSeatsBooked,
-        seatsRemaining: seatsRemaining,
-        isClosed: isClosed,
-        originalBidStatus: bidDetails.bid.bidStatus,
-        userPaymentStatus: userPaymentStatus,
-        userBidStatus: userBidStatus,
-        hasUserPaid: userPaymentStatus || false
+        bookedSeats: bookedSeats,
+        availableSeats: availableSeats,
+        seatsRemaining: availableSeats, // For backward compatibility
+        isClosed: availableSeats <= 0,
+        originalBidStatus: bidDetails.bid.bidStatus
       });
 
     } catch (error) {
