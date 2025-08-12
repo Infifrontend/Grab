@@ -12,7 +12,17 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-import { eq, desc, and, or, like, sql, isNull, isNotNull, ne } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  and,
+  or,
+  like,
+  sql,
+  isNull,
+  isNotNull,
+  ne,
+} from "drizzle-orm";
 import type { Request, Response } from "express";
 import { db } from "./db.js";
 import {
@@ -262,23 +272,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const flightBookings = await storage.getFlightBookings();
 
       // Generate monthly booking statistics
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
       const currentYear = new Date().getFullYear();
 
-      const monthlyData = monthNames.map(month => ({ 
-        month, 
-        bookings: 0, 
+      const monthlyData = monthNames.map((month) => ({
+        month,
+        bookings: 0,
         revenue: 0,
-        passengers: 0 
+        passengers: 0,
       }));
 
-      flightBookings.forEach(booking => {
+      flightBookings.forEach((booking) => {
         if (booking.createdAt) {
           const bookingDate = new Date(booking.createdAt);
           if (bookingDate.getFullYear() === currentYear) {
             const monthIndex = bookingDate.getMonth();
             monthlyData[monthIndex].bookings += 1;
-            monthlyData[monthIndex].revenue += parseFloat(booking.totalAmount || '0');
+            monthlyData[monthIndex].revenue += parseFloat(
+              booking.totalAmount || "0",
+            );
             monthlyData[monthIndex].passengers += booking.passengerCount || 0;
           }
         }
@@ -286,17 +311,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add status breakdown
       const statusData = {
-        confirmed: flightBookings.filter(b => b.bookingStatus === 'confirmed').length,
-        pending: flightBookings.filter(b => b.bookingStatus === 'pending').length,
-        cancelled: flightBookings.filter(b => b.bookingStatus === 'cancelled').length,
+        confirmed: flightBookings.filter((b) => b.bookingStatus === "confirmed")
+          .length,
+        pending: flightBookings.filter((b) => b.bookingStatus === "pending")
+          .length,
+        cancelled: flightBookings.filter((b) => b.bookingStatus === "cancelled")
+          .length,
       };
 
       res.json({
         monthlyData,
         statusData,
         totalBookings: flightBookings.length,
-        totalRevenue: flightBookings.reduce((sum, b) => sum + parseFloat(b.totalAmount || '0'), 0),
-        totalPassengers: flightBookings.reduce((sum, b) => sum + (b.passengerCount || 0), 0)
+        totalRevenue: flightBookings.reduce(
+          (sum, b) => sum + parseFloat(b.totalAmount || "0"),
+          0,
+        ),
+        totalPassengers: flightBookings.reduce(
+          (sum, b) => sum + (b.passengerCount || 0),
+          0,
+        ),
       });
     } catch (error) {
       console.error("Error fetching booking overview:", error);
@@ -317,32 +351,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all flight bookings first for comprehensive search
       const allFlightBookings = await storage.getFlightBookings();
-      console.log(`Total flight bookings available: ${allFlightBookings.length}`);
+      console.log(
+        `Total flight bookings available: ${allFlightBookings.length}`,
+      );
 
       // Try multiple search strategies
       if (!booking) {
         // Strategy 1: Search by PNR (exact match)
-        booking = allFlightBookings.find(b => b.pnr && b.pnr.toUpperCase() === id.toUpperCase());
+        booking = allFlightBookings.find(
+          (b) => b.pnr && b.pnr.toUpperCase() === id.toUpperCase(),
+        );
         if (booking) console.log("Found booking by PNR exact match");
       }
 
       if (!booking) {
         // Strategy 2: Search by booking reference (exact match)
-        booking = allFlightBookings.find(b => b.bookingReference && b.bookingReference.toUpperCase() === id.toUpperCase());
-        if (booking) console.log("Found booking by booking reference exact match");
+        booking = allFlightBookings.find(
+          (b) =>
+            b.bookingReference &&
+            b.bookingReference.toUpperCase() === id.toUpperCase(),
+        );
+        if (booking)
+          console.log("Found booking by booking reference exact match");
       }
 
       if (!booking) {
         // Strategy 3: Search by ID (numeric)
-        booking = allFlightBookings.find(b => b.id.toString() === id);
+        booking = allFlightBookings.find((b) => b.id.toString() === id);
         if (booking) console.log("Found booking by numeric ID");
       }
 
       if (!booking) {
         // Strategy 4: Partial match in PNR or booking reference
-        booking = allFlightBookings.find(b => 
-          (b.pnr && b.pnr.toUpperCase().includes(id.toUpperCase())) ||
-          (b.bookingReference && b.bookingReference.toUpperCase().includes(id.toUpperCase()))
+        booking = allFlightBookings.find(
+          (b) =>
+            (b.pnr && b.pnr.toUpperCase().includes(id.toUpperCase())) ||
+            (b.bookingReference &&
+              b.bookingReference.toUpperCase().includes(id.toUpperCase())),
         );
         if (booking) console.log("Found booking by partial match");
       }
@@ -354,7 +399,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           booking = legacyBookings.find(
             (b) => b.id.toString() === id || b.bookingId === id,
           );
-          console.log("Found booking in legacy bookings:", booking ? "Yes" : "No");
+          console.log(
+            "Found booking in legacy bookings:",
+            booking ? "Yes" : "No",
+          );
 
           if (booking) {
             return res.json({
@@ -373,15 +421,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`No booking found for ID: ${id}`);
 
         // Debug information
-        console.log("Available PNRs:", allFlightBookings.map(b => b.pnr).filter(Boolean));
-        console.log("Available booking references:", allFlightBookings.map(b => b.bookingReference).filter(Boolean));
-        console.log("Available IDs:", allFlightBookings.map(b => b.id));
+        console.log(
+          "Available PNRs:",
+          allFlightBookings.map((b) => b.pnr).filter(Boolean),
+        );
+        console.log(
+          "Available booking references:",
+          allFlightBookings.map((b) => b.bookingReference).filter(Boolean),
+        );
+        console.log(
+          "Available IDs:",
+          allFlightBookings.map((b) => b.id),
+        );
 
-        return res.status(404).json({ 
+        return res.status(404).json({
           message: "Booking not found",
           searchedId: id,
-          availablePNRs: allFlightBookings.map(b => b.pnr).filter(Boolean),
-          availableReferences: allFlightBookings.map(b => b.bookingReference).filter(Boolean)
+          availablePNRs: allFlightBookings.map((b) => b.pnr).filter(Boolean),
+          availableReferences: allFlightBookings
+            .map((b) => b.bookingReference)
+            .filter(Boolean),
         });
       }
 
@@ -423,7 +482,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         flightData,
         comprehensiveData,
       });
-
     } catch (error) {
       console.error("Error fetching booking details:", error);
       res.status(500).json({ message: "Failed to fetch booking details" });
@@ -558,7 +616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Group booking created successfully:", {
         bookingId: booking.id,
         bookingReference,
-        pnr: booking.pnr
+        pnr: booking.pnr,
       });
 
       res.json({
@@ -624,8 +682,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Sort bids by creation date (newest first) for recent activity display
-      const sortedBids = bids.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedBids = bids.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
 
       res.json(sortedBids);
@@ -642,10 +701,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter and format bid configurations (those with configType)
       const bidConfigurations = bids
-        .filter(bid => {
+        .filter((bid) => {
           try {
             const notes = bid.notes ? JSON.parse(bid.notes) : {};
-            return notes.configType === 'bid_configuration';
+            return notes.configType === "bid_configuration";
           } catch (e) {
             return false;
           }
@@ -665,14 +724,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { bidStatus, paymentStatus, passengerCount, bidAmount } = req.body;
 
-      console.log(`Updating bid ${id} payment status to ${paymentStatus}, bid status to ${bidStatus}`);
+      console.log(
+        `Updating bid ${id} payment status to ${paymentStatus}, bid status to ${bidStatus}`,
+      );
 
       // Update the bid with payment information
       const updateData = {
-        bidStatus: bidStatus || 'completed',
+        bidStatus: bidStatus || "completed",
         passengerCount: passengerCount,
         bidAmount: bidAmount?.toString(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Add payment status to notes with correct status mapping
@@ -680,17 +741,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let existingNotes = {};
 
       try {
-        existingNotes = existingBid?.bid?.notes ? JSON.parse(existingBid.bid.notes) : {};
+        existingNotes = existingBid?.bid?.notes
+          ? JSON.parse(existingBid.bid.notes)
+          : {};
       } catch (e) {
         existingNotes = {};
       }
 
       // Determine the correct payment status based on the provided paymentStatus
-      let finalPaymentStatus = paymentStatus || 'Payment Completed';
-      
+      let finalPaymentStatus = paymentStatus || "Payment Completed";
+
       // Ensure we're using the correct status values
-      if (paymentStatus === 'Paid') {
-        finalPaymentStatus = 'Payment Completed';
+      if (paymentStatus === "Paid") {
+        finalPaymentStatus = "Payment Completed";
       }
 
       const paymentData = {
@@ -700,8 +763,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentDate: new Date().toISOString(),
           depositPaid: true,
           paymentCompleted: true,
-          completedAt: new Date().toISOString()
-        }
+          completedAt: new Date().toISOString(),
+        },
       };
 
       updateData.notes = JSON.stringify(paymentData);
@@ -714,34 +777,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid not found"
+          message: "Bid not found",
         });
       }
 
       // Create notification for completed payment
       await createNotification(
-        'payment_completed',
-        'Payment Completed',
+        "payment_completed",
+        "Payment Completed",
         `Payment for bid ${existingBid.bid.id} has been completed successfully. Amount: ₹${bidAmount}`,
-        'high',
+        "high",
         {
           bidId: parseInt(id),
           amount: bidAmount,
-          paymentStatus: paymentStatus
-        }
+          paymentStatus: paymentStatus,
+        },
       );
 
       res.json({
         success: true,
         message: `Bid payment completed successfully`,
-        bid: updatedBid
+        bid: updatedBid,
       });
     } catch (error) {
       console.error("Error updating bid payment status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to update bid payment status",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -757,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the bid status in the database
       const updateData = {
         bidStatus: status,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Add admin notes to the bid notes if provided
@@ -766,7 +829,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let existingNotes = {};
 
         try {
-          existingNotes = existingBid?.bid?.notes ? JSON.parse(existingBid.bid.notes) : {};
+          existingNotes = existingBid?.bid?.notes
+            ? JSON.parse(existingBid.bid.notes)
+            : {};
         } catch (e) {
           existingNotes = {};
         }
@@ -775,12 +840,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...existingNotes,
           adminReview: {
             status,
-            adminNotes: adminNotes || '',
+            adminNotes: adminNotes || "",
             counterOffer: counterOffer || null,
             rejectionReason: rejectionReason || null,
             reviewedAt: new Date().toISOString(),
-            reviewedBy: 'Admin' // You might want to get this from session
-          }
+            reviewedBy: "Admin", // You might want to get this from session
+          },
         };
 
         updateData.notes = JSON.stringify(adminData);
@@ -794,21 +859,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid not found"
+          message: "Bid not found",
         });
       }
 
       res.json({
         success: true,
         message: `Bid ${status} successfully`,
-        bid: updatedBid
+        bid: updatedBid,
       });
     } catch (error) {
       console.error("Error updating bid status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to update bid status",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -830,21 +895,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid configuration not found"
+          message: "Bid configuration not found",
         });
       }
 
       res.json({
         success: true,
-        message: `Bid configuration ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
-        bid: updatedBid
+        message: `Bid configuration ${status === "active" ? "activated" : "deactivated"} successfully`,
+        bid: updatedBid,
       });
     } catch (error) {
       console.error("Error updating bid configuration status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to update bid configuration status",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -867,7 +932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancellationTerms,
         mealIncluded,
         otherNotes,
-        bidAmount
+        bidAmount,
       } = req.body;
 
       console.log(`Updating bid configuration ${id}:`, req.body);
@@ -878,14 +943,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!existingBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid configuration not found"
+          message: "Bid configuration not found",
         });
       }
 
       // Parse existing notes to preserve other data
       let existingConfigData = {};
       try {
-        existingConfigData = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+        existingConfigData = existingBid.bid.notes
+          ? JSON.parse(existingBid.bid.notes)
+          : {};
       } catch (e) {
         console.warn("Could not parse existing notes, using empty object");
       }
@@ -897,39 +964,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         flightType: flightType || existingConfigData.flightType || "Domestic",
         origin: origin || existingConfigData.origin,
         destination: destination || existingConfigData.destination,
-        totalSeatsAvailable: totalSeatsAvailable !== undefined ? totalSeatsAvailable : existingConfigData.totalSeatsAvailable || 50,
-        minSeatsPerBid: minSeatsPerBid !== undefined ? minSeatsPerBid : existingConfigData.minSeatsPerBid || 1,
-        maxSeatsPerBid: maxSeatsPerBid !== undefined ? maxSeatsPerBid : existingConfigData.maxSeatsPerBid || 10,
-        maxSeatsPerUser: maxSeatsPerUser !== undefined ? maxSeatsPerUser : existingConfigData.maxSeatsPerUser || 5,
+        totalSeatsAvailable:
+          totalSeatsAvailable !== undefined
+            ? totalSeatsAvailable
+            : existingConfigData.totalSeatsAvailable || 50,
+        minSeatsPerBid:
+          minSeatsPerBid !== undefined
+            ? minSeatsPerBid
+            : existingConfigData.minSeatsPerBid || 1,
+        maxSeatsPerBid:
+          maxSeatsPerBid !== undefined
+            ? maxSeatsPerBid
+            : existingConfigData.maxSeatsPerBid || 10,
+        maxSeatsPerUser:
+          maxSeatsPerUser !== undefined
+            ? maxSeatsPerUser
+            : existingConfigData.maxSeatsPerUser || 5,
         fareType: fareType || existingConfigData.fareType || "Economy",
-        baggageAllowance: baggageAllowance !== undefined ? baggageAllowance : existingConfigData.baggageAllowance || 20,
-        cancellationTerms: cancellationTerms || existingConfigData.cancellationTerms || "Standard",
-        mealIncluded: mealIncluded !== undefined ? mealIncluded : existingConfigData.mealIncluded || false,
-        otherNotes: otherNotes !== undefined ? otherNotes : existingConfigData.otherNotes || "",
+        baggageAllowance:
+          baggageAllowance !== undefined
+            ? baggageAllowance
+            : existingConfigData.baggageAllowance || 20,
+        cancellationTerms:
+          cancellationTerms ||
+          existingConfigData.cancellationTerms ||
+          "Standard",
+        mealIncluded:
+          mealIncluded !== undefined
+            ? mealIncluded
+            : existingConfigData.mealIncluded || false,
+        otherNotes:
+          otherNotes !== undefined
+            ? otherNotes
+            : existingConfigData.otherNotes || "",
         updatedAt: new Date().toISOString(),
-        configType: "bid_configuration" // Ensure this remains set
+        configType: "bid_configuration", // Ensure this remains set
       };
 
-      console.log('Updated configuration data:', updatedConfigurationData);
+      console.log("Updated configuration data:", updatedConfigurationData);
 
       // Update the bid configuration
       const updatedBid = await storage.updateBidDetails(parseInt(id), {
         notes: JSON.stringify(updatedConfigurationData),
         passengerCount: updatedConfigurationData.minSeatsPerBid,
-        bidAmount: bidAmount !== undefined ? bidAmount.toString() : existingBid.bid.bidAmount,
+        bidAmount:
+          bidAmount !== undefined
+            ? bidAmount.toString()
+            : existingBid.bid.bidAmount,
         totalSeatsAvailable: updatedConfigurationData.totalSeatsAvailable,
         minSeatsPerBid: updatedConfigurationData.minSeatsPerBid,
         maxSeatsPerBid: updatedConfigurationData.maxSeatsPerBid,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
-      console.log('Bid updated successfully:', updatedBid);
+      console.log("Bid updated successfully:", updatedBid);
 
       res.json({
         success: true,
         message: "Bid configuration updated successfully",
         bid: updatedBid,
-        configData: updatedConfigurationData
+        configData: updatedConfigurationData,
       });
     } catch (error) {
       console.error("Error updating bid configuration:", error);
@@ -937,7 +1031,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let errorMessage = "Failed to update bid configuration";
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
-          errorMessage = "A bid configuration with these details already exists";
+          errorMessage =
+            "A bid configuration with these details already exists";
         } else if (error.message.includes("NOT NULL constraint")) {
           errorMessage = "Missing required information for bid configuration";
         } else if (error.message.includes("FOREIGN KEY constraint")) {
@@ -950,7 +1045,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: errorMessage,
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   });
@@ -967,20 +1063,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!bid) {
         return res.status(404).json({
           success: false,
-          message: "Bid configuration not found"
+          message: "Bid configuration not found",
         });
       }
 
       res.json({
         success: true,
-        bid
+        bid,
       });
     } catch (error) {
       console.error("Error fetching bid configuration:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch bid configuration",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -1010,20 +1106,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         totalBids: allBids.length,
-        bids: allBids.map(bid => ({
+        bids: allBids.map((bid) => ({
           id: bid.id,
           bidAmount: bid.bidAmount,
           bidStatus: bid.bidStatus,
           userId: bid.userId,
-          flightId: bid.flightId
-        }))
+          flightId: bid.flightId,
+        })),
       });
     } catch (error) {
       console.error("Error fetching debug bids:", error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: "Failed to fetch debug bid data",
-        error: error.message 
+        error: error.message,
       });
     }
   });
@@ -1038,9 +1134,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (isNaN(bidId) || bidId <= 0) {
         console.log(`Invalid bid ID format: ${id} -> ${bidId}`);
-        return res.status(400).json({ 
-          success: false, 
-          message: `Invalid bid ID: ${id}` 
+        return res.status(400).json({
+          success: false,
+          message: `Invalid bid ID: ${id}`,
         });
       }
 
@@ -1050,10 +1146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allBids = await storage.getBids();
         console.log(`Bid not found with ID: ${bidId}`);
         console.log(`Total bids in database: ${allBids.length}`);
-        console.log(`Available bid IDs: [${allBids.map(b => b.id).join(', ')}]`);
-        return res.status(404).json({ 
-          success: false, 
-          message: `Bid not found with ID: ${bidId}` 
+        console.log(
+          `Available bid IDs: [${allBids.map((b) => b.id).join(", ")}]`,
+        );
+        return res.status(404).json({
+          success: false,
+          message: `Bid not found with ID: ${bidId}`,
         });
       }
 
@@ -1061,25 +1159,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bidId: bid.bid?.id,
         bidAmount: bid.bid?.bidAmount,
         bidStatus: bid.bid?.bidStatus,
-        userId: bid.bid?.userId
+        userId: bid.bid?.userId,
       });
 
       res.json({
         success: true,
-        ...bid
+        ...bid,
       });
     } catch (error) {
       console.error("Error fetching bid details:", error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: "Failed to fetch bid details",
-        error: error.message 
+        error: error.message,
       });
     }
   });
 
   // Create bid configuration
-  app.post("/api/bid-configurations", async (req: Request, res: Response) => {try {      console.log("Received bid configuration data:", req.body);
+  app.post("/api/bid-configurations", async (req: Request, res: Response) => {
+    try {
+      console.log("Received bid configuration data:", req.body);
 
       const {
         bidTitle,
@@ -1102,14 +1202,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancellationTerms,
         mealIncluded,
         otherNotes,
-        bidAmount
+        bidAmount,
       } = req.body;
 
       // Validate required fields
       if (!bidTitle || !origin || !destination) {
         return res.status(400).json({
           success: false,
-          message: "Bid title, origin, and destination are required fields"
+          message: "Bid title, origin, and destination are required fields",
         });
       }
 
@@ -1122,14 +1222,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let flightId = 1; // Default fallback
       try {
         // First try to find an existing flight
-        const flights = await storage.getFlights(origin, destination, new Date(travelDate));
+        const flights = await storage.getFlights(
+          origin,
+          destination,
+          new Date(travelDate),
+        );
 
         if (flights.length > 0) {
           flightId = flights[0].id;
           console.log(`Found existing flight with ID: ${flightId}`);
         } else {
           // Create a new flight for this route if none exists
-          console.log(`No flights found for route ${origin} to ${destination}, creating new flight`);
+          console.log(
+            `No flights found for route ${origin} to ${destination}, creating new flight`,
+          );
 
           const newFlight = await storage.createFlight({
             flightNumber: `BC${Math.floor(1000 + Math.random() * 9000)}`,
@@ -1138,13 +1244,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             origin: origin,
             destination: destination,
             departureTime: new Date(travelDate),
-            arrivalTime: new Date(new Date(travelDate).getTime() + 2 * 60 * 60 * 1000), // +2 hours
+            arrivalTime: new Date(
+              new Date(travelDate).getTime() + 2 * 60 * 60 * 1000,
+            ), // +2 hours
             duration: "2h 0m",
             price: "0",
             availableSeats: totalSeatsAvailable || 50,
             totalSeats: totalSeatsAvailable || 50,
             cabin: "economy",
-            stops: 0
+            stops: 0,
           });
 
           flightId = newFlight.id;
@@ -1166,7 +1274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Date parsing error:", dateError);
         return res.status(400).json({
           success: false,
-          message: "Invalid date format for bid end time"
+          message: "Invalid date format for bid end time",
         });
       }
 
@@ -1194,7 +1302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otherNotes: otherNotes || "",
         configType: "bid_configuration",
         createdAt: new Date().toISOString(),
-        status: "active"
+        status: "active",
       };
 
       // Create bid configuration record with seat values in dedicated columns
@@ -1208,7 +1316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSeatsAvailable: totalSeatsAvailable || 50,
         minSeatsPerBid: minSeatsPerBid || 1,
         maxSeatsPerBid: maxSeatsPerBid || 10,
-        notes: JSON.stringify(configurationData)
+        notes: JSON.stringify(configurationData),
       };
 
       console.log("Creating bid configuration with data:", bidData);
@@ -1219,24 +1327,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create notification for new bid configuration
       await createNotification(
-        'bid_created',
-        'New Bid Configuration Created',
+        "bid_created",
+        "New Bid Configuration Created",
         `A new bid configuration "${bidTitle}" for route ${origin} → ${destination} has been created with base amount ₹${validBidAmount}.`,
-        'medium',
+        "medium",
         {
           bidId: bidConfig.id,
           bidTitle,
           route: `${origin} → ${destination}`,
-          amount: validBidAmount
-        }
+          amount: validBidAmount,
+        },
       );
 
       res.json({
         success: true,
         bidConfiguration: bidConfig,
-        message: `Bid configuration "${bidTitle}" created successfully`
+        message: `Bid configuration "${bidTitle}" created successfully`,
       });
-
     } catch (error) {
       console.error("Error creating bid configuration:", error);
 
@@ -1245,7 +1352,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (error.message) {
         if (error.message.includes("UNIQUE constraint")) {
-          errorMessage = "A bid configuration with these details already exists";
+          errorMessage =
+            "A bid configuration with these details already exists";
         } else if (error.message.includes("NOT NULL constraint")) {
           errorMessage = "Missing required information for bid configuration";
         } else if (error.message.includes("FOREIGN KEY constraint")) {
@@ -1255,10 +1363,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: errorMessage,
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   });
@@ -1320,7 +1429,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Migrate payments table to add user_id column
   app.post("/api/migrate-payments-user-id", async (_req, res) => {
     try {
-      const { migratePaymentsUserId } = await import("./migrate-payments-user-id");
+      const { migratePaymentsUserId } = await import(
+        "./migrate-payments-user-id"
+      );
       await migratePaymentsUserId();
       res.json({
         success: true,
@@ -1338,7 +1449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Migrate payments table to add payment_reference column
   app.post("/api/migrate-payment-reference", async (_req, res) => {
     try {
-      const { migratePaymentReference } = await import("./migrate-payment-reference");
+      const { migratePaymentReference } = await import(
+        "./migrate-payment-reference"
+      );
       await migratePaymentReference();
       res.json({
         success: true,
@@ -1373,7 +1486,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Migrate bid status labels
   app.post("/api/migrate-bid-status-labels", async (_req, res) => {
     try {
-      const { migrateBidStatusLabels } = await import("./migrate-bid-status-labels");
+      const { migrateBidStatusLabels } = await import(
+        "./migrate-bid-status-labels"
+      );
       const result = await migrateBidStatusLabels();
       res.json(result);
     } catch (error) {
@@ -1392,7 +1507,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { groupLeaderName, groupLeaderEmail, groupLeaderPhone } = req.body;
 
       console.log(`Updating group leader info for booking: ${id}`);
-      console.log("Group leader data:", { groupLeaderName, groupLeaderEmail, groupLeaderPhone });
+      console.log("Group leader data:", {
+        groupLeaderName,
+        groupLeaderEmail,
+        groupLeaderPhone,
+      });
 
       // Find the booking using multiple strategies
       let booking = null;
@@ -1428,9 +1547,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!booking) {
         console.log(`Booking not found for ID: ${id}`);
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "Booking not found" 
+          message: "Booking not found",
         });
       }
 
@@ -1442,7 +1561,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           comprehensiveData = JSON.parse(booking.specialRequests);
         } catch (e) {
-          console.log("Could not parse existing special requests, using empty object");
+          console.log(
+            "Could not parse existing special requests, using empty object",
+          );
           comprehensiveData = {};
         }
       }
@@ -1450,9 +1571,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update group leader information
       comprehensiveData.groupLeaderInfo = {
         ...comprehensiveData.groupLeaderInfo,
-        name: groupLeaderName || '',
-        email: groupLeaderEmail || '',
-        phone: groupLeaderPhone || '',
+        name: groupLeaderName || "",
+        email: groupLeaderEmail || "",
+        phone: groupLeaderPhone || "",
         updatedAt: new Date().toISOString(),
       };
 
@@ -1471,10 +1592,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating booking details:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: "Failed to update booking details",
-        error: error.message 
+        error: error.message,
       });
     }
   });
@@ -1490,9 +1611,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate input
       if (!passengers || !Array.isArray(passengers)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Invalid passenger data provided" 
+          message: "Invalid passenger data provided",
         });
       }
 
@@ -1534,25 +1655,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Debug: Show what bookings actually exist
         try {
           const allBookings = await storage.getFlightBookings();
-          console.log(`Available bookings:`, allBookings.map(b => ({ 
-            id: b.id, 
-            reference: b.bookingReference, 
-            pnr: b.pnr 
-          })));
+          console.log(
+            `Available bookings:`,
+            allBookings.map((b) => ({
+              id: b.id,
+              reference: b.bookingReference,
+              pnr: b.pnr,
+            })),
+          );
         } catch (debugError) {
-          console.log("Could not fetch bookings for debug:", debugError.message);
+          console.log(
+            "Could not fetch bookings for debug:",
+            debugError.message,
+          );
         }
 
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "Booking not found" 
+          message: "Booking not found",
         });
       }
 
       console.log(`Found booking with ID: ${booking.id}`);
 
       // Get existing passengers
-      const existingPassengers = await storage.getPassengersByBooking(booking.id);
+      const existingPassengers = await storage.getPassengersByBooking(
+        booking.id,
+      );
       console.log(`Found ${existingPassengers.length} existing passengers`);
 
       // Update existing passengers or create new ones
@@ -1568,10 +1697,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: passengerData.title || "Mr",
           firstName: passengerData.firstName || "",
           lastName: passengerData.lastName || "",
-          dateOfBirth: passengerData.dateOfBirth ? new Date(passengerData.dateOfBirth) : new Date("1990-01-01"),
+          dateOfBirth: passengerData.dateOfBirth
+            ? new Date(passengerData.dateOfBirth)
+            : new Date("1990-01-01"),
           nationality: passengerData.nationality || "Indian",
           passportNumber: passengerData.passportNumber || null,
-          passportExpiry: passengerData.passportExpiry ? new Date(passengerData.passportExpiry) : null,
+          passportExpiry: passengerData.passportExpiry
+            ? new Date(passengerData.passportExpiry)
+            : null,
           seatPreference: passengerData.seatPreference || null,
           mealPreference: passengerData.mealPreference || null,
           specialAssistance: passengerData.specialRequests || null,
@@ -1580,7 +1713,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (existingPassengers[i]) {
           // Update existing passenger
           console.log(`Updating existing passenger ${i + 1}`);
-          await storage.updatePassenger(existingPassengers[i].id, passengerInfo);
+          await storage.updatePassenger(
+            existingPassengers[i].id,
+            passengerInfo,
+          );
         } else {
           // Create new passenger
           console.log(`Creating new passenger ${i + 1}`);
@@ -1593,15 +1729,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Remove excess passengers if the new list is shorter
       if (existingPassengers.length > passengers.length) {
-        console.log(`Removing ${existingPassengers.length - passengers.length} excess passengers`);
+        console.log(
+          `Removing ${existingPassengers.length - passengers.length} excess passengers`,
+        );
         for (let i = passengers.length; i < existingPassengers.length; i++) {
           await storage.deletePassenger(existingPassengers[i].id);
         }
       }
 
       // Update the booking's passenger count to match the actual number of passengers
-      const validPassengerCount = passengers.filter(p => p.firstName || p.lastName).length;
-      await storage.updateBookingPassengerCount(booking.id, validPassengerCount);
+      const validPassengerCount = passengers.filter(
+        (p) => p.firstName || p.lastName,
+      ).length;
+      await storage.updateBookingPassengerCount(
+        booking.id,
+        validPassengerCount,
+      );
 
       console.log(`Successfully updated passengers for booking ${id}`);
 
@@ -1612,10 +1755,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating passengers:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: "Failed to update passengers",
-        error: error.message 
+        error: error.message,
       });
     }
   });
@@ -1646,18 +1789,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         try {
           // First, try to get payments directly linked to the bid
-          const directPayments = await storage.getPaymentsByBidId(parseInt(bidId as string));
+          const directPayments = await storage.getPaymentsByBidId(
+            parseInt(bidId as string),
+          );
           payments = [...directPayments];
 
           // Also check for payments that might be linked through booking references
           const allPayments = await storage.getPayments();
-          const bidRelatedPayments = allPayments.filter(payment => {
-            return payment.bookingId && payment.bookingId.includes(bidId as string);
+          const bidRelatedPayments = allPayments.filter((payment) => {
+            return (
+              payment.bookingId && payment.bookingId.includes(bidId as string)
+            );
           });
 
           // Merge and deduplicate
-          const existingIds = new Set(payments.map(p => p.id));
-          bidRelatedPayments.forEach(payment => {
+          const existingIds = new Set(payments.map((p) => p.id));
+          bidRelatedPayments.forEach((payment) => {
             if (!existingIds.has(payment.id)) {
               payments.push(payment);
             }
@@ -1665,7 +1812,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`Found ${payments.length} payments for bid ${bidId}`);
         } catch (error) {
-          console.log(`Error fetching payments for bid ${bidId}:`, error.message);
+          console.log(
+            `Error fetching payments for bid ${bidId}:`,
+            error.message,
+          );
           payments = [];
         }
       } else if (userId) {
@@ -1675,57 +1825,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Enhance payment data with bid information
-      const enhancedPayments = await Promise.all(payments.map(async (payment: any) => {
-        try {
-          // Try to find related bid information
-          const allBids = await storage.getBids();
-          let relatedBid = null;
+      const enhancedPayments = await Promise.all(
+        payments.map(async (payment: any) => {
+          try {
+            // Try to find related bid information
+            const allBids = await storage.getBids();
+            let relatedBid = null;
 
-          if (bidId) {
-            // If we're querying for a specific bid, find that bid
-            relatedBid = allBids.find(bid => bid.id.toString() === bidId);
-          } else {
-            // Otherwise, try to match payment to any bid
-            relatedBid = allBids.find(bid => {
-              return bid.id.toString() === payment.bidId || 
-                     payment.key === bid.id.toString() ||
-                     (payment.bookingId && payment.bookingId.includes(bid.id.toString()));
-            });
-          }
-
-          if (relatedBid) {
-            // Parse bid configuration to get route information
-            let configData = {};
-            try {
-              configData = relatedBid.notes ? JSON.parse(relatedBid.notes) : {};
-            } catch (e) {
-              configData = {};
+            if (bidId) {
+              // If we're querying for a specific bid, find that bid
+              relatedBid = allBids.find((bid) => bid.id.toString() === bidId);
+            } else {
+              // Otherwise, try to match payment to any bid
+              relatedBid = allBids.find((bid) => {
+                return (
+                  bid.id.toString() === payment.bidId ||
+                  payment.key === bid.id.toString() ||
+                  (payment.bookingId &&
+                    payment.bookingId.includes(bid.id.toString()))
+                );
+              });
             }
 
-            const origin = configData.origin || relatedBid.flight?.origin || "Unknown";
-            const destination = configData.destination || relatedBid.flight?.destination || "Unknown";
-            const route = `${origin} → ${destination}`;
+            if (relatedBid) {
+              // Parse bid configuration to get route information
+              let configData = {};
+              try {
+                configData = relatedBid.notes
+                  ? JSON.parse(relatedBid.notes)
+                  : {};
+              } catch (e) {
+                configData = {};
+              }
+
+              const origin =
+                configData.origin || relatedBid.flight?.origin || "Unknown";
+              const destination =
+                configData.destination ||
+                relatedBid.flight?.destination ||
+                "Unknown";
+              const route = `${origin} → ${destination}`;
+
+              return {
+                ...payment,
+                bidId: `BID-${relatedBid.id}`,
+                route: route,
+                paymentReference:
+                  payment.paymentReference || `PAY-${payment.id}`,
+              };
+            }
 
             return {
               ...payment,
-              bidId: `BID-${relatedBid.id}`,
-              route: route,
-              paymentReference: payment.paymentReference || `PAY-${payment.id}`
+              paymentReference: payment.paymentReference || `PAY-${payment.id}`,
+            };
+          } catch (error) {
+            console.log("Could not enhance payment data:", error.message);
+            return {
+              ...payment,
+              paymentReference: payment.paymentReference || `PAY-${payment.id}`,
             };
           }
-
-          return {
-            ...payment,
-            paymentReference: payment.paymentReference || `PAY-${payment.id}`
-          };
-        } catch (error) {
-          console.log("Could not enhance payment data:", error.message);
-          return {
-            ...payment,
-            paymentReference: payment.paymentReference || `PAY-${payment.id}`
-          };
-        }
-      }));
+        }),
+      );
 
       res.json(enhancedPayments);
     } catch (error) {
@@ -1748,80 +1910,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
   // Create a new payment
   app.post("/api/payments", async (req, res) => {
     try {
-      const { bidId, userId: requestUserId, bookingId, amount, currency, paymentMethod, paymentStatus, paymentType, cardDetails } = req.body;
+      const {
+        bidId,
+        userId: requestUserId,
+        bookingId,
+        amount,
+        currency,
+        paymentMethod,
+        paymentStatus,
+        paymentType,
+        cardDetails,
+      } = req.body;
 
       // Validate required fields
       if (!amount || parseFloat(amount) <= 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid payment amount" 
+        return res.status(400).json({
+          success: false,
+          message: "Invalid payment amount",
         });
       }
 
       if (!paymentMethod) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Payment method is required" 
+        return res.status(400).json({
+          success: false,
+          message: "Payment method is required",
         });
       }
 
       // Get the actual user ID from request or localStorage
-      const currentUserId = parseInt(requestUserId) || parseInt(localStorage?.getItem("userId")) || null;
+      const currentUserId =
+        parseInt(requestUserId) ||
+        parseInt(localStorage?.getItem("userId")) ||
+        null;
 
       // Check if THIS SPECIFIC USER has already paid for this bid (prevent duplicate payments by same user)
       if (bidId && currentUserId) {
         try {
           const bidDetails = await storage.getBidById(parseInt(bidId));
-          console.log(`Checking bid ${bidId} for user ${currentUserId} payment status`);
+          console.log(
+            `Checking bid ${bidId} for user ${currentUserId} payment status`,
+          );
 
           // Check if this specific user has already paid
           const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
-          
-          if (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid')) {
-            return res.status(400).json({ 
-              success: false, 
-              message: "You have already completed payment for this bid" 
+          const userRetailBid = retailBids.find(
+            (rb) => rb.userId === currentUserId,
+          );
+
+          if (
+            userRetailBid &&
+            (userRetailBid.status === "under_review" ||
+              userRetailBid.status === "paid")
+          ) {
+            return res.status(400).json({
+              success: false,
+              message: "You have already completed payment for this bid",
             });
           }
 
           // Check if this user has already made a payment for this bid
-          const existingPayments = await storage.getPaymentsByBidId(parseInt(bidId));
-          const userPayment = existingPayments.find(payment => {
+          const existingPayments = await storage.getPaymentsByBidId(
+            parseInt(bidId),
+          );
+          const userPayment = existingPayments.find((payment) => {
             return payment.userId === currentUserId;
           });
 
           if (userPayment) {
-            return res.status(400).json({ 
-              success: false, 
-              message: "You have already completed payment for this bid" 
+            return res.status(400).json({
+              success: false,
+              message: "You have already completed payment for this bid",
             });
           }
 
           // Check bid notes for user-specific payment completion
           let userPaidFromBidNotes = false;
           try {
-            const notes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+            const notes = bidDetails?.bid?.notes
+              ? JSON.parse(bidDetails.bid.notes)
+              : {};
             const userPayments = notes.userPayments || [];
-            const userPayment = userPayments.find(up => up.userId === currentUserId);
-            userPaidFromBidNotes = userPayment && userPayment.paymentCompleted === true;
-            
+            const userPayment = userPayments.find(
+              (up) => up.userId === currentUserId,
+            );
+            userPaidFromBidNotes =
+              userPayment && userPayment.paymentCompleted === true;
+
             if (userPaidFromBidNotes) {
-              return res.status(400).json({ 
-                success: false, 
-                message: "You have already completed payment for this bid" 
+              return res.status(400).json({
+                success: false,
+                message: "You have already completed payment for this bid",
               });
             }
           } catch (noteError) {
-            console.log("Could not parse bid notes for user payment check:", noteError.message);
+            console.log(
+              "Could not parse bid notes for user payment check:",
+              noteError.message,
+            );
           }
 
-          console.log(`User ${currentUserId} has not paid for bid ${bidId} yet, allowing payment`);
+          console.log(
+            `User ${currentUserId} has not paid for bid ${bidId} yet, allowing payment`,
+          );
         } catch (error) {
           console.log("Error checking user payment status:", error.message);
         }
@@ -1839,7 +2032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             defaultUser = await storage.createUser({
               username: "default_user",
               password: "default_password",
-              name: "Default User"
+              name: "Default User",
             });
             console.log("Default user created:", defaultUser);
           }
@@ -1848,7 +2041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error handling default user:", userError);
           return res.status(500).json({
             success: false,
-            message: "Failed to setup user information for payment"
+            message: "Failed to setup user information for payment",
           });
         }
       }
@@ -1871,12 +2064,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error validating bid for payment:", error.message);
           return res.status(400).json({
             success: false,
-            message: `Invalid bid ID: ${error.message}`
+            message: `Invalid bid ID: ${error.message}`,
           });
         }
       }
 
-      const paymentReference = `PAY-${bidId || 'BOOK'}-USER${userId}-${nanoid(4)}`;
+      const paymentReference = `PAY-${bidId || "BOOK"}-USER${userId}-${nanoid(4)}`;
 
       // For bid payments, set bookingId to null to avoid foreign key constraint violation
       const paymentData = {
@@ -1890,7 +2083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
         transactionId: `txn_${nanoid(8)}`,
         processedAt: new Date(),
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       console.log("Creating payment with data:", paymentData);
@@ -1906,7 +2099,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const bidDetails = await storage.getBidById(parseInt(bidId));
           let existingNotes = {};
           try {
-            existingNotes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+            existingNotes = bidDetails?.bid?.notes
+              ? JSON.parse(bidDetails.bid.notes)
+              : {};
           } catch (e) {
             existingNotes = {};
           }
@@ -1921,7 +2116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             amount: amount,
             paymentMethod: paymentMethod,
             paymentCompleted: true,
-            userId: userId
+            userId: userId,
           });
 
           const updatedNotes = {
@@ -1932,8 +2127,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               latestPaymentId: payment.id,
               latestPaymentReference: paymentReference,
               lastPaymentDate: new Date().toISOString(),
-              totalPaymentsReceived: userPayments.length
-            }
+              totalPaymentsReceived: userPayments.length,
+            },
           };
 
           // DON'T change the global bid status - keep it as 'active' so other users can still pay
@@ -1941,16 +2136,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateBidDetails(parseInt(bidId), {
             // Keep original bidStatus unchanged for other users
             notes: JSON.stringify(updatedNotes),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           });
-          console.log(`Added user-specific payment tracking for user ${userId} on bid ${bidId} without changing global status`);
+          console.log(
+            `Added user-specific payment tracking for user ${userId} on bid ${bidId} without changing global status`,
+          );
 
           // Mark the retail bid as 'under_review' for THIS user only
           const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const userRetailBid = retailBids.find(rb => rb.userId === userId);
+          const userRetailBid = retailBids.find((rb) => rb.userId === userId);
           if (userRetailBid) {
-            await storage.updateRetailBidStatus(userRetailBid.id, 'under_review');
-            console.log(`Updated retail bid ${userRetailBid.id} status to under_review for user ${userId}`);
+            await storage.updateRetailBidStatus(
+              userRetailBid.id,
+              "under_review",
+            );
+            console.log(
+              `Updated retail bid ${userRetailBid.id} status to under_review for user ${userId}`,
+            );
           }
         } catch (error) {
           console.log("Could not update bid payment tracking:", error.message);
@@ -1962,7 +2164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         payment,
         paymentReference: paymentReference,
-        bidId: bidId || null
+        bidId: bidId || null,
       });
     } catch (error) {
       console.error("Payment creation error:", error);
@@ -1982,9 +2184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.status(500).json({ 
-        success: false, 
-        message: errorMessage 
+      res.status(500).json({
+        success: false,
+        message: errorMessage,
       });
     }
   });
@@ -2005,41 +2207,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/notifications/:id/read", async (req: Request, res: Response) => {
-    try {
-      const notificationId = parseInt(req.params.id);
+  app.put(
+    "/api/notifications/:id/read",
+    async (req: Request, res: Response) => {
+      try {
+        const notificationId = parseInt(req.params.id);
 
-      await db
-        .update(notifications)
-        .set({ 
-          isRead: true,
-          updatedAt: new Date().toISOString()
-        })
-        .where(eq(notifications.id, notificationId));
+        await db
+          .update(notifications)
+          .set({
+            isRead: true,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(notifications.id, notificationId));
 
-      res.json({ success: true, message: "Notification marked as read" });
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      res.status(500).json({ success: false, error: "Failed to mark notification as read" });
-    }
-  });
+        res.json({ success: true, message: "Notification marked as read" });
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+        res
+          .status(500)
+          .json({
+            success: false,
+            error: "Failed to mark notification as read",
+          });
+      }
+    },
+  );
 
-  app.put("/api/notifications/mark-all-read", async (req: Request, res: Response) => {
-    try {
-      await db
-        .update(notifications)
-        .set({ 
-          isRead: true,
-          updatedAt: new Date().toISOString()
-        })
-        .where(eq(notifications.isRead, false));
+  app.put(
+    "/api/notifications/mark-all-read",
+    async (req: Request, res: Response) => {
+      try {
+        await db
+          .update(notifications)
+          .set({
+            isRead: true,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(notifications.isRead, false));
 
-      res.json({ success: true, message: "All notifications marked as read" });
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-      res.status(500).json({ success: false, error: "Failed to mark all notifications as read" });
-    }
-  });
+        res.json({
+          success: true,
+          message: "All notifications marked as read",
+        });
+      } catch (error) {
+        console.error("Error marking all notifications as read:", error);
+        res
+          .status(500)
+          .json({
+            success: false,
+            error: "Failed to mark all notifications as read",
+          });
+      }
+    },
+  );
 
   // Approve or reject retail user for a bid
   app.put("/api/bids/:bidId/retail-users/:userId/status", async (req, res) => {
@@ -2054,28 +2275,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!existingBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid not found"
+          message: "Bid not found",
         });
       }
 
       // Parse existing notes to get retail users data and seat availability
       let existingNotes = {};
       try {
-        existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+        existingNotes = existingBid.bid.notes
+          ? JSON.parse(existingBid.bid.notes)
+          : {};
       } catch (e) {
         existingNotes = {};
       }
 
       // Get seat availability information
-      const totalSeatsAvailable = existingBid.bid.totalSeatsAvailable || existingNotes.totalSeatsAvailable || 100;
+      const totalSeatsAvailable =
+        existingBid.bid.totalSeatsAvailable ||
+        existingNotes.totalSeatsAvailable ||
+        100;
       const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
       const currentSeatsBooked = retailBids
-        .filter(rb => rb.status === 'approved' || rb.status === 'paid')
+        .filter((rb) => rb.status === "approved" || rb.status === "paid")
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       // Initialize retail users array if it doesn't exist or ensure we have enough users
-      if (!existingNotes.retailUsers || existingNotes.retailUsers.length === 0) {
-        const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+      if (
+        !existingNotes.retailUsers ||
+        existingNotes.retailUsers.length === 0
+      ) {
+        const names = [
+          "John Smith",
+          "Sarah Johnson",
+          "Mike Wilson",
+          "Emma Davis",
+          "David Brown",
+          "Lisa Garcia",
+        ];
         const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
         const userCount = Math.max(parseInt(userId), 5); // Ensure we have at least as many users as the requested userId
 
@@ -2087,36 +2323,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           existingNotes.retailUsers.push({
             id: i + 1,
             name: names[i] || `User ${i + 1}`,
-            email: `${names[i]?.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+            email:
+              `${names[i]?.toLowerCase().replace(" ", ".")}@${domains[i % domains.length]}` ||
+              `user${i + 1}@email.com`,
             bookingRef: `GR00123${i + 4}`,
             seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
             bidAmount: baseBidAmount + randomIncrement,
             passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
-            status: existingBid.bid.bidStatus === 'approved' && i === 0 ? 'approved' : 'pending_approval'
+            status:
+              existingBid.bid.bidStatus === "approved" && i === 0
+                ? "approved"
+                : "pending_approval",
           });
         }
       }
 
       // Find and update the specific retail user
-      let retailUserIndex = existingNotes.retailUsers.findIndex(user => user.id === parseInt(userId));
+      let retailUserIndex = existingNotes.retailUsers.findIndex(
+        (user) => user.id === parseInt(userId),
+      );
 
       // If user still not found, add them dynamically
       if (retailUserIndex === -1) {
         const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
         const randomIncrement = Math.floor(Math.random() * 100) + 20;
-        const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown", "Lisa Garcia"];
+        const names = [
+          "John Smith",
+          "Sarah Johnson",
+          "Mike Wilson",
+          "Emma Davis",
+          "David Brown",
+          "Lisa Garcia",
+        ];
         const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
         const userIdNum = parseInt(userId);
 
         const newUser = {
           id: userIdNum,
           name: names[userIdNum - 1] || `User ${userIdNum}`,
-          email: `${names[userIdNum - 1]?.toLowerCase().replace(' ', '.')}@${domains[userIdNum % domains.length]}` || `user${userIdNum}@email.com`,
+          email:
+            `${names[userIdNum - 1]?.toLowerCase().replace(" ", ".")}@${domains[userIdNum % domains.length]}` ||
+            `user${userIdNum}@email.com`,
           bookingRef: `GR00123${userIdNum + 3}`,
           seatNumber: `1${2 + userIdNum - 1}${String.fromCharCode(64 + userIdNum)}`, // 12A, 13B, etc.
           bidAmount: baseBidAmount + randomIncrement,
           passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
-          status: 'pending_approval'
+          status: "pending_approval",
         };
 
         existingNotes.retailUsers.push(newUser);
@@ -2128,14 +2380,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let newBidStatus = existingBid.bid.bidStatus; // Keep current bid status by default
       let seatsWillBeBooked = 0;
 
-      if (action === 'approve') {
-        const userPassengerCount = existingNotes.retailUsers[retailUserIndex].passengerCount || 1;
+      if (action === "approve") {
+        const userPassengerCount =
+          existingNotes.retailUsers[retailUserIndex].passengerCount || 1;
 
         // Check if approving this user would exceed seat limit
         if (currentSeatsBooked + userPassengerCount > totalSeatsAvailable) {
           return res.status(400).json({
             success: false,
-            message: `Cannot approve: Not enough seats available. User needs ${userPassengerCount} seats but only ${totalSeatsAvailable - currentSeatsBooked} remaining.`
+            message: `Cannot approve: Not enough seats available. User needs ${userPassengerCount} seats but only ${totalSeatsAvailable - currentSeatsBooked} remaining.`,
           });
         }
 
@@ -2145,24 +2398,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         existingNotes.retailUsers.forEach((user, index) => {
           if (index === retailUserIndex) {
             // Approve the selected user
-            user.status = 'approved';
+            user.status = "approved";
             user.updatedAt = new Date().toISOString();
-            user.updatedBy = 'Admin';
-          } else if (user.status === 'pending_approval' || user.status === 'approved') {
+            user.updatedBy = "Admin";
+          } else if (
+            user.status === "pending_approval" ||
+            user.status === "approved"
+          ) {
             // Reject all other users who were pending or previously approved
-            user.status = 'rejected';
+            user.status = "rejected";
             user.updatedAt = new Date().toISOString();
-            user.updatedBy = 'Admin (Auto-rejected)';
+            user.updatedBy = "Admin (Auto-rejected)";
           }
         });
 
         // Update bid status to "approved" when a retail user is approved
-        newBidStatus = 'approved';
+        newBidStatus = "approved";
 
         // Update the retail bid status in the retail_bids table
-        const retailBid = retailBids.find(rb => rb.userId === parseInt(userId));
+        const retailBid = retailBids.find(
+          (rb) => rb.userId === parseInt(userId),
+        );
         if (retailBid) {
-          await storage.updateRetailBidStatus(retailBid.id, 'approved');
+          await storage.updateRetailBidStatus(retailBid.id, "approved");
         }
 
         // Check if the bid should be closed due to seat capacity
@@ -2173,17 +2431,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           existingNotes.closedAt = new Date().toISOString();
         }
 
-        console.log(`Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}. Seats booked: ${newTotalSeatsBooked}/${totalSeatsAvailable}`);
+        console.log(
+          `Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}. Seats booked: ${newTotalSeatsBooked}/${totalSeatsAvailable}`,
+        );
       } else {
         // If rejecting this user, just update their status
-        existingNotes.retailUsers[retailUserIndex].status = 'rejected';
-        existingNotes.retailUsers[retailUserIndex].updatedAt = new Date().toISOString();
-        existingNotes.retailUsers[retailUserIndex].updatedBy = 'Admin';
+        existingNotes.retailUsers[retailUserIndex].status = "rejected";
+        existingNotes.retailUsers[retailUserIndex].updatedAt =
+          new Date().toISOString();
+        existingNotes.retailUsers[retailUserIndex].updatedBy = "Admin";
 
         // Update the retail bid status in the retail_bids table
-        const retailBid = retailBids.find(rb => rb.userId === parseInt(userId));
+        const retailBid = retailBids.find(
+          (rb) => rb.userId === parseInt(userId),
+        );
         if (retailBid) {
-          await storage.updateRetailBidStatus(retailBid.id, 'rejected');
+          await storage.updateRetailBidStatus(retailBid.id, "rejected");
         }
       }
 
@@ -2191,53 +2454,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateData = {
         notes: JSON.stringify(existingNotes),
         bidStatus: newBidStatus,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       await storage.updateBidDetails(parseInt(bidId), updateData);
 
       // Calculate final seat availability
-      const finalSeatsBooked = currentSeatsBooked + (action === 'approve' ? seatsWillBeBooked : 0);
+      const finalSeatsBooked =
+        currentSeatsBooked + (action === "approve" ? seatsWillBeBooked : 0);
       const seatsRemaining = totalSeatsAvailable - finalSeatsBooked;
 
       // Create notification for the action
       await createNotification(
-        'retail_user_status_updated',
-        `Retail User ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-        action === 'approve' 
+        "retail_user_status_updated",
+        `Retail User ${action === "approve" ? "Approved" : "Rejected"}`,
+        action === "approve"
           ? `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been approved for bid ${bidId}. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
           : `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been rejected for bid ${bidId}`,
-        'medium',
+        "medium",
         {
           bidId: parseInt(bidId),
           userId: parseInt(userId),
-          action: action === 'approve' ? 'approved' : 'rejected',
+          action: action === "approve" ? "approved" : "rejected",
           userName: existingNotes.retailUsers[retailUserIndex].name,
           seatsBooked: seatsWillBeBooked,
           seatsRemaining: seatsRemaining,
-          totalSeatsAvailable: totalSeatsAvailable
-        }
+          totalSeatsAvailable: totalSeatsAvailable,
+        },
       );
 
       res.json({
         success: true,
-        message: action === 'approve' 
-          ? `Retail user approved successfully. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
-          : `Retail user rejected successfully`,
+        message:
+          action === "approve"
+            ? `Retail user approved successfully. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
+            : `Retail user rejected successfully`,
         retailUser: existingNotes.retailUsers[retailUserIndex],
         bidStatusUpdated: newBidStatus !== existingBid.bid.bidStatus,
         newBidStatus: newBidStatus,
         previousBidStatus: existingBid.bid.bidStatus,
         seatsRemaining: seatsRemaining,
         totalSeatsAvailable: totalSeatsAvailable,
-        isClosed: seatsRemaining <= 0
+        isClosed: seatsRemaining <= 0,
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
       res.status(500).json({
         success: false,
         message: `Failed to ${req.body.action} retail user`,
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -2268,14 +2533,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!existingBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid not found"
+          message: "Bid not found",
         });
       }
 
       // Parse existing notes and remove payment info
       let existingNotes = {};
       try {
-        existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+        existingNotes = existingBid.bid.notes
+          ? JSON.parse(existingBid.bid.notes)
+          : {};
       } catch (e) {
         existingNotes = {};
       }
@@ -2284,23 +2551,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       delete existingNotes.paymentInfo;
 
       const updateData = {
-        bidStatus: 'accepted', // or 'active' depending on your flow
+        bidStatus: "accepted", // or 'active' depending on your flow
         notes: JSON.stringify(existingNotes),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       await storage.updateBidDetails(parseInt(id), updateData);
 
       res.json({
         success: true,
-        message: "Bid payment status reset successfully"
+        message: "Bid payment status reset successfully",
       });
     } catch (error) {
       console.error("Error resetting bid payment status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to reset bid payment status",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -2315,14 +2582,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         users: allUsers,
-        count: allUsers.length
+        count: allUsers.length,
       });
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch users",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -2330,13 +2597,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new user
   app.post("/api/users", async (req, res) => {
     try {
-      const { firstName, lastName, email, username, password, name, isRetailAllowed } = req.body;
+      const {
+        firstName,
+        lastName,
+        email,
+        username,
+        password,
+        name,
+        isRetailAllowed,
+      } = req.body;
 
       // Validate required fields
       if (!username || !password || !name || !email) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, name, and email are required"
+          message: "Username, password, name, and email are required",
         });
       }
 
@@ -2345,7 +2620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "User with this username already exists"
+          message: "User with this username already exists",
         });
       }
 
@@ -2353,19 +2628,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingEmailUser) {
         return res.status(400).json({
           success: false,
-          message: "User with this email already exists"
+          message: "User with this email already exists",
         });
       }
 
       // Hash password before storing (basic hashing - in production use bcrypt)
-      const hashedPassword = Buffer.from(password).toString('base64');
+      const hashedPassword = Buffer.from(password).toString("base64");
 
       const newUser = await storage.createUser({
         username,
         password: hashedPassword,
         name,
         email,
-        isRetailAllowed: isRetailAllowed || false
+        isRetailAllowed: isRetailAllowed || false,
       });
 
       res.json({
@@ -2376,14 +2651,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: newUser.username,
           name: newUser.name,
           email: newUser.email,
-          isRetailAllowed: newUser.isRetailAllowed
-        }
+          isRetailAllowed: newUser.isRetailAllowed,
+        },
       });
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   });
@@ -2396,7 +2671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!username || !password) {
         return res.status(400).json({
           success: false,
-          message: "Username and password are required"
+          message: "Username and password are required",
         });
       }
 
@@ -2405,7 +2680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: "Invalid credentials"
+          message: "Invalid credentials",
         });
       }
 
@@ -2417,7 +2692,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!hasRetailAccess) {
         return res.status(403).json({
           success: false,
-          message: "Access denied: You are not authorized to access the retail portal"
+          message:
+            "Access denied: You are not authorized to access the retail portal",
         });
       }
 
@@ -2428,15 +2704,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           name: user.name,
           email: user.email,
-          isRetailAllowed: user.isRetailAllowed
+          isRetailAllowed: user.isRetailAllowed,
         },
-        message: "Access granted"
+        message: "Access granted",
       });
     } catch (error) {
       console.error("Error checking retail access:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   });
@@ -2451,13 +2727,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         success: true,
-        message: `Retail access ${isAllowed ? 'granted' : 'revoked'} successfully`
+        message: `Retail access ${isAllowed ? "granted" : "revoked"} successfully`,
       });
     } catch (error) {
       console.error("Error updating retail access:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to update retail access"
+        message: "Failed to update retail access",
       });
     }
   });
@@ -2473,7 +2749,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!bidId || !userId || !submittedAmount || !passengerCount) {
         return res.status(400).json({
           success: false,
-          message: "All fields are required: bidId, userId, submittedAmount, passengerCount"
+          message:
+            "All fields are required: bidId, userId, submittedAmount, passengerCount",
         });
       }
 
@@ -2482,7 +2759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!originalBid) {
         return res.status(404).json({
           success: false,
-          message: "Bid configuration not found"
+          message: "Bid configuration not found",
         });
       }
 
@@ -2491,7 +2768,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse bid configuration data for seat availability checking
       let configData = {};
       try {
-        configData = originalBid.bid.notes ? JSON.parse(originalBid.bid.notes) : {};
+        configData = originalBid.bid.notes
+          ? JSON.parse(originalBid.bid.notes)
+          : {};
         console.log("Parsed config data:", configData);
       } catch (e) {
         console.log("Could not parse config data, using defaults");
@@ -2499,13 +2778,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get seat limits
-      const totalSeatsAvailable = originalBid.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-      const maxSeatsPerUser = originalBid.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
-      const existingRetailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      const totalSeatsAvailable =
+        originalBid.bid.totalSeatsAvailable ||
+        configData.totalSeatsAvailable ||
+        100;
+      const maxSeatsPerUser =
+        originalBid.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
+      const existingRetailBids = await storage.getRetailBidsByBid(
+        parseInt(bidId),
+      );
 
       // Calculate available seats = total_seats_available minus sum of passenger_count from retail_bids with status 'under_review' or 'paid'
       const bookedSeats = existingRetailBids
-        .filter(rb => rb.status === 'under_review' || rb.status === 'paid')
+        .filter((rb) => rb.status === "under_review" || rb.status === "paid")
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
@@ -2514,7 +2799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (parseInt(passengerCount) > availableSeats) {
         return res.status(400).json({
           success: false,
-          message: `Not enough seats available. ${availableSeats} seats remaining.`
+          message: `Not enough seats available. ${availableSeats} seats remaining.`,
         });
       }
 
@@ -2522,21 +2807,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (parseInt(passengerCount) > maxSeatsPerUser) {
         return res.status(400).json({
           success: false,
-          message: `Maximum ${maxSeatsPerUser} seats allowed per user.`
+          message: `Maximum ${maxSeatsPerUser} seats allowed per user.`,
         });
       }
 
       // Check if user has already submitted a bid for this configuration
-      const userExistingBid = existingRetailBids.find(rb => rb.userId === parseInt(userId));
+      const userExistingBid = existingRetailBids.find(
+        (rb) => rb.userId === parseInt(userId),
+      );
 
       if (userExistingBid) {
         return res.status(400).json({
           success: false,
-          message: "You have already submitted a bid for this configuration"
+          message: "You have already submitted a bid for this configuration",
         });
       }
 
-      console.log("Bid submission for bid:", bidId, "passenger count:", passengerCount);
+      console.log(
+        "Bid submission for bid:",
+        bidId,
+        "passenger count:",
+        passengerCount,
+      );
 
       // Create retail bid submission with status 'submitted'
       const retailBidData = {
@@ -2545,25 +2837,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
-        status: "submitted" // Set as submitted initially
+        status: "submitted", // Set as submitted initially
       };
 
       const newRetailBid = await storage.createRetailBid(retailBidData);
 
       // Create notification
       await createNotification(
-        'retail_bid_submitted',
-        'New Retail Bid Submitted',
+        "retail_bid_submitted",
+        "New Retail Bid Submitted",
         `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${availableSeats - parseInt(passengerCount)} seats remaining.`,
-        'medium',
+        "medium",
         {
           retailBidId: newRetailBid.id,
           bidId: parseInt(bidId),
           userId: parseInt(userId),
           amount: submittedAmount,
           passengerCount: parseInt(passengerCount),
-          seatsRemaining: availableSeats - parseInt(passengerCount)
-        }
+          seatsRemaining: availableSeats - parseInt(passengerCount),
+        },
       );
 
       res.json({
@@ -2571,101 +2863,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Retail bid submitted successfully",
         retailBid: newRetailBid,
         availableSeats: availableSeats - parseInt(passengerCount),
-        totalSeatsAvailable: totalSeatsAvailable
+        totalSeatsAvailable: totalSeatsAvailable,
       });
-
     } catch (error) {
       console.error("Error submitting retail bid:", error);
       res.status(500).json({
         success: false,
         message: "Failed to submit retail bid",
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Mark retail bid as under_review after payment
-  app.put("/api/retail-bids/:retailBidId/mark-under-review", async (req, res) => {
-    try {
-      const { retailBidId } = req.params;
-      const { paymentReference, transactionId, userId, bidId } = req.body;
+  app.put(
+    "/api/retail-bids/:retailBidId/mark-under-review",
+    async (req, res) => {
+      try {
+        const { retailBidId } = req.params;
+        const { paymentReference, transactionId, userId, bidId } = req.body;
 
-      console.log(`Marking retail bid ${retailBidId} as under_review after payment by user ${userId} for bid ${bidId}`);
+        console.log(
+          `Marking retail bid ${retailBidId} as under_review after payment by user ${userId} for bid ${bidId}`,
+        );
 
-      // Get the retail bid
-      const retailBid = await storage.getRetailBidById(parseInt(retailBidId));
-      if (!retailBid) {
-        return res.status(404).json({
-          success: false,
-          message: "Retail bid not found"
-        });
-      }
-
-      // Validate that the bid is currently in 'submitted' status
-      if (retailBid.status !== 'submitted') {
-        return res.status(400).json({
-          success: false,
-          message: `Cannot mark bid as under_review. Current status: ${retailBid.status}`
-        });
-      }
-
-      // Update the retail bid status to 'under_review'
-      await storage.updateRetailBidStatus(parseInt(retailBidId), 'under_review');
-
-      // Get the main bid configuration to check seat availability
-      const bidDetails = await storage.getBidById(retailBid.bidId);
-      if (bidDetails) {
-        let configData = {};
-        try {
-          configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
-        } catch (e) {
-          configData = {};
+        // Get the retail bid
+        const retailBid = await storage.getRetailBidById(parseInt(retailBidId));
+        if (!retailBid) {
+          return res.status(404).json({
+            success: false,
+            message: "Retail bid not found",
+          });
         }
 
-        const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-        
-        // Get all retail bids for this configuration to calculate remaining seats
-        const allRetailBids = await storage.getRetailBidsByBid(retailBid.bidId);
-        const bookedSeats = allRetailBids
-          .filter(rb => rb.status === 'under_review' || rb.status === 'paid')
-          .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+        // Validate that the bid is currently in 'submitted' status
+        if (retailBid.status !== "submitted") {
+          return res.status(400).json({
+            success: false,
+            message: `Cannot mark bid as under_review. Current status: ${retailBid.status}`,
+          });
+        }
 
-        const remainingSeats = totalSeatsAvailable - bookedSeats;
+        // Update the retail bid status to 'under_review'
+        await storage.updateRetailBidStatus(
+          parseInt(retailBidId),
+          "under_review",
+        );
 
-        console.log(`Bid ${retailBid.bidId}: ${bookedSeats}/${totalSeatsAvailable} seats booked, ${remainingSeats} remaining`);
-      }
+        // Get the main bid configuration to check seat availability
+        const bidDetails = await storage.getBidById(retailBid.bidId);
+        if (bidDetails) {
+          let configData = {};
+          try {
+            configData = bidDetails.bid.notes
+              ? JSON.parse(bidDetails.bid.notes)
+              : {};
+          } catch (e) {
+            configData = {};
+          }
 
-      // Create notification for payment received
-      await createNotification(
-        'retail_bid_payment_received',
-        'Retail Bid Payment Received',
-        `Payment received for retail bid ${retailBidId}. Bid is now under review.`,
-        'medium',
-        {
+          const totalSeatsAvailable =
+            bidDetails.bid.totalSeatsAvailable ||
+            configData.totalSeatsAvailable ||
+            100;
+
+          // Get all retail bids for this configuration to calculate remaining seats
+          const allRetailBids = await storage.getRetailBidsByBid(
+            retailBid.bidId,
+          );
+          const bookedSeats = allRetailBids
+            .filter(
+              (rb) => rb.status === "under_review" || rb.status === "paid",
+            )
+            .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+
+          const remainingSeats = totalSeatsAvailable - bookedSeats;
+
+          console.log(
+            `Bid ${retailBid.bidId}: ${bookedSeats}/${totalSeatsAvailable} seats booked, ${remainingSeats} remaining`,
+          );
+        }
+
+        // Create notification for payment received
+        await createNotification(
+          "retail_bid_payment_received",
+          "Retail Bid Payment Received",
+          `Payment received for retail bid ${retailBidId}. Bid is now under review.`,
+          "medium",
+          {
+            retailBidId: parseInt(retailBidId),
+            paymentReference: paymentReference || null,
+            transactionId: transactionId || null,
+            bidId: retailBid.bidId,
+            userId: retailBid.userId,
+          },
+        );
+
+        res.json({
+          success: true,
+          message: "Retail bid marked as under review successfully",
           retailBidId: parseInt(retailBidId),
-          paymentReference: paymentReference || null,
-          transactionId: transactionId || null,
-          bidId: retailBid.bidId,
-          userId: retailBid.userId
-        }
-      );
-
-      res.json({
-        success: true,
-        message: "Retail bid marked as under review successfully",
-        retailBidId: parseInt(retailBidId),
-        newStatus: 'under_review'
-      });
-
-    } catch (error) {
-      console.error("Error marking retail bid as under review:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to mark retail bid as under review",
-        error: error.message
-      });
-    }
-  });
+          newStatus: "under_review",
+        });
+      } catch (error) {
+        console.error("Error marking retail bid as under review:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to mark retail bid as under review",
+          error: error.message,
+        });
+      }
+    },
+  );
 
   // Get retail bids for a bid configuration
   app.get("/api/retail-bids/:bidId", async (req, res) => {
@@ -2675,14 +2984,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         success: true,
-        retailBids
+        retailBids,
       });
     } catch (error) {
       console.error("Error fetching retail bids:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch retail bids",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -2700,20 +3009,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!bidDetails) {
         return res.status(404).json({
           success: false,
-          message: "Bid not found"
+          message: "Bid not found",
         });
       }
 
       // Parse configuration data
       let configData = {};
       try {
-        configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+        configData = bidDetails.bid.notes
+          ? JSON.parse(bidDetails.bid.notes)
+          : {};
       } catch (e) {
         configData = {};
       }
 
       // Get total seats available
-      const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const totalSeatsAvailable =
+        bidDetails.bid.totalSeatsAvailable ||
+        configData.totalSeatsAvailable ||
+        100;
 
       // Get all retail bids for this configuration
       const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
@@ -2723,25 +3037,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
       const bookedSeats = retailBids
-        .filter(rb => rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved')
+        .filter(
+          (rb) =>
+            rb.status === "under_review" ||
+            rb.status === "paid" ||
+            rb.status === "approved",
+        )
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
       // Determine user-specific status
-      let displayStatus = 'Open';
-      let statusForUser = 'open';
+      let displayStatus = "Open";
+      let statusForUser = "open";
       let hasUserPaid = false;
-      let userPaymentStatus = 'open';
+      let userPaymentStatus = "open";
 
       if (userId) {
         const currentUserId = parseInt(userId as string);
-        
+
         // Check if THIS user has a retail bid for this bid_id
-        const userRetailBid = retailBids.find(rb => rb.userId === currentUserId);
-        
+        const userRetailBid = retailBids.find(
+          (rb) => rb.userId === currentUserId,
+        );
+
         // Check if this user has made a payment for this bid (check by userId in payments table)
-        const userPayment = bidPayments.find(payment => {
+        const userPayment = bidPayments.find((payment) => {
           return payment.userId === currentUserId;
         });
 
@@ -2749,57 +3070,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let userPaidFromBidNotes = false;
         try {
           const userPayments = configData.userPayments || [];
-          const userPaymentRecord = userPayments.find(up => up.userId === currentUserId);
-          userPaidFromBidNotes = userPaymentRecord && userPaymentRecord.paymentCompleted === true;
+          const userPaymentRecord = userPayments.find(
+            (up) => up.userId === currentUserId,
+          );
+          userPaidFromBidNotes =
+            userPaymentRecord && userPaymentRecord.paymentCompleted === true;
         } catch (e) {
           userPaidFromBidNotes = false;
         }
 
         // Determine if this specific user has paid
-        hasUserPaid = (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid' || userRetailBid.status === 'approved')) ||
-                      userPayment !== undefined ||
-                      userPaidFromBidNotes;
+        hasUserPaid =
+          (userRetailBid &&
+            (userRetailBid.status === "under_review" ||
+              userRetailBid.status === "paid" ||
+              userRetailBid.status === "approved")) ||
+          userPayment !== undefined ||
+          userPaidFromBidNotes;
 
         if (hasUserPaid) {
           // User has paid - show their specific status
-          if (userRetailBid?.status === 'approved') {
+          if (userRetailBid?.status === "approved") {
             displayStatus = "Approved";
-            statusForUser = 'approved';
-            userPaymentStatus = 'approved';
-          } else if (userRetailBid?.status === 'rejected') {
+            statusForUser = "approved";
+            userPaymentStatus = "approved";
+          } else if (userRetailBid?.status === "rejected") {
             displayStatus = "Rejected";
-            statusForUser = 'rejected';
-            userPaymentStatus = 'rejected';
+            statusForUser = "rejected";
+            userPaymentStatus = "rejected";
           } else {
             displayStatus = "Under Review";
-            statusForUser = 'under_review';
-            userPaymentStatus = 'under_review';
+            statusForUser = "under_review";
+            userPaymentStatus = "under_review";
           }
-          console.log(`User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}`);
+          console.log(
+            `User ${userId} has paid for bid ${bidId}, showing: ${displayStatus}`,
+          );
         } else {
           // User hasn't paid - check if seats are available for booking
           if (availableSeats > 0) {
             displayStatus = "Open";
-            statusForUser = 'open';
-            userPaymentStatus = 'open';
-            console.log(`User ${userId} has not paid for bid ${bidId}, showing: Open (${availableSeats} seats available)`);
+            statusForUser = "open";
+            userPaymentStatus = "open";
+            console.log(
+              `User ${userId} has not paid for bid ${bidId}, showing: Open (${availableSeats} seats available)`,
+            );
           } else {
             displayStatus = "Closed";
-            statusForUser = 'closed';
-            userPaymentStatus = 'closed';
-            console.log(`User ${userId} - bid ${bidId} closed due to no seats available`);
+            statusForUser = "closed";
+            userPaymentStatus = "closed";
+            console.log(
+              `User ${userId} - bid ${bidId} closed due to no seats available`,
+            );
           }
         }
       } else {
         // No user specified - show general availability based on seat count
         if (availableSeats > 0) {
           displayStatus = "Open";
-          statusForUser = 'open';
-          userPaymentStatus = 'open';
+          statusForUser = "open";
+          userPaymentStatus = "open";
         } else {
           displayStatus = "Closed";
-          statusForUser = 'closed';
-          userPaymentStatus = 'closed';
+          statusForUser = "closed";
+          userPaymentStatus = "closed";
         }
       }
 
@@ -2807,11 +3141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bidFullyBooked = availableSeats <= 0;
       if (bidFullyBooked && !hasUserPaid) {
         displayStatus = "Closed";
-        statusForUser = 'closed';
-        userPaymentStatus = 'closed';
+        statusForUser = "closed";
+        userPaymentStatus = "closed";
       }
 
-      console.log(`Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser}), payment: ${userPaymentStatus}, seats: ${availableSeats}/${totalSeatsAvailable}`);
+      console.log(
+        `Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser}), payment: ${userPaymentStatus}, seats: ${availableSeats}/${totalSeatsAvailable}`,
+      );
 
       res.json({
         success: true,
@@ -2825,22 +3161,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isClosed: bidFullyBooked && !hasUserPaid,
         hasUserPaid: hasUserPaid,
         originalBidStatus: bidDetails.bid.bidStatus,
-        userRetailBidStatus: userId ? retailBids.find(rb => rb.userId === parseInt(userId as string))?.status : null,
-        allUsersWhoHavePaid: retailBids.filter(rb => rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved').map(rb => rb.userId)
+        userRetailBidStatus: userId
+          ? retailBids.find((rb) => rb.userId === parseInt(userId as string))
+              ?.status
+          : null,
+        allUsersWhoHavePaid: retailBids
+          .filter(
+            (rb) =>
+              rb.status === "under_review" ||
+              rb.status === "paid" ||
+              rb.status === "approved",
+          )
+          .map((rb) => rb.userId),
       });
-
     } catch (error) {
       console.error("Error fetching bid status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch bid status",
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Create notification (helper function for internal use)
-  const createNotification = async (type: string, title: string, message: string, priority: string = 'medium', actionData: any = null) => {
+  const createNotification = async (
+    type: string,
+    title: string,
+    message: string,
+    priority: string = "medium",
+    actionData: any = null,
+  ) => {
     try {
       const now = new Date();
       await db.insert(notifications).values({
@@ -2862,30 +3213,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
-      const users = await db.select({
-        id: usersTable.id,
-        name: usersTable.name,
-        email: usersTable.email,
-        username: usersTable.username,
-        isRetailAllowed: usersTable.isRetailAllowed,
-        role: sql`CASE 
+      const users = await db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          email: usersTable.email,
+          username: usersTable.username,
+          isRetailAllowed: usersTable.isRetailAllowed,
+          role: sql`CASE 
           WHEN ${usersTable.username} = 'admin' THEN 'Super Admin'
           WHEN ${usersTable.isRetailAllowed} = true THEN 'User'
           ELSE 'Guest'
-        END`.as('role'),
-        status: sql`'Active'`.as('status'),
-        lastLogin: sql`'2024-01-15'`.as('lastLogin')
-      }).from(usersTable);
+        END`.as("role"),
+          status: sql`'Active'`.as("status"),
+          lastLogin: sql`'2024-01-15'`.as("lastLogin"),
+        })
+        .from(usersTable);
 
       return res.json({
         success: true,
-        users: users
+        users: users,
       });
     } catch (error) {
       console.error("Error fetching users:", error);
       return res.json(
         { success: false, message: "Failed to fetch users" },
-        500
+        500,
       );
     }
   });
@@ -2899,58 +3252,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.json(
           { success: false, message: "User ID is required" },
-          400
+          400,
         );
       }
 
       // Check if user exists
-      const existingUser = await db.select()
+      const existingUser = await db
+        .select()
         .from(usersTable)
         .where(eq(usersTable.id, userId))
         .limit(1);
 
       if (existingUser.length === 0) {
-        return res.json(
-          { success: false, message: "User not found" },
-          404
-        );
+        return res.json({ success: false, message: "User not found" }, 404);
       }
 
       // Check if email is already taken by another user
-      const emailExists = await db.select()
+      const emailExists = await db
+        .select()
         .from(usersTable)
-        .where(and(
-          eq(usersTable.email, email),
-          ne(usersTable.id, userId)
-        ))
+        .where(and(eq(usersTable.email, email), ne(usersTable.id, userId)))
         .limit(1);
 
       if (emailExists.length > 0) {
         return res.json(
           { success: false, message: "Email is already taken" },
-          400
+          400,
         );
       }
 
       // Update user
-      await db.update(usersTable)
+      await db
+        .update(usersTable)
         .set({
           name: name,
           email: email,
           isRetailAllowed: isRetailAllowed || false,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(usersTable.id, userId));
 
       return res.json({
         success: true,
-        message: "User updated successfully"
+        message: "User updated successfully",
       });
     } catch (error) {
       console.error("Error updating user:", error);
       return res.json(
         { success: false, message: "Failed to update user" },
-        500
+        500,
       );
     }
   });
@@ -2963,44 +3313,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.json(
           { success: false, message: "User ID is required" },
-          400
+          400,
         );
       }
 
       // Check if user exists
-      const existingUser = await db.select()
+      const existingUser = await db
+        .select()
         .from(usersTable)
         .where(eq(usersTable.id, userId))
         .limit(1);
 
       if (existingUser.length === 0) {
-        return res.json(
-          { success: false, message: "User not found" },
-          404
-        );
+        return res.json({ success: false, message: "User not found" }, 404);
       }
 
       // Prevent deletion of admin user
-      if (existingUser[0].username === 'admin') {
+      if (existingUser[0].username === "admin") {
         return res.json(
           { success: false, message: "Cannot delete admin user" },
-          400
+          400,
         );
       }
 
       // Delete user
-      await db.delete(usersTable)
-        .where(eq(usersTable.id, userId));
+      await db.delete(usersTable).where(eq(usersTable.id, userId));
 
       return res.json({
         success: true,
-        message: "User deleted successfully"
+        message: "User deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting user:", error);
       return res.json(
         { success: false, message: "Failed to delete user" },
-        500
+        500,
       );
     }
   });
@@ -3014,7 +3361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!username || !password || !name || !email) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, name, and email are required"
+          message: "Username, password, name, and email are required",
         });
       }
 
@@ -3023,7 +3370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "User with this username already exists"
+          message: "User with this username already exists",
         });
       }
 
@@ -3031,19 +3378,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingEmailUser) {
         return res.status(400).json({
           success: false,
-          message: "User with this email already exists"
+          message: "User with this email already exists",
         });
       }
 
       // Hash password before storing (basic hashing - in production use bcrypt)
-      const hashedPassword = Buffer.from(password).toString('base64');
+      const hashedPassword = Buffer.from(password).toString("base64");
 
       const newUser = await storage.createUser({
         username,
         password: hashedPassword,
         name,
         email,
-        isRetailAllowed: isRetailAllowed || false
+        isRetailAllowed: isRetailAllowed || false,
       });
 
       res.json({
@@ -3054,18 +3401,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: newUser.username,
           name: newUser.name,
           email: newUser.email,
-          isRetailAllowed: newUser.isRetailAllowed
-        }
+          isRetailAllowed: newUser.isRetailAllowed,
+        },
       });
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   });
-
 
   const httpServer = createServer(app);
   return httpServer;

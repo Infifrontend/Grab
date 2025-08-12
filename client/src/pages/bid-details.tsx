@@ -20,7 +20,7 @@ import {
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
 // Helper functions (assuming these are defined elsewhere or need to be included if not globally available)
 const formatDateToDDMMMYYYY = (dateString) => {
@@ -28,7 +28,10 @@ const formatDateToDDMMMYYYY = (dateString) => {
 };
 
 const formatCurrency = (amount) => {
-  return amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return amount.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 };
 
 const { Title, Text } = Typography;
@@ -45,14 +48,21 @@ export default function BidDetails() {
   const [submittingBid, setSubmittingBid] = useState(false);
 
   // Fetch bid details from database using React Query
-  const { data: bidData, isLoading: isBidLoading, error: bidError, refetch: refetchBid } = useQuery({
+  const {
+    data: bidData,
+    isLoading: isBidLoading,
+    error: bidError,
+    refetch: refetchBid,
+  } = useQuery({
     queryKey: ["bid", bidId],
     queryFn: async () => {
       console.log(`Fetching bid details for ID: ${bidId}`);
       const response = await fetch(`/api/bids/${bidId}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`,
+        );
       }
       const data = await response.json();
       console.log("Raw bid data received:", data);
@@ -63,15 +73,23 @@ export default function BidDetails() {
   });
 
   // Fetch dynamic status for this user
-  const { data: bidStatus, isLoading: isBidStatusLoading, error: bidStatusError } = useQuery({
+  const {
+    data: bidStatus,
+    isLoading: isBidStatusLoading,
+    error: bidStatusError,
+  } = useQuery({
     queryKey: ["bid-status", bidId],
     queryFn: async () => {
       const userId = localStorage.getItem("userId");
-      const response = await fetch(`/api/bid-status/${bidId}?userId=${userId || ''}`);
+      const response = await fetch(
+        `/api/bid-status/${bidId}?userId=${userId || ""}`,
+      );
       if (response.ok) {
         return await response.json();
       }
-      console.warn(`Failed to fetch bid status for bid ${bidId}, userId ${userId}`);
+      console.warn(
+        `Failed to fetch bid status for bid ${bidId}, userId ${userId}`,
+      );
       return null;
     },
     enabled: !!bidId,
@@ -109,7 +127,8 @@ export default function BidDetails() {
     }
 
     const origin = configData.origin || bid.flight?.origin || "Unknown";
-    const destination = configData.destination || bid.flight?.destination || "Unknown";
+    const destination =
+      configData.destination || bid.flight?.destination || "Unknown";
 
     // Use dynamic status from bid status endpoint if available
     let status = "Open";
@@ -122,19 +141,24 @@ export default function BidDetails() {
         seatsRemaining: bidStatus.availableSeats,
         isClosed: bidStatus.isClosed,
         hasUserPaid: bidStatus.hasUserPaid,
-        userRetailBidStatus: bidStatus.userRetailBidStatus
+        userRetailBidStatus: bidStatus.userRetailBidStatus,
       };
       console.log(`Using dynamic status: ${status}`, seatAvailabilityInfo);
     } else {
       // Fallback to static status determination if bidStatus fetch fails or is not successful
-      console.warn("Could not fetch dynamic bid status, falling back to static status.");
+      console.warn(
+        "Could not fetch dynamic bid status, falling back to static status.",
+      );
       // Check if THIS specific user has paid by looking at userPayments array
       let currentUserPaid = false;
       try {
         const userId = localStorage.getItem("userId");
         if (userId && configData.userPayments) {
-          const userPayment = configData.userPayments.find(up => up.userId === parseInt(userId));
-          currentUserPaid = userPayment && userPayment.paymentCompleted === true;
+          const userPayment = configData.userPayments.find(
+            (up) => up.userId === parseInt(userId),
+          );
+          currentUserPaid =
+            userPayment && userPayment.paymentCompleted === true;
         }
       } catch (e) {
         console.warn("Error determining bid status:", e);
@@ -147,22 +171,22 @@ export default function BidDetails() {
       } else {
         // Check bid status and ensure active/open bids show as "Open"
         switch (bid.bidStatus?.toLowerCase()) {
-          case 'active':
-          case 'open':
+          case "active":
+          case "open":
             status = "Open";
             break;
-          case 'accepted':
-          case 'approved':
+          case "accepted":
+          case "approved":
             status = "Approved";
             break;
-          case 'rejected':
+          case "rejected":
             status = "Rejected";
             break;
-          case 'completed':
+          case "completed":
             // For completed bids, if current user hasn't paid, still show as Open if seats available
             status = "Open";
             break;
-          case 'expired':
+          case "expired":
             status = "Expired";
             break;
           default:
@@ -180,7 +204,9 @@ export default function BidDetails() {
       route: `${origin} → ${destination}`,
       origin: origin,
       destination: destination,
-      travelDate: configData.travelDate ? formatDateToDDMMMYYYY(configData.travelDate) : "N/A",
+      travelDate: configData.travelDate
+        ? formatDateToDDMMMYYYY(configData.travelDate)
+        : "N/A",
       departureTime: configData.departureTimeRange || "Flexible",
       bidAmount: `₹${formatCurrency(parseFloat(bid.bidAmount))}`,
       totalPassengers: bid.passengerCount || configData.minSeatsPerBid || 1,
@@ -196,14 +222,19 @@ export default function BidDetails() {
       mealIncluded: configData.mealIncluded || false,
 
       // Bid Configuration Details
-      totalSeatsAvailable: configData.totalSeatsAvailable || bid.totalSeatsAvailable || 50,
+      totalSeatsAvailable:
+        configData.totalSeatsAvailable || bid.totalSeatsAvailable || 50,
       minSeatsPerBid: configData.minSeatsPerBid || bid.minSeatsPerBid || 1,
       maxSeatsPerBid: configData.maxSeatsPerBid || bid.maxSeatsPerBid || 10,
       maxSeatsPerUser: configData.maxSeatsPerUser || 5,
 
       // Timeline Information
-      bidStartTime: configData.bidStartTime ? formatDateToDDMMMYYYY(configData.bidStartTime) : "Active",
-      bidEndTime: configData.bidEndTime ? formatDateToDDMMMYYYY(configData.bidEndTime) : formatDateToDDMMMYYYY(bid.validUntil),
+      bidStartTime: configData.bidStartTime
+        ? formatDateToDDMMMYYYY(configData.bidStartTime)
+        : "Active",
+      bidEndTime: configData.bidEndTime
+        ? formatDateToDDMMMYYYY(configData.bidEndTime)
+        : formatDateToDDMMMYYYY(bid.validUntil),
 
       // Settings & Rules
       autoAwardTopBidder: configData.autoAwardTopBidder || false,
@@ -241,7 +272,12 @@ export default function BidDetails() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
           message="Error"
-          description={error?.message || bidError?.message || bidStatusError?.message || "Bid details could not be loaded."}
+          description={
+            error?.message ||
+            bidError?.message ||
+            bidStatusError?.message ||
+            "Bid details could not be loaded."
+          }
           type="error"
           showIcon
         />
@@ -314,7 +350,9 @@ export default function BidDetails() {
     const newAmount = parseFloat(e.target.value) || 0;
     if (newAmount < originalBidAmount) {
       setBidAmount(originalBidAmount);
-      message.warning(`Bid amount cannot be less than the original bid amount ($${originalBidAmount}).`);
+      message.warning(
+        `Bid amount cannot be less than the original bid amount ($${originalBidAmount}).`,
+      );
     } else {
       setBidAmount(newAmount);
     }
@@ -323,7 +361,10 @@ export default function BidDetails() {
   const handlePassengersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const newPassengers = value === "" ? null : parseInt(value);
-    if (newPassengers === null || newPassengers >= (bidData?.bid?.passengerCount || 0)) {
+    if (
+      newPassengers === null ||
+      newPassengers >= (bidData?.bid?.passengerCount || 0)
+    ) {
       setPassengers(newPassengers);
     }
   };
@@ -332,7 +373,9 @@ export default function BidDetails() {
     const newPaxCount = parseInt(e.target.value) || 0;
     if (newPaxCount < (bidData?.bid?.passengerCount || 0)) {
       setPassengers(bidData?.bid?.passengerCount);
-      message.warning(`Passenger count cannot be less than the original passenger count (${bidData?.bid?.passengerCount}).`);
+      message.warning(
+        `Passenger count cannot be less than the original passenger count (${bidData?.bid?.passengerCount}).`,
+      );
     } else {
       setPassengers(newPaxCount);
     }
@@ -352,12 +395,15 @@ export default function BidDetails() {
     console.log("Storing bid participation data:", bidParticipationData);
     localStorage.setItem(
       "bidParticipationData",
-      JSON.stringify(bidParticipationData)
+      JSON.stringify(bidParticipationData),
     );
     navigate(`/payment-details/${bidId}`);
   };
 
-  const currentStatus = getStatusDisplay(transformedBidData.status, transformedBidData.seatAvailability);
+  const currentStatus = getStatusDisplay(
+    transformedBidData.status,
+    transformedBidData.seatAvailability,
+  );
   const isBidClosed = transformedBidData.seatAvailability?.isClosed || false;
   const hasUserPaid = transformedBidData.seatAvailability?.hasUserPaid || false;
 
@@ -425,19 +471,39 @@ export default function BidDetails() {
           message="Seat Availability"
           description={
             <span>
-              <strong>{transformedBidData.seatAvailability.seatsRemaining}</strong> seats remaining out of{" "}
-              <strong>{transformedBidData.seatAvailability.totalSeatsAvailable}</strong> total seats.
+              <strong>
+                {transformedBidData.seatAvailability.seatsRemaining}
+              </strong>{" "}
+              seats remaining out of{" "}
+              <strong>
+                {transformedBidData.seatAvailability.totalSeatsAvailable}
+              </strong>{" "}
+              total seats.
               {transformedBidData.seatAvailability.isClosed ? (
-                <span className="text-red-600 font-semibold"> This bid is now closed.</span>
+                <span className="text-red-600 font-semibold">
+                  {" "}
+                  This bid is now closed.
+                </span>
               ) : transformedBidData.seatAvailability.hasUserPaid ? (
-                <span className="text-blue-600 font-semibold"> Your payment is being processed.</span>
+                <span className="text-blue-600 font-semibold">
+                  {" "}
+                  Your payment is being processed.
+                </span>
               ) : (
-                <span className="text-green-600"> Bid is still open for submissions.</span>
+                <span className="text-green-600">
+                  {" "}
+                  Bid is still open for submissions.
+                </span>
               )}
             </span>
           }
-          type={transformedBidData.seatAvailability.isClosed ? "warning" :
-                transformedBidData.seatAvailability.hasUserPaid ? "info" : "success"}
+          type={
+            transformedBidData.seatAvailability.isClosed
+              ? "warning"
+              : transformedBidData.seatAvailability.hasUserPaid
+                ? "info"
+                : "success"
+          }
           icon={<InfoCircleOutlined />}
           showIcon
           className="mb-6"
@@ -445,16 +511,17 @@ export default function BidDetails() {
       )}
 
       {/* User Payment Status Alert */}
-      {transformedBidData.seatAvailability?.hasUserPaid && !transformedBidData.seatAvailability.isClosed && (
-        <Alert
-          message="Payment Status"
-          description="You have successfully submitted payment for this bid. Your booking is under review and you will be notified once confirmed."
-          type="info"
-          icon={<InfoCircleOutlined />}
-          showIcon
-          className="mb-6"
-        />
-      )}
+      {transformedBidData.seatAvailability?.hasUserPaid &&
+        !transformedBidData.seatAvailability.isClosed && (
+          <Alert
+            message="Payment Status"
+            description="You have successfully submitted payment for this bid. Your booking is under review and you will be notified once confirmed."
+            type="info"
+            icon={<InfoCircleOutlined />}
+            showIcon
+            className="mb-6"
+          />
+        )}
 
       {/* Main Form Card */}
       <Card className="mb-6 shadow-sm">
@@ -891,26 +958,26 @@ export default function BidDetails() {
           </Button>
 
           {!isBidClosed && !hasUserPaid && currentStatus === "Open" && (
-              <Button
-                type="primary"
-                size="large"
-                onClick={handleContinueToPayment}
-                className="bg-blue-600 hover:bg-blue-700 font-semibold"
-              >
-                Continue to Payment
-              </Button>
-            )}
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleContinueToPayment}
+              className="bg-blue-600 hover:bg-blue-700 font-semibold"
+            >
+              Continue to Payment
+            </Button>
+          )}
 
-            {hasUserPaid && currentStatus === "Under Review" && (
-              <Button
-                type="default"
-                size="large"
-                disabled
-                className="bg-gray-100 text-gray-500 cursor-not-allowed"
-              >
-                Payment Under Review
-              </Button>
-            )}
+          {hasUserPaid && currentStatus === "Under Review" && (
+            <Button
+              type="default"
+              size="large"
+              disabled
+              className="bg-gray-100 text-gray-500 cursor-not-allowed"
+            >
+              Payment Under Review
+            </Button>
+          )}
 
           {isBidClosed && (
             <div className="flex justify-end">
