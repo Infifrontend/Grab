@@ -45,24 +45,36 @@ export default function NewBooking() {
   const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("oneWay");
   const navigate = useNavigate();
+  // State for dynamic location options
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
-  // Fetch unique flight locations for autocomplete
-  const { data: locationsData } = useQuery({
-    queryKey: ["flight-locations"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/flight-locations");
-      return response.json();
-    },
-  });
-
+  // Fetch flight locations on component mount
   useEffect(() => {
-    if (locationsData?.locations) {
-      setOriginOptions(locationsData.locations);
-      setDestinationOptions(locationsData.locations);
-    }
-  }, [locationsData]);
+    const fetchFlightLocations = async () => {
+      try {
+        const response = await fetch("/api/flight-locations");
+        const data = await response.json();
+
+        if (data.locations) {
+          setOriginOptions(data.locations);
+          setDestinationOptions(data.locations);
+          console.log(`Loaded ${data.locations.length} flight locations for new booking`);
+        }
+      } catch (error) {
+        console.error("Error fetching flight locations:", error);
+        // Fallback to default locations if API fails
+        const fallbackLocations = [
+          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata",
+          "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Kochi"
+        ];
+        setOriginOptions(fallbackLocations);
+        setDestinationOptions(fallbackLocations);
+      }
+    };
+
+    fetchFlightLocations();
+  }, []);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -484,7 +496,7 @@ export default function NewBooking() {
             onClick={() => form.submit()}
             className="infiniti-btn-primary px-8"
           >
-            { !userMode 
+            { !userMode
               ? "Search Flights"
               : searchMutation.isPending
                 ? "Searching Flights..."

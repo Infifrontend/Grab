@@ -74,17 +74,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unique locations from flights table for autocomplete
   app.get("/api/flight-locations", async (req, res) => {
     try {
-      const flights = await storage.getFlights("", "", undefined); // Fetch all flights
+      // Get all flights from database
+      const allFlights = await db.select().from(flights);
 
       // Extract unique locations from origin and destination
       const locations = new Set<string>();
-      flights.forEach((flight) => {
-        locations.add(flight.origin);
-        locations.add(flight.destination);
+      allFlights.forEach((flight) => {
+        if (flight.origin) locations.add(flight.origin);
+        if (flight.destination) locations.add(flight.destination);
       });
 
       const uniqueLocations = Array.from(locations).sort();
-      res.json({ locations: uniqueLocations });
+      console.log(`Found ${uniqueLocations.length} unique flight locations:`, uniqueLocations);
+      
+      res.json({ 
+        locations: uniqueLocations,
+        count: uniqueLocations.length 
+      });
     } catch (error) {
       console.error("Error fetching flight locations:", error);
       res.status(500).json({ error: "Failed to fetch flight locations" });
