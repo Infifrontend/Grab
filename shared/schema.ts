@@ -11,6 +11,7 @@ export const grab_t_users = pgTable("grab_t_users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
+  role: text("role").default("retail_user"), // admin, retail_user
   isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 
