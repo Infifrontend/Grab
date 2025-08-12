@@ -98,11 +98,12 @@ const loadSearchResults = (): FlightResult[] => {
   ];
 };
 
-const [availableFlights, setAvailableFlights] = useState<FlightResult[]>([]);
-
 export default function FlightSearchResults() {
   const navigate = useNavigate();
   const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  
+  const [availableFlights, setAvailableFlights] = useState<FlightResult[]>([]);
+  
   // Filter states
   const [sortBy, setSortBy] = useState("price-low");
   const [priceRange, setPriceRange] = useState<[number, number]>([1000, 3000]);
