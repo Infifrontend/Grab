@@ -126,7 +126,7 @@ export default function FlightSearchResults() {
 
   // Filter states
   const [sortBy, setSortBy] = useState("price-low");
-  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 3000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [departureTime, setDepartureTime] = useState("any");
   const [maxStops, setMaxStops] = useState("any");
@@ -447,7 +447,7 @@ export default function FlightSearchResults() {
   // Clear all filters
   const handleClearFilters = () => {
     setSortBy("price-low");
-    setPriceRange([1000, 3000]);
+    setPriceRange([0, 50000]);
     setSelectedAirlines([]);
     setDepartureTime("any");
     setMaxStops("any");
@@ -734,7 +734,7 @@ export default function FlightSearchResults() {
                 <Slider
                   range
                   min={0}
-                  max={3000}
+                  max={50000}
                   value={priceRange}
                   onChange={setPriceRange}
                   className="mb-2"
