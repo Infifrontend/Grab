@@ -150,15 +150,26 @@ export default function NewBooking() {
         tripType: tripType,
       };
 
+      console.log("Sending search request:", searchData);
+      
       const searchResponse = await apiRequest(
         "POST",
         "/api/search",
         searchData
       );
+      
+      if (!searchResponse.ok) {
+        const errorData = await searchResponse.json();
+        console.error("Search API error:", errorData);
+        message.error(errorData.details || errorData.message || "Search failed");
+        return;
+      }
+      
       const searchResult = await searchResponse.json();
+      console.log("Search result received:", searchResult);
 
       if (!searchResult.flights || searchResult.flights.length === 0) {
-        message.error("No flights found for your search criteria");
+        message.error("No flights found for your search criteria. Please try different dates or destinations.");
         return;
       }
 

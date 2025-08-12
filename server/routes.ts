@@ -101,12 +101,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/search", async (req, res) => {
     try {
       console.log("Search request received:", req.body);
+      
+      // Validate the request body
+      if (!req.body.origin || !req.body.destination || !req.body.departureDate) {
+        return res.status(400).json({ 
+          message: "Missing required fields: origin, destination, and departureDate are required" 
+        });
+      }
+
       const searchData = insertSearchRequestSchema.parse(req.body);
+      console.log("Parsed search data:", searchData);
 
       // Create search request (storage will handle ID generation)
-      await storage.createSearchRequest(searchData);
+      try {
+        await storage.createSearchRequest(searchData);
+        console.log("Search request saved to database");
+      } catch (dbError) {
+        console.warn("Could not save search request to database:", dbError.message);
+        // Continue with search even if saving fails
+      }
 
       // Search for outbound flights
+      console.log(`Searching for flights from ${searchData.origin} to ${searchData.destination}`);
       const outboundFlights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
@@ -117,6 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If it's a round trip, also search for return flights
       if (searchData.tripType === "roundTrip" && searchData.returnDate) {
+        console.log(`Searching for return flights from ${searchData.destination} to ${searchData.origin}`);
         returnFlights = await storage.getReturnFlights(
           searchData.destination,
           searchData.origin,
@@ -130,23 +147,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
       );
-      console.log("Outbound flight data sample:", outboundFlights.slice(0, 2));
+      
+      if (outboundFlights.length > 0) {
+        console.log("Sample outbound flight:", outboundFlights[0]);
+      } else {
+        console.log("No outbound flights found - checking available flights in database");
+        // Debug: show what flights are available
+        const allFlights = await storage.getFlights();
+        console.log(`Total flights in database: ${allFlights.length}`);
+        if (allFlights.length > 0) {
+          console.log("Available routes:", allFlights.map(f => `${f.origin} → ${f.destination}`));
+        }
+      }
 
       res.json({
         flights: outboundFlights,
         returnFlights: returnFlights,
         tripType: searchData.tripType,
+        searchCriteria: searchData,
         message: "Search completed successfully",
+        totalResults: outboundFlights.length,
       });
     } catch (error) {
+      console.error("Detailed search error:", error);
+      
       if (error instanceof z.ZodError) {
         console.error("Search validation error:", error.errors);
-        res
-          .status(400)
-          .json({ message: "Invalid search data", errors: error.errors });
+        res.status(400).json({ 
+          message: "Invalid search data", 
+          errors: error.errors,
+          details: "Please check your search parameters"
+        });
       } else {
-        console.error("Search error:", error);
-        res.status(500).json({ message: "Search failed" });
+        console.error("Search error details:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        res.status(500).json({ 
+          message: "Search failed",
+          error: error.message,
+          details: "An error occurred while searching for flights. Please try again."
+        });
       }
     }
   });
@@ -1392,6 +1434,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: "Failed to migrate flights",
+      });
+    }
+  });
+
+  // Check flights and seed if needed
+  app.post("/api/check-and-seed-flights", async (_req, res) => {
+    try {
+      const allFlights = await storage.getFlights();
+      
+      if (allFlights.length === 0) {
+        console.log("No flights found, seeding with sample domestic flights...");
+        
+        const sampleFlights = [
+          {
+            flightNumber: 'AI101',
+            airline: 'Air India',
+            aircraft: 'Boeing 737',
+            origin: 'Delhi',
+            destination: 'Mumbai',
+            departureTime: new Date('2024-12-20T06:00:00'),
+            arrivalTime: new Date('2024-12-20T08:30:00'),
+            duration: '2h 30m',
+            price: '4500',
+            availableSeats: 180,
+            totalSeats: 180,
+            cabin: 'economy',
+            stops: 0
+          },
+          {
+            flightNumber: 'SG201',
+            airline: 'SpiceJet',
+            aircraft: 'Boeing 737',
+            origin: 'Mumbai',
+            destination: 'Bangalore',
+            departureTime: new Date('2024-12-20T09:00:00'),
+            arrivalTime: new Date('2024-12-20T11:00:00'),
+            duration: '2h 0m',
+            price: '3800',
+            availableSeats: 189,
+            totalSeats: 189,
+            cabin: 'economy',
+            stops: 0
+          },
+          {
+            flightNumber: 'UK301',
+            airline: 'Vistara',
+            aircraft: 'Airbus A320',
+            origin: 'Delhi',
+            destination: 'Bangalore',
+            departureTime: new Date('2024-12-20T10:30:00'),
+            arrivalTime: new Date('2024-12-20T13:00:00'),
+            duration: '2h 30m',
+            price: '5200',
+            availableSeats: 164,
+            totalSeats: 164,
+            cabin: 'economy',
+            stops: 0
+          },
+          {
+            flightNumber: 'G8201',
+            airline: 'Go First',
+            aircraft: 'Airbus A320',
+            origin: 'Chennai',
+            destination: 'Mumbai',
+            departureTime: new Date('2024-12-20T07:15:00'),
+            arrivalTime: new Date('2024-12-20T09:45:00'),
+            duration: '2h 30m',
+            price: '4200',
+            availableSeats: 174,
+            totalSeats: 174,
+            cabin: 'economy',
+            stops: 0
+          },
+          {
+            flightNumber: 'AI205',
+            airline: 'Air India',
+            aircraft: 'Boeing 737',
+            origin: 'Bangalore',
+            destination: 'Delhi',
+            departureTime: new Date('2024-12-20T14:00:00'),
+            arrivalTime: new Date('2024-12-20T16:30:00'),
+            duration: '2h 30m',
+            price: '5100',
+            availableSeats: 165,
+            totalSeats: 180,
+            cabin: 'economy',
+            stops: 0
+          }
+        ];
+
+        for (const flight of sampleFlights) {
+          await storage.createFlight(flight);
+        }
+
+        console.log(`Seeded ${sampleFlights.length} sample flights`);
+        
+        res.json({
+          success: true,
+          message: `Seeded ${sampleFlights.length} sample flights`,
+          flightsCreated: sampleFlights.length
+        });
+      } else {
+        res.json({
+          success: true,
+          message: `Found ${allFlights.length} existing flights`,
+          flightsFound: allFlights.length
+        });
+      }
+    } catch (error) {
+      console.error("Error checking/seeding flights:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to check or seed flights",
+        details: error.message
       });
     }
   });
