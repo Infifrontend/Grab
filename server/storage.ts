@@ -287,36 +287,62 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Flights
-  async getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]> {
-    const conditions = [];
+  async getFlights(origin?: string, destination?: string, departureDate?: Date) {
+    try {
+      console.log(`Searching flights with params:`, { origin, destination, departureDate });
 
-    if (origin) {
-      conditions.push(eq(flights.origin, origin));
+      let conditions = [];
+
+      if (origin && origin.trim()) {
+        conditions.push(eq(flights.origin, origin.trim()));
+      }
+
+      if (destination && destination.trim()) {
+        conditions.push(eq(flights.destination, destination.trim()));
+      }
+
+      if (departureDate) {
+        // For date filtering, we'll match flights on the same day
+        const startOfDay = new Date(departureDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(departureDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        console.log(`Date filtering between:`, { startOfDay, endOfDay });
+
+        conditions.push(
+          and(
+            gte(flights.departureTime, startOfDay),
+            lte(flights.departureTime, endOfDay)
+          )
+        );
+      }
+
+      let query = db.select().from(flights);
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as any;
+      }
+
+      const result = await query;
+
+      console.log(`Flight search returned ${result.length} flights`);
+      if (result.length > 0) {
+        console.log("Sample flight from results:", {
+          id: result[0].id,
+          flightNumber: result[0].flightNumber,
+          origin: result[0].origin,
+          destination: result[0].destination,
+          departureTime: result[0].departureTime,
+          price: result[0].price
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching flights:", error);
+      throw error;
     }
-
-    if (destination) {
-      conditions.push(eq(flights.destination, destination));
-    }
-
-    if (departureDate) {
-      const startOfDay = new Date(departureDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(departureDate);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      conditions.push(
-        and(
-          gte(flights.departureTime, startOfDay),
-          lte(flights.departureTime, endOfDay)
-        )
-      );
-    }
-
-    if (conditions.length > 0) {
-      return await db.select().from(flights).where(and(...conditions));
-    }
-
-    return await db.select().from(flights);
   }
 
   async getReturnFlights(destination: string, origin: string, returnDate?: Date) {

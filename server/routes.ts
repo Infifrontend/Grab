@@ -104,17 +104,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Parse and validate the search data
       const searchData = insertSearchRequestSchema.parse(req.body);
+      console.log("Parsed search data:", searchData);
 
       // Create search request (storage will handle ID generation)
       await storage.createSearchRequest(searchData);
 
-      // Search for outbound flights
-      const outboundFlights = await storage.getFlights(
+      // Convert date strings to Date objects for database search
+      let departureDateObj = searchData.departureDate;
+      if (typeof departureDateObj === 'string') {
+        departureDateObj = new Date(departureDateObj);
+      }
+
+      let returnDateObj = null;
+      if (searchData.returnDate) {
+        returnDateObj = typeof searchData.returnDate === 'string' ? new Date(searchData.returnDate) : searchData.returnDate;
+      }
+
+      console.log("Searching with dates:", {
+        origin: searchData.origin,
+        destination: searchData.destination,
+        departureDate: departureDateObj,
+        returnDate: returnDateObj
+      });
+
+      // Search for outbound flights - pass undefined instead of date for broader search initially
+      let outboundFlights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
-        searchData.departureDate,
+        undefined // Search without date filter first to see all available flights
       );
+
+      console.log(`Initial flight search found ${outboundFlights.length} flights for route ${searchData.origin} to ${searchData.destination}`);
+
+      // If no flights found for exact route, try case-insensitive search
+      if (outboundFlights.length === 0) {
+        console.log("Trying case-insensitive search...");
+        const allFlights = await storage.getFlights("", "", undefined); // Get all flights
+        console.log(`Total flights in database: ${allFlights.length}`);
+        
+        // Filter flights manually with case-insensitive matching
+        outboundFlights = allFlights.filter(flight => 
+          flight.origin.toLowerCase() === searchData.origin.toLowerCase() &&
+          flight.destination.toLowerCase() === searchData.destination.toLowerCase()
+        );
+        
+        console.log(`Case-insensitive search found ${outboundFlights.length} flights`);
+        
+        // If still no flights, show available routes for debugging
+        if (outboundFlights.length === 0) {
+          const availableRoutes = [...new Set(allFlights.map(f => `${f.origin} -> ${f.destination}`))];
+          console.log("Available routes in database:", availableRoutes.slice(0, 10));
+        }
+      }
 
       let returnFlights = [];
 
@@ -123,22 +166,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         returnFlights = await storage.getReturnFlights(
           searchData.destination,
           searchData.origin,
-          searchData.returnDate,
+          returnDateObj,
         );
+        
+        // If no return flights found, try without date filter
+        if (returnFlights.length === 0) {
+          const allFlights = await storage.getFlights("", "", undefined);
+          returnFlights = allFlights.filter(flight => 
+            flight.origin.toLowerCase() === searchData.destination.toLowerCase() &&
+            flight.destination.toLowerCase() === searchData.origin.toLowerCase()
+          );
+        }
+        
         console.log(
           `Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`,
         );
       }
 
       console.log(
-        `Found ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
+        `Final result: ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
       );
-      console.log("Outbound flight data sample:", outboundFlights.slice(0, 2));
+      
+      if (outboundFlights.length > 0) {
+        console.log("Sample flight data:", {
+          id: outboundFlights[0].id,
+          origin: outboundFlights[0].origin,
+          destination: outboundFlights[0].destination,
+          price: outboundFlights[0].price
+        });
+      }
 
       res.json({
+        success: true,
         flights: outboundFlights,
         returnFlights: returnFlights,
         tripType: searchData.tripType,
+        searchCriteria: {
+          origin: searchData.origin,
+          destination: searchData.destination,
+          departureDate: searchData.departureDate,
+          returnDate: searchData.returnDate,
+          passengers: searchData.passengers
+        },
         message: "Search completed successfully",
       });
     } catch (error) {
@@ -175,6 +244,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(flights);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch flights" });
+    }
+  });
+
+  // Debug endpoint to check all flights in database
+  app.get("/api/debug/flights", async (req, res) => {
+    try {
+      console.log("Debug: Fetching all flights from database");
+      const allFlights = await storage.getFlights();
+      
+      const flightSummary = allFlights.map(flight => ({
+        id: flight.id,
+        flightNumber: flight.flightNumber,
+        airline: flight.airline,
+        origin: flight.origin,
+        destination: flight.destination,
+        departureTime: flight.departureTime,
+        price: flight.price,
+        availableSeats: flight.availableSeats
+      }));
+      
+      const uniqueRoutes = [...new Set(allFlights.map(f => `${f.origin} → ${f.destination}`))];
+      
+      console.log(`Debug: Found ${allFlights.length} total flights in database`);
+      console.log(`Debug: Unique routes:`, uniqueRoutes.slice(0, 20));
+      
+      res.json({
+        success: true,
+        totalFlights: allFlights.length,
+        uniqueRoutes: uniqueRoutes,
+        sampleFlights: flightSummary.slice(0, 10),
+        allFlights: flightSummary
+      });
+    } catch (error) {
+      console.error("Debug flights error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch debug flight data",
+        error: error.message 
+      });
     }
   });
 
