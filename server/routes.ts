@@ -26,7 +26,7 @@ import {
 import type { Request, Response } from "express";
 import { db } from "./db.js";
 import {
-  grab_t_users as usersTable, // Use the correct table name
+  grab_t_users as usersTable,
   flights,
   bookings,
   flightBookings,
