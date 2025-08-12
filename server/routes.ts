@@ -2607,8 +2607,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRetailAllowed,
       } = req.body;
 
+      console.log("Creating user with data:", req.body);
+
+      // Use name if provided, otherwise combine firstName and lastName
+      const fullName = name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || "");
+
       // Validate required fields
-      if (!username || !password || !name || !email) {
+      if (!username || !password || !fullName || !email) {
         return res.status(400).json({
           success: false,
           message: "Username, password, name, and email are required",
@@ -2616,20 +2621,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user already exists by username or email
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User with this username already exists",
-        });
-      }
+      try {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "User with this username already exists",
+          });
+        }
 
-      const existingEmailUser = await storage.getUserByEmail(email);
-      if (existingEmailUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User with this email already exists",
-        });
+        const existingEmailUser = await storage.getUserByEmail(email);
+        if (existingEmailUser) {
+          return res.status(400).json({
+            success: false,
+            message: "User with this email already exists",
+          });
+        }
+      } catch (error) {
+        console.log("Error checking existing users:", error.message);
       }
 
       // Hash password before storing (basic hashing - in production use bcrypt)
@@ -2638,10 +2647,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser({
         username,
         password: hashedPassword,
-        name,
+        name: fullName,
         email,
         isRetailAllowed: isRetailAllowed || false,
       });
+
+      console.log("User created successfully:", newUser);
 
       res.json({
         success: true,
@@ -2659,6 +2670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error.message,
       });
     }
   });
@@ -3485,66 +3497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User management endpoints
-  app.post("/api/users", async (req, res) => {
-    try {
-      const { name, email, username, password, isRetailAllowed } = req.body;
-
-      // Validate required fields
-      if (!username || !password || !name || !email) {
-        return res.status(400).json({
-          success: false,
-          message: "Username, password, name, and email are required",
-        });
-      }
-
-      // Check if user already exists by username or email
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User with this username already exists",
-        });
-      }
-
-      const existingEmailUser = await storage.getUserByEmail(email);
-      if (existingEmailUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User with this email already exists",
-        });
-      }
-
-      // Hash password before storing (basic hashing - in production use bcrypt)
-      const hashedPassword = Buffer.from(password).toString("base64");
-
-      const newUser = await storage.createUser({
-        username,
-        password: hashedPassword,
-        name,
-        email,
-        isRetailAllowed: isRetailAllowed || false,
-      });
-
-      res.json({
-        success: true,
-        message: "User created successfully",
-        user: {
-          id: newUser.id,
-          username: newUser.username,
-          name: newUser.name,
-          email: newUser.email,
-          isRetailAllowed: newUser.isRetailAllowed,
-        },
-      });
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  });
+  
 
   const httpServer = createServer(app);
   return httpServer;
