@@ -178,7 +178,16 @@ export class DatabaseStorage implements IStorage {
   async createUser(userData: InsertUser) {
     console.log("Creating user in grab_t_users table with data:", userData);
     try {
-      const [user] = await db.insert(grab_t_users).values(userData).returning();
+      // Ensure we only insert valid columns for grab_t_users table
+      const validUserData = {
+        username: userData.username,
+        password: userData.password,
+        name: userData.name,
+        email: userData.email,
+        isRetailAllowed: userData.isRetailAllowed || false
+      };
+      
+      const [user] = await db.insert(grab_t_users).values(validUserData).returning();
       console.log("User created successfully:", user);
       return user;
     } catch (error) {
