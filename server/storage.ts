@@ -135,6 +135,7 @@ export interface IStorage {
   // Retail Bids
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
+  getRetailBidsWithUsersByBid(bidId: number): Promise<any[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
   getRetailBidById(retailBidId: number): Promise<any>; // Added this line
@@ -1334,6 +1335,29 @@ export class DatabaseStorage implements IStorage {
       return retailBidsList;
     } catch (error) {
       console.error("Error getting retail bids by bid:", error);
+      throw error;
+    }
+  }
+
+  // Get retail bids with user information by bid ID
+  async getRetailBidsWithUsersByBid(bidId: number): Promise<any[]> {
+    try {
+      console.log(`Fetching retail bids with user info for bid ID: ${bidId}`);
+
+      const retailBidsWithUsers = await db
+        .select({
+          retailBid: retailBids,
+          user: users
+        })
+        .from(retailBids)
+        .leftJoin(users, eq(retailBids.userId, users.id))
+        .where(eq(retailBids.bidId, bidId))
+        .orderBy(desc(retailBids.createdAt));
+
+      console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
+      return retailBidsWithUsers;
+    } catch (error) {
+      console.error("Error getting retail bids with users by bid:", error);
       throw error;
     }
   }

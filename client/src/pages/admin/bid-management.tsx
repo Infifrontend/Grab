@@ -595,89 +595,39 @@ export default function BidManagement() {
             dataSource={filteredBids}
             expandable={{
               expandedRowRender: (record: any) => {
-                // Get retail users from bid data
-                const bidData = (recentBidsData || []).find(
-                  (bid) =>
-                    `BID${bid?.id?.toString().padStart(3, "0")}` ===
-                    record.bidId,
-                );
+                // Extract numeric bid ID from record.bidId (e.g., "BID001" -> "1")
+                const numericBidId = record.bidId.replace(/^BID0*/, "") || record.bidId.replace(/\D/g, '');
+                const retailData = retailUsersData[numericBidId];
+                const isLoading = fetchingRetailUsers[numericBidId];
 
-                const baseBidAmount = parseFloat(
-                  record.bidAmount.replace("$", ""),
-                );
-
-                let retailUsers = [],
-                  highestBidAmount: any;
-                if (bidData) {
-                  try {
-                    const notes = bidData.notes
-                      ? JSON.parse(bidData.notes)
-                      : {};
-                    retailUsers = notes.retailUsers || [];
-                  } catch (e) {
-                    retailUsers = [];
-                  }
-                }
-
-                // If no retail users exist in the data, create default ones based on bid status
-                if (retailUsers.length === 0) {
-                  const userCount = Math.floor(Math.random() * 4) + 2; // 2-5 users
-                  const names = [
-                    "John Smith",
-                    "Sarah Johnson",
-                    "Mike Wilson",
-                    "Emma Davis",
-                    "David Brown",
-                    "Lisa Garcia",
-                  ];
-                  const domains = [
-                    "gmail.com",
-                    "yahoo.com",
-                    "email.com",
-                    "outlook.com",
-                  ];
-
-                  for (let i = 0; i < userCount; i++) {
-                    const randomIncrement =
-                      Math.floor(Math.random() * 100) + 20; // $20-$120 above base
-                    retailUsers.push({
-                      id: i + 1,
-                      name: names[i] || `User ${i + 1}`,
-                      email:
-                        `${names[i]?.toLowerCase().replace(" ", ".")}@${
-                          domains[i % domains.length]
-                        }` || `user${i + 1}@email.com`,
-                      bookingRef: `GR00123${i + 4}`,
-                      seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
-                      bidAmount: baseBidAmount + randomIncrement,
-                      status:
-                        i === 0 && record.status.toLowerCase() === "approved"
-                          ? "approved"
-                          : record.status.toLowerCase() === "pending"
-                            ? "pending_approval"
-                            : "pending_approval",
-                    });
-                  }
-                  highestBidAmount = Math.max(
-                    ...retailUsers.map((user) => user.bidAmount),
+                if (isLoading) {
+                  return (
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <Text className="text-gray-500">Loading retail users...</Text>
+                    </div>
                   );
                 }
 
-                console.log(
-                  record?.status?.toLowerCase() === '"approved"',
-                  record?.status,
-                );
+                if (!retailData) {
+                  return (
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <Text className="text-gray-500">No retail users data available</Text>
+                    </div>
+                  );
+                }
+
+                const { baseBidAmount, totalRetailUsers, retailUsers, highestBidAmount } = retailData;
 
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
-                      Retail Users for {record.bidId}
+                      Retail Users for {retailData.bidId}
                     </Title>
                     <div className="mb-3">
                       <Text className="text-gray-600 text-sm">
                         Base Bid Amount:{" "}
                         <span className="font-semibold">${baseBidAmount}</span>{" "}
-                        | Total Retail Users: {retailUsers.length}
+                        | Total Retail Users: {totalRetailUsers}
                       </Text>
                     </div>
                     <div className="space-y-3">
@@ -696,7 +646,7 @@ export default function BidManagement() {
                               ${
                                 user.status === "approved"
                                   ? "border-green-500 bg-green-50"
-                                  : user.bidAmount === highestBidAmount
+                                  : user.isHighestBidder
                                     ? "border-yellow-500 bg-yellow-50"
                                     : "bg-white border"
                               }
@@ -724,15 +674,14 @@ export default function BidManagement() {
                             <div>
                               <Text className="text-green-600 font-semibold text-sm block">
                                 Bid: ${user.bidAmount}
-                                {user.bidAmount === highestBidAmount && (
-                                  <span className="inline items-center gap-1 text-yellow-600 text-xs font-semibold bg-yellow-100 px-2 py-0.5 rounded-full">
+                                {user.isHighestBidder && (
+                                  <span className="inline-flex items-center gap-1 text-yellow-600 text-xs font-semibold bg-yellow-100 px-2 py-0.5 rounded-full ml-2">
                                     🏆 Top Bidder
                                   </span>
                                 )}
                               </Text>
                               <Text className="text-gray-500 text-xs">
-                                +${(user.bidAmount - baseBidAmount).toFixed(0)}{" "}
-                                above base
+                                +${user.differenceFromBase.toFixed(0)} above base
                               </Text>
                             </div>
 
@@ -793,7 +742,7 @@ export default function BidManagement() {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {retailUsers.length} | Pending
+                        Total retail users: {totalRetailUsers} | Pending
                         approval:{" "}
                         {
                           retailUsers.filter(
@@ -813,6 +762,13 @@ export default function BidManagement() {
               rowExpandable: (record) => {
                 // Only show expand option for completed bids
                 return record.status.toLowerCase() !== "active";
+              },
+              onExpand: (expanded, record) => {
+                if (expanded && record.status.toLowerCase() !== "active") {
+                  // Extract numeric bid ID and fetch retail users data
+                  const numericBidId = record.bidId.replace(/^BID0*/, "") || record.bidId.replace(/\D/g, '');
+                  fetchRetailUsers(numericBidId);
+                }
               },
             }}
             columns={[
@@ -962,6 +918,8 @@ export default function BidManagement() {
   const [selectedBidForReview, setSelectedBidForReview] = useState(null);
   const [editForm] = Form.useForm();
   const [reviewForm] = Form.useForm();
+  const [retailUsersData, setRetailUsersData] = useState({});
+  const [fetchingRetailUsers, setFetchingRetailUsers] = useState({});
 
   // Reset review modal state when recentBidsData changes
   useEffect(() => {
@@ -970,6 +928,42 @@ export default function BidManagement() {
       setSelectedBidForReview(null);
     }
   }, [recentBidsData, reviewBidModalVisible]);
+
+  // Function to fetch retail users for a specific bid
+  const fetchRetailUsers = async (bidId) => {
+    if (retailUsersData[bidId] || fetchingRetailUsers[bidId]) {
+      return; // Already fetched or currently fetching
+    }
+
+    setFetchingRetailUsers(prev => ({ ...prev, [bidId]: true }));
+
+    try {
+      console.log(`Fetching retail users for bid ID: ${bidId}`);
+      const response = await apiRequest("GET", `/api/bids/${bidId}/retail-users`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(`Retail users data received for bid ${bidId}:`, result);
+
+      if (result.success) {
+        setRetailUsersData(prev => ({
+          ...prev,
+          [bidId]: result.data
+        }));
+      } else {
+        console.error(`Failed to fetch retail users for bid ${bidId}:`, result.message);
+        message.error(result.message || "Failed to fetch retail users");
+      }
+    } catch (error) {
+      console.error(`Error fetching retail users for bid ${bidId}:`, error);
+      message.error("Failed to fetch retail users data");
+    } finally {
+      setFetchingRetailUsers(prev => ({ ...prev, [bidId]: false }));
+    }
+  };
 
   const handleViewBid = (bid) => {
     setSelectedBid(bid);
