@@ -39,14 +39,19 @@ interface FlightResult {
 }
 
 // API call to fetch flights from database
-const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResult[]> => {
+const fetchFlightsFromDatabase = async (
+  searchCriteria: any,
+): Promise<FlightResult[]> => {
   try {
-    console.log("Fetching flights from database with criteria:", searchCriteria);
-    
-    const response = await fetch('/api/search', {
-      method: 'POST',
+    console.log(
+      "Fetching flights from database with criteria:",
+      searchCriteria,
+    );
+
+    const response = await fetch("/api/search", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         origin: searchCriteria.origin,
@@ -54,8 +59,8 @@ const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResu
         departureDate: searchCriteria.departureDate,
         returnDate: searchCriteria.returnDate,
         passengers: searchCriteria.totalPassengers || 1,
-        cabin: searchCriteria.cabin || 'economy',
-        tripType: searchCriteria.tripType || 'oneWay',
+        cabin: searchCriteria.cabin || "economy",
+        tripType: searchCriteria.tripType || "oneWay",
       }),
     });
 
@@ -71,27 +76,38 @@ const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResu
         id: flight.id,
         airline: flight.airline,
         flightNumber: flight.flightNumber,
-        departureTime: new Date(flight.departureTime).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true 
+        departureTime: new Date(flight.departureTime).toLocaleTimeString(
+          "en-US",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          },
+        ),
+        arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
         }),
-        arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true 
-        }),
-        duration: flight.duration || '2h 30m',
-        aircraft: flight.aircraft || 'Aircraft',
-        price: typeof flight.price === 'string' ? parseFloat(flight.price) : parseFloat(flight.price || 0),
-        badges: flight.stops === 0 ? ["Non-stop"] : [`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`],
+        duration: flight.duration || "2h 30m",
+        aircraft: flight.aircraft || "Aircraft",
+        price:
+          typeof flight.price === "string"
+            ? parseFloat(flight.price)
+            : parseFloat(flight.price || 0),
+        badges:
+          flight.stops === 0
+            ? ["Non-stop"]
+            : [`${flight.stops} stop${flight.stops > 1 ? "s" : ""}`],
         amenities: ["WiFi", "Meals"], // Default amenities
       }));
-      
-      console.log(`Successfully processed ${processedFlights.length} flights for display`);
+
+      console.log(
+        `Successfully processed ${processedFlights.length} flights for display`,
+      );
       return processedFlights;
     }
-    
+
     console.log("No flights found in API response");
     return [];
   } catch (error) {
@@ -102,10 +118,12 @@ const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResu
 
 export default function FlightSearchResults() {
   const navigate = useNavigate();
-  const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
-  
+  const adminMode = JSON.parse(
+    localStorage.getItem("adminLoggedIn") || "false",
+  );
+
   const [availableFlights, setAvailableFlights] = useState<FlightResult[]>([]);
-  
+
   // Filter states
   const [sortBy, setSortBy] = useState("price-low");
   const [priceRange, setPriceRange] = useState<[number, number]>([1000, 3000]);
@@ -134,7 +152,7 @@ export default function FlightSearchResults() {
   useEffect(() => {
     const loadDataAndFetchFlights = async () => {
       let searchCriteria = null;
-      
+
       // Load search criteria
       try {
         const savedCriteria = localStorage.getItem("searchCriteria");
@@ -175,10 +193,14 @@ export default function FlightSearchResults() {
       if (searchCriteria) {
         console.log("Fetching flights with criteria:", searchCriteria);
         const flights = await fetchFlightsFromDatabase(searchCriteria);
-        console.log(`Received ${flights.length} flights from fetchFlightsFromDatabase`);
+        console.log(
+          `Received ${flights.length} flights from fetchFlightsFromDatabase`,
+        );
         setAvailableFlights(flights);
-        console.log(`Set availableFlights state with ${flights.length} flights`);
-        
+        console.log(
+          `Set availableFlights state with ${flights.length} flights`,
+        );
+
         // Also log a sample flight for debugging
         if (flights.length > 0) {
           console.log("Sample flight:", flights[0]);
@@ -192,12 +214,16 @@ export default function FlightSearchResults() {
           departureDate: new Date().toISOString(),
           tripType: "oneWay",
           totalPassengers: 1,
-          cabin: "economy"
+          cabin: "economy",
         };
         const flights = await fetchFlightsFromDatabase(defaultCriteria);
-        console.log(`Received ${flights.length} default flights from fetchFlightsFromDatabase`);
+        console.log(
+          `Received ${flights.length} default flights from fetchFlightsFromDatabase`,
+        );
         setAvailableFlights(flights);
-        console.log(`Set availableFlights state with ${flights.length} default flights`);
+        console.log(
+          `Set availableFlights state with ${flights.length} default flights`,
+        );
       }
     };
 
@@ -206,10 +232,10 @@ export default function FlightSearchResults() {
 
   const handleSelectFlight = (flightId: number) => {
     console.log("Selected flight:", flightId);
-    
+
     // Store selected flight ID and navigate to flight search bundle
     localStorage.setItem("selectedFlightId", flightId.toString());
-    
+
     // Navigate to flight search bundle page for further selection
     navigate("/flight-search-bundle");
   };
@@ -234,7 +260,7 @@ export default function FlightSearchResults() {
 
   const handleSearchFlights = async () => {
     console.log("Searching flights with modified criteria");
-    
+
     const searchCriteria = {
       origin,
       destination,
@@ -244,15 +270,15 @@ export default function FlightSearchResults() {
       cabin,
       tripType,
     };
-    
+
     // Save updated search criteria
     localStorage.setItem("searchCriteria", JSON.stringify(searchCriteria));
-    
+
     // Fetch new flights from database
     const flights = await fetchFlightsFromDatabase(searchCriteria);
     setAvailableFlights(flights);
     console.log(`Found ${flights.length} flights for modified search`);
-    
+
     // Hide modify search form
     setShowModifySearch(false);
   };
@@ -267,20 +293,27 @@ export default function FlightSearchResults() {
 
   // Filter and sort flights
   const filteredAndSortedFlights = useMemo(() => {
-    console.log(`Starting filter process with ${availableFlights.length} available flights`);
+    console.log(
+      `Starting filter process with ${availableFlights.length} available flights`,
+    );
     console.log("Current filter settings:", {
       priceRange,
       selectedAirlines,
       departureTime,
       maxStops,
-      maxDuration
+      maxDuration,
     });
 
     let filtered = availableFlights.filter((flight) => {
       // Price range filter
-      const flightPrice = typeof flight.price === 'number' ? flight.price : parseFloat(flight.price) || 0;
+      const flightPrice =
+        typeof flight.price === "number"
+          ? flight.price
+          : parseFloat(flight.price) || 0;
       if (flightPrice < priceRange[0] || flightPrice > priceRange[1]) {
-        console.log(`Flight ${flight.id} filtered out by price: ${flightPrice} not in range [${priceRange[0]}, ${priceRange[1]}]`);
+        console.log(
+          `Flight ${flight.id} filtered out by price: ${flightPrice} not in range [${priceRange[0]}, ${priceRange[1]}]`,
+        );
         return false;
       }
 
@@ -289,7 +322,9 @@ export default function FlightSearchResults() {
         selectedAirlines.length > 0 &&
         !selectedAirlines.includes(flight.airline)
       ) {
-        console.log(`Flight ${flight.id} filtered out by airline: ${flight.airline} not in [${selectedAirlines.join(', ')}]`);
+        console.log(
+          `Flight ${flight.id} filtered out by airline: ${flight.airline} not in [${selectedAirlines.join(", ")}]`,
+        );
         return false;
       }
 
@@ -302,8 +337,8 @@ export default function FlightSearchResults() {
             ? 0
             : depTime
           : depTime === 12
-          ? 12
-          : depTime + 12;
+            ? 12
+            : depTime + 12;
 
         switch (departureTime) {
           case "morning":
@@ -352,15 +387,19 @@ export default function FlightSearchResults() {
     switch (sortBy) {
       case "price-low":
         filtered.sort((a, b) => {
-          const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
-          const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
+          const aPrice =
+            typeof a.price === "number" ? a.price : parseFloat(a.price) || 0;
+          const bPrice =
+            typeof b.price === "number" ? b.price : parseFloat(b.price) || 0;
           return aPrice - bPrice;
         });
         break;
       case "price-high":
         filtered.sort((a, b) => {
-          const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
-          const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
+          const aPrice =
+            typeof a.price === "number" ? a.price : parseFloat(a.price) || 0;
+          const bPrice =
+            typeof b.price === "number" ? b.price : parseFloat(b.price) || 0;
           return bPrice - aPrice;
         });
         break;
@@ -417,9 +456,9 @@ export default function FlightSearchResults() {
 
   // Get unique airlines for filter
   const availableAirlines = Array.from(
-    new Set(availableFlights.map((flight) => flight.airline))
+    new Set(availableFlights.map((flight) => flight.airline)),
   );
-
+  console.log(filteredAndSortedFlights);
   return (
     <div className={`${adminMode ? "flex-1" : "max-w-7xl"} mx-auto p-6`}>
       {/* Page Header */}
@@ -451,8 +490,8 @@ export default function FlightSearchResults() {
                           {tripType === "oneWay"
                             ? "One Way"
                             : tripType === "roundTrip"
-                            ? "Round Trip"
-                            : "Multi City"}
+                              ? "Round Trip"
+                              : "Multi City"}
                         </Text>
                       </div>
                     </Col>
@@ -877,7 +916,12 @@ export default function FlightSearchResults() {
                       <div className="text-right">
                         <div className="mb-3">
                           <Text className="text-2xl font-bold text-gray-900">
-                            ₹{typeof flight.price === 'number' ? flight.price.toLocaleString() : parseFloat(flight.price || '0').toLocaleString()}
+                            ₹
+                            {typeof flight.price === "number"
+                              ? flight.price.toLocaleString()
+                              : parseFloat(
+                                  flight.price || "0",
+                                ).toLocaleString()}
                           </Text>
                           <Text className="text-gray-600 text-sm block">
                             per person
@@ -897,7 +941,9 @@ export default function FlightSearchResults() {
                           {flight.amenities.includes("WiFi") && (
                             <WifiOutlined />
                           )}
-                          {flight.amenities.includes("Meals") && <span>🍽</span>}
+                          {flight.amenities.includes("Meals") && (
+                            <span>🍽</span>
+                          )}
                           {flight.amenities.includes("Entertainment") && (
                             <PlayCircleOutlined />
                           )}
