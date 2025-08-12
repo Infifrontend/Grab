@@ -29,6 +29,7 @@ import {
   users as usersTable, // Alias users to usersTable to avoid conflict with the variable name 'users'
   flights,
   bookings,
+  flightBookings,
   passengers,
   bids,
   payments,
@@ -1814,10 +1815,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Found booking with ID: ${booking.id}`);
 
-      // Get existing passengers
-      const existingPassengers = await storage.getPassengersByBooking(
-        booking.id,
-      );
+      // Get existing passengers using direct database query
+      const existingPassengers = await db
+        .select()
+        .from(passengers)
+        .where(eq(passengers.bookingId, booking.id));
+      
       console.log(`Found ${existingPassengers.length} existing passengers`);
 
       // Update existing passengers or create new ones
@@ -1847,19 +1850,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         if (existingPassengers[i]) {
-          // Update existing passenger
+          // Update existing passenger using direct database query
           console.log(`Updating existing passenger ${i + 1}`);
-          await storage.updatePassenger(
-            existingPassengers[i].id,
-            passengerInfo,
-          );
+          await db
+            .update(passengers)
+            .set(passengerInfo)
+            .where(eq(passengers.id, existingPassengers[i].id));
         } else {
-          // Create new passenger
+          // Create new passenger using direct database query
           console.log(`Creating new passenger ${i + 1}`);
-          await storage.createPassenger({
-            bookingId: booking.id,
-            ...passengerInfo,
-          });
+          await db
+            .insert(passengers)
+            .values({
+              bookingId: booking.id,
+              ...passengerInfo,
+            });
         }
       }
 
@@ -1869,7 +1874,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `Removing ${existingPassengers.length - passengers.length} excess passengers`,
         );
         for (let i = passengers.length; i < existingPassengers.length; i++) {
-          await storage.deletePassenger(existingPassengers[i].id);
+          await db
+            .delete(passengers)
+            .where(eq(passengers.id, existingPassengers[i].id));
         }
       }
 
@@ -1877,10 +1884,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validPassengerCount = passengers.filter(
         (p) => p.firstName || p.lastName,
       ).length;
-      await storage.updateBookingPassengerCount(
-        booking.id,
-        validPassengerCount,
-      );
+      
+      await db
+        .update(flightBookings)
+        .set({ 
+          passengerCount: validPassengerCount,
+          updatedAt: new Date()
+        })
+        .where(eq(flightBookings.id, booking.id));
 
       console.log(`Successfully updated passengers for booking ${id}`);
 
