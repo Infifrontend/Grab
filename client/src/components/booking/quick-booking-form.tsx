@@ -184,8 +184,8 @@ export default function QuickBookingForm() {
       console.log("Search completed successfully");
       message.success(`Found ${searchResult.flights.length} flights`);
 
-      // Navigate to flight search results page
-      navigate("/flight-search-results");
+      // Navigate to flight search bundle page
+      navigate("/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");
