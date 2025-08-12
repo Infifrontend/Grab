@@ -1,6 +1,10 @@
 import { db } from "./db";
 import {
-  users,
+  grab_t_users as users,
+  grab_t_bids as bids,
+  grab_t_bid_payments as payments,
+  grab_t_retail_bids as retailBids,
+  grab_m_status,
   deals,
   packages,
   bookings,
@@ -8,11 +12,7 @@ import {
   flights,
   flightBookings,
   passengers,
-  bids,
-  payments,
   refunds,
-  notifications,
-  retailBids,
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
