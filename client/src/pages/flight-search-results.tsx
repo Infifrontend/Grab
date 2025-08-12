@@ -38,13 +38,36 @@ interface FlightResult {
   amenities: string[];
 }
 
-// Load flights from search results
-const loadSearchResults = (): FlightResult[] => {
+// API call to fetch flights from database
+const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResult[]> => {
   try {
-    const searchResults = localStorage.getItem("searchResults");
-    if (searchResults) {
-      const flights = JSON.parse(searchResults);
-      return flights.map((flight: any) => ({
+    console.log("Fetching flights from database with criteria:", searchCriteria);
+    
+    const response = await fetch('/api/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        origin: searchCriteria.origin,
+        destination: searchCriteria.destination,
+        departureDate: searchCriteria.departureDate,
+        returnDate: searchCriteria.returnDate,
+        passengers: searchCriteria.totalPassengers || 1,
+        cabin: searchCriteria.cabin || 'economy',
+        tripType: searchCriteria.tripType || 'oneWay',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API call failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("API response:", data);
+
+    if (data.flights && data.flights.length > 0) {
+      return data.flights.map((flight: any) => ({
         id: flight.id,
         airline: flight.airline,
         flightNumber: flight.flightNumber,
@@ -60,42 +83,17 @@ const loadSearchResults = (): FlightResult[] => {
         }),
         duration: flight.duration,
         aircraft: flight.aircraft,
-        price: typeof flight.price === 'string' ? parseFloat(flight.price) : flight.price,
+        price: typeof flight.price === 'string' ? parseFloat(flight.price) : parseFloat(flight.price),
         badges: flight.stops === 0 ? ["Non-stop"] : [`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`],
         amenities: ["WiFi", "Meals"], // Default amenities
       }));
     }
+    
+    return [];
   } catch (error) {
-    console.error("Error loading search results:", error);
+    console.error("Error fetching flights from database:", error);
+    return [];
   }
-  
-  // Fallback mock data if no search results
-  return [
-    {
-      id: 1,
-      airline: "Air India",
-      flightNumber: "AI101",
-      departureTime: "06:00 AM",
-      arrivalTime: "08:30 AM",
-      duration: "2h 30m",
-      aircraft: "Boeing 737",
-      price: 4500,
-      badges: ["Non-stop"],
-      amenities: ["WiFi", "Meals"],
-    },
-    {
-      id: 2,
-      airline: "SpiceJet",
-      flightNumber: "SG201",
-      departureTime: "09:00 AM",
-      arrivalTime: "11:00 AM",
-      duration: "2h 0m",
-      aircraft: "Boeing 737",
-      price: 3800,
-      badges: ["Non-stop"],
-      amenities: ["WiFi", "Meals"],
-    },
-  ];
 };
 
 export default function FlightSearchResults() {
@@ -130,25 +128,14 @@ export default function FlightSearchResults() {
 
   // Load saved data and search results on component mount
   useEffect(() => {
-    // Load search criteria
-    try {
-      const searchCriteria = localStorage.getItem("searchCriteria");
-      if (searchCriteria) {
-        const data = JSON.parse(searchCriteria);
-        setTripType(data.tripType || "oneWay");
-        setOrigin(data.origin || "Chennai");
-        setDestination(data.destination || "Mumbai");
-        setDepartureDate(data.departureDate || "17 / 07 / 2025");
-        setReturnDate(data.returnDate || "");
-        setAdults(data.adults || 12);
-        setKids(data.kids || 12);
-        setInfants(data.infants || 0);
-        setCabin(data.cabin || "Economy");
-      } else {
-        // Fallback to bookingFormData
-        const savedBookingData = localStorage.getItem("bookingFormData");
-        if (savedBookingData) {
-          const data = JSON.parse(savedBookingData);
+    const loadDataAndFetchFlights = async () => {
+      let searchCriteria = null;
+      
+      // Load search criteria
+      try {
+        const savedCriteria = localStorage.getItem("searchCriteria");
+        if (savedCriteria) {
+          const data = JSON.parse(savedCriteria);
           setTripType(data.tripType || "oneWay");
           setOrigin(data.origin || "Chennai");
           setDestination(data.destination || "Mumbai");
@@ -158,16 +145,52 @@ export default function FlightSearchResults() {
           setKids(data.kids || 12);
           setInfants(data.infants || 0);
           setCabin(data.cabin || "Economy");
+          searchCriteria = data;
+        } else {
+          // Fallback to bookingFormData
+          const savedBookingData = localStorage.getItem("bookingFormData");
+          if (savedBookingData) {
+            const data = JSON.parse(savedBookingData);
+            setTripType(data.tripType || "oneWay");
+            setOrigin(data.origin || "Chennai");
+            setDestination(data.destination || "Mumbai");
+            setDepartureDate(data.departureDate || "17 / 07 / 2025");
+            setReturnDate(data.returnDate || "");
+            setAdults(data.adults || 12);
+            setKids(data.kids || 12);
+            setInfants(data.infants || 0);
+            setCabin(data.cabin || "Economy");
+            searchCriteria = data;
+          }
         }
+      } catch (error) {
+        console.warn("Could not restore search data:", error);
       }
-    } catch (error) {
-      console.warn("Could not restore search data:", error);
-    }
 
-    // Load flight search results
-    const flights = loadSearchResults();
-    setAvailableFlights(flights);
-    console.log(`Loaded ${flights.length} flights from search results`);
+      // Fetch flights from database using search criteria
+      if (searchCriteria) {
+        console.log("Fetching flights with criteria:", searchCriteria);
+        const flights = await fetchFlightsFromDatabase(searchCriteria);
+        setAvailableFlights(flights);
+        console.log(`Loaded ${flights.length} flights from database`);
+      } else {
+        // Default search if no criteria available
+        console.log("No search criteria found, using default search");
+        const defaultCriteria = {
+          origin: "Chennai",
+          destination: "Mumbai",
+          departureDate: new Date().toISOString(),
+          tripType: "oneWay",
+          totalPassengers: 1,
+          cabin: "economy"
+        };
+        const flights = await fetchFlightsFromDatabase(defaultCriteria);
+        setAvailableFlights(flights);
+        console.log(`Loaded ${flights.length} default flights from database`);
+      }
+    };
+
+    loadDataAndFetchFlights();
   }, []);
 
   const handleSelectFlight = (flightId: number) => {
@@ -198,9 +221,29 @@ export default function FlightSearchResults() {
     navigate("/");
   };
 
-  const handleSearchFlights = () => {
+  const handleSearchFlights = async () => {
     console.log("Searching flights with modified criteria");
-    // Add search logic here
+    
+    const searchCriteria = {
+      origin,
+      destination,
+      departureDate,
+      returnDate,
+      totalPassengers: adults + kids + infants,
+      cabin,
+      tripType,
+    };
+    
+    // Save updated search criteria
+    localStorage.setItem("searchCriteria", JSON.stringify(searchCriteria));
+    
+    // Fetch new flights from database
+    const flights = await fetchFlightsFromDatabase(searchCriteria);
+    setAvailableFlights(flights);
+    console.log(`Found ${flights.length} flights for modified search`);
+    
+    // Hide modify search form
+    setShowModifySearch(false);
   };
 
   const handleCancelModify = () => {

@@ -192,8 +192,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: outboundFlights[0].id,
           origin: outboundFlights[0].origin,
           destination: outboundFlights[0].destination,
-          price: outboundFlights[0].price
+          price: outboundFlights[0].price,
+          departureTime: outboundFlights[0].departureTime,
+          airline: outboundFlights[0].airline
         });
+      } else {
+        console.log("No flights found. Checking database content...");
+        // Debug: Get all flights to see what's available
+        const allFlights = await storage.getFlights("", "", undefined);
+        console.log(`Total flights in database: ${allFlights.length}`);
+        if (allFlights.length > 0) {
+          console.log("Available routes:", allFlights.slice(0, 5).map(f => `${f.origin} -> ${f.destination}`));
+        }
       }
 
       res.json({
