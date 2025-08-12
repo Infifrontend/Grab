@@ -92,9 +92,10 @@ export default function QuickBookingForm() {
       message.success(`Found ${data.flights?.length || 0} flights!`);
       navigate("/flight-search-results");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Search error:", error);
-      message.error("Search failed. Please try again.");
+      const errorMessage = error?.message || "Search failed. Please try again.";
+      message.error(errorMessage);
     },
   });
 
@@ -140,18 +141,27 @@ export default function QuickBookingForm() {
       const searchData = {
         origin: values.origin,
         destination: values.destination,
-        departureDate: values.departureDate.format("YYYY-MM-DD"),
-        returnDate: values.returnDate?.format("YYYY-MM-DD") || null,
+        departureDate: values.departureDate.toISOString(),
+        returnDate: values.returnDate?.toISOString() || null,
         passengers: totalPassengers,
         cabin: values.cabin || "economy",
         tripType: tripType,
       };
 
+      console.log("Sending search request:", searchData);
+      
       const searchResponse = await apiRequest(
         "POST",
         "/api/search",
         searchData,
       );
+      
+      if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        console.error("Search API error response:", errorText);
+        throw new Error(`Search failed: ${errorText}`);
+      }
+      
       const searchResult = await searchResponse.json();
 
       if (!searchResult.flights || searchResult.flights.length === 0) {

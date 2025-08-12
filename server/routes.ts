@@ -95,6 +95,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/search", async (req, res) => {
     try {
       console.log("Search request received:", req.body);
+      
+      // Validate the request body
+      if (!req.body.origin || !req.body.destination || !req.body.departureDate) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Missing required fields: origin, destination, or departureDate" 
+        });
+      }
+      
       const searchData = insertSearchRequestSchema.parse(req.body);
 
       // Create search request (storage will handle ID generation)
@@ -137,10 +146,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Search validation error:", error.errors);
         res
           .status(400)
-          .json({ message: "Invalid search data", errors: error.errors });
+          .json({ 
+            success: false,
+            message: "Invalid search data", 
+            errors: error.errors,
+            details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+          });
       } else {
         console.error("Search error:", error);
-        res.status(500).json({ message: "Search failed" });
+        res.status(500).json({ 
+          success: false,
+          message: "Search failed",
+          error: error.message 
+        });
       }
     }
   });
