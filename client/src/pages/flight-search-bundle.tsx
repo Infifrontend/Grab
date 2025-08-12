@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import {
   Card,
@@ -226,7 +227,7 @@ export default function FlightSearchBundle() {
 
   // Load flight data from localStorage on component mount
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       // Load search results
       const searchResults = localStorage.getItem("searchResults");
       if (searchResults) {
@@ -252,9 +253,11 @@ export default function FlightSearchBundle() {
       }
 
       // Load search criteria
-      const searchCriteria = localStorage.getItem("searchCriteria");
-      if (searchCriteria) {
-        setSearchCriteria(JSON.parse(searchCriteria));
+      const searchCriteriaData = localStorage.getItem("searchCriteria");
+      if (searchCriteriaData) {
+        const criteria = JSON.parse(searchCriteriaData);
+        setSearchCriteria(criteria);
+        console.log("Loaded search criteria:", criteria);
       }
 
       // Load passenger count
@@ -331,10 +334,93 @@ export default function FlightSearchBundle() {
         setInfants(parseInt(localStorage.getItem("searchInfants") || "0"));
         setCabin(localStorage.getItem("searchCabin") || "Economy");
       }
+
+      // If no search results are loaded, try to fetch flights based on search criteria
+      if (!searchResults && searchCriteriaData) {
+        await handleInitialFlightSearch(JSON.parse(searchCriteriaData));
+      }
     };
 
     loadData();
   }, []);
+
+  // Initial flight search if no results are loaded
+  const handleInitialFlightSearch = async (criteria: any) => {
+    try {
+      console.log("Performing initial flight search with criteria:", criteria);
+      
+      const searchData = {
+        origin: criteria.origin,
+        destination: criteria.destination,
+        departureDate: criteria.departureDate,
+        returnDate: criteria.returnDate,
+        passengers: criteria.passengers || criteria.totalPassengers || 1,
+        cabin: criteria.cabin || "economy",
+        tripType: criteria.tripType || "oneWay",
+      };
+
+      const response = await apiRequest("POST", "/api/search", searchData);
+      const searchResult = await response.json();
+
+      if (searchResult.flights && searchResult.flights.length > 0) {
+        // Process outbound flights
+        const processedFlights = searchResult.flights.map((flight: any) => ({
+          ...flight,
+          price: typeof flight.price === "number" ? flight.price.toString() : flight.price,
+          departureTime: new Date(flight.departureTime).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+          arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+        }));
+
+        setAvailableFlights(processedFlights);
+
+        // Set the first flight as selected by default
+        if (processedFlights.length > 0) {
+          setSelectedOutbound(processedFlights[0].id.toString());
+        }
+
+        // Process return flights for round trip
+        if (searchResult.returnFlights && searchResult.returnFlights.length > 0) {
+          const processedReturnFlights = searchResult.returnFlights.map((flight: any) => ({
+            ...flight,
+            price: typeof flight.price === "number" ? flight.price.toString() : flight.price,
+            departureTime: new Date(flight.departureTime).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
+            arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
+          }));
+
+          setReturnFlights(processedReturnFlights);
+
+          // Set the first return flight as selected by default
+          if (processedReturnFlights.length > 0) {
+            setSelectedReturn(processedReturnFlights[0].id.toString());
+          }
+        }
+
+        // Update localStorage
+        localStorage.setItem("searchResults", JSON.stringify(processedFlights));
+        if (searchResult.returnFlights) {
+          localStorage.setItem("returnFlights", JSON.stringify(searchResult.returnFlights));
+        }
+      }
+    } catch (error) {
+      console.error("Error in initial flight search:", error);
+    }
+  };
 
   // Filter states
   const [sortBy, setSortBy] = useState("price-low");
@@ -358,19 +444,26 @@ export default function FlightSearchBundle() {
     }
   };
 
-  // Filter and sort flights
+  // Filter and sort flights with improved logic for outbound flights
   const filteredFlights = useMemo(() => {
-    // First filter to only include actual outbound flights (origin to destination)
+    console.log("Filtering outbound flights. Available flights:", availableFlights.length);
+    
+    // Get search criteria for filtering
     const searchOrigin = searchCriteria?.origin || origin;
     const searchDestination = searchCriteria?.destination || destination;
 
-    let filtered = availableFlights.filter(
-      (flight) =>
-        flight.origin === searchOrigin &&
-        flight.destination === searchDestination
-    );
+    console.log("Outbound filter criteria:", { searchOrigin, searchDestination });
 
-    // Filter by airlines
+    // Filter flights to only include outbound flights (origin to destination)
+    let filtered = availableFlights.filter((flight) => {
+      const matchesRoute = flight.origin === searchOrigin && flight.destination === searchDestination;
+      console.log(`Flight ${flight.flightNumber}: ${flight.origin}→${flight.destination}, matches: ${matchesRoute}`);
+      return matchesRoute;
+    });
+
+    console.log(`Found ${filtered.length} outbound flights matching route`);
+
+    // Apply additional filters
     if (selectedAirlines.length > 0) {
       filtered = filtered.filter((flight) =>
         selectedAirlines.includes(flight.airline)
@@ -453,6 +546,7 @@ export default function FlightSearchBundle() {
       }
     });
 
+    console.log(`Final filtered outbound flights: ${filtered.length}`);
     return filtered;
   }, [
     availableFlights,
@@ -461,50 +555,43 @@ export default function FlightSearchBundle() {
     sortBy,
     departureTime,
     maxStops,
+    searchCriteria,
+    origin,
+    destination,
   ]);
 
-  // Filter and sort return flights
+  // Filter and sort return flights with improved logic
   const filteredReturnFlights = useMemo(() => {
-    console.log(
-      "Filtering return flights. Total return flights:",
-      returnFlights.length
-    );
-    console.log("Return flights data:", returnFlights);
+    console.log("Filtering return flights. Total return flights:", returnFlights.length);
 
     if (returnFlights.length === 0) {
       console.log("No return flights to filter");
       return [];
     }
 
-    // First filter to only include actual return flights (destination to origin)
+    // Get search criteria for filtering (swap origin and destination for return flights)
     const searchOrigin = searchCriteria?.origin || origin;
     const searchDestination = searchCriteria?.destination || destination;
 
-    console.log(
-      "Return flights filter - Looking for flights from:",
-      searchDestination,
-      "to:",
-      searchOrigin
-    );
-    console.log(
-      "Available return flights routes:",
-      returnFlights.map((f) => `${f.origin}→${f.destination}`)
-    );
+    console.log("Return flight filter criteria:", {
+      returnOrigin: searchDestination,
+      returnDestination: searchOrigin
+    });
 
-    let filtered = returnFlights.filter(
-      (flight) =>
-        flight.origin === searchDestination &&
-        flight.destination === searchOrigin
-    );
+    // Filter return flights (destination to origin)
+    let filtered = returnFlights.filter((flight) => {
+      const matchesRoute = flight.origin === searchDestination && flight.destination === searchOrigin;
+      console.log(`Return flight ${flight.flightNumber}: ${flight.origin}→${flight.destination}, matches: ${matchesRoute}`);
+      return matchesRoute;
+    });
 
-    console.log("After route filtering:", filtered.length, "return flights");
+    console.log(`Found ${filtered.length} return flights matching route`);
 
-    // Filter by airlines
+    // Apply additional filters (same as outbound flights)
     if (selectedAirlines.length > 0) {
       filtered = filtered.filter((flight) =>
         selectedAirlines.includes(flight.airline)
       );
-      console.log("After airline filter:", filtered.length);
     }
 
     // Filter by price range
@@ -513,19 +600,13 @@ export default function FlightSearchBundle() {
         typeof flight.price === "string"
           ? parseFloat(flight.price)
           : flight.price;
-      const inRange = price >= priceRange[0] && price <= priceRange[1];
-      console.log(
-        `Flight ${flight.flightNumber} price ${price} in range [${priceRange[0]}, ${priceRange[1]}]: ${inRange}`
-      );
-      return inRange;
+      return price >= priceRange[0] && price <= priceRange[1];
     });
-    console.log("After price filter:", filtered.length);
 
     // Filter by departure time
     if (departureTime !== "any") {
       filtered = filtered.filter((flight) => {
         const depTime = flight.departureTime;
-        // Handle both string format "HH:MM" and time strings
         let hour;
         if (typeof depTime === "string" && depTime.includes(":")) {
           hour = parseInt(depTime.split(":")[0]);
@@ -596,7 +677,7 @@ export default function FlightSearchBundle() {
       }
     });
 
-    console.log("Final filtered return flights:", filtered.length);
+    console.log(`Final filtered return flights: ${filtered.length}`);
     return filtered;
   }, [
     returnFlights,
@@ -605,6 +686,9 @@ export default function FlightSearchBundle() {
     sortBy,
     departureTime,
     maxStops,
+    searchCriteria,
+    origin,
+    destination,
   ]);
 
   const handleBackToTripDetails = () => {
@@ -1614,10 +1698,6 @@ export default function FlightSearchBundle() {
                 >
                   <span className="text-blue-600">✈️</span>
                   Available Flights
-                  {/* <Badge
-                    count={`${filteredFlights.length} flights found`}
-                    style={{ backgroundColor: "var(--ant-color-success)" }}
-                  /> */}
                 </Title>
                 <Text className="text-gray-600">
                   {searchCriteria?.origin || origin || "Origin"} {searchCriteria?.tripType === "roundTrip" ? "↔" : "→"}{" "}
@@ -1664,7 +1744,7 @@ export default function FlightSearchBundle() {
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
                                 No outbound flights found for your search
-                                criteria
+                                criteria. Try adjusting your filters or search parameters.
                               </Text>
                             </div>
                           )}
@@ -1704,7 +1784,7 @@ export default function FlightSearchBundle() {
                             <div className="text-center py-8">
                               <Text className="text-gray-500">
                                 {returnFlights.length === 0
-                                  ? "No return flights found for your search criteria"
+                                  ? "No return flights found for your search criteria. Try adjusting your filters or search parameters."
                                   : "No return flights match your current filters. Try adjusting your filters."}
                               </Text>
                               {returnFlights.length > 0 && (
@@ -1741,8 +1821,8 @@ export default function FlightSearchBundle() {
                     <div className="text-center py-8">
                       <Text className="text-gray-500">
                         {availableFlights.length === 0
-                          ? "No flights found for your search criteria"
-                          : "No flights match your current filters"}
+                          ? "No flights found for your search criteria. Try adjusting your search parameters."
+                          : "No flights match your current filters. Try adjusting your filters."}
                       </Text>
                     </div>
                   )}

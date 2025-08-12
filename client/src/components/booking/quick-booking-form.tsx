@@ -57,7 +57,7 @@ export default function QuickBookingForm() {
         console.error("Error fetching flight locations:", error);
         // Fallback to default locations if API fails
         const fallbackLocations = [
-          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", 
+          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata",
           "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Kochi"
         ];
         setOriginOptions(fallbackLocations);
@@ -90,7 +90,7 @@ export default function QuickBookingForm() {
       // Store search results in localStorage for the results page
       localStorage.setItem("searchResults", JSON.stringify(data.flights || []));
       message.success(`Found ${data.flights?.length || 0} flights!`);
-      navigate("/flight-search-results");
+      navigate("/flight-search-bundle");
     },
     onError: (error: any) => {
       console.error("Search error:", error);
@@ -149,19 +149,19 @@ export default function QuickBookingForm() {
       };
 
       console.log("Sending search request:", searchData);
-      
+
       const searchResponse = await apiRequest(
         "POST",
         "/api/search",
         searchData,
       );
-      
+
       if (!searchResponse.ok) {
         const errorText = await searchResponse.text();
         console.error("Search API error response:", errorText);
         throw new Error(`Search failed: ${errorText}`);
       }
-      
+
       const searchResult = await searchResponse.json();
 
       if (!searchResult.flights || searchResult.flights.length === 0) {
