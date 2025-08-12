@@ -26,14 +26,15 @@ import {
 import type { Request, Response } from "express";
 import { db } from "./db.js";
 import {
-  users as usersTable, // Alias users to usersTable to avoid conflict with the variable name 'users'
+  grab_t_users as usersTable, // Use the correct table name
   flights,
   bookings,
+  flightBookings,
   passengers,
-  bids,
-  payments,
+  grab_t_bids as bids,
+  grab_t_bid_payments as payments,
   notifications,
-  retailBids,
+  grab_t_retail_bids as retailBids,
 } from "../shared/schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
