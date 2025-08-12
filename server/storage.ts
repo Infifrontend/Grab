@@ -640,58 +640,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserPaymentStatusForBid(bidId: number, userId: number) {
-    try {
-      // Check if user has made a payment for this specific bid
-      const userPayment = await db
-        .select()
-        .from(payments)
-        .where(eq(payments.userId, userId))
-        .limit(1);
-
-      // Also check bid notes for user-specific payment tracking
-      const bidDetails = await this.getBidById(bidId);
-      let userPaidFromNotes = false;
-      
-      if (bidDetails?.bid?.notes) {
-        try {
-          const notes = JSON.parse(bidDetails.bid.notes);
-          const userPayments = notes.userPayments || [];
-          const userPayment = userPayments.find(up => up.userId === userId);
-          userPaidFromNotes = userPayment && userPayment.paymentCompleted === true;
-        } catch (e) {
-          userPaidFromNotes = false;
-        }
-      }
-
-      // Check retail bids table for user-specific status
-      const retailBids = await db
-        .select()
-        .from(retailBids)
-        .where(and(
-          eq(retailBids.bidId, bidId),
-          eq(retailBids.userId, userId)
-        ));
-
-      const userRetailBid = retailBids[0];
-      const hasUserPaid = userPayment.length > 0 || userPaidFromNotes || 
-                         (userRetailBid && (userRetailBid.status === 'under_review' || userRetailBid.status === 'paid'));
-
-      return {
-        hasUserPaid,
-        paymentStatus: hasUserPaid ? 'completed' : 'open',
-        retailBidStatus: userRetailBid?.status || 'not_submitted'
-      };
-    } catch (error) {
-      console.error("Error checking user payment status:", error);
-      return {
-        hasUserPaid: false,
-        paymentStatus: 'open',
-        retailBidStatus: 'not_submitted'
-      };
-    }
-  }
-
   async getPaymentStatistics(userId?: number) {
     try {
       // Get all payments
@@ -700,13 +648,14 @@ export class DatabaseStorage implements IStorage {
           amount: payments.amount,
           status: payments.paymentStatus,
           createdAt: payments.createdAt,
-          bookingId: payments.bookingId,
-          userId: payments.userId
+          bookingId: payments.bookingId
         })
         .from(payments);
 
       if (userId) {
-        paymentsQuery = paymentsQuery.where(eq(payments.userId, userId));
+        paymentsQuery = paymentsQuery
+          .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
+          .where(eq(flightBookings.userId, userId));
       }
 
       const allPayments = await paymentsQuery;
