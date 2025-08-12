@@ -38,68 +38,67 @@ interface FlightResult {
   amenities: string[];
 }
 
-const mockFlights: FlightResult[] = [
-  {
-    id: 1,
-    airline: "American Airlines",
-    flightNumber: "AA100",
-    departureTime: "06:05 PM",
-    arrivalTime: "06:20 AM+1",
-    duration: "7h 15m",
-    aircraft: "Boeing 777-300ER",
-    price: 1180,
-    badges: ["Non-stop"],
-    amenities: ["WiFi", "Meals"],
-  },
-  {
-    id: 2,
-    airline: "British Airways",
-    flightNumber: "BA178",
-    departureTime: "10:30 AM",
-    arrivalTime: "10:15 PM",
-    duration: "7h 45m",
-    aircraft: "Boeing 777-300ER",
-    price: 1252,
-    badges: ["Non-stop"],
-    amenities: ["WiFi", "Meals", "Entertainment"],
-  },
-  {
-    id: 3,
-    airline: "Air France",
-    flightNumber: "AF007",
-    departureTime: "11:20 AM",
-    arrivalTime: "10:45 PM",
-    duration: "7h 25m",
-    aircraft: "Boeing 777-200ER",
-    price: 1290,
-    badges: ["Non-stop"],
-    amenities: ["WiFi", "Meals", "Entertainment"],
-  },
-  {
-    id: 4,
-    airline: "Lufthansa",
-    flightNumber: "LH401",
-    departureTime: "02:45 PM",
-    arrivalTime: "01:30 PM+1",
-    duration: "8h 45m",
-    aircraft: "Airbus A340-600",
-    price: 1350,
-    badges: ["1 stop"],
-    amenities: ["WiFi", "Meals"],
-  },
-  {
-    id: 5,
-    airline: "Virgin Atlantic",
-    flightNumber: "VS45",
-    departureTime: "08:15 AM",
-    arrivalTime: "07:30 PM",
-    duration: "8h 15m",
-    aircraft: "Airbus A350-1000",
-    price: 1470,
-    badges: ["Non-stop"],
-    amenities: ["WiFi", "Meals", "Entertainment"],
-  },
-];
+// Load flights from search results
+const loadSearchResults = (): FlightResult[] => {
+  try {
+    const searchResults = localStorage.getItem("searchResults");
+    if (searchResults) {
+      const flights = JSON.parse(searchResults);
+      return flights.map((flight: any) => ({
+        id: flight.id,
+        airline: flight.airline,
+        flightNumber: flight.flightNumber,
+        departureTime: new Date(flight.departureTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }),
+        arrivalTime: new Date(flight.arrivalTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }),
+        duration: flight.duration,
+        aircraft: flight.aircraft,
+        price: typeof flight.price === 'string' ? parseFloat(flight.price) : flight.price,
+        badges: flight.stops === 0 ? ["Non-stop"] : [`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`],
+        amenities: ["WiFi", "Meals"], // Default amenities
+      }));
+    }
+  } catch (error) {
+    console.error("Error loading search results:", error);
+  }
+  
+  // Fallback mock data if no search results
+  return [
+    {
+      id: 1,
+      airline: "Air India",
+      flightNumber: "AI101",
+      departureTime: "06:00 AM",
+      arrivalTime: "08:30 AM",
+      duration: "2h 30m",
+      aircraft: "Boeing 737",
+      price: 4500,
+      badges: ["Non-stop"],
+      amenities: ["WiFi", "Meals"],
+    },
+    {
+      id: 2,
+      airline: "SpiceJet",
+      flightNumber: "SG201",
+      departureTime: "09:00 AM",
+      arrivalTime: "11:00 AM",
+      duration: "2h 0m",
+      aircraft: "Boeing 737",
+      price: 3800,
+      badges: ["Non-stop"],
+      amenities: ["WiFi", "Meals"],
+    },
+  ];
+};
+
+const [availableFlights, setAvailableFlights] = useState<FlightResult[]>([]);
 
 export default function FlightSearchResults() {
   const navigate = useNavigate();
@@ -128,12 +127,13 @@ export default function FlightSearchResults() {
   const [infants, setInfants] = useState(0);
   const [cabin, setCabin] = useState("Economy");
 
-  // Load saved data on component mount
+  // Load saved data and search results on component mount
   useEffect(() => {
-    const savedBookingData = localStorage.getItem("bookingFormData");
-    if (savedBookingData) {
-      try {
-        const data = JSON.parse(savedBookingData);
+    // Load search criteria
+    try {
+      const searchCriteria = localStorage.getItem("searchCriteria");
+      if (searchCriteria) {
+        const data = JSON.parse(searchCriteria);
         setTripType(data.tripType || "oneWay");
         setOrigin(data.origin || "Chennai");
         setDestination(data.destination || "Mumbai");
@@ -143,15 +143,40 @@ export default function FlightSearchResults() {
         setKids(data.kids || 12);
         setInfants(data.infants || 0);
         setCabin(data.cabin || "Economy");
-      } catch (error) {
-        console.warn("Could not restore flight search data:", error);
+      } else {
+        // Fallback to bookingFormData
+        const savedBookingData = localStorage.getItem("bookingFormData");
+        if (savedBookingData) {
+          const data = JSON.parse(savedBookingData);
+          setTripType(data.tripType || "oneWay");
+          setOrigin(data.origin || "Chennai");
+          setDestination(data.destination || "Mumbai");
+          setDepartureDate(data.departureDate || "17 / 07 / 2025");
+          setReturnDate(data.returnDate || "");
+          setAdults(data.adults || 12);
+          setKids(data.kids || 12);
+          setInfants(data.infants || 0);
+          setCabin(data.cabin || "Economy");
+        }
       }
+    } catch (error) {
+      console.warn("Could not restore search data:", error);
     }
+
+    // Load flight search results
+    const flights = loadSearchResults();
+    setAvailableFlights(flights);
+    console.log(`Loaded ${flights.length} flights from search results`);
   }, []);
 
   const handleSelectFlight = (flightId: number) => {
     console.log("Selected flight:", flightId);
-    // Navigate to booking details or next step
+    
+    // Store selected flight ID and navigate to flight search bundle
+    localStorage.setItem("selectedFlightId", flightId.toString());
+    
+    // Navigate to flight search bundle page for further selection
+    navigate("/flight-search-bundle");
   };
 
   const handleModifySearch = () => {
@@ -187,7 +212,7 @@ export default function FlightSearchResults() {
 
   // Filter and sort flights
   const filteredAndSortedFlights = useMemo(() => {
-    let filtered = mockFlights.filter((flight) => {
+    let filtered = availableFlights.filter((flight) => {
       // Price range filter
       if (flight.price < priceRange[0] || flight.price > priceRange[1]) {
         return false;
@@ -284,7 +309,7 @@ export default function FlightSearchResults() {
 
     return filtered;
   }, [
-    mockFlights,
+    availableFlights,
     sortBy,
     priceRange,
     selectedAirlines,
@@ -314,7 +339,7 @@ export default function FlightSearchResults() {
 
   // Get unique airlines for filter
   const availableAirlines = Array.from(
-    new Set(mockFlights.map((flight) => flight.airline))
+    new Set(availableFlights.map((flight) => flight.airline))
   );
 
   return (

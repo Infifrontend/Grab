@@ -37,24 +37,36 @@ export default function QuickBookingForm() {
   >("oneWay");
   const navigate = useNavigate();
   const adminMode = JSON.parse(localStorage.getItem("adminLoggedIn") || "false");
+  // State for dynamic location options
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
-  // Fetch unique flight locations for autocomplete
-  const { data: locationsData } = useQuery({
-    queryKey: ["flight-locations"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/flight-locations");
-      return response.json();
-    },
-  });
-
+  // Fetch flight locations on component mount
   useEffect(() => {
-    if (locationsData?.locations) {
-      setOriginOptions(locationsData.locations);
-      setDestinationOptions(locationsData.locations);
-    }
-  }, [locationsData]);
+    const fetchFlightLocations = async () => {
+      try {
+        const response = await fetch("/api/flight-locations");
+        const data = await response.json();
+
+        if (data.locations) {
+          setOriginOptions(data.locations);
+          setDestinationOptions(data.locations);
+          console.log(`Loaded ${data.locations.length} flight locations for quick booking`);
+        }
+      } catch (error) {
+        console.error("Error fetching flight locations:", error);
+        // Fallback to default locations if API fails
+        const fallbackLocations = [
+          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", 
+          "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Kochi"
+        ];
+        setOriginOptions(fallbackLocations);
+        setDestinationOptions(fallbackLocations);
+      }
+    };
+
+    fetchFlightLocations();
+  }, []);
 
   const searchMutation = useMutation({
     mutationFn: async (searchData: SearchFormData) => {
@@ -147,7 +159,7 @@ export default function QuickBookingForm() {
         return;
       }
 
-      // Store search results and criteria for the flight search bundle page
+      // Store search results and criteria for the flight search results page
       localStorage.setItem(
         "searchResults",
         JSON.stringify(searchResult?.flights),
@@ -159,29 +171,11 @@ export default function QuickBookingForm() {
       localStorage.setItem("searchCriteria", JSON.stringify(searchData));
       localStorage.setItem("passengerCount", totalPassengers.toString());
 
-      // Store all form data for consistent booking flow
-      localStorage.setItem(
-        "bookingFormData",
-        JSON.stringify({
-          origin: values.origin,
-          destination: values.destination,
-          departureDate: values.departureDate,
-          returnDate: values.returnDate,
-          tripType: tripType, // Use the tripType state instead of values.tripType
-          adults: values.adults,
-          kids: values.kids,
-          infants: values.infants,
-          cabin: values.cabin,
-          totalPassengers,
-        }),
-      );
+      console.log("Search completed successfully");
+      message.success(`Found ${searchResult.flights.length} flights`);
 
-      message.success(
-        `Found ${searchResult.flights.length} flights! Redirecting to flight selection...`,
-      );
-
-      // Navigate to flight search bundle page
-      navigate(adminMode ? "/admin/flight-search-bundle" : "/flight-search-bundle");
+      // Navigate to flight search results page
+      navigate("/flight-search-results");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");
