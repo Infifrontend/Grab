@@ -67,7 +67,7 @@ const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResu
     console.log("API response:", data);
 
     if (data.flights && data.flights.length > 0) {
-      return data.flights.map((flight: any) => ({
+      const processedFlights = data.flights.map((flight: any) => ({
         id: flight.id,
         airline: flight.airline,
         flightNumber: flight.flightNumber,
@@ -81,14 +81,18 @@ const fetchFlightsFromDatabase = async (searchCriteria: any): Promise<FlightResu
           minute: '2-digit',
           hour12: true 
         }),
-        duration: flight.duration,
-        aircraft: flight.aircraft,
-        price: typeof flight.price === 'string' ? parseFloat(flight.price) : parseFloat(flight.price),
+        duration: flight.duration || '2h 30m',
+        aircraft: flight.aircraft || 'Aircraft',
+        price: typeof flight.price === 'string' ? parseFloat(flight.price) : parseFloat(flight.price || 0),
         badges: flight.stops === 0 ? ["Non-stop"] : [`${flight.stops} stop${flight.stops > 1 ? 's' : ''}`],
         amenities: ["WiFi", "Meals"], // Default amenities
       }));
+      
+      console.log(`Successfully processed ${processedFlights.length} flights for display`);
+      return processedFlights;
     }
     
+    console.log("No flights found in API response");
     return [];
   } catch (error) {
     console.error("Error fetching flights from database:", error);
@@ -171,8 +175,14 @@ export default function FlightSearchResults() {
       if (searchCriteria) {
         console.log("Fetching flights with criteria:", searchCriteria);
         const flights = await fetchFlightsFromDatabase(searchCriteria);
+        console.log(`Received ${flights.length} flights from fetchFlightsFromDatabase`);
         setAvailableFlights(flights);
-        console.log(`Loaded ${flights.length} flights from database`);
+        console.log(`Set availableFlights state with ${flights.length} flights`);
+        
+        // Also log a sample flight for debugging
+        if (flights.length > 0) {
+          console.log("Sample flight:", flights[0]);
+        }
       } else {
         // Default search if no criteria available
         console.log("No search criteria found, using default search");
@@ -185,8 +195,9 @@ export default function FlightSearchResults() {
           cabin: "economy"
         };
         const flights = await fetchFlightsFromDatabase(defaultCriteria);
+        console.log(`Received ${flights.length} default flights from fetchFlightsFromDatabase`);
         setAvailableFlights(flights);
-        console.log(`Loaded ${flights.length} default flights from database`);
+        console.log(`Set availableFlights state with ${flights.length} default flights`);
       }
     };
 
@@ -256,9 +267,20 @@ export default function FlightSearchResults() {
 
   // Filter and sort flights
   const filteredAndSortedFlights = useMemo(() => {
+    console.log(`Starting filter process with ${availableFlights.length} available flights`);
+    console.log("Current filter settings:", {
+      priceRange,
+      selectedAirlines,
+      departureTime,
+      maxStops,
+      maxDuration
+    });
+
     let filtered = availableFlights.filter((flight) => {
       // Price range filter
-      if (flight.price < priceRange[0] || flight.price > priceRange[1]) {
+      const flightPrice = typeof flight.price === 'number' ? flight.price : parseFloat(flight.price) || 0;
+      if (flightPrice < priceRange[0] || flightPrice > priceRange[1]) {
+        console.log(`Flight ${flight.id} filtered out by price: ${flightPrice} not in range [${priceRange[0]}, ${priceRange[1]}]`);
         return false;
       }
 
@@ -267,6 +289,7 @@ export default function FlightSearchResults() {
         selectedAirlines.length > 0 &&
         !selectedAirlines.includes(flight.airline)
       ) {
+        console.log(`Flight ${flight.id} filtered out by airline: ${flight.airline} not in [${selectedAirlines.join(', ')}]`);
         return false;
       }
 
@@ -323,22 +346,32 @@ export default function FlightSearchResults() {
       return true;
     });
 
+    console.log(`After filtering: ${filtered.length} flights remain`);
+
     // Sort flights
     switch (sortBy) {
       case "price-low":
-        filtered.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => {
+          const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
+          const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
+          return aPrice - bPrice;
+        });
         break;
       case "price-high":
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => {
+          const aPrice = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
+          const bPrice = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
+          return bPrice - aPrice;
+        });
         break;
       case "duration":
         filtered.sort((a, b) => {
           const aDuration =
             parseInt(a.duration.split("h")[0]) * 60 +
-            parseInt(a.duration.split("h")[1].split("m")[0]);
+            parseInt(a.duration.split("h")[1]?.split("m")[0] || "0");
           const bDuration =
             parseInt(b.duration.split("h")[0]) * 60 +
-            parseInt(b.duration.split("h")[1].split("m")[0]);
+            parseInt(b.duration.split("h")[1]?.split("m")[0] || "0");
           return aDuration - bDuration;
         });
         break;
@@ -351,6 +384,7 @@ export default function FlightSearchResults() {
         break;
     }
 
+    console.log(`Final filtered and sorted flights: ${filtered.length}`);
     return filtered;
   }, [
     availableFlights,
@@ -843,7 +877,7 @@ export default function FlightSearchResults() {
                       <div className="text-right">
                         <div className="mb-3">
                           <Text className="text-2xl font-bold text-gray-900">
-                            ${flight.price}
+                            ₹{typeof flight.price === 'number' ? flight.price.toLocaleString() : parseFloat(flight.price || '0').toLocaleString()}
                           </Text>
                           <Text className="text-gray-600 text-sm block">
                             per person
