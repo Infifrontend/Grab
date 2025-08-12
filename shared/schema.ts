@@ -10,6 +10,7 @@ export const grab_t_users = pgTable("grab_t_users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  phone: text("phone"),
   isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 

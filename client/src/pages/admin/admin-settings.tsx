@@ -85,6 +85,7 @@ export default function AdminSettings() {
         id: user.id,
         name: user.name || 'N/A',
         email: user.email || user.username || 'N/A',
+        phone: user.phone || 'N/A',
         role: user.isRetailAllowed ? "Retail User" : "Regular User",
         status: user.isRetailAllowed ? "Active" : "Inactive",
         lastLogin: "N/A", // We don't track last login in current schema
@@ -118,6 +119,7 @@ export default function AdminSettings() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
+        phone: values.phone,
         username: values.email.split('@')[0], // Use email prefix as username
         password: values.password,
         name: `${values.firstName} ${values.lastName}`,
@@ -167,6 +169,7 @@ export default function AdminSettings() {
       firstName: user.name.split(' ')[0],
       lastName: user.name.split(' ')[1] || '',
       email: user.email,
+      phone: user.phone || '',
       status: user.status === "Active",
     });
     setIsEditUserModalVisible(true);
@@ -181,6 +184,7 @@ export default function AdminSettings() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
+        phone: values.phone,
         isRetailAllowed: values.status,
       };
 
@@ -608,6 +612,16 @@ export default function AdminSettings() {
             <Input placeholder="Enter email address" />
           </Form.Item>
           <Form.Item
+            name="phone"
+            label="Phone Number"
+            rules={[
+              { required: true, message: "Please enter a phone number" },
+              { pattern: /^[\+]?[1-9][\d]{0,15}$/, message: "Please enter a valid phone number" }
+            ]}
+          >
+            <Input placeholder="Enter phone number" />
+          </Form.Item>
+          <Form.Item
             name="password"
             label="Password"
             rules={[
@@ -699,6 +713,17 @@ export default function AdminSettings() {
               ]}
             >
               <Input placeholder="Enter email address" />
+            </Form.Item>
+
+            <Form.Item
+              name="phone"
+              label="Phone Number"
+              rules={[
+                { required: true, message: "Please enter a phone number" },
+                { pattern: /^[\+]?[1-9][\d]{0,15}$/, message: "Please enter a valid phone number" }
+              ]}
+            >
+              <Input placeholder="Enter phone number" />
             </Form.Item>
 
             <Form.Item name="status" valuePropName="checked">
