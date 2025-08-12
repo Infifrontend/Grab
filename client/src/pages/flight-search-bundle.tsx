@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Card,
   Row,
@@ -197,37 +197,8 @@ export default function FlightSearchBundle() {
     "standard-meal",
   ]);
 
-  // State for dynamic location options
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
-
-  // Fetch flight locations on component mount
-  useEffect(() => {
-    const fetchFlightLocations = async () => {
-      try {
-        const response = await fetch("/api/flight-locations");
-        const data = await response.json();
-
-        if (data.locations) {
-          setOriginOptions(data.locations);
-          setDestinationOptions(data.locations);
-          console.log(`Loaded ${data.locations.length} flight locations`);
-        }
-      } catch (error) {
-        console.error("Error fetching flight locations:", error);
-        // Fallback to default locations if API fails
-        const fallbackLocations = [
-          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata",
-          "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Kochi"
-        ];
-        setOriginOptions(fallbackLocations);
-        setDestinationOptions(fallbackLocations);
-      }
-    };
-
-    fetchFlightLocations();
-  }, []);
-
 
   // Modify search form state - initialize from bookingFormData (from QuickBooking form)
   const [origin, setOrigin] = useState<string>("");

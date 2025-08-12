@@ -1,6 +1,6 @@
 
 import { db } from "./db.js";
-import { grab_t_users as users, grab_t_bids as bids } from "../shared/schema.js";
+import { users, bids } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 
 export async function insertBidData() {

@@ -1,29 +1,15 @@
-
 import { pgTable, text, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const grab_t_users = pgTable("grab_t_users", {
+export const users = pgTable("users", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  phone: text("phone"),
-  role: text("role").default("retail_user"), // admin, retail_user
   isRetailAllowed: boolean("is_retail_allowed").default(false),
-});
-
-export const grab_m_status = pgTable("grab_m_status", {
-  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  statusCode: text("status_code").notNull().unique(),
-  statusName: text("status_name").notNull(),
-  statusType: text("status_type").notNull(), // bid, payment, booking, etc.
-  description: text("description"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const deals = pgTable("deals", {
@@ -56,7 +42,7 @@ export const packages = pgTable("packages", {
 export const bookings = pgTable("bookings", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: text("booking_id").notNull().unique(),
-  userId: integer("user_id").references(() => grab_t_users.id),
+  userId: integer("user_id").references(() => users.id),
   route: text("route").notNull(),
   date: timestamp("date").notNull(),
   passengers: integer("passengers").notNull(),
@@ -100,7 +86,7 @@ export const flightBookings = pgTable("flight_bookings", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingReference: text("booking_reference").notNull().unique(),
   pnr: text("pnr").notNull().unique(),
-  userId: integer("user_id").references(() => grab_t_users.id),
+  userId: integer("user_id").references(() => users.id),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
@@ -129,14 +115,13 @@ export const passengers = pgTable("passengers", {
 });
 
 // Bids module for flight offers
-export const grab_t_bids = pgTable("grab_t_bids", {
+export const bids = pgTable("bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  userId: integer("user_id").references(() => grab_t_users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
-  statusId: integer("status_id").references(() => grab_m_status.id),
   validUntil: timestamp("valid_until").notNull(),
   notes: text("notes"),
   totalSeatsAvailable: integer("total_seats_available").default(50),
@@ -147,17 +132,15 @@ export const grab_t_bids = pgTable("grab_t_bids", {
 });
 
 // Payment handling for transactions
-export const grab_t_bid_payments = pgTable("grab_t_bid_payments", {
+export const payments = pgTable("payments", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   bookingId: integer("booking_id").references(() => flightBookings.id),
-  userId: integer("user_id").references(() => grab_t_users.id),
-  bidId: integer("bid_id").references(() => grab_t_bids.id),
+  userId: integer("user_id").references(() => users.id),
   paymentReference: text("payment_reference").notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: text("currency").notNull().default("USD"),
   paymentMethod: text("payment_method").notNull(), // credit_card, debit_card, paypal, bank_transfer
   paymentStatus: text("payment_status").notNull().default("pending"), // pending, processing, completed, failed, cancelled, refunded
-  statusId: integer("status_id").references(() => grab_m_status.id),
   transactionId: text("transaction_id"),
   paymentGateway: text("payment_gateway"), // stripe, paypal, square
   failureReason: text("failure_reason"),
@@ -168,12 +151,11 @@ export const grab_t_bid_payments = pgTable("grab_t_bid_payments", {
 // Payment refunds tracking
 export const refunds = pgTable("refunds", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  paymentId: integer("payment_id").references(() => grab_t_bid_payments.id).notNull(),
+  paymentId: integer("payment_id").references(() => payments.id).notNull(),
   refundReference: text("refund_reference").notNull().unique(),
   refundAmount: decimal("refund_amount", { precision: 10, scale: 2 }).notNull(),
   refundReason: text("refund_reason").notNull(),
   refundStatus: text("refund_status").notNull().default("pending"), // pending, processing, completed, failed
-  statusId: integer("status_id").references(() => grab_m_status.id),
   processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -191,59 +173,48 @@ export const notifications = pgTable("notifications", {
 });
 
 // Retail bids table for storing retail user bid submissions
-export const grab_t_retail_bids = pgTable("grab_t_retail_bids", {
+export const retailBids = pgTable("retail_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  bidId: integer("bid_id").references(() => grab_t_bids.id).notNull(),
-  userId: integer("user_id").references(() => grab_t_users.id).notNull(),
+  bidId: integer("bid_id").references(() => bids.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   status: text("status").notNull().default("submitted"), // submitted, approved, rejected
-  statusId: integer("status_id").references(() => grab_m_status.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relations
-export const grab_t_usersRelations = relations(grab_t_users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
   flightBookings: many(flightBookings),
-  bids: many(grab_t_bids),
-  retailBids: many(grab_t_retail_bids),
-  payments: many(grab_t_bid_payments),
-}));
-
-export const grab_m_statusRelations = relations(grab_m_status, ({ many }) => ({
-  bids: many(grab_t_bids),
-  payments: many(grab_t_bid_payments),
-  refunds: many(refunds),
-  retailBids: many(grab_t_retail_bids),
+  bids: many(bids),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one }) => ({
-  user: one(grab_t_users, {
+  user: one(users, {
     fields: [bookings.userId],
-    references: [grab_t_users.id],
+    references: [users.id],
   }),
 }));
 
 export const flightsRelations = relations(flights, ({ many }) => ({
   flightBookings: many(flightBookings),
-  bids: many(grab_t_bids),
-  retailBids: many(grab_t_retail_bids),
+  bids: many(bids),
 }));
 
 export const flightBookingsRelations = relations(flightBookings, ({ one, many }) => ({
-  user: one(grab_t_users, {
+  user: one(users, {
     fields: [flightBookings.userId],
-    references: [grab_t_users.id],
+    references: [users.id],
   }),
   flight: one(flights, {
     fields: [flightBookings.flightId],
     references: [flights.id],
   }),
   passengers: many(passengers),
-  payments: many(grab_t_bid_payments),
+  payments: many(payments),
 }));
 
 export const passengersRelations = relations(passengers, ({ one }) => ({
@@ -253,82 +224,55 @@ export const passengersRelations = relations(passengers, ({ one }) => ({
   }),
 }));
 
-export const grab_t_bidsRelations = relations(grab_t_bids, ({ one, many }) => ({
-  user: one(grab_t_users, {
-    fields: [grab_t_bids.userId],
-    references: [grab_t_users.id],
+export const bidsRelations = relations(bids, ({ one }) => ({
+  user: one(users, {
+    fields: [bids.userId],
+    references: [users.id],
   }),
   flight: one(flights, {
-    fields: [grab_t_bids.flightId],
+    fields: [bids.flightId],
     references: [flights.id],
   }),
-  status: one(grab_m_status, {
-    fields: [grab_t_bids.statusId],
-    references: [grab_m_status.id],
-  }),
-  retailBids: many(grab_t_retail_bids),
-  payments: many(grab_t_bid_payments),
 }));
 
-export const grab_t_bid_paymentsRelations = relations(grab_t_bid_payments, ({ one, many }) => ({
+export const paymentsRelations = relations(payments, ({ one, many }) => ({
   booking: one(flightBookings, {
-    fields: [grab_t_bid_payments.bookingId],
+    fields: [payments.bookingId],
     references: [flightBookings.id],
-  }),
-  user: one(grab_t_users, {
-    fields: [grab_t_bid_payments.userId],
-    references: [grab_t_users.id],
-  }),
-  bid: one(grab_t_bids, {
-    fields: [grab_t_bid_payments.bidId],
-    references: [grab_t_bids.id],
-  }),
-  status: one(grab_m_status, {
-    fields: [grab_t_bid_payments.statusId],
-    references: [grab_m_status.id],
   }),
   refunds: many(refunds),
 }));
 
 export const refundsRelations = relations(refunds, ({ one }) => ({
-  payment: one(grab_t_bid_payments, {
+  payment: one(payments, {
     fields: [refunds.paymentId],
-    references: [grab_t_bid_payments.id],
-  }),
-  status: one(grab_m_status, {
-    fields: [refunds.statusId],
-    references: [grab_m_status.id],
+    references: [payments.id],
   }),
 }));
 
-export const grab_t_retail_bidsRelations = relations(grab_t_retail_bids, ({ one }) => ({
-  bid: one(grab_t_bids, {
-    fields: [grab_t_retail_bids.bidId],
-    references: [grab_t_bids.id],
+export const retailBidsRelations = relations(retailBids, ({ one }) => ({
+  bid: one(bids, {
+    fields: [retailBids.bidId],
+    references: [bids.id],
   }),
-  user: one(grab_t_users, {
-    fields: [grab_t_retail_bids.userId],
-    references: [grab_t_users.id],
+  user: one(users, {
+    fields: [retailBids.userId],
+    references: [users.id],
   }),
   flight: one(flights, {
-    fields: [grab_t_retail_bids.flightId],
+    fields: [retailBids.flightId],
     references: [flights.id],
-  }),
-  status: one(grab_m_status, {
-    fields: [grab_t_retail_bids.statusId],
-    references: [grab_m_status.id],
   }),
 }));
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(grab_t_users).pick({
+export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   name: true,
   email: true,
 });
 
-export const insertStatusSchema = createInsertSchema(grab_m_status).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDealSchema = createInsertSchema(deals);
 export const insertPackageSchema = createInsertSchema(packages);
 export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
@@ -344,15 +288,14 @@ export const insertSearchRequestSchema = z.object({
 export const insertFlightSchema = createInsertSchema(flights).omit({ id: true, createdAt: true });
 export const insertFlightBookingSchema = createInsertSchema(flightBookings).omit({ id: true, bookedAt: true, updatedAt: true });
 export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: true });
-export const insertBidSchema = createInsertSchema(grab_t_bids).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertPaymentSchema = createInsertSchema(grab_t_bid_payments).omit({ id: true, processedAt: true, createdAt: true });
+export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
-export const insertRetailBidSchema = createInsertSchema(grab_t_retail_bids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof grab_t_users.$inferSelect;
-export type Status = typeof grab_m_status.$inferSelect;
+export type User = typeof users.$inferSelect;
 export type Deal = typeof deals.$inferSelect;
 export type Package = typeof packages.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
@@ -360,12 +303,10 @@ export type SearchRequest = typeof searchRequests.$inferSelect;
 export type Flight = typeof flights.$inferSelect;
 export type FlightBooking = typeof flightBookings.$inferSelect;
 export type Passenger = typeof passengers.$inferSelect;
-export type Bid = typeof grab_t_bids.$inferSelect;
-export type Payment = typeof grab_t_bid_payments.$inferSelect;
+export type Bid = typeof bids.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
 export type Refund = typeof refunds.$inferSelect;
-export type RetailBid = typeof grab_t_retail_bids.$inferSelect;
 
-export type InsertStatus = z.infer<typeof insertStatusSchema>;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
@@ -376,14 +317,5 @@ export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
+export type RetailBid = typeof retailBids.$inferSelect;
 export type InsertRetailBid = z.infer<typeof insertRetailBidSchema>;
-
-// Legacy exports for backward compatibility
-export const users = grab_t_users;
-export const bids = grab_t_bids;
-export const payments = grab_t_bid_payments;
-export const retailBids = grab_t_retail_bids;
-export const usersRelations = grab_t_usersRelations;
-export const bidsRelations = grab_t_bidsRelations;
-export const paymentsRelations = grab_t_bid_paymentsRelations;
-export const retailBidsRelations = grab_t_retail_bidsRelations;

@@ -45,36 +45,24 @@ export default function NewBooking() {
   const userMode = JSON.parse(localStorage.getItem("userLoggedIn") || "false");
   const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("oneWay");
   const navigate = useNavigate();
-  // State for dynamic location options
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
 
-  // Fetch flight locations on component mount
+  // Fetch unique flight locations for autocomplete
+  const { data: locationsData } = useQuery({
+    queryKey: ["flight-locations"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/flight-locations");
+      return response.json();
+    },
+  });
+
   useEffect(() => {
-    const fetchFlightLocations = async () => {
-      try {
-        const response = await fetch("/api/flight-locations");
-        const data = await response.json();
-
-        if (data.locations) {
-          setOriginOptions(data.locations);
-          setDestinationOptions(data.locations);
-          console.log(`Loaded ${data.locations.length} flight locations for new booking`);
-        }
-      } catch (error) {
-        console.error("Error fetching flight locations:", error);
-        // Fallback to default locations if API fails
-        const fallbackLocations = [
-          "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata",
-          "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Kochi"
-        ];
-        setOriginOptions(fallbackLocations);
-        setDestinationOptions(fallbackLocations);
-      }
-    };
-
-    fetchFlightLocations();
-  }, []);
+    if (locationsData?.locations) {
+      setOriginOptions(locationsData.locations);
+      setDestinationOptions(locationsData.locations);
+    }
+  }, [locationsData]);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -150,26 +138,15 @@ export default function NewBooking() {
         tripType: tripType,
       };
 
-      console.log("Sending search request:", searchData);
-      
       const searchResponse = await apiRequest(
         "POST",
         "/api/search",
         searchData
       );
-      
-      if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        console.error("Search API error:", errorData);
-        message.error(errorData.details || errorData.message || "Search failed");
-        return;
-      }
-      
       const searchResult = await searchResponse.json();
-      console.log("Search result received:", searchResult);
 
       if (!searchResult.flights || searchResult.flights.length === 0) {
-        message.error("No flights found for your search criteria. Please try different dates or destinations.");
+        message.error("No flights found for your search criteria");
         return;
       }
 
@@ -507,7 +484,7 @@ export default function NewBooking() {
             onClick={() => form.submit()}
             className="infiniti-btn-primary px-8"
           >
-            { !userMode
+            { !userMode 
               ? "Search Flights"
               : searchMutation.isPending
                 ? "Searching Flights..."

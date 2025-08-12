@@ -85,8 +85,7 @@ export default function AdminSettings() {
         id: user.id,
         name: user.name || 'N/A',
         email: user.email || user.username || 'N/A',
-        phone: user.phone || 'N/A',
-        role: user.role === 'admin' ? "Admin" : user.isRetailAllowed ? "Retail User" : "Regular User",
+        role: user.isRetailAllowed ? "Retail User" : "Regular User",
         status: user.isRetailAllowed ? "Active" : "Inactive",
         lastLogin: "N/A", // We don't track last login in current schema
         permissions: user.isRetailAllowed ? ["Retail Access"] : ["Basic Access"],
@@ -119,12 +118,10 @@ export default function AdminSettings() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
-        phone: values.phone,
         username: values.email.split('@')[0], // Use email prefix as username
         password: values.password,
         name: `${values.firstName} ${values.lastName}`,
-        role: values.role,
-        isRetailAllowed: values.role === 'retail_user' || values.status || false
+        isRetailAllowed: values.status || false
       };
 
       console.log('Sending user data:', userData);
@@ -170,8 +167,6 @@ export default function AdminSettings() {
       firstName: user.name.split(' ')[0],
       lastName: user.name.split(' ')[1] || '',
       email: user.email,
-      phone: user.phone || '',
-      role: user.role === "Admin" ? "admin" : "retail_user",
       status: user.status === "Active",
     });
     setIsEditUserModalVisible(true);
@@ -186,9 +181,7 @@ export default function AdminSettings() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
-        phone: values.phone,
-        role: values.role,
-        isRetailAllowed: values.role === 'retail_user' || values.status,
+        isRetailAllowed: values.status,
       };
 
       const response = await fetch(`/api/users/${userId}`, {
@@ -615,16 +608,6 @@ export default function AdminSettings() {
             <Input placeholder="Enter email address" />
           </Form.Item>
           <Form.Item
-            name="phone"
-            label="Phone Number"
-            rules={[
-              { required: true, message: "Please enter a phone number" },
-              { pattern: /^[\+]?[1-9][\d]{0,15}$/, message: "Please enter a valid phone number" }
-            ]}
-          >
-            <Input placeholder="Enter phone number" />
-          </Form.Item>
-          <Form.Item
             name="password"
             label="Password"
             rules={[
@@ -637,7 +620,8 @@ export default function AdminSettings() {
           <Form.Item name="role" label="Role" rules={[{ required: true }]}>
             <Select placeholder="Select role">
               <Select.Option value="admin">Admin</Select.Option>
-              <Select.Option value="retail_user">Retail User</Select.Option>
+              <Select.Option value="operator">Operator</Select.Option>
+              <Select.Option value="viewer">Viewer</Select.Option>
             </Select>
           </Form.Item>
 
@@ -715,28 +699,6 @@ export default function AdminSettings() {
               ]}
             >
               <Input placeholder="Enter email address" />
-            </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="Phone Number"
-              rules={[
-                { required: true, message: "Please enter a phone number" },
-                { pattern: /^[\+]?[1-9][\d]{0,15}$/, message: "Please enter a valid phone number" }
-              ]}
-            >
-              <Input placeholder="Enter phone number" />
-            </Form.Item>
-
-            <Form.Item
-              name="role"
-              label="Role"
-              rules={[{ required: true, message: "Please select a role" }]}
-            >
-              <Select placeholder="Select role">
-                <Select.Option value="admin">Admin</Select.Option>
-                <Select.Option value="retail_user">Retail User</Select.Option>
-              </Select>
             </Form.Item>
 
             <Form.Item name="status" valuePropName="checked">

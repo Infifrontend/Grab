@@ -1,14 +1,18 @@
 import { db } from "./db";
 import {
-  grab_t_users,
-  users, // Keep for backward compatibility
-  grab_t_bids,
-  bids, // Keep for backward compatibility
-  grab_t_bid_payments,
-  payments, // Keep for backward compatibility
-  grab_t_retail_bids,
-  retailBids, // Keep for backward compatibility
+  users,
+  deals,
+  packages,
+  bookings,
+  searchRequests,
+  flights,
+  flightBookings,
+  passengers,
+  bids,
+  payments,
   refunds,
+  notifications,
+  retailBids,
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -19,7 +23,6 @@ import {
   type InsertPassenger,
   type InsertBid,
   type InsertPayment,
-  type InsertRetailBid,
   type InsertRefund,
   type User,
   type Deal,
@@ -143,64 +146,33 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(grab_t_users).where(eq(grab_t_users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .select()
-        .from(grab_t_users)
-        .where(eq(grab_t_users.username, username))
-        .limit(1);
-      return user;
-    } catch (error) {
-      console.error("Error fetching user by username:", error);
-      return null;
-    }
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .select()
-        .from(grab_t_users)
-        .where(eq(grab_t_users.email, email))
-        .limit(1);
-      return user;
-    } catch (error) {
-      console.error("Error fetching user by email:", error);
-      return null;
-    }
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
-  async createUser(userData: InsertUser) {
-    console.log("Creating user in grab_t_users table with data:", userData);
-    try {
-      // Ensure we only insert valid columns for grab_t_users table
-      const validUserData = {
-        username: userData.username,
-        password: userData.password,
-        name: userData.name,
-        email: userData.email,
-        isRetailAllowed: userData.isRetailAllowed || false
-      };
-      
-      const [user] = await db.insert(grab_t_users).values(validUserData).returning();
-      console.log("User created successfully:", user);
-      return user;
-    } catch (error) {
-      console.error("Database error creating user:", error);
-      throw error;
-    }
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
   }
 
   async checkRetailAccess(userId: number): Promise<boolean> {
     const result = await db
-      .select({ isRetailAllowed: grab_t_users.isRetailAllowed })
-      .from(grab_t_users)
-      .where(eq(grab_t_users.id, userId))
+      .select({ isRetailAllowed: users.isRetailAllowed })
+      .from(users)
+      .where(eq(users.id, userId))
       .limit(1);
 
     return result[0]?.isRetailAllowed || false;
@@ -209,9 +181,9 @@ export class DatabaseStorage implements IStorage {
   async updateUserRetailAccess(userId: number, isAllowed: boolean) {
     try {
       await db
-        .update(grab_t_users)
+        .update(users)
         .set({ isRetailAllowed: isAllowed })
-        .where(eq(grab_t_users.id, userId));
+        .where(eq(users.id, userId));
     } catch (error) {
       console.error("Error updating user retail access:", error);
       throw error;
@@ -220,10 +192,13 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     try {
-      return await db.select().from(grab_t_users);
+      console.log("Executing getAllUsers query...");
+      const allUsers = await db.select().from(users);
+      console.log(`getAllUsers returned ${allUsers.length} users`);
+      return allUsers;
     } catch (error) {
-      console.error("Error fetching all users:", error);
-      return [];
+      console.error("Error in getAllUsers:", error);
+      throw error;
     }
   }
 
@@ -540,52 +515,52 @@ export class DatabaseStorage implements IStorage {
   // Bids
   async getBids(userId?: number, flightId?: number): Promise<Bid[]> {
     const conditions = [];
-    if (userId) conditions.push(eq(grab_t_bids.userId, userId));
-    if (flightId) conditions.push(eq(grab_t_bids.flightId, flightId));
+    if (userId) conditions.push(eq(bids.userId, userId));
+    if (flightId) conditions.push(eq(bids.flightId, flightId));
 
     if (conditions.length > 0) {
-      return await db.select().from(grab_t_bids).where(and(...conditions));
+      return await db.select().from(bids).where(and(...conditions));
     }
 
-    return await db.select().from(grab_t_bids);
+    return await db.select().from(bids);
   }
 
   async getBid(id: number): Promise<Bid | undefined> {
-    const [bid] = await db.select().from(grab_t_bids).where(eq(grab_t_bids.id, id));
+    const [bid] = await db.select().from(bids).where(eq(bids.id, id));
     return bid || undefined;
   }
 
   async createBid(bid: InsertBid): Promise<Bid> {
-    const [newBid] = await db.insert(grab_t_bids).values(bid).returning();
+    const [newBid] = await db.insert(bids).values(bid).returning();
     return newBid;
   }
 
   async updateBidStatus(id: number, status: string): Promise<void> {
     console.log(`Updating bid ${id} status to ${status}`);
-    await db.update(grab_t_bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(grab_t_bids.id, id));
+    await db.update(bids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(bids.id, id));
   }
 
   async deleteBid(id: number): Promise<void> {
-    await db.delete(grab_t_bids).where(eq(grab_t_bids.id, id));
+    await db.delete(bids).where(eq(bids.id, id));
   }
 
   // Payments
   async getPaymentsByBooking(bookingId: number): Promise<Payment[]> {
-    return await db.select().from(grab_t_bid_payments).where(eq(grab_t_bid_payments.bookingId, bookingId));
+    return await db.select().from(payments).where(eq(payments.bookingId, bookingId));
   }
 
   async getPayment(id: number): Promise<Payment | undefined> {
-    const [payment] = await db.select().from(grab_t_bid_payments).where(eq(grab_t_bid_payments.id, id));
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
     return payment || undefined;
   }
 
   async getPaymentByReference(reference: string): Promise<Payment | undefined> {
-    const [payment] = await db.select().from(grab_t_bid_payments).where(eq(grab_t_bid_payments.paymentReference, reference));
+    const [payment] = await db.select().from(payments).where(eq(payments.paymentReference, reference));
     return payment || undefined;
   }
 
   async createPayment(payment: InsertPayment): Promise<Payment> {
-    const [newPayment] = await db.insert(grab_t_bid_payments).values(payment).returning();
+    const [newPayment] = await db.insert(payments).values(payment).returning();
     return newPayment;
   }
 
@@ -600,7 +575,7 @@ export class DatabaseStorage implements IStorage {
     if (failureReason) {
       updateData.failureReason = failureReason;
     }
-    await db.update(grab_t_bid_payments).set(updateData).where(eq(grab_t_bid_payments.id, id));
+    await db.update(payments).set(updateData).where(eq(payments.id, id));
   }
 
   // Refunds
@@ -623,9 +598,9 @@ export class DatabaseStorage implements IStorage {
 
   async getBidStatistics(userId?: number) {
     try {
-      const conditions = userId ? eq(grab_t_bids.userId, userId) : undefined;
+      const conditions = userId ? eq(bids.userId, userId) : undefined;
 
-      const allBids = await db.select().from(grab_t_bids).where(conditions);
+      const allBids = await db.select().from(bids).where(conditions);
 
       const activeBids = allBids.filter(bid => bid.bidStatus === 'active').length;
       const acceptedBids = allBids.filter(bid => bid.bidStatus === 'accepted').length;
@@ -671,16 +646,16 @@ export class DatabaseStorage implements IStorage {
       // Get all payments
       let paymentsQuery = db
         .select({
-          amount: grab_t_bid_payments.amount,
-          status: grab_t_bid_payments.paymentStatus,
-          createdAt: grab_t_bid_payments.createdAt,
-          bookingId: grab_t_bid_payments.bookingId
+          amount: payments.amount,
+          status: payments.paymentStatus,
+          createdAt: payments.createdAt,
+          bookingId: payments.bookingId
         })
-        .from(grab_t_bid_payments);
+        .from(payments);
 
       if (userId) {
         paymentsQuery = paymentsQuery
-          .innerJoin(flightBookings, eq(grab_t_bid_payments.bookingId, flightBookings.id))
+          .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
           .where(eq(flightBookings.userId, userId));
       }
 
@@ -736,18 +711,18 @@ export class DatabaseStorage implements IStorage {
     try {
       let query = db
         .select({
-          id: grab_t_bid_payments.id,
-          paymentReference: grab_t_bid_payments.paymentReference,
-          amount: grab_t_bid_payments.amount,
-          paymentMethod: grab_t_bid_payments.paymentMethod,
-          paymentStatus: grab_t_bid_payments.paymentStatus,
-          transactionId: grab_t_bid_payments.transactionId,
-          createdAt: grab_t_bid_payments.createdAt,
+          id: payments.id,
+          paymentReference: payments.paymentReference,
+          amount: payments.amount,
+          paymentMethod: payments.paymentMethod,
+          paymentStatus: payments.paymentStatus,
+          transactionId: payments.transactionId,
+          createdAt: payments.createdAt,
           bookingReference: flightBookings.bookingReference,
           bookingId: flightBookings.id
         })
-        .from(grab_t_bid_payments)
-        .innerJoin(flightBookings, eq(grab_t_bid_payments.bookingId, flightBookings.id));
+        .from(payments)
+        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id));
 
       if (userId) {
         query = query.where(eq(flightBookings.userId, userId));
@@ -846,7 +821,7 @@ export class DatabaseStorage implements IStorage {
       // Generate payment reference if not provided
       const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
-      const [payment] = await db.insert(grab_t_bid_payments).values({
+      const [payment] = await db.insert(payments).values({
         bookingId: paymentData.bookingId || null,
         userId: paymentData.userId || 1,
         paymentReference: paymentReference,
@@ -874,7 +849,7 @@ export class DatabaseStorage implements IStorage {
         // Try the insert again
         const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
-        const [payment] = await db.insert(grab_t_bid_payments).values({
+        const [payment] = await db.insert(payments).values({
           bookingId: paymentData.bookingId || null,
           userId: paymentData.userId || 1,
           paymentReference: paymentReference,
@@ -960,7 +935,7 @@ export class DatabaseStorage implements IStorage {
       ];
 
       for (const payment of samplePayments) {
-        await db.insert(grab_t_bid_payments).values({
+        await db.insert(payments).values({
           ...payment,
           createdAt: new Date()
         });
@@ -992,17 +967,17 @@ export class DatabaseStorage implements IStorage {
 
   async getBids(userId?: number) {
     try {
-      const conditions = userId ? eq(grab_t_bids.userId, userId) : undefined;
+      const conditions = userId ? eq(bids.userId, userId) : undefined;
 
       const bidList = await db
         .select({
-          bid: grab_t_bids,
+          bid: bids,
           flight: flights
         })
-        .from(grab_t_bids)
-        .innerJoin(flights, eq(grab_t_bids.flightId, flights.id))
+        .from(bids)
+        .innerJoin(flights, eq(bids.flightId, flights.id))
         .where(conditions)
-        .orderBy(desc(grab_t_bids.createdAt));
+        .orderBy(desc(bids.createdAt));
 
       return bidList.map(item => ({
         ...item.bid,
@@ -1029,7 +1004,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const [bid] = await db
-        .insert(grab_t_bids)
+        .insert(bids)
         .values({
           ...bidData,
           createdAt: new Date(),
@@ -1064,7 +1039,7 @@ export class DatabaseStorage implements IStorage {
 
           // Try the insert again
           const [bid] = await db
-            .insert(grab_t_bids)
+            .insert(bids)
             .values({
               ...bidData,
               createdAt: new Date(),
@@ -1096,33 +1071,33 @@ export class DatabaseStorage implements IStorage {
 
       const bid = await db
         .select()
-        .from(grab_t_bids)
-        .leftJoin(grab_t_users, eq(grab_t_bids.userId, grab_t_users.id))
-        .leftJoin(flights, eq(grab_t_bids.flightId, flights.id))
-        .where(eq(grab_t_bids.id, id))
+        .from(bids)
+        .leftJoin(users, eq(bids.userId, users.id))
+        .leftJoin(flights, eq(bids.flightId, flights.id))
+        .where(eq(bids.id, id))
         .limit(1);
 
       if (bid.length === 0) {
         console.log(`No bid found with ID: ${id}`);
 
         // Debug: Show what bids actually exist
-        const allBids = await db.select({ id: grab_t_bids.id, bidAmount: grab_t_bids.bidAmount, bidStatus: grab_t_bids.bidStatus }).from(grab_t_bids);
+        const allBids = await db.select({ id: bids.id, bidAmount: bids.bidAmount, bidStatus: bids.bidStatus }).from(bids);
         console.log(`Existing bids in database:`, allBids);
 
         return null;
       }
 
       console.log(`Found bid ${id} successfully:`, {
-        bidId: bid[0].grab_t_bids?.id,
-        bidAmount: bid[0].grab_t_bids?.bidAmount,
-        bidStatus: bid[0].grab_t_bids?.bidStatus,
-        hasUser: !!bid[0].grab_t_users,
+        bidId: bid[0].bids?.id,
+        bidAmount: bid[0].bids?.bidAmount,
+        bidStatus: bid[0].bids?.bidStatus,
+        hasUser: !!bid[0].users,
         hasFlight: !!bid[0].flights
       });
 
       return {
-        bid: bid[0].grab_t_bids,
-        user: bid[0].grab_t_users,
+        bid: bid[0].bids,
+        user: bid[0].users,
         flight: bid[0].flights,
       };
     } catch (error) {
@@ -1240,9 +1215,9 @@ export class DatabaseStorage implements IStorage {
       maxSeatsPerBid: updateData.maxSeatsPerBid || undefined
     };
 
-    return await db.update(grab_t_bids)
+    return await db.update(bids)
       .set(sanitizedData)
-      .where(eq(grab_t_bids.id, bidId))
+      .where(eq(bids.id, bidId))
       .returning();
   }
 
@@ -1250,12 +1225,12 @@ export class DatabaseStorage implements IStorage {
     try {
       const userPayments = await db
         .select()
-        .from(grab_t_bid_payments)
-        .innerJoin(flightBookings, eq(grab_t_bid_payments.bookingId, flightBookings.id))
+        .from(payments)
+        .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
         .where(eq(flightBookings.userId, userId));
 
       return userPayments.map(payment => ({
-        ...payment.grab_t_bid_payments,
+        ...payment.payments,
         booking: payment.flight_bookings
       }));
     } catch (error) {
@@ -1269,7 +1244,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`Fetching payments for bid ID: ${bidId}`);
 
       // Get all payments and filter those related to the bid
-      const allPayments = await db.select().from(grab_t_bid_payments);
+      const allPayments = await db.select().from(payments);
 
       // Filter payments that are related to this bid
       const bidRelatedPayments = allPayments.filter(payment => {
@@ -1352,9 +1327,9 @@ export class DatabaseStorage implements IStorage {
 
       const retailBidsList = await db
         .select()
-        .from(grab_t_retail_bids)
-        .where(eq(grab_t_retail_bids.bidId, bidId))
-        .orderBy(desc(grab_t_retail_bids.createdAt));
+        .from(retailBids)
+        .where(eq(retailBids.bidId, bidId))
+        .orderBy(desc(retailBids.createdAt));
 
       console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
       return retailBidsList;
@@ -1371,13 +1346,13 @@ export class DatabaseStorage implements IStorage {
 
       const retailBidsWithUsers = await db
         .select({
-          retailBid: grab_t_retail_bids,
-          user: grab_t_users
+          retailBid: retailBids,
+          user: users
         })
-        .from(grab_t_retail_bids)
-        .leftJoin(grab_t_users, eq(grab_t_retail_bids.userId, grab_t_users.id))
-        .where(eq(grab_t_retail_bids.bidId, bidId))
-        .orderBy(desc(grab_t_retail_bids.createdAt));
+        .from(retailBids)
+        .leftJoin(users, eq(retailBids.userId, users.id))
+        .where(eq(retailBids.bidId, bidId))
+        .orderBy(desc(retailBids.createdAt));
 
       console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
       return retailBidsWithUsers;
@@ -1392,12 +1367,12 @@ export class DatabaseStorage implements IStorage {
       console.log(`Updating retail bid ${retailBidId} status to: ${status}`);
 
       await db
-        .update(grab_t_retail_bids)
+        .update(retailBids)
         .set({
           status: status,
           updatedAt: new Date()
         })
-        .where(eq(grab_t_retail_bids.id, retailBidId));
+        .where(eq(retailBids.id, retailBidId));
 
       console.log(`Successfully updated retail bid ${retailBidId} status to ${status}`);
     } catch (error) {
@@ -1410,8 +1385,8 @@ export class DatabaseStorage implements IStorage {
     try {
       const retailBid = await db
         .select()
-        .from(grab_t_retail_bids)
-        .where(eq(grab_t_retail_bids.id, retailBidId))
+        .from(retailBids)
+        .where(eq(retailBids.id, retailBidId))
         .limit(1);
 
       return retailBid[0] || null;
@@ -1503,7 +1478,7 @@ export class DatabaseStorage implements IStorage {
 
       // Insert the retail bid into the database
       const [newRetailBid] = await db
-        .insert(grab_t_retail_bids)
+        .insert(retailBids)
         .values({
           bidId: bid.bidId,
           userId: bid.userId,
@@ -1536,7 +1511,7 @@ export class DatabaseStorage implements IStorage {
           console.log('Retrying retail bid creation after sequence fix...');
           // Try the insert again without recursion to avoid infinite loops
           const [newRetailBid] = await db
-            .insert(grab_t_retail_bids)
+            .insert(retailBids)
             .values({
               bidId: bid.bidId,
               userId: bid.userId,
