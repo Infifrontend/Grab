@@ -15,6 +15,7 @@ import {
   refunds,
   notifications,
   retailBids,
+  grabTRetailBids,
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -111,11 +112,13 @@ export interface IStorage {
 
   // Bids Statistics
   getBidStatistics(userId?: number): Promise<{
+        totalBids: number;
         activeBids: number;
         acceptedBids: number;
-        totalSavings: number;
-        depositsPaid: number;
-        refundsReceived: number;
+        rejectedBids: number;
+        completedBids: number;
+        totalBidAmount: number;
+        avgBidAmount: number;
   }>;
 
   // Payments Statistics
@@ -1559,9 +1562,9 @@ export class DatabaseStorage implements IStorage {
 
       const retailBidsList = await db
         .select()
-        .from(retailBids)
-        .where(eq(retailBids.bidId, bidId))
-        .orderBy(desc(retailBids.createdAt));
+        .from(grabTRetailBids)
+        .where(eq(grabTRetailBids.bidId, bidId))
+        .orderBy(desc(grabTRetailBids.createdAt));
 
       console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
       return retailBidsList;
@@ -1578,13 +1581,13 @@ export class DatabaseStorage implements IStorage {
 
       const retailBidsWithUsers = await db
         .select({
-          retailBid: retailBids,
+          retailBid: grabTRetailBids,
           user: users
         })
-        .from(retailBids)
-        .leftJoin(users, eq(retailBids.userId, users.id))
-        .where(eq(retailBids.bidId, bidId))
-        .orderBy(desc(retailBids.createdAt));
+        .from(grabTRetailBids)
+        .leftJoin(users, eq(grabTRetailBids.userId, users.id))
+        .where(eq(grabTRetailBids.bidId, bidId))
+        .orderBy(desc(grabTRetailBids.createdAt));
 
       console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
       return retailBidsWithUsers;
@@ -1594,34 +1597,36 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateRetailBidStatus(retailBidId: number, status: string) {
+  async updateRetailBidStatus(retailBidId: number, status: string): Promise<void> {
     try {
       console.log(`Updating retail bid ${retailBidId} status to: ${status}`);
 
       await db
-        .update(retailBids)
+        .update(grabTRetailBids)
         .set({
           status: status,
           updatedAt: new Date()
         })
-        .where(eq(retailBids.id, retailBidId));
+        .where(eq(grabTRetailBids.id, retailBidId));
 
-      console.log(`Successfully updated retail bid ${retailBidId} status to ${status}`);
+      console.log(`Retail bid ${retailBidId} status updated to: ${status}`);
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       throw error;
     }
   }
 
-  async getRetailBidById(retailBidId: number) {
+  async getRetailBidById(retailBidId: number): Promise<RetailBid | null> {
     try {
-      const retailBid = await db
+      console.log(`Fetching retail bid with ID: ${retailBidId}`);
+
+      const [retailBid] = await db
         .select()
-        .from(retailBids)
-        .where(eq(retailBids.id, retailBidId))
+        .from(grabTRetailBids)
+        .where(eq(grabTRetailBids.id, retailBidId))
         .limit(1);
 
-      return retailBid[0] || null;
+      return retailBid || null;
     } catch (error) {
       console.error("Error getting retail bid by ID:", error);
       throw error;
@@ -1630,9 +1635,9 @@ export class DatabaseStorage implements IStorage {
 
   // Retail Bids
   async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
-    console.log("Creating retail bid with data:", bid);
-
     try {
+      console.log("Creating retail bid:", bid);
+
       // Validate that the user has retail access
       const hasRetailAccess = await this.checkRetailAccess(bid.userId);
       if (!hasRetailAccess) {
@@ -1693,9 +1698,9 @@ export class DatabaseStorage implements IStorage {
         maxSeatsPerUser: maxSeatsPerUser
       });
 
-      // Ensure the retail_bids table exists and has the correct structure
+      // Ensure the grab_t_retail_bids table exists and has the correct structure
       await db.execute(`
-        CREATE TABLE IF NOT EXISTS "retail_bids" (
+        CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
           "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
           "bid_id" integer NOT NULL,
           "user_id" integer NOT NULL,
@@ -1710,7 +1715,7 @@ export class DatabaseStorage implements IStorage {
 
       // Insert the retail bid into the database
       const [newRetailBid] = await db
-        .insert(retailBids)
+        .insert(grabTRetailBids)
         .values({
           bidId: bid.bidId,
           userId: bid.userId,
@@ -1726,24 +1731,29 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating retail bid:", error);
 
-      // Handle potential sequence errors for retailBids table
-      if (error.code === '23505' || error.message.includes('retail_bids_id_seq')) {
-        console.log('Fixing retail_bids sequence...');
+      // Handle potential sequence errors for grab_t_retail_bids table
+      if (error.code === '23505' || error.message.includes('grab_t_retail_bids_id_seq')) {
+        console.log('Fixing grab_t_retail_bids sequence...');
         try {
           // Create sequence if it doesn't exist
           await db.execute(`
-            CREATE SEQUENCE IF NOT EXISTS retail_bids_id_seq;
+            CREATE SEQUENCE IF NOT EXISTS grab_t_retail_bids_id_seq;
           `);
 
           // Set the sequence to the correct value
           await db.execute(`
-            SELECT setval('retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM retail_bids), 0) + 1, false);
+            SELECT setval('grab_t_retail_bids_id_seq', COALESCE((SELECT MAX(id) FROM grab_t_retail_bids), 0) + 1, false);
+          `);
+
+          // Alter the table to use the sequence
+          await db.execute(`
+            ALTER TABLE grab_t_retail_bids ALTER COLUMN id SET DEFAULT nextval('grab_t_retail_bids_id_seq');
           `);
 
           console.log('Retrying retail bid creation after sequence fix...');
           // Try the insert again without recursion to avoid infinite loops
           const [newRetailBid] = await db
-            .insert(retailBids)
+            .insert(grabTRetailBids)
             .values({
               bidId: bid.bidId,
               userId: bid.userId,

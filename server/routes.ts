@@ -29,6 +29,7 @@ import {
   users as usersTable, // Alias users to usersTable to avoid conflict with the variable name 'users'
   grabTUsers,
   grabTBids,
+  grabTRetailBids,
   flights,
   bookings,
   flightBookings,
@@ -832,22 +833,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gtb.created_at,
             gtb.r_status as admin_status,
             gms_admin.status_name as admin_status_name,
-            rb.id as retail_bid_id,
-            rb.status as retail_status,
-            rb.submitted_amount,
-            rb.passenger_count as retail_passenger_count,
-            rb.created_at as retail_bid_created_at,
+            grb.id as retail_bid_id,
+            grb.status as retail_status,
+            grb.submitted_amount,
+            grb.passenger_count as retail_passenger_count,
+            grb.created_at as retail_bid_created_at,
             f.origin,
             f.destination,
             f.departure_time,
             f.airline,
             f.flight_number,
             CASE 
-              WHEN rb.status IS NOT NULL THEN rb.status
+              WHEN grb.status IS NOT NULL THEN grb.status
               ELSE gms_admin.status_name
             END as display_status
           FROM grab_t_bids gtb
-          LEFT JOIN retail_bids rb ON gtb.id = rb.bid_id AND rb.user_id = ${parseInt(userId as string)}
+          LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.bid_id AND grb.user_id = ${parseInt(userId as string)}
           LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
           LEFT JOIN flights f ON gtb.flight_id = f.id
           WHERE gtb.r_status = 4
@@ -3421,7 +3422,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "submitted", // Set as submitted initially
       };
 
-      const newRetailBid = await storage.createRetailBid(retailBidData);
+      // Insert directly into grab_t_retail_bids table
+      const [newRetailBid] = await db
+        .insert(grabTRetailBids)
+        .values(retailBidData)
+        .returning();
 
       // Create notification
       await createNotification(
@@ -3974,22 +3979,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           gtb.created_at,
           gtb.r_status as admin_status,
           gms_admin.status_name as admin_status_name,
-          rb.id as retail_bid_id,
-          rb.status as retail_status,
-          rb.submitted_amount,
-          rb.passenger_count as retail_passenger_count,
-          rb.created_at as retail_bid_created_at,
+          grb.id as retail_bid_id,
+          grb.status as retail_status,
+          grb.submitted_amount,
+          grb.passenger_count as retail_passenger_count,
+          grb.created_at as retail_bid_created_at,
           f.origin,
           f.destination,
           f.departure_time,
           f.airline,
           f.flight_number,
           CASE 
-            WHEN rb.status IS NOT NULL THEN rb.status
+            WHEN grb.status IS NOT NULL THEN grb.status
             ELSE gms_admin.status_name
           END as display_status
         FROM grab_t_bids gtb
-        LEFT JOIN retail_bids rb ON gtb.id = rb.bid_id AND rb.user_id = ${parseInt(userId)}
+        LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.bid_id AND grb.user_id = ${parseInt(userId)}
         LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
         LEFT JOIN flights f ON gtb.flight_id = f.id
         WHERE gtb.r_status = 4
