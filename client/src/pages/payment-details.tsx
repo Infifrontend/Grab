@@ -220,7 +220,6 @@ export default function PaymentDetails() {
         body: JSON.stringify({
           bidId: parseInt(bidId),
           userId: parseInt(userId),
-          flightId: bidData.bid.flightId, // Include flight ID from bid data
           submittedAmount: bidParticipationData.bidAmount,
           passengerCount: bidParticipationData.passengerCount,
         }),

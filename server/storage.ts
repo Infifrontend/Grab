@@ -1582,10 +1582,10 @@ export class DatabaseStorage implements IStorage {
       const retailBidsWithUsers = await db
         .select({
           retailBid: grabTRetailBids,
-          user: grabTUsers
+          user: users
         })
         .from(grabTRetailBids)
-        .leftJoin(grabTUsers, eq(grabTRetailBids.rUserId, grabTUsers.id))
+        .leftJoin(users, eq(grabTRetailBids.userId, users.id))
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
@@ -1683,7 +1683,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Check if user has already submitted a bid for this configuration
-      const userExistingBid = existingRetailBids.find(rb => rb.rUserId === bid.userId);
+      const userExistingBid = existingRetailBids.find(rb => rb.userId === bid.userId);
       if (userExistingBid) {
         throw new Error("You have already submitted a bid for this configuration");
       }
@@ -1703,7 +1703,7 @@ export class DatabaseStorage implements IStorage {
         CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
           "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
           "r_bid_id" integer NOT NULL,
-          "r_user_id" integer NOT NULL,
+          "user_id" integer NOT NULL,
           "flight_id" integer NOT NULL,
           "submitted_amount" numeric(10,2) NOT NULL,
           "passenger_count" integer NOT NULL,
@@ -1718,7 +1718,7 @@ export class DatabaseStorage implements IStorage {
         .insert(grabTRetailBids)
         .values({
           rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
-          rUserId: bid.userId,
+          userId: bid.userId,
           flightId: bid.flightId,
           submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
           passengerCount: bid.passengerCount,
@@ -1756,7 +1756,7 @@ export class DatabaseStorage implements IStorage {
             .insert(grabTRetailBids)
             .values({
               rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
-              rUserId: bid.userId,
+              userId: bid.userId,
               flightId: bid.flightId,
               submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
               passengerCount: bid.passengerCount,
