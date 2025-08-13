@@ -816,17 +816,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bids = await storage.getBids(
-        userId ? parseInt(userId as string) : undefined,
-      );
+      
+      // Fetch from grab_t_bids table with join to get flight and user data
+      const bidsQuery = userId 
+        ? sql`
+            SELECT 
+              gtb.*,
+              f.origin,
+              f.destination,
+              f.departure_time,
+              f.airline,
+              f.flight_number,
+              gtu.name as user_name,
+              gtu.email as user_email
+            FROM grab_t_bids gtb
+            LEFT JOIN flights f ON gtb.flight_id = f.id
+            LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
+            WHERE gtb.user_id = ${parseInt(userId as string)}
+            ORDER BY gtb.created_at DESC
+          `
+        : sql`
+            SELECT 
+              gtb.*,
+              f.origin,
+              f.destination,
+              f.departure_time,
+              f.airline,
+              f.flight_number,
+              gtu.name as user_name,
+              gtu.email as user_email
+            FROM grab_t_bids gtb
+            LEFT JOIN flights f ON gtb.flight_id = f.id
+            LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
+            ORDER BY gtb.created_at DESC
+          `;
 
-      // Sort bids by creation date (newest first) for recent activity display
-      const sortedBids = bids.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
+      const bidsResults = await db.execute(bidsQuery);
+      
+      // Transform the results to match the expected format
+      const transformedBids = bidsResults.rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        flightId: row.flight_id,
+        bidAmount: row.bid_amount,
+        passengerCount: row.passenger_count,
+        bidStatus: row.bid_status,
+        validUntil: row.valid_until,
+        notes: row.notes,
+        totalSeatsAvailable: row.total_seats_available,
+        minSeatsPerBid: row.min_seats_per_bid,
+        maxSeatsPerBid: row.max_seats_per_bid,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        flight: row.origin ? {
+          id: row.flight_id,
+          origin: row.origin,
+          destination: row.destination,
+          departureTime: row.departure_time,
+          airline: row.airline,
+          flightNumber: row.flight_number,
+        } : null,
+        user: row.user_name ? {
+          name: row.user_name,
+          email: row.user_email,
+        } : null,
+      }));
 
-      res.json(sortedBids);
+      res.json(transformedBids);
     } catch (error) {
       console.error("Error fetching bids:", error);
       res.status(500).json({ message: "Failed to fetch bids" });
