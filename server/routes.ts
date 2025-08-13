@@ -3665,11 +3665,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/retail-bids/:bidId", async (req, res) => {
     try {
       const { bidId } = req.params;
-      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      console.log(`Fetching retail bids for bid ID: ${bidId}`);
+
+      // Get retail bids with user information
+      const retailBidsQuery = sql`
+        SELECT 
+          grb.*,
+          gtu.name as user_name,
+          gtu.email as user_email,
+          gms.status_name
+        FROM grab_t_retail_bids grb
+        LEFT JOIN grab_t_users gtu ON grb.r_user_id = gtu.id
+        LEFT JOIN grab_m_status gms ON grb.r_status = gms.id
+        WHERE grb.r_bid_id = ${parseInt(bidId)}
+        ORDER BY grb.submitted_amount DESC, grb.created_at ASC
+      `;
+
+      const results = await db.execute(retailBidsQuery);
+      
+      const retailBids = results.rows.map((row: any) => ({
+        id: row.id,
+        rBidId: row.r_bid_id,
+        rUserId: row.r_user_id,
+        submittedAmount: row.submitted_amount,
+        seatBooked: row.seat_booked,
+        rStatus: row.r_status,
+        statusName: row.status_name,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        user: {
+          name: row.user_name,
+          email: row.user_email
+        }
+      }));
+
+      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
 
       res.json({
         success: true,
         retailBids,
+        count: retailBids.length
       });
     } catch (error) {
       console.error("Error fetching retail bids:", error);
