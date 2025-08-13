@@ -16,6 +16,7 @@ import {
   notifications,
   retailBids,
   grabTRetailBids,
+  grabTBidPayments,
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -38,7 +39,9 @@ import {
   type Bid,
   type Payment,
   type Refund,
-  type RetailBid
+  type RetailBid,
+  type InsertGrabTBidPayment,
+  type GrabTBidPayment
 } from "../shared/schema.js";
 import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -136,6 +139,12 @@ export interface IStorage {
 
   updateBidDetails(bidId: number, updateData: any): Promise<any>;
   getPaymentsByBidId(bidId: number): Promise<Payment[]>;
+
+  // Bid Payment Management (using grab_t_bid_payments)
+  createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment>;
+  getBidPaymentsByUser(userId: number): Promise<GrabTBidPayment[]>;
+  getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]>;
+  updateBidPaymentStatus(paymentId: number, status: number): Promise<void>;
 
   // Retail Bids
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
@@ -1634,6 +1643,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Retail Bids
+  // Bid Payment Management using grab_t_bid_payments table
+  async createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment> {
+    try {
+      console.log("Creating bid payment with data:", paymentData);
+
+      const [newPayment] = await db
+        .insert(grabTBidPayments)
+        .values(paymentData)
+        .returning();
+
+      console.log("Bid payment created successfully:", newPayment);
+      return newPayment;
+    } catch (error) {
+      console.error("Error creating bid payment:", error);
+      throw error;
+    }
+  }
+
+  async getBidPaymentsByUser(userId: number): Promise<GrabTBidPayment[]> {
+    try {
+      const payments = await db
+        .select()
+        .from(grabTBidPayments)
+        .where(eq(grabTBidPayments.rUserId, userId))
+        .orderBy(desc(grabTBidPayments.createdAt));
+
+      return payments;
+    } catch (error) {
+      console.error("Error getting bid payments by user:", error);
+      throw error;
+    }
+  }
+
+  async getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]> {
+    try {
+      const payments = await db
+        .select()
+        .from(grabTBidPayments)
+        .where(eq(grabTBidPayments.rRetailBidId, retailBidId))
+        .orderBy(desc(grabTBidPayments.createdAt));
+
+      return payments;
+    } catch (error) {
+      console.error("Error getting bid payments by retail bid:", error);
+      throw error;
+    }
+  }
+
+  async updateBidPaymentStatus(paymentId: number, status: number): Promise<void> {
+    try {
+      await db
+        .update(grabTBidPayments)
+        .set({ rStatus: status, processedAt: new Date() })
+        .where(eq(grabTBidPayments.id, paymentId));
+
+      console.log(`Bid payment ${paymentId} status updated to ${status}`);
+    } catch (error) {
+      console.error("Error updating bid payment status:", error);
+      throw error;
+    }
+  }
+
   async createRetailBid(bid: InsertRetailBid): Promise<RetailBid> {
     try {
       console.log("Creating retail bid:", bid);

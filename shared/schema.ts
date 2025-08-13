@@ -239,6 +239,23 @@ export const grabTRetailBids = pgTable("grab_t_retail_bids", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// New grab_t_bid_payments table to replace payments table for bid-related payments
+export const grabTBidPayments = pgTable("grab_t_bid_payments", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
+  rRetailBidId: integer("r_retail_bid_id").references(() => grabTRetailBids.id),
+  paymentReference: text("payment_reference").notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  paymentMethod: text("payment_method").notNull(),
+  rStatus: integer("r_status").references(() => grabMStatus.id),
+  transactionId: text("transaction_id"),
+  paymentGateway: text("payment_gateway"),
+  failureReason: text("failure_reason"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -347,7 +364,7 @@ export const retailBidsRelations = relations(retailBids, ({ one }) => ({
   }),
 }));
 
-export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one }) => ({
+export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one, many }) => ({
   bid: one(grabTBids, {
     fields: [grabTRetailBids.rBidId],
     references: [grabTBids.id],
@@ -358,6 +375,22 @@ export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one }) => 
   }),
   status: one(grabMStatus, {
     fields: [grabTRetailBids.rStatus],
+    references: [grabMStatus.id],
+  }),
+  payments: many(grabTBidPayments),
+}));
+
+export const grabTBidPaymentsRelations = relations(grabTBidPayments, ({ one }) => ({
+  user: one(grabTUsers, {
+    fields: [grabTBidPayments.rUserId],
+    references: [grabTUsers.id],
+  }),
+  retailBid: one(grabTRetailBids, {
+    fields: [grabTBidPayments.rRetailBidId],
+    references: [grabTRetailBids.id],
+  }),
+  status: one(grabMStatus, {
+    fields: [grabTBidPayments.rStatus],
     references: [grabMStatus.id],
   }),
 }));
@@ -390,6 +423,7 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true,
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertGrabTRetailBidSchema = createInsertSchema(grabTRetailBids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertGrabTBidPaymentSchema = createInsertSchema(grabTBidPayments).omit({ id: true, processedAt: true, createdAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -423,3 +457,5 @@ export type RetailBid = typeof retailBids.$inferSelect;
 export type InsertRetailBid = z.infer<typeof insertRetailBidSchema>;
 export type GrabTRetailBid = typeof grabTRetailBids.$inferSelect;
 export type InsertGrabTRetailBid = z.infer<typeof insertGrabTRetailBidSchema>;
+export type GrabTBidPayment = typeof grabTBidPayments.$inferSelect;
+export type InsertGrabTBidPayment = z.infer<typeof insertGrabTBidPaymentSchema>;

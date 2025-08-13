@@ -30,6 +30,7 @@ import {
   grabTUsers,
   grabTBids,
   grabTRetailBids,
+  grabTBidPayments,
   flights,
   bookings,
   flightBookings,
@@ -2480,7 +2481,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Creating payment with data:", paymentData);
 
-      const payment = await storage.createPayment(paymentData);
+      let payment;
+
+      // If this payment is for a bid, use grab_t_bid_payments table
+      if (bidId) {
+        // Find the retail bid for this user and bid
+        const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+        const userRetailBid = retailBids.find((rb) => rb.rUserId === userId);
+
+        if (userRetailBid) {
+          // Create payment in grab_t_bid_payments table
+          const bidPaymentData = {
+            rUserId: userId,
+            rRetailBidId: userRetailBid.id,
+            paymentReference: paymentReference,
+            amount: amount.toString(),
+            currency: currency || "USD",
+            paymentMethod: paymentMethod,
+            rStatus: 1, // Assuming 1 = completed
+            transactionId: `txn_${nanoid(8)}`,
+            paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
+            processedAt: new Date(),
+          };
+
+          payment = await storage.createBidPayment(bidPaymentData);
+        } else {
+          // Fallback to regular payments table
+          payment = await storage.createPayment(paymentData);
+        }
+      } else {
+        // Use regular payments table for non-bid payments
+        payment = await storage.createPayment(paymentData);
+      }
 
       console.log("Payment created successfully:", payment);
 
