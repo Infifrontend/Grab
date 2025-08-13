@@ -2722,14 +2722,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
-      console.log("Fetching all users...");
-      const allUsers = await storage.getAllUsers();
-      console.log(`Found ${allUsers.length} users`);
+      console.log("Fetching all users from grab_t_users...");
+      
+      const userResults = await db.execute(sql`
+        SELECT id, username, name, email, phone, is_retail_allowed, created_at, updated_at
+        FROM grab_t_users 
+        ORDER BY created_at DESC
+      `);
+
+      const users = userResults.rows.map(user => ({
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        isRetailAllowed: user.is_retail_allowed,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      }));
+
+      console.log(`Found ${users.length} users`);
 
       res.json({
         success: true,
-        users: allUsers,
-        count: allUsers.length,
+        users: users,
+        count: users.length,
       });
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -2748,57 +2765,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName,
         lastName,
         email,
+        phone,
         username,
         password,
         name,
+        role,
         isRetailAllowed,
       } = req.body;
 
       // Validate required fields
-      if (!username || !password || !name || !email) {
+      if (!username || !password || !name || !email || !phone) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, name, and email are required",
+          message: "Username, password, name, email, and phone are required",
         });
       }
 
-      // Check if user already exists by username or email
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
+      // Check if user already exists by username or email in grab_t_users
+      const existingUserResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE username = ${username} OR email = ${email} LIMIT 1
+      `);
+
+      if (existingUserResults.rows.length > 0) {
         return res.status(400).json({
           success: false,
-          message: "User with this username already exists",
+          message: "User with this username or email already exists",
         });
       }
 
-      const existingEmailUser = await storage.getUserByEmail(email);
-      if (existingEmailUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User with this email already exists",
-        });
-      }
-
-      // Hash password before storing (basic hashing - in production use bcrypt)
+      // Hash password before storing
       const hashedPassword = Buffer.from(password).toString("base64");
 
-      const newUser = await storage.createUser({
-        username,
-        password: hashedPassword,
-        name,
-        email,
-        isRetailAllowed: isRetailAllowed || false,
-      });
+      // Determine retail access based on role
+      const retailAllowed = role === 'retail_user' || isRetailAllowed || false;
+
+      // Create user in grab_t_users table
+      await db.execute(sql`
+        INSERT INTO grab_t_users (username, password, name, email, phone, is_retail_allowed)
+        VALUES (${username}, ${hashedPassword}, ${name}, ${email}, ${phone}, ${retailAllowed})
+      `);
+
+      // Get the created user
+      const createdUserResults = await db.execute(sql`
+        SELECT id, username, name, email, phone, is_retail_allowed 
+        FROM grab_t_users 
+        WHERE username = ${username} 
+        LIMIT 1
+      `);
+
+      const createdUser = createdUserResults.rows[0];
 
       res.json({
         success: true,
         message: "User created successfully",
         user: {
-          id: newUser.id,
-          username: newUser.username,
-          name: newUser.name,
-          email: newUser.email,
-          isRetailAllowed: newUser.isRetailAllowed,
+          id: createdUser.id,
+          username: createdUser.username,
+          name: createdUser.name,
+          email: createdUser.email,
+          phone: createdUser.phone,
+          isRetailAllowed: createdUser.is_retail_allowed,
         },
       });
     } catch (error) {
@@ -3759,50 +3785,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const { name, email, isRetailAllowed } = req.body;
+      const { firstName, lastName, email, phone, isRetailAllowed } = req.body;
 
       if (!userId) {
-        return res.json(
-          { success: false, message: "User ID is required" },
-          400,
-        );
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required",
+        });
       }
 
-      // Check if user exists
-      const existingUser = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, userId))
-        .limit(1);
+      // Check if user exists in grab_t_users
+      const existingUserResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE id = ${userId} LIMIT 1
+      `);
 
-      if (existingUser.length === 0) {
-        return res.json({ success: false, message: "User not found" }, 404);
+      if (existingUserResults.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
       }
 
       // Check if email is already taken by another user
-      const emailExists = await db
-        .select()
-        .from(usersTable)
-        .where(and(eq(usersTable.email, email), ne(usersTable.id, userId)))
-        .limit(1);
+      const emailExistsResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE email = ${email} AND id != ${userId} LIMIT 1
+      `);
 
-      if (emailExists.length > 0) {
-        return res.json(
-          { success: false, message: "Email is already taken" },
-          400,
-        );
+      if (emailExistsResults.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is already taken",
+        });
       }
 
-      // Update user
-      await db
-        .update(usersTable)
-        .set({
-          name: name,
-          email: email,
-          isRetailAllowed: isRetailAllowed || false,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(usersTable.id, userId));
+      // Update user in grab_t_users table
+      const updatedName = `${firstName} ${lastName}`;
+      await db.execute(sql`
+        UPDATE grab_t_users 
+        SET name = ${updatedName}, email = ${email}, phone = ${phone}, is_retail_allowed = ${isRetailAllowed || false}, updated_at = now()
+        WHERE id = ${userId}
+      `);
 
       return res.json({
         success: true,
@@ -3810,10 +3832,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error updating user:", error);
-      return res.json(
-        { success: false, message: "Failed to update user" },
-        500,
-      );
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update user",
+      });
     }
   });
 
@@ -3823,33 +3845,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
 
       if (!userId) {
-        return res.json(
-          { success: false, message: "User ID is required" },
-          400,
-        );
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required",
+        });
       }
 
-      // Check if user exists
-      const existingUser = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, userId))
-        .limit(1);
+      // Check if user exists in grab_t_users
+      const existingUserResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE id = ${userId} LIMIT 1
+      `);
 
-      if (existingUser.length === 0) {
-        return res.json({ success: false, message: "User not found" }, 404);
+      if (existingUserResults.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
       }
+
+      const existingUser = existingUserResults.rows[0];
 
       // Prevent deletion of admin user
-      if (existingUser[0].username === "admin") {
-        return res.json(
-          { success: false, message: "Cannot delete admin user" },
-          400,
-        );
+      if (existingUser.username === "admin") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot delete admin user",
+        });
       }
 
-      // Delete user
-      await db.delete(usersTable).where(eq(usersTable.id, userId));
+      // Delete user from grab_t_users table
+      await db.execute(sql`
+        DELETE FROM grab_t_users WHERE id = ${userId}
+      `);
 
       return res.json({
         success: true,
@@ -3857,10 +3884,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error deleting user:", error);
-      return res.json(
-        { success: false, message: "Failed to delete user" },
-        500,
-      );
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete user",
+      });
     }
   });
 
