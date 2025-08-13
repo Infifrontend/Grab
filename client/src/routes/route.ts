@@ -20,6 +20,7 @@ const PaymentDetails = lazy(() => import("@/pages/payment-details"));
 const Bids = lazy(() => import("@/pages/bids"));
 const BidDetails = lazy(() => import("@/pages/bid-details"));
 const NewBooking = lazy(() => import("@/pages/new-booking"));
+const FlightSearchResults = lazy(() => import("@/pages/flight-search-results"));
 const FlightSearchBundle = lazy(() => import("@/pages/flight-search-bundle"));
 const AddServicesBundles = lazy(() => import("@/pages/add-services-bundles"));
 const GroupLeader = lazy(() => import("@/pages/group-leader"));
@@ -60,6 +61,7 @@ Pages.set("PaymentDetails", PaymentDetails);
 Pages.set("Bids", Bids);
 Pages.set("BidDetails", BidDetails);
 Pages.set("NewBooking", NewBooking);
+Pages.set("FlightSearchResults", FlightSearchResults);
 Pages.set("FlightSearchBundle", FlightSearchBundle);
 Pages.set("AddServicesBundles", AddServicesBundles);
 Pages.set("GroupLeader", GroupLeader);
@@ -189,7 +191,13 @@ const MenuRoutes = {
         component: "BookingDetails",
         permission: [],
       },
-
+      {
+        route_id: 110,
+        path: "/admin/flight-search-results",
+        layout: "AdminLayout",
+        component: "FlightSearchResults",
+        permission: [],
+      },
       {
         route_id: 111,
         path: "/admin/flight-search-bundle",
@@ -385,7 +393,13 @@ const MenuRoutes = {
         component: "NewBooking",
         permission: [],
       },
-
+      {
+        route_id: 213,
+        path: "/flight-search-results",
+        layout: "RetailLayout",
+        component: "FlightSearchResults",
+        permission: [],
+      },
       {
         route_id: 214,
         path: "/flight-search-bundle",
@@ -539,7 +553,13 @@ const MenuRoutes = {
         component: "BidDetails",
         permission: [],
       },
-
+      {
+        route_id: 213,
+        path: "/flight-search-results",
+        layout: "RetailLayout",
+        component: "FlightSearchResults",
+        permission: [],
+      },
       {
         route_id: 214,
         path: "/flight-search-bundle",

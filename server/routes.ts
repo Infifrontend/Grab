@@ -3464,56 +3464,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create default admin user if it doesn't exist
-  app.post("/api/create-default-admin", async (req, res) => {
-    try {
-      console.log("Checking for default admin user...");
-      
-      // Check if admin user already exists
-      const existingAdmin = await storage.getUserByUsername("admin");
-      if (existingAdmin) {
-        return res.json({
-          success: true,
-          message: "Admin user already exists",
-          user: {
-            id: existingAdmin.id,
-            username: existingAdmin.username,
-            name: existingAdmin.name,
-          },
-        });
-      }
-
-      // Create default admin user
-      const adminUser = await storage.createUser({
-        username: "admin",
-        password: Buffer.from("admin123").toString("base64"), // Base64 encoded
-        name: "Administrator",
-        email: "admin@grab.com",
-        isRetailAllowed: true,
-      });
-
-      console.log("Default admin user created successfully");
-
-      res.json({
-        success: true,
-        message: "Default admin user created successfully",
-        user: {
-          id: adminUser.id,
-          username: adminUser.username,
-          name: adminUser.name,
-          email: adminUser.email,
-        },
-      });
-    } catch (error) {
-      console.error("Error creating default admin user:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to create default admin user",
-        error: error.message,
-      });
-    }
-  });
-
   // Create notification (helper function for internal use)
   const createNotification = async (
     type: string,
@@ -3679,76 +3629,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { success: false, message: "Failed to delete user" },
         500,
       );
-    }
-  });
-
-  // User login endpoint
-  app.post("/api/login", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-
-      if (!username || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Username and password are required",
-        });
-      }
-
-      console.log(`Login attempt for username: ${username}`);
-
-      // Get user by username
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
-        console.log(`User not found: ${username}`);
-        return res.status(401).json({
-          success: false,
-          message: "Invalid username or password",
-        });
-      }
-
-      console.log(`User found: ${user.username}, checking password...`);
-
-      // In a real application, you'd verify the password hash here
-      // For now, we'll do a simple comparison (you should implement proper password hashing)
-      let passwordValid = false;
-      
-      try {
-        // Try to decode base64 encoded password (if it was encoded during creation)
-        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
-        passwordValid = (decodedStoredPassword === password);
-      } catch {
-        // Fallback to direct comparison if not base64 encoded
-        passwordValid = (user.password === password);
-      }
-
-      if (!passwordValid) {
-        console.log(`Invalid password for user: ${username}`);
-        return res.status(401).json({
-          success: false,
-          message: "Invalid username or password",
-        });
-      }
-
-      console.log(`Login successful for user: ${username}`);
-
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          isRetailAllowed: user.isRetailAllowed,
-        },
-        message: "Login successful",
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
     }
   });
 
