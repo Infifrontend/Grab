@@ -2840,22 +2840,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = userResults[0];
-      console.log(`User found: ${user.username}, checking password...`);
+      console.log(`User found: ${user.username}, verifying password...`);
 
-      // Verify password (basic implementation - in production use proper hashing)
+      // Enhanced password verification logic
       let passwordValid = false;
       
-      try {
-        // Try to decode base64 encoded password (if it was encoded during creation)
-        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
-        passwordValid = (decodedStoredPassword === password);
-      } catch {
-        // Fallback to direct comparison if not base64 encoded
-        passwordValid = (user.password === password);
+      // First, try direct comparison (for plain text passwords)
+      if (user.password === password) {
+        passwordValid = true;
+        console.log(`Direct password match for user: ${username}`);
+      } else {
+        // Try base64 decoding (for encoded passwords)
+        try {
+          const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+          if (decodedStoredPassword === password) {
+            passwordValid = true;
+            console.log(`Base64 decoded password match for user: ${username}`);
+          }
+        } catch (decodeError) {
+          console.log(`Base64 decode failed for user: ${username}, trying hex...`);
+          
+          // Try hex decoding as fallback
+          try {
+            const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
+            if (hexDecodedPassword === password) {
+              passwordValid = true;
+              console.log(`Hex decoded password match for user: ${username}`);
+            }
+          } catch (hexError) {
+            console.log(`Hex decode also failed for user: ${username}`);
+          }
+        }
       }
 
+      // Debug logging for password verification
+      console.log(`Password verification result for ${username}: ${passwordValid}`);
+      console.log(`Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`);
+
       if (!passwordValid) {
-        console.log(`Invalid password for user: ${username}`);
+        console.log(`Password verification failed for user: ${username}`);
         return res.status(401).json({
           success: false,
           message: "Invalid credentials",
@@ -2974,6 +2997,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
+
+
+  // Debug endpoint to check user credentials (remove in production)
+  app.get("/api/debug/users", async (req, res) => {
+    try {
+      console.log("Debug: Fetching all users from database");
+      
+      const allUsers = await db
+        .select({
+          id: usersTable.id,
+          username: usersTable.username,
+          name: usersTable.name,
+          email: usersTable.email,
+          isRetailAllowed: usersTable.isRetailAllowed,
+          passwordLength: sql`length(${usersTable.password})`.as('passwordLength'),
+          passwordPreview: sql`substring(${usersTable.password}, 1, 10)`.as('passwordPreview')
+        })
+        .from(usersTable);
+      
+      console.log(`Debug: Found ${allUsers.length} users in database`);
+      
+      res.json({
+        success: true,
+        totalUsers: allUsers.length,
+        users: allUsers,
+        message: "Debug user information retrieved successfully"
+      });
+    } catch (error) {
+      console.error("Debug users error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch debug user data",
+        error: error.message 
+      });
+    }
+  });
+
+  // Debug endpoint to test specific user authentication
+  app.post("/api/debug/test-auth", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Username and password are required for testing"
+        });
+      }
+      
+      console.log(`Debug: Testing authentication for username: ${username}`);
+      
+      // Get user by username directly from database
+      const userResults = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
+        .limit(1);
+
+      if (userResults.length === 0) {
+        return res.json({
+          success: false,
+          message: "User not found",
+          debug: {
+            username: username,
+            userExists: false
+          }
+        });
+      }
+
+      const user = userResults[0];
+      
+      // Test different password verification methods
+      const verificationTests = {
+        directMatch: user.password === password,
+        base64Decoded: false,
+        hexDecoded: false
+      };
+      
+      // Test base64 decoding
+      try {
+        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+        verificationTests.base64Decoded = (decodedStoredPassword === password);
+      } catch (e) {
+        verificationTests.base64Decoded = false;
+      }
+      
+      // Test hex decoding
+      try {
+        const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
+        verificationTests.hexDecoded = (hexDecodedPassword === password);
+      } catch (e) {
+        verificationTests.hexDecoded = false;
+      }
+      
+      const authSuccessful = verificationTests.directMatch || verificationTests.base64Decoded || verificationTests.hexDecoded;
+      
+      res.json({
+        success: true,
+        message: "Authentication test completed",
+        debug: {
+          username: username,
+          userExists: true,
+          userId: user.id,
+          userName: user.name,
+          isRetailAllowed: user.isRetailAllowed,
+          storedPasswordLength: user.password.length,
+          storedPasswordPreview: user.password.substring(0, 10) + "...",
+          providedPasswordLength: password.length,
+          verificationTests: verificationTests,
+          authSuccessful: authSuccessful,
+          recommendedAction: authSuccessful ? "Authentication should work" : "Check password encoding/format"
+        }
+      });
+      
+    } catch (error) {
+      console.error("Debug auth test error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Debug authentication test failed",
+        error: error.message
+      });
+    }
+  });
+
 
       // Validate passenger count is <= available seats
       if (parseInt(passengerCount) > availableSeats) {
@@ -3739,23 +3886,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`User found: ${user.username}, checking password...`);
+      console.log(`User found: ${user.username}, verifying password...`);
 
-      // In a real application, you'd verify the password hash here
-      // For now, we'll do a simple comparison (you should implement proper password hashing)
+      // Enhanced password verification logic
       let passwordValid = false;
       
-      try {
-        // Try to decode base64 encoded password (if it was encoded during creation)
-        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
-        passwordValid = (decodedStoredPassword === password);
-      } catch {
-        // Fallback to direct comparison if not base64 encoded
-        passwordValid = (user.password === password);
+      // First, try direct comparison (for plain text passwords)
+      if (user.password === password) {
+        passwordValid = true;
+        console.log(`Direct password match for user: ${username}`);
+      } else {
+        // Try base64 decoding (for encoded passwords)
+        try {
+          const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+          if (decodedStoredPassword === password) {
+            passwordValid = true;
+            console.log(`Base64 decoded password match for user: ${username}`);
+          }
+        } catch (decodeError) {
+          console.log(`Base64 decode failed for user: ${username}, trying hex...`);
+          
+          // Try hex decoding as fallback
+          try {
+            const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
+            if (hexDecodedPassword === password) {
+              passwordValid = true;
+              console.log(`Hex decoded password match for user: ${username}`);
+            }
+          } catch (hexError) {
+            console.log(`Hex decode also failed for user: ${username}`);
+          }
+        }
       }
 
+      // Debug logging for password verification
+      console.log(`Password verification result for ${username}: ${passwordValid}`);
+      console.log(`Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`);
+
       if (!passwordValid) {
-        console.log(`Invalid password for user: ${username}`);
+        console.log(`Password verification failed for user: ${username}`);
         return res.status(401).json({
           success: false,
           message: "Invalid username or password",
