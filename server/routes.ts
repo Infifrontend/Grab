@@ -2822,27 +2822,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get user by username
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
+      console.log(`Checking retail access for username: ${username}`);
+
+      // Get user by username directly from database
+      const userResults = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
+        .limit(1);
+
+      if (userResults.length === 0) {
+        console.log(`User not found: ${username}`);
         return res.status(401).json({
           success: false,
           message: "Invalid credentials",
         });
       }
 
-      // In a real application, you'd verify the password hash here
-      // For now, we'll assume password verification passed
+      const user = userResults[0];
+      console.log(`User found: ${user.username}, checking password...`);
+
+      // Verify password (basic implementation - in production use proper hashing)
+      let passwordValid = false;
+      
+      try {
+        // Try to decode base64 encoded password (if it was encoded during creation)
+        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+        passwordValid = (decodedStoredPassword === password);
+      } catch {
+        // Fallback to direct comparison if not base64 encoded
+        passwordValid = (user.password === password);
+      }
+
+      if (!passwordValid) {
+        console.log(`Invalid password for user: ${username}`);
+        return res.status(401).json({
+          success: false,
+          message: "Invalid credentials",
+        });
+      }
+
+      console.log(`Password verified for user: ${username}, checking retail access...`);
 
       // Check if user has retail access
-      const hasRetailAccess = await storage.checkRetailAccess(user.id);
-      if (!hasRetailAccess) {
+      if (!user.isRetailAllowed) {
+        console.log(`User ${username} does not have retail access`);
         return res.status(403).json({
           success: false,
           message:
             "Access denied: You are not authorized to access the retail portal",
         });
       }
+
+      console.log(`Retail access granted for user: ${username}`);
 
       res.json({
         success: true,
@@ -2860,6 +2892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error.message,
       });
     }
   });
