@@ -127,8 +127,8 @@ export default function Bids() {
                                     configData.totalSeatsAvailable || 
                                     50; // Default fallback
 
-          // Fetch dynamic status based on seat availability and user payment status
-          let dynamicStatus = "Open";
+          // Use status name from grab_m_status table, with fallback to dynamic status
+          let displayStatus = bid.statusName || "Open";
           let seatAvailability = null;
           const userId = localStorage.getItem("userId");
 
@@ -138,18 +138,21 @@ export default function Bids() {
             );
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
-              dynamicStatus = statusData.bidStatus || "Open";
+              // Use the status from grab_m_status table, fallback to API status if not available
+              if (!bid.statusName) {
+                displayStatus = statusData.bidStatus || "Open";
+              }
               seatAvailability = {
                 totalSeatsAvailable: statusData.totalSeatsAvailable || totalSeatsAvailable,
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
                 userRetailBidStatus: statusData.userRetailBidStatus,
-                paymentStatus: statusData.paymentStatus, // Added for user-specific payment status
+                paymentStatus: statusData.paymentStatus,
               };
               console.log(
                 `Status for Bid ${bid.id}, User ${userId}:`,
-                dynamicStatus,
+                displayStatus,
                 seatAvailability,
               );
             }
@@ -168,49 +171,28 @@ export default function Bids() {
               paymentStatus: "open",
             };
             
-            // Fallback to enhanced static status mapping
-            try {
-              const notes = bid.notes ? JSON.parse(bid.notes) : {};
-              const paymentStatus = notes.paymentInfo?.paymentStatus;
-              const paymentCompleted =
-                notes.paymentInfo?.paymentCompleted === true;
-
-              if (paymentCompleted) {
-                if (paymentStatus === "Payment Completed") {
-                  dynamicStatus = "Under Review";
-                } else if (paymentStatus === "Accepted for Booking") {
-                  dynamicStatus = "Accepted";
-                } else {
-                  dynamicStatus = "Under Review";
-                }
-              } else {
-                switch (bid.bidStatus?.toLowerCase()) {
-                  case "active":
-                    dynamicStatus = "Open";
-                    break;
-                  case "accepted":
-                  case "approved":
-                    dynamicStatus = "Approved";
-                    break;
-                  case "rejected":
-                    dynamicStatus = "Rejected";
-                    break;
-                  case "completed":
-                    dynamicStatus = "Completed";
-                    break;
-                  case "expired":
-                    dynamicStatus = "Expired";
-                    break;
-                  default:
-                    dynamicStatus = "Open";
-                }
+            // If no status name from grab_m_status, fallback to bid status mapping
+            if (!bid.statusName) {
+              switch (bid.bidStatus?.toLowerCase()) {
+                case "active":
+                  displayStatus = "Open";
+                  break;
+                case "accepted":
+                case "approved":
+                  displayStatus = "Approved";
+                  break;
+                case "rejected":
+                  displayStatus = "Rejected";
+                  break;
+                case "completed":
+                  displayStatus = "Completed";
+                  break;
+                case "expired":
+                  displayStatus = "Expired";
+                  break;
+                default:
+                  displayStatus = "Open";
               }
-            } catch (parseError) {
-              console.warn(
-                `Could not parse notes for bid ${bid.id}:`,
-                parseError,
-              );
-              dynamicStatus = "Open";
             }
           }
 
@@ -225,7 +207,7 @@ export default function Bids() {
               bid.passengerCount *
               0.1
             ).toFixed(2)}`,
-            status: dynamicStatus,
+            status: displayStatus,
             seatAvailability: seatAvailability,
             totalSeatsFromGrabTBids: bid.totalSeatsAvailable || configData.totalSeatsAvailable || null,
             payment:
@@ -470,28 +452,29 @@ export default function Bids() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Open":
+    switch (status?.toLowerCase()) {
+      case "open":
+      case "active":
         return "orange";
-      case "Under Review":
+      case "under review":
+      case "pending":
         return "blue";
-      case "Accepted":
+      case "accepted":
+      case "approved":
         return "green";
-      case "Declined":
+      case "declined":
+      case "rejected":
         return "red";
-      case "Expired":
+      case "expired":
+      case "inactive":
         return "default";
-      case "Counter Offer":
+      case "counter offer":
         return "purple";
-      case "Payment Pending":
+      case "payment pending":
         return "orange";
-      case "Converted":
+      case "converted":
         return "blue";
-      case "Approved":
-        return "green";
-      case "Rejected":
-        return "red";
-      case "Completed":
+      case "completed":
         return "blue";
       default:
         return "default";
