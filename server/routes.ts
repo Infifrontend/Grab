@@ -1549,6 +1549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSeatsAvailable: totalSeatsAvailable || 50,
         minSeatsPerBid: minSeatsPerBid || 1,
         maxSeatsPerBid: maxSeatsPerBid || 10,
+        rStatus: 4, // Set r_status to 4 for admin-created bids
         notes: JSON.stringify(configurationData),
       };
 
@@ -1562,6 +1563,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount: bidData.passengerCount,
         bidStatus: bidData.bidStatus,
         validUntil: bidData.validUntil,
+        totalSeatsAvailable: bidData.totalSeatsAvailable,
+        minSeatsPerBid: bidData.minSeatsPerBid,
+        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        rStatus: bidData.rStatus,
         notes: bidData.notes,
         createdAt: new Date(),
         updatedAt: new Date()
