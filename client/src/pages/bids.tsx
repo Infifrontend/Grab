@@ -521,11 +521,6 @@ export default function Bids() {
       key: "route",
     },
     {
-      title: "Passengers",
-      dataIndex: "passengers",
-      key: "passengers",
-    },
-    {
       title: "Travel Dates",
       dataIndex: "travelDate",
       key: "travelDate",
@@ -536,19 +531,23 @@ export default function Bids() {
       key: "bidAmount",
     },
     {
+      title: "Total Seats Available",
+      dataIndex: "totalSeatsAvailable",
+      key: "totalSeatsAvailable",
+      render: (_, record) => {
+        const seatAvailability = record.seatAvailability;
+        if (seatAvailability) {
+          return `${seatAvailability.seatsRemaining || 0} / ${seatAvailability.totalSeatsAvailable || 0}`;
+        }
+        return "N/A";
+      },
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
         <Tag color={getStatusColor(status)}>{status}</Tag>
-      ),
-    },
-    {
-      title: "Payment",
-      dataIndex: "payment",
-      key: "payment",
-      render: (payment: string) => (
-        <Tag color={getPaymentColor(payment)}>{payment}</Tag>
       ),
     },
     {
