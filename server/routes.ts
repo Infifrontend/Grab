@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/search", async (req, res) => {
     try {
       console.log("Search request received:", req.body);
-      
+
       // Validate the request body
       if (!req.body.origin || !req.body.destination || !req.body.departureDate) {
         return res.status(400).json({ 
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Missing required fields: origin, destination, or departureDate" 
         });
       }
-      
+
       // Parse and validate the search data
       const searchData = insertSearchRequestSchema.parse(req.body);
       console.log("Parsed search data:", searchData);
@@ -144,15 +144,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Trying case-insensitive search...");
         const allFlights = await storage.getFlights("", "", undefined); // Get all flights
         console.log(`Total flights in database: ${allFlights.length}`);
-        
+
         // Filter flights manually with case-insensitive matching
         outboundFlights = allFlights.filter(flight => 
           flight.origin.toLowerCase() === searchData.origin.toLowerCase() &&
           flight.destination.toLowerCase() === searchData.destination.toLowerCase()
         );
-        
+
         console.log(`Case-insensitive search found ${outboundFlights.length} flights`);
-        
+
         // If still no flights, show available routes for debugging
         if (outboundFlights.length === 0) {
           const availableRoutes = [...new Set(allFlights.map(f => `${f.origin} -> ${f.destination}`))];
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           searchData.origin,
           returnDateObj,
         );
-        
+
         // If no return flights found, try without date filter
         if (returnFlights.length === 0) {
           const allFlights = await storage.getFlights("", "", undefined);
@@ -178,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             flight.destination.toLowerCase() === searchData.origin.toLowerCase()
           );
         }
-        
+
         console.log(
           `Found ${returnFlights.length} return flights for ${searchData.destination} to ${searchData.origin}`,
         );
@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `Final result: ${outboundFlights.length} outbound flights for ${searchData.origin} to ${searchData.destination}`,
       );
-      
+
       if (outboundFlights.length > 0) {
         console.log("Sample flight data:", {
           id: outboundFlights[0].id,
@@ -263,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Debug: Fetching all flights from database");
       const allFlights = await storage.getFlights();
-      
+
       const flightSummary = allFlights.map(flight => ({
         id: flight.id,
         flightNumber: flight.flightNumber,
@@ -274,12 +274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         price: flight.price,
         availableSeats: flight.availableSeats
       }));
-      
+
       const uniqueRoutes = [...new Set(allFlights.map(f => `${f.origin} → ${f.destination}`))];
-      
+
       console.log(`Debug: Found ${allFlights.length} total flights in database`);
       console.log(`Debug: Unique routes:`, uniqueRoutes.slice(0, 20));
-      
+
       res.json({
         success: true,
         totalFlights: allFlights.length,
@@ -1123,9 +1123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? baggageAllowance
             : existingConfigData.baggageAllowance || 20,
         cancellationTerms:
-          cancellationTerms ||
-          existingConfigData.cancellationTerms ||
-          "Standard",
+          cancellationTerms !== undefined
+            ? cancellationTerms
+            : existingConfigData.cancellationTerms || "Standard",
         mealIncluded:
           mealIncluded !== undefined
             ? mealIncluded
@@ -1820,7 +1820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select()
         .from(passengers)
         .where(eq(passengers.bookingId, booking.id));
-      
+
       console.log(`Found ${existingPassengers.length} existing passengers`);
 
       // Update existing passengers or create new ones
@@ -1884,7 +1884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validPassengerCount = passengers.filter(
         (p) => p.firstName || p.lastName,
       ).length;
-      
+
       await db
         .update(flightBookings)
         .set({ 
@@ -2841,11 +2841,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = userResults.rows[0];
+
       console.log(`User found: ${user.username}, verifying password...`);
 
       // Enhanced password verification logic
       let passwordValid = false;
-      
+
       // First, try direct comparison (for plain text passwords)
       if (user.password === password) {
         passwordValid = true;
@@ -2860,7 +2861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (decodeError) {
           console.log(`Base64 decode failed for user: ${username}, trying hex...`);
-          
+
           // Try hex decoding as fallback
           try {
             const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
@@ -3004,7 +3005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/debug/users", async (req, res) => {
     try {
       console.log("Debug: Fetching all users from database");
-      
+
       const allUsers = await db
         .select({
           id: usersTable.id,
@@ -3016,9 +3017,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           passwordPreview: sql`substring(${usersTable.password}, 1, 10)`.as('passwordPreview')
         })
         .from(usersTable);
-      
+
       console.log(`Debug: Found ${allUsers.length} users in database`);
-      
+
       res.json({
         success: true,
         totalUsers: allUsers.length,
@@ -3039,16 +3040,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/debug/test-auth", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({
           success: false,
           message: "Username and password are required for testing"
         });
       }
-      
+
       console.log(`Debug: Testing authentication for username: ${username}`);
-      
+
       // Get user by username directly from database
       const userResults = await db
         .select()
@@ -3068,14 +3069,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = userResults[0];
-      
+
       // Test different password verification methods
       const verificationTests = {
         directMatch: user.password === password,
         base64Decoded: false,
         hexDecoded: false
       };
-      
+
       // Test base64 decoding
       try {
         const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
@@ -3083,7 +3084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         verificationTests.base64Decoded = false;
       }
-      
+
       // Test hex decoding
       try {
         const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
@@ -3091,9 +3092,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         verificationTests.hexDecoded = false;
       }
-      
+
       const authSuccessful = verificationTests.directMatch || verificationTests.base64Decoded || verificationTests.hexDecoded;
-      
+
       res.json({
         success: true,
         message: "Authentication test completed",
@@ -3111,7 +3112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           recommendedAction: authSuccessful ? "Authentication should work" : "Check password encoding/format"
         }
       });
-      
+
     } catch (error) {
       console.error("Debug auth test error:", error);
       res.status(500).json({
@@ -3121,7 +3122,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
 
       // Validate passenger count is <= available seats
       if (parseInt(passengerCount) > availableSeats) {
@@ -3621,7 +3621,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         seatsRemaining: availableSeats,
         isClosed: bidFullyBooked && !hasUserPaid,
         hasUserPaid: hasUserPaid,
-        originalBidStatus: bidDetails.bid.bidStatus,
         userRetailBidStatus: userId
           ? retailBids.find((rb) => rb.userId === parseInt(userId as string))
               ?.status
@@ -3649,7 +3648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-default-admin", async (req, res) => {
     try {
       console.log("Checking for default admin user...");
-      
+
       // Check if admin user already exists
       const existingAdmin = await storage.getUserByUsername("admin");
       if (existingAdmin) {
@@ -3893,13 +3892,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const user = userResults.rows[0];</old_str>
+      const user = userResults.rows[0];
 
       console.log(`User found: ${user.username}, verifying password...`);
 
       // Enhanced password verification logic
       let passwordValid = false;
-      
+
       // First, try direct comparison (for plain text passwords)
       if (user.password === password) {
         passwordValid = true;
@@ -3914,7 +3913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (decodeError) {
           console.log(`Base64 decode failed for user: ${username}, trying hex...`);
-          
+
           // Try hex decoding as fallback
           try {
             const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
