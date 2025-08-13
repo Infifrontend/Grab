@@ -1,4 +1,5 @@
 
+
 -- Drop the table if it exists to recreate with proper structure
 DROP TABLE IF EXISTS "grab_t_retail_bids" CASCADE;
 
@@ -37,6 +38,7 @@ END $$;
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_grab_t_retail_bids_r_bid_id ON grab_t_retail_bids(r_bid_id);
 CREATE INDEX IF NOT EXISTS idx_grab_t_retail_bids_r_user_id ON grab_t_retail_bids(r_user_id);
+CREATE INDEX IF NOT EXISTS idx_grab_t_retail_bids_flight_id ON grab_t_retail_bids(flight_id);
 CREATE INDEX IF NOT EXISTS idx_grab_t_retail_bids_status ON grab_t_retail_bids(status);
 CREATE INDEX IF NOT EXISTS idx_grab_t_retail_bids_created_at ON grab_t_retail_bids(created_at);
 
@@ -54,3 +56,4 @@ BEGIN
     );
   END IF;
 END $$;
+
