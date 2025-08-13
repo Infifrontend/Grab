@@ -1563,7 +1563,7 @@ export class DatabaseStorage implements IStorage {
       const retailBidsList = await db
         .select()
         .from(grabTRetailBids)
-        .where(eq(grabTRetailBids.bidId, bidId))
+        .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
       console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
@@ -1586,7 +1586,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(grabTRetailBids)
         .leftJoin(users, eq(grabTRetailBids.userId, users.id))
-        .where(eq(grabTRetailBids.bidId, bidId))
+        .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
       console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
@@ -1717,10 +1717,10 @@ export class DatabaseStorage implements IStorage {
       const [newRetailBid] = await db
         .insert(grabTRetailBids)
         .values({
-          rBidId: bid.rBidId,
+          rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
           userId: bid.userId,
           flightId: bid.flightId,
-          submittedAmount: bid.submittedAmount,
+          submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
           passengerCount: bid.passengerCount,
           status: bid.status || 'submitted'
         })
@@ -1755,10 +1755,10 @@ export class DatabaseStorage implements IStorage {
           const [newRetailBid] = await db
             .insert(grabTRetailBids)
             .values({
-              rBidId: bid.rBidId,
+              rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
               userId: bid.userId,
               flightId: bid.flightId,
-              submittedAmount: bid.submittedAmount,
+              submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
               passengerCount: bid.passengerCount,
               status: bid.status || 'submitted'
             })
