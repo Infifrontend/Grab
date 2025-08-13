@@ -1468,9 +1468,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount: bidData.passengerCount,
         bidStatus: bidData.bidStatus,
         validUntil: bidData.validUntil,
-        totalSeatsAvailable: bidData.totalSeatsAvailable,
-        minSeatsPerBid: bidData.minSeatsPerBid,
-        maxSeatsPerBid: bidData.maxSeatsPerBid,
         notes: bidData.notes,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -2518,7 +2515,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Mike Wilson",
           "Emma Davis",
           "David Brown",
-          "Lisa Garcia",
         ];
         const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
         const userIdNum = parseInt(userId);
@@ -2741,7 +2737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", async (req, res) => {
     try {
       console.log("Fetching all users from grab_t_users...");
-      
+
       const userResults = await db.execute(sql`
         SELECT id, username, name, email, phone, is_retail_allowed
         FROM grab_t_users 
@@ -3762,7 +3758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  
+
 
   // Update user
   app.put("/api/users/:id", async (req, res) => {
