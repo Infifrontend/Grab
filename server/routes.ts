@@ -3416,7 +3416,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const retailBidData = {
         rBidId: parseInt(bidId),
         rUserId: parseInt(userId),  // Use rUserId to match schema
-        flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
         status: "submitted", // Set as submitted initially
