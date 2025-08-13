@@ -3050,14 +3050,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Debug: Testing authentication for username: ${username}`);
 
-      // Get user by username directly from database
-      const userResults = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.username, username))
-        .limit(1);
+      // Get user by username from grab_t_users table
+      const userResults = await db.execute(sql`
+        SELECT id, username, password, name, email, is_retail_allowed 
+        FROM grab_t_users 
+        WHERE username = ${username} 
+        LIMIT 1
+      `);
 
-      if (userResults.length === 0) {
+
+      if (userResults.rows.length === 0) {
         return res.json({
           success: false,
           message: "User not found",
@@ -3068,7 +3070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const user = userResults[0];
+      const user = userResults.rows[0];
 
       // Test different password verification methods
       const verificationTests = {
@@ -4019,6 +4021,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Internal server error",
+      });
+    }
+  });
+
+  // Grant retail access to a user by username using grab_t_users table
+  app.post("/api/grant-retail-access", async (req, res) => {
+    try {
+      const { username } = req.body;
+
+      if (!username) {
+        return res.status(400).json({
+          success: false,
+          message: "Username is required",
+        });
+      }
+
+      console.log(`Granting retail access to user: ${username}`);
+
+      // Find user by username in grab_t_users table
+      const userResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE username = ${username} LIMIT 1
+      `);
+
+      if (userResults.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const user = userResults.rows[0];
+
+      // Update user retail access in grab_t_users table
+      await db.execute(sql`
+        UPDATE grab_t_users 
+        SET is_retail_allowed = true, updated_at = now() 
+        WHERE username = ${username}
+      `);
+
+      console.log(`Retail access granted to user: ${username}`);
+
+      res.json({
+        success: true,
+        message: `Retail access granted to user: ${username}`,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          isRetailAllowed: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error granting retail access:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to grant retail access",
+        error: error.message,
+      });
+    }
+  });
+
+  // Create test retail user in grab_t_users table
+  app.post("/api/create-test-retail-user", async (req, res) => {
+    try {
+      console.log("Creating test retail user in grab_t_users table...");
+
+      // Check if test user already exists in grab_t_users
+      const existingUserResults = await db.execute(sql`
+        SELECT * FROM grab_t_users WHERE username = 'testuser' LIMIT 1
+      `);
+
+      if (existingUserResults.rows.length > 0) {
+        const existingUser = existingUserResults.rows[0];
+
+        // Grant retail access if user exists but doesn't have it
+        if (!existingUser.is_retail_allowed) {
+          await db.execute(sql`
+            UPDATE grab_t_users 
+            SET is_retail_allowed = true, updated_at = now() 
+            WHERE username = 'testuser'
+          `);
+        }
+
+        return res.json({
+          success: true,
+          message: "Test retail user already exists and has retail access",
+          user: {
+            id: existingUser.id,
+            username: existingUser.username,
+            name: existingUser.name,
+            isRetailAllowed: true,
+          },
+          credentials: {
+            username: "testuser",
+            password: "password123"
+          }
+        });
+      }
+
+      // Create test retail user in grab_t_users table
+      await db.execute(sql`
+        INSERT INTO grab_t_users (username, password, name, email, is_retail_allowed)
+        VALUES ('testuser', ${Buffer.from("password123").toString("base64")}, 'Test Retail User', 'testuser@grab.com', true)
+      `);
+
+      console.log("Test retail user created successfully in grab_t_users table");
+
+      res.json({
+        success: true,
+        message: "Test retail user created successfully",
+        user: {
+          username: "testuser",
+          name: "Test Retail User",
+          email: "testuser@grab.com",
+          isRetailAllowed: true,
+        },
+        credentials: {
+          username: "testuser",
+          password: "password123"
+        }
+      });
+    } catch (error) {
+      console.error("Error creating test retail user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create test retail user",
+        error: error.message,
       });
     }
   });
