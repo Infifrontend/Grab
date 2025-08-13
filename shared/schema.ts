@@ -230,7 +230,7 @@ export const retailBids = pgTable("retail_bids", {
 // New grab_t_retail_bids table to replace retail_bids table
 export const grabTRetailBids = pgTable("grab_t_retail_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  bidId: integer("bid_id").references(() => grabTBids.id).notNull(),
+  rBidId: integer("r_bid_id").references(() => grabTBids.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   flightId: integer("flight_id").references(() => flights.id).notNull(),
   submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
@@ -350,7 +350,7 @@ export const retailBidsRelations = relations(retailBids, ({ one }) => ({
 
 export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one }) => ({
   bid: one(grabTBids, {
-    fields: [grabTRetailBids.bidId],
+    fields: [grabTRetailBids.rBidId],
     references: [grabTBids.id],
   }),
   user: one(users, {

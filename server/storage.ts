@@ -1702,7 +1702,7 @@ export class DatabaseStorage implements IStorage {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
           "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-          "bid_id" integer NOT NULL,
+          "r_bid_id" integer NOT NULL,
           "user_id" integer NOT NULL,
           "flight_id" integer NOT NULL,
           "submitted_amount" numeric(10,2) NOT NULL,
@@ -1717,7 +1717,7 @@ export class DatabaseStorage implements IStorage {
       const [newRetailBid] = await db
         .insert(grabTRetailBids)
         .values({
-          bidId: bid.bidId,
+          rBidId: bid.rBidId,
           userId: bid.userId,
           flightId: bid.flightId,
           submittedAmount: bid.submittedAmount,
@@ -1755,7 +1755,7 @@ export class DatabaseStorage implements IStorage {
           const [newRetailBid] = await db
             .insert(grabTRetailBids)
             .values({
-              bidId: bid.bidId,
+              rBidId: bid.rBidId,
               userId: bid.userId,
               flightId: bid.flightId,
               submittedAmount: bid.submittedAmount,
