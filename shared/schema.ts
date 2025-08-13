@@ -168,6 +168,7 @@ export const grabTBids = pgTable("grab_t_bids", {
   totalSeatsAvailable: integer("total_seats_available").default(50),
   minSeatsPerBid: integer("min_seats_per_bid").default(1),
   maxSeatsPerBid: integer("max_seats_per_bid").default(10),
+  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -278,6 +279,7 @@ export const bidsRelations = relations(bids, ({ one }) => ({
 
 export const grabMStatusRelations = relations(grabMStatus, ({ many }) => ({
   users: many(grabTUsers),
+  bids: many(grabTBids),
 }));
 
 export const grabTUsersRelations = relations(grabTUsers, ({ one, many }) => ({
@@ -296,6 +298,10 @@ export const grabTBidsRelations = relations(grabTBids, ({ one }) => ({
   flight: one(flights, {
     fields: [grabTBids.flightId],
     references: [flights.id],
+  }),
+  status: one(grabMStatus, {
+    fields: [grabTBids.rStatus],
+    references: [grabMStatus.id],
   }),
 }));
 
