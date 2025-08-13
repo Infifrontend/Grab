@@ -27,6 +27,8 @@ import type { Request, Response } from "express";
 import { db } from "./db.js";
 import {
   users as usersTable, // Alias users to usersTable to avoid conflict with the variable name 'users'
+  grabTUsers,
+  grabTBids,
   flights,
   bookings,
   flightBookings,
@@ -1458,7 +1460,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Creating bid configuration with data:", bidData);
 
-      const bidConfig = await storage.createBid(bidData);
+      // Insert into grab_t_bids table instead of bids table
+      const [bidConfig] = await db.insert(grabTBids).values(bidData).returning();
 
       console.log("Bid configuration created successfully:", bidConfig);
 

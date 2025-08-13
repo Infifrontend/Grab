@@ -13,6 +13,18 @@ export const users = pgTable("users", {
   isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 
+export const grabTUsers = pgTable("grab_t_users", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  isRetailAllowed: boolean("is_retail_allowed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const deals = pgTable("deals", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   title: text("title").notNull(),
@@ -132,6 +144,23 @@ export const bids = pgTable("bids", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// New grab_t_bids table to replace bids table
+export const grabTBids = pgTable("grab_t_bids", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  userId: integer("user_id").references(() => grabTUsers.id).notNull(),
+  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
+  passengerCount: integer("passenger_count").notNull(),
+  bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
+  validUntil: timestamp("valid_until").notNull(),
+  notes: text("notes"),
+  totalSeatsAvailable: integer("total_seats_available").default(50),
+  minSeatsPerBid: integer("min_seats_per_bid").default(1),
+  maxSeatsPerBid: integer("max_seats_per_bid").default(10),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Payment handling for transactions
 export const payments = pgTable("payments", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
@@ -236,6 +265,21 @@ export const bidsRelations = relations(bids, ({ one }) => ({
   }),
 }));
 
+export const grabTUsersRelations = relations(grabTUsers, ({ many }) => ({
+  grabTBids: many(grabTBids),
+}));
+
+export const grabTBidsRelations = relations(grabTBids, ({ one }) => ({
+  user: one(grabTUsers, {
+    fields: [grabTBids.userId],
+    references: [grabTUsers.id],
+  }),
+  flight: one(flights, {
+    fields: [grabTBids.flightId],
+    references: [flights.id],
+  }),
+}));
+
 export const paymentsRelations = relations(payments, ({ one, many }) => ({
   booking: one(flightBookings, {
     fields: [payments.bookingId],
@@ -289,6 +333,7 @@ export const insertFlightSchema = createInsertSchema(flights).omit({ id: true, c
 export const insertFlightBookingSchema = createInsertSchema(flightBookings).omit({ id: true, bookedAt: true, updatedAt: true });
 export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: true });
 export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertGrabTBidSchema = createInsertSchema(grabTBids).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
@@ -304,6 +349,8 @@ export type Flight = typeof flights.$inferSelect;
 export type FlightBooking = typeof flightBookings.$inferSelect;
 export type Passenger = typeof passengers.$inferSelect;
 export type Bid = typeof bids.$inferSelect;
+export type GrabTBid = typeof grabTBids.$inferSelect;
+export type GrabTUser = typeof grabTUsers.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Refund = typeof refunds.$inferSelect;
 
@@ -315,6 +362,7 @@ export type InsertFlight = z.infer<typeof insertFlightSchema>;
 export type InsertFlightBooking = z.infer<typeof insertFlightBookingSchema>;
 export type InsertPassenger = z.infer<typeof insertPassengerSchema>;
 export type InsertBid = z.infer<typeof insertBidSchema>;
+export type InsertGrabTBid = z.infer<typeof insertGrabTBidSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type RetailBid = typeof retailBids.$inferSelect;
