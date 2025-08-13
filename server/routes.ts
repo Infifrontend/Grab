@@ -2727,7 +2727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userResults = await db.execute(sql`
         SELECT id, username, name, email, phone, is_retail_allowed, created_at, updated_at
         FROM grab_t_users 
-        ORDER BY created_at DESC
+        ORDER BY COALESCE(created_at, NOW()) DESC
       `);
 
       const users = userResults.rows.map(user => ({
@@ -3746,39 +3746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Add API endpoints for fetching, updating, and deleting users
-  // Get all users
-  app.get("/api/users", async (req, res) => {
-    try {
-      const users = await db
-        .select({
-          id: usersTable.id,
-          name: usersTable.name,
-          email: usersTable.email,
-          username: usersTable.username,
-          isRetailAllowed: usersTable.isRetailAllowed,
-          role: sql`CASE 
-          WHEN ${usersTable.username} = 'admin' THEN 'Super Admin'
-          WHEN ${usersTable.isRetailAllowed} = true THEN 'User'
-          ELSE 'Guest'
-        END`.as("role"),
-          status: sql`'Active'`.as("status"),
-          lastLogin: sql`'2024-01-15'`.as("lastLogin"),
-        })
-        .from(usersTable);
-
-      return res.json({
-        success: true,
-        users: users,
-      });
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      return res.json(
-        { success: false, message: "Failed to fetch users" },
-        500,
-      );
-    }
-  });
+  
 
   // Update user
   app.put("/api/users/:id", async (req, res) => {
