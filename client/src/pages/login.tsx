@@ -23,7 +23,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch("/api/check-retail-access", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

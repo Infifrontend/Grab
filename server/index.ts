@@ -74,6 +74,28 @@ app.use((req, res, next) => {
   try {
     // Ensure database tables exist
     await ensureSearchRequestsTable();
+    
+    // Initialize default admin user
+    try {
+      const { storage } = await import("./storage");
+      const existingAdmin = await storage.getUserByUsername("admin");
+      if (!existingAdmin) {
+        console.log("Creating default admin user...");
+        await storage.createUser({
+          username: "admin",
+          password: Buffer.from("admin123").toString("base64"),
+          name: "Administrator", 
+          email: "admin@grab.com",
+          isRetailAllowed: true,
+        });
+        console.log("Default admin user created: username=admin, password=admin123");
+      } else {
+        console.log("Admin user already exists");
+      }
+    } catch (userError) {
+      console.log("Note: Could not initialize admin user, you can create one via the API");
+    }
+    
     await setupServer();
   } catch (error) {
     console.error("Failed to start server:", error);
