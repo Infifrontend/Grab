@@ -817,7 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
       
-      // Fetch from grab_t_bids table with join to get flight, user, and status data
+      // Fetch from grab_t_bids table with join to get flight and user data
       const bidsQuery = userId 
         ? sql`
             SELECT 
@@ -828,13 +828,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               f.airline,
               f.flight_number,
               gtu.name as user_name,
-              gtu.email as user_email,
-              gms.status_name,
-              gms.status_code
+              gtu.email as user_email
             FROM grab_t_bids gtb
             LEFT JOIN flights f ON gtb.flight_id = f.id
             LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
-            LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
             WHERE gtb.user_id = ${parseInt(userId as string)}
             ORDER BY gtb.created_at DESC
           `
@@ -847,13 +844,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               f.airline,
               f.flight_number,
               gtu.name as user_name,
-              gtu.email as user_email,
-              gms.status_name,
-              gms.status_code
+              gtu.email as user_email
             FROM grab_t_bids gtb
             LEFT JOIN flights f ON gtb.flight_id = f.id
             LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
-            LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
             ORDER BY gtb.created_at DESC
           `;
 
@@ -872,9 +866,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSeatsAvailable: row.total_seats_available,
         minSeatsPerBid: row.min_seats_per_bid,
         maxSeatsPerBid: row.max_seats_per_bid,
-        rStatus: row.r_status,
-        statusName: row.status_name,
-        statusCode: row.status_code,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         flight: row.origin ? {
