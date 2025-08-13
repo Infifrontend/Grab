@@ -111,7 +111,11 @@ async function setupDatabase() {
         VALUES ('pradeepiss637', ${Buffer.from("Infi@123").toString("base64")}, 'Pradeep', 'pradeepiss637@example.com', true)
       `);
       console.log("User pradeepiss637 created in grab_t_users table");
-    }</old_str>
+    }
+    
+  } catch (error) {
+    console.error("Error setting up database:", error);
+    throw error;</old_str>
     
   } catch (error) {
     console.error("Error setting up database:", error);
