@@ -1,6 +1,9 @@
 
+-- Drop the table if it exists to recreate with proper structure
+DROP TABLE IF EXISTS "grab_t_retail_bids" CASCADE;
+
 -- Create grab_t_retail_bids table to replace retail_bids table
-CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
+CREATE TABLE "grab_t_retail_bids" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "grab_t_retail_bids_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"r_bid_id" integer NOT NULL,
 	"r_user_id" integer NOT NULL,

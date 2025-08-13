@@ -1703,7 +1703,7 @@ export class DatabaseStorage implements IStorage {
         CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
           "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
           "r_bid_id" integer NOT NULL,
-          "user_id" integer NOT NULL,
+          "r_user_id" integer NOT NULL,
           "flight_id" integer NOT NULL,
           "submitted_amount" numeric(10,2) NOT NULL,
           "passenger_count" integer NOT NULL,
