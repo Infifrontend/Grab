@@ -2862,7 +2862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`User not found: ${username}`);
         return res.status(401).json({
           success: false,
-          message: "Invalid credentials",
+          message: "Invalid username or password",
         });
       }
 
@@ -2909,19 +2909,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Password verification failed for user: ${username}`);
         return res.status(401).json({
           success: false,
-          message: "Invalid credentials",
+          message: "Invalid username or password",
         });
       }
 
       console.log(`Password verified for user: ${username}, checking retail access...`);
 
       // Check if user has retail access
-      if (!user.isRetailAllowed) {
+      if (!user.is_retail_allowed) {
         console.log(`User ${username} does not have retail access`);
         return res.status(403).json({
           success: false,
-          message:
-            "Access denied: You are not authorized to access the retail portal",
+          message: "Access denied: You are not authorized to access the retail portal",
         });
       }
 
@@ -2934,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           name: user.name,
           email: user.email,
-          isRetailAllowed: user.isRetailAllowed,
+          isRetailAllowed: user.is_retail_allowed,
         },
         message: "Access granted",
       });
