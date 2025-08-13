@@ -47,7 +47,7 @@ export default function PaymentDetails() {
           parsedData.configData = {
             title: "Bid Payment",
             route: "Route not specified",
-            travelDate: "Date not specified"
+            travelDate: "Date not specified",
           };
         }
         setBidParticipationData(parsedData);
@@ -517,7 +517,8 @@ export default function PaymentDetails() {
                     Route
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData?.configData?.route || "Route not specified"}
+                    {bidParticipationData?.configData?.route ||
+                      "Route not specified"}
                   </Text>
                 </div>
 
@@ -526,7 +527,8 @@ export default function PaymentDetails() {
                     Travel Date
                   </Text>
                   <Text className="text-gray-900 font-medium">
-                    {bidParticipationData?.configData?.travelDate || "Date not specified"}
+                    {bidParticipationData?.configData?.travelDate ||
+                      "Date not specified"}
                   </Text>
                 </div>
 

@@ -101,10 +101,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Search request received:", req.body);
 
       // Validate the request body
-      if (!req.body.origin || !req.body.destination || !req.body.departureDate) {
-        return res.status(400).json({ 
+      if (
+        !req.body.origin ||
+        !req.body.destination ||
+        !req.body.departureDate
+      ) {
+        return res.status(400).json({
           success: false,
-          message: "Missing required fields: origin, destination, or departureDate" 
+          message:
+            "Missing required fields: origin, destination, or departureDate",
         });
       }
 
@@ -117,30 +122,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Convert date strings to Date objects for database search
       let departureDateObj = searchData.departureDate;
-      if (typeof departureDateObj === 'string') {
+      if (typeof departureDateObj === "string") {
         departureDateObj = new Date(departureDateObj);
       }
 
       let returnDateObj = null;
       if (searchData.returnDate) {
-        returnDateObj = typeof searchData.returnDate === 'string' ? new Date(searchData.returnDate) : searchData.returnDate;
+        returnDateObj =
+          typeof searchData.returnDate === "string"
+            ? new Date(searchData.returnDate)
+            : searchData.returnDate;
       }
 
       console.log("Searching with dates:", {
         origin: searchData.origin,
         destination: searchData.destination,
         departureDate: departureDateObj,
-        returnDate: returnDateObj
+        returnDate: returnDateObj,
       });
 
       // Search for outbound flights - pass undefined instead of date for broader search initially
       let outboundFlights = await storage.getFlights(
         searchData.origin,
         searchData.destination,
-        undefined // Search without date filter first to see all available flights
+        undefined, // Search without date filter first to see all available flights
       );
 
-      console.log(`Initial flight search found ${outboundFlights.length} flights for route ${searchData.origin} to ${searchData.destination}`);
+      console.log(
+        `Initial flight search found ${outboundFlights.length} flights for route ${searchData.origin} to ${searchData.destination}`,
+      );
 
       // If no flights found for exact route, try case-insensitive search
       if (outboundFlights.length === 0) {
@@ -149,17 +159,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Total flights in database: ${allFlights.length}`);
 
         // Filter flights manually with case-insensitive matching
-        outboundFlights = allFlights.filter(flight => 
-          flight.origin.toLowerCase() === searchData.origin.toLowerCase() &&
-          flight.destination.toLowerCase() === searchData.destination.toLowerCase()
+        outboundFlights = allFlights.filter(
+          (flight) =>
+            flight.origin.toLowerCase() === searchData.origin.toLowerCase() &&
+            flight.destination.toLowerCase() ===
+              searchData.destination.toLowerCase(),
         );
 
-        console.log(`Case-insensitive search found ${outboundFlights.length} flights`);
+        console.log(
+          `Case-insensitive search found ${outboundFlights.length} flights`,
+        );
 
         // If still no flights, show available routes for debugging
         if (outboundFlights.length === 0) {
-          const availableRoutes = [...new Set(allFlights.map(f => `${f.origin} -> ${f.destination}`))];
-          console.log("Available routes in database:", availableRoutes.slice(0, 10));
+          const availableRoutes = [
+            ...new Set(
+              allFlights.map((f) => `${f.origin} -> ${f.destination}`),
+            ),
+          ];
+          console.log(
+            "Available routes in database:",
+            availableRoutes.slice(0, 10),
+          );
         }
       }
 
@@ -176,9 +197,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If no return flights found, try without date filter
         if (returnFlights.length === 0) {
           const allFlights = await storage.getFlights("", "", undefined);
-          returnFlights = allFlights.filter(flight => 
-            flight.origin.toLowerCase() === searchData.destination.toLowerCase() &&
-            flight.destination.toLowerCase() === searchData.origin.toLowerCase()
+          returnFlights = allFlights.filter(
+            (flight) =>
+              flight.origin.toLowerCase() ===
+                searchData.destination.toLowerCase() &&
+              flight.destination.toLowerCase() ===
+                searchData.origin.toLowerCase(),
           );
         }
 
@@ -198,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           destination: outboundFlights[0].destination,
           price: outboundFlights[0].price,
           departureTime: outboundFlights[0].departureTime,
-          airline: outboundFlights[0].airline
+          airline: outboundFlights[0].airline,
         });
       } else {
         console.log("No flights found. Checking database content...");
@@ -206,7 +230,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allFlights = await storage.getFlights("", "", undefined);
         console.log(`Total flights in database: ${allFlights.length}`);
         if (allFlights.length > 0) {
-          console.log("Available routes:", allFlights.slice(0, 5).map(f => `${f.origin} -> ${f.destination}`));
+          console.log(
+            "Available routes:",
+            allFlights
+              .slice(0, 5)
+              .map((f) => `${f.origin} -> ${f.destination}`),
+          );
         }
       }
 
@@ -220,27 +249,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           destination: searchData.destination,
           departureDate: searchData.departureDate,
           returnDate: searchData.returnDate,
-          passengers: searchData.passengers
+          passengers: searchData.passengers,
         },
         message: "Search completed successfully",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error("Search validation error:", error.errors);
-        res
-          .status(400)
-          .json({ 
-            success: false,
-            message: "Invalid search data", 
-            errors: error.errors,
-            details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
-          });
+        res.status(400).json({
+          success: false,
+          message: "Invalid search data",
+          errors: error.errors,
+          details: error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", "),
+        });
       } else {
         console.error("Search error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
           success: false,
           message: "Search failed",
-          error: error.message 
+          error: error.message,
         });
       }
     }
@@ -267,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Debug: Fetching all flights from database");
       const allFlights = await storage.getFlights();
 
-      const flightSummary = allFlights.map(flight => ({
+      const flightSummary = allFlights.map((flight) => ({
         id: flight.id,
         flightNumber: flight.flightNumber,
         airline: flight.airline,
@@ -275,12 +304,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         destination: flight.destination,
         departureTime: flight.departureTime,
         price: flight.price,
-        availableSeats: flight.availableSeats
+        availableSeats: flight.availableSeats,
       }));
 
-      const uniqueRoutes = [...new Set(allFlights.map(f => `${f.origin} → ${f.destination}`))];
+      const uniqueRoutes = [
+        ...new Set(allFlights.map((f) => `${f.origin} → ${f.destination}`)),
+      ];
 
-      console.log(`Debug: Found ${allFlights.length} total flights in database`);
+      console.log(
+        `Debug: Found ${allFlights.length} total flights in database`,
+      );
       console.log(`Debug: Unique routes:`, uniqueRoutes.slice(0, 20));
 
       res.json({
@@ -288,14 +321,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalFlights: allFlights.length,
         uniqueRoutes: uniqueRoutes,
         sampleFlights: flightSummary.slice(0, 10),
-        allFlights: flightSummary
+        allFlights: flightSummary,
       });
     } catch (error) {
       console.error("Debug flights error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: "Failed to fetch debug flight data",
-        error: error.message 
+        error: error.message,
       });
     }
   });
@@ -817,7 +850,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bids", async (req, res) => {
     try {
       const { userId } = req.query;
-      
+
       // If userId is provided, use the user-specific logic
       if (userId) {
         // Use the same logic as /api/user-bids/:userId but with query parameter
@@ -856,7 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
 
         const results = await db.execute(bidsQuery);
-        
+
         // Transform the results with display_status logic
         const transformedBids = results.rows.map((row: any) => {
           let configData = {};
@@ -868,7 +901,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const bidTitle = configData.title || `Bid ${row.bid_id}`;
           const origin = configData.origin || row.origin || "Unknown";
-          const destination = configData.destination || row.destination || "Unknown";
+          const destination =
+            configData.destination || row.destination || "Unknown";
 
           let displayStatus = row.display_status;
           switch (displayStatus?.toLowerCase()) {
@@ -941,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
 
         const bidsResults = await db.execute(bidsQuery);
-        
+
         // Transform the results to match the expected format
         const transformedBids = bidsResults.rows.map((row: any) => ({
           id: row.id,
@@ -957,18 +991,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maxSeatsPerBid: row.max_seats_per_bid,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
-          flight: row.origin ? {
-            id: row.flight_id,
-            origin: row.origin,
-            destination: row.destination,
-            departureTime: row.departure_time,
-            airline: row.airline,
-            flightNumber: row.flight_number,
-          } : null,
-          user: row.user_name ? {
-            name: row.user_name,
-            email: row.user_email,
-          } : null,
+          flight: row.origin
+            ? {
+                id: row.flight_id,
+                origin: row.origin,
+                destination: row.destination,
+                departureTime: row.departure_time,
+                airline: row.airline,
+                flightNumber: row.flight_number,
+              }
+            : null,
+          user: row.user_name
+            ? {
+                name: row.user_name,
+                email: row.user_email,
+              }
+            : null,
         }));
 
         res.json(transformedBids);
@@ -1596,14 +1634,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const adminUserResults = await db.execute(sql`
           SELECT id FROM grab_t_users WHERE username = 'admin' LIMIT 1
         `);
-        
+
         if (adminUserResults.rows.length === 0) {
           // Create default admin user in grab_t_users table
           await db.execute(sql`
             INSERT INTO grab_t_users (username, password, name, email, is_retail_allowed)
             VALUES ('admin', ${Buffer.from("admin123").toString("base64")}, 'Administrator', 'admin@grab.com', true)
           `);
-          
+
           // Get the newly created admin user ID
           const newAdminResults = await db.execute(sql`
             SELECT id FROM grab_t_users WHERE username = 'admin' LIMIT 1
@@ -1624,7 +1662,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (fallbackError) {
           console.error("No users found in grab_t_users table:", fallbackError);
-          throw new Error("No valid user found in grab_t_users table. Please create a user first.");
+          throw new Error(
+            "No valid user found in grab_t_users table. Please create a user first.",
+          );
         }
       }
 
@@ -1659,10 +1699,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rStatus: bidData.rStatus,
         notes: bidData.notes,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      const [bidConfig] = await db.insert(grabTBids).values(mappedBidData).returning();
+      const [bidConfig] = await db
+        .insert(grabTBids)
+        .values(mappedBidData)
+        .returning();
 
       console.log("Bid configuration created successfully:", bidConfig);
 
@@ -2063,12 +2106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Create new passenger using direct database query
           console.log(`Creating new passenger ${i + 1}`);
-          await db
-            .insert(passengers)
-            .values({
-              bookingId: booking.id,
-              ...passengerInfo,
-            });
+          await db.insert(passengers).values({
+            bookingId: booking.id,
+            ...passengerInfo,
+          });
         }
       }
 
@@ -2091,9 +2132,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await db
         .update(flightBookings)
-        .set({ 
+        .set({
           passengerCount: validPassengerCount,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(flightBookings.id, booking.id));
 
@@ -2575,12 +2616,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ success: true, message: "Notification marked as read" });
       } catch (error) {
         console.error("Error marking notification as read:", error);
-        res
-          .status(500)
-          .json({
-            success: false,
-            error: "Failed to mark notification as read",
-          });
+        res.status(500).json({
+          success: false,
+          error: "Failed to mark notification as read",
+        });
       }
     },
   );
@@ -2603,12 +2642,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error) {
         console.error("Error marking all notifications as read:", error);
-        res
-          .status(500)
-          .json({
-            success: false,
-            error: "Failed to mark all notifications as read",
-          });
+        res.status(500).json({
+          success: false,
+          error: "Failed to mark all notifications as read",
+        });
       }
     },
   );
@@ -2934,7 +2971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY u.id DESC
       `);
 
-      const users = userResults.rows.map(user => ({
+      const users = userResults.rows.map((user) => ({
         id: user.id,
         username: user.username,
         name: user.name,
@@ -2996,11 +3033,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fullName: !!fullName,
           email: !!email,
           phone: !!phone,
-          receivedData: { firstName, lastName, name, email, phone, username }
+          receivedData: { firstName, lastName, name, email, phone, username },
         });
         return res.status(400).json({
           success: false,
-          message: "Username, password, name (or firstName/lastName), email, and phone are required",
+          message:
+            "Username, password, name (or firstName/lastName), email, and phone are required",
         });
       }
 
@@ -3020,7 +3058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = Buffer.from(password).toString("base64");
 
       // Determine retail access based on role
-      const retailAllowed = role === 'retail_user' || isRetailAllowed || false;
+      const retailAllowed = role === "retail_user" || isRetailAllowed || false;
 
       // Set default r_status to 1 (Active) if not provided
       const userStatus = rStatus || 1;
@@ -3107,17 +3145,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Try base64 decoding (for encoded passwords)
         try {
-          const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+          const decodedStoredPassword = Buffer.from(
+            user.password,
+            "base64",
+          ).toString();
           if (decodedStoredPassword === password) {
             passwordValid = true;
             console.log(`Base64 decoded password match for user: ${username}`);
           }
         } catch (decodeError) {
-          console.log(`Base64 decode failed for user: ${username}, trying hex...`);
+          console.log(
+            `Base64 decode failed for user: ${username}, trying hex...`,
+          );
 
           // Try hex decoding as fallback
           try {
-            const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
+            const hexDecodedPassword = Buffer.from(
+              user.password,
+              "hex",
+            ).toString();
             if (hexDecodedPassword === password) {
               passwordValid = true;
               console.log(`Hex decoded password match for user: ${username}`);
@@ -3129,8 +3175,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Debug logging for password verification
-      console.log(`Password verification result for ${username}: ${passwordValid}`);
-      console.log(`Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`);
+      console.log(
+        `Password verification result for ${username}: ${passwordValid}`,
+      );
+      console.log(
+        `Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`,
+      );
 
       if (!passwordValid) {
         console.log(`Password verification failed for user: ${username}`);
@@ -3140,14 +3190,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`Password verified for user: ${username}, checking retail access...`);
+      console.log(
+        `Password verified for user: ${username}, checking retail access...`,
+      );
 
       // Check if user has retail access
       if (!user.is_retail_allowed) {
         console.log(`User ${username} does not have retail access`);
         return res.status(403).json({
           success: false,
-          message: "Access denied: You are not authorized to access the retail portal",
+          message:
+            "Access denied: You are not authorized to access the retail portal",
         });
       }
 
@@ -3252,130 +3305,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
+      // Debug endpoint to check user credentials (remove in production)
+      app.get("/api/debug/users", async (req, res) => {
+        try {
+          console.log("Debug: Fetching all users from database");
 
-  // Debug endpoint to check user credentials (remove in production)
-  app.get("/api/debug/users", async (req, res) => {
-    try {
-      console.log("Debug: Fetching all users from database");
+          const allUsers = await db
+            .select({
+              id: usersTable.id,
+              username: usersTable.username,
+              name: usersTable.name,
+              email: usersTable.email,
+              isRetailAllowed: usersTable.isRetailAllowed,
+              passwordLength: sql`length(${usersTable.password})`.as(
+                "passwordLength",
+              ),
+              passwordPreview: sql`substring(${usersTable.password}, 1, 10)`.as(
+                "passwordPreview",
+              ),
+            })
+            .from(usersTable);
 
-      const allUsers = await db
-        .select({
-          id: usersTable.id,
-          username: usersTable.username,
-          name: usersTable.name,
-          email: usersTable.email,
-          isRetailAllowed: usersTable.isRetailAllowed,
-          passwordLength: sql`length(${usersTable.password})`.as('passwordLength'),
-          passwordPreview: sql`substring(${usersTable.password}, 1, 10)`.as('passwordPreview')
-        })
-        .from(usersTable);
+          console.log(`Debug: Found ${allUsers.length} users in database`);
 
-      console.log(`Debug: Found ${allUsers.length} users in database`);
-
-      res.json({
-        success: true,
-        totalUsers: allUsers.length,
-        users: allUsers,
-        message: "Debug user information retrieved successfully"
+          res.json({
+            success: true,
+            totalUsers: allUsers.length,
+            users: allUsers,
+            message: "Debug user information retrieved successfully",
+          });
+        } catch (error) {
+          console.error("Debug users error:", error);
+          res.status(500).json({
+            success: false,
+            message: "Failed to fetch debug user data",
+            error: error.message,
+          });
+        }
       });
-    } catch (error) {
-      console.error("Debug users error:", error);
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to fetch debug user data",
-        error: error.message 
-      });
-    }
-  });
 
-  // Debug endpoint to test specific user authentication
-  app.post("/api/debug/test-auth", async (req, res) => {
-    try {
-      const { username, password } = req.body;
+      // Debug endpoint to test specific user authentication
+      app.post("/api/debug/test-auth", async (req, res) => {
+        try {
+          const { username, password } = req.body;
 
-      if (!username || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Username and password are required for testing"
-        });
-      }
+          if (!username || !password) {
+            return res.status(400).json({
+              success: false,
+              message: "Username and password are required for testing",
+            });
+          }
 
-      console.log(`Debug: Testing authentication for username: ${username}`);
+          console.log(
+            `Debug: Testing authentication for username: ${username}`,
+          );
 
-      // Get user by username from grab_t_users table
-      const userResults = await db.execute(sql`
+          // Get user by username from grab_t_users table
+          const userResults = await db.execute(sql`
         SELECT id, username, password, name, email, is_retail_allowed 
         FROM grab_t_users 
         WHERE username = ${username} 
         LIMIT 1
       `);
 
-
-      if (userResults.rows.length === 0) {
-        return res.json({
-          success: false,
-          message: "User not found",
-          debug: {
-            username: username,
-            userExists: false
+          if (userResults.rows.length === 0) {
+            return res.json({
+              success: false,
+              message: "User not found",
+              debug: {
+                username: username,
+                userExists: false,
+              },
+            });
           }
-        });
-      }
 
-      const user = userResults.rows[0];
+          const user = userResults.rows[0];
 
-      // Test different password verification methods
-      const verificationTests = {
-        directMatch: user.password === password,
-        base64Decoded: false,
-        hexDecoded: false
-      };
+          // Test different password verification methods
+          const verificationTests = {
+            directMatch: user.password === password,
+            base64Decoded: false,
+            hexDecoded: false,
+          };
 
-      // Test base64 decoding
-      try {
-        const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
-        verificationTests.base64Decoded = (decodedStoredPassword === password);
-      } catch (e) {
-        verificationTests.base64Decoded = false;
-      }
+          // Test base64 decoding
+          try {
+            const decodedStoredPassword = Buffer.from(
+              user.password,
+              "base64",
+            ).toString();
+            verificationTests.base64Decoded =
+              decodedStoredPassword === password;
+          } catch (e) {
+            verificationTests.base64Decoded = false;
+          }
 
-      // Test hex decoding
-      try {
-        const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
-        verificationTests.hexDecoded = (hexDecodedPassword === password);
-      } catch (e) {
-        verificationTests.hexDecoded = false;
-      }
+          // Test hex decoding
+          try {
+            const hexDecodedPassword = Buffer.from(
+              user.password,
+              "hex",
+            ).toString();
+            verificationTests.hexDecoded = hexDecodedPassword === password;
+          } catch (e) {
+            verificationTests.hexDecoded = false;
+          }
 
-      const authSuccessful = verificationTests.directMatch || verificationTests.base64Decoded || verificationTests.hexDecoded;
+          const authSuccessful =
+            verificationTests.directMatch ||
+            verificationTests.base64Decoded ||
+            verificationTests.hexDecoded;
 
-      res.json({
-        success: true,
-        message: "Authentication test completed",
-        debug: {
-          username: username,
-          userExists: true,
-          userId: user.id,
-          userName: user.name,
-          isRetailAllowed: user.isRetailAllowed,
-          storedPasswordLength: user.password.length,
-          storedPasswordPreview: user.password.substring(0, 10) + "...",
-          providedPasswordLength: password.length,
-          verificationTests: verificationTests,
-          authSuccessful: authSuccessful,
-          recommendedAction: authSuccessful ? "Authentication should work" : "Check password encoding/format"
+          res.json({
+            success: true,
+            message: "Authentication test completed",
+            debug: {
+              username: username,
+              userExists: true,
+              userId: user.id,
+              userName: user.name,
+              isRetailAllowed: user.isRetailAllowed,
+              storedPasswordLength: user.password.length,
+              storedPasswordPreview: user.password.substring(0, 10) + "...",
+              providedPasswordLength: password.length,
+              verificationTests: verificationTests,
+              authSuccessful: authSuccessful,
+              recommendedAction: authSuccessful
+                ? "Authentication should work"
+                : "Check password encoding/format",
+            },
+          });
+        } catch (error) {
+          console.error("Debug auth test error:", error);
+          res.status(500).json({
+            success: false,
+            message: "Debug authentication test failed",
+            error: error.message,
+          });
         }
       });
-
-    } catch (error) {
-      console.error("Debug auth test error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Debug authentication test failed",
-        error: error.message
-      });
-    }
-  });
 
       // Validate passenger count is <= available seats
       if (parseInt(passengerCount) > availableSeats) {
@@ -3435,11 +3503,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `A retail user has submitted a bid of $${submittedAmount} for ${passengerCount} passengers on bid configuration ${bidId}. ${availableSeats - parseInt(passengerCount)} seats remaining.`,
         "medium",
         {
-          retailBidId: newRetailBid.id,
-          bidId: parseInt(bidId),
-          userId: parseInt(userId),
-          amount: submittedAmount,
-          passengerCount: parseInt(passengerCount),
+          id: newRetailBid.id,
+          bid_id: parseInt(bidId),
+          user_id: parseInt(userId),
+          submitted_amount: submittedAmount,
+          seat_booked: parseInt(passengerCount),
           seatsRemaining: availableSeats - parseInt(passengerCount),
         },
       );
@@ -3600,7 +3668,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse bid configuration data
       let configData = {};
       try {
-        configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
+        configData = bidDetails.bid.notes
+          ? JSON.parse(bidDetails.bid.notes)
+          : {};
       } catch (e) {
         configData = {};
       }
@@ -3608,7 +3678,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseBidAmount = parseFloat(bidDetails.bid.bidAmount) || 0;
 
       // Get retail bids with user information from the database
-      const retailBidsWithUsers = await storage.getRetailBidsWithUsersByBid(parseInt(bidId));
+      const retailBidsWithUsers = await storage.getRetailBidsWithUsersByBid(
+        parseInt(bidId),
+      );
 
       // If no retail bids exist in database, check if there are any in the bid notes
       let retailUsers = [];
@@ -3638,8 +3710,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             retailUsers = notesRetailUsers;
           } else {
             // Generate some sample data if none exists (for development)
-            const names = ["John Smith", "Sarah Johnson", "Mike Wilson", "Emma Davis", "David Brown"];
-            const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
+            const names = [
+              "John Smith",
+              "Sarah Johnson",
+              "Mike Wilson",
+              "Emma Davis",
+              "David Brown",
+            ];
+            const domains = [
+              "gmail.com",
+              "yahoo.com",
+              "email.com",
+              "outlook.com",
+            ];
             const userCount = Math.max(Math.floor(Math.random() * 4) + 2, 3); // 3-5 users
 
             for (let i = 0; i < userCount; i++) {
@@ -3647,7 +3730,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               retailUsers.push({
                 id: i + 1,
                 name: names[i] || `User ${i + 1}`,
-                email: `${names[i]?.toLowerCase().replace(" ", ".")}@${domains[i % domains.length]}` || `user${i + 1}@email.com`,
+                email:
+                  `${names[i]?.toLowerCase().replace(" ", ".")}@${domains[i % domains.length]}` ||
+                  `user${i + 1}@email.com`,
                 bookingRef: `GR00123${i + 4}`,
                 seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
                 bidAmount: baseBidAmount + randomIncrement,
@@ -3664,16 +3749,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate total seats available and booked
-      const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
+      const totalSeatsAvailable =
+        bidDetails.bid.totalSeatsAvailable ||
+        configData.totalSeatsAvailable ||
+        100;
       const bookedSeats = retailUsers.reduce((total, user) => {
-        if (user.status === 'under_review' || user.status === 'paid' || user.status === 'approved') {
+        if (
+          user.status === "under_review" ||
+          user.status === "paid" ||
+          user.status === "approved"
+        ) {
           return total + (user.passengerCount || 1);
         }
         return total;
       }, 0);
 
       // Find the highest bidder
-      const highestBidAmount = retailUsers.length > 0 ? Math.max(...retailUsers.map(user => user.bidAmount)) : 0;
+      const highestBidAmount =
+        retailUsers.length > 0
+          ? Math.max(...retailUsers.map((user) => user.bidAmount))
+          : 0;
 
       // Format response
       const response = {
@@ -3686,7 +3781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bookedSeats: bookedSeats,
           availableSeats: totalSeatsAvailable - bookedSeats,
           highestBidAmount: highestBidAmount,
-          retailUsers: retailUsers.map(user => ({
+          retailUsers: retailUsers.map((user) => ({
             id: user.id,
             name: user.name,
             email: user.email,
@@ -3956,7 +4051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-bids/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       if (!userId) {
         return res.status(400).json({
           success: false,
@@ -4002,7 +4097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
 
       const results = await db.execute(bidsQuery);
-      
+
       // Transform the results to include parsed configuration data
       const transformedBids = results.rows.map((row: any) => {
         // Parse configuration data from notes
@@ -4016,16 +4111,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get title from config data or use bid_amount as fallback
         const bidTitle = configData.title || `Bid ${row.bid_id}`;
-        
+
         // Get route information
         const origin = configData.origin || row.origin || "Unknown";
-        const destination = configData.destination || row.destination || "Unknown";
+        const destination =
+          configData.destination || row.destination || "Unknown";
         const route = `${origin} → ${destination}`;
 
         // Format display status based on business rules
         let displayStatus = row.display_status;
         let statusClass = "";
-        
+
         // Map status to user-friendly display and CSS classes
         switch (displayStatus?.toLowerCase()) {
           case "under review":
@@ -4126,13 +4222,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-
-
   // Update user
   app.put("/api/users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const { firstName, lastName, email, phone, isRetailAllowed, rStatus } = req.body;
+      const { firstName, lastName, email, phone, isRetailAllowed, rStatus } =
+        req.body;
 
       if (!userId) {
         return res.status(400).json({
@@ -4168,7 +4263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user in grab_t_users table including r_status
       const updatedName = `${firstName} ${lastName}`;
       const userStatus = rStatus || 1; // Default to 1 (Active) if not provided
-      
+
       await db.execute(sql`
         UPDATE grab_t_users 
         SET name = ${updatedName}, email = ${email}, phone = ${phone}, is_retail_allowed = ${isRetailAllowed || false}, r_status = ${userStatus}, updated_at = now()
@@ -4284,17 +4379,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Try base64 decoding (for encoded passwords)
         try {
-          const decodedStoredPassword = Buffer.from(user.password, 'base64').toString();
+          const decodedStoredPassword = Buffer.from(
+            user.password,
+            "base64",
+          ).toString();
           if (decodedStoredPassword === password) {
             passwordValid = true;
             console.log(`Base64 decoded password match for user: ${username}`);
           }
         } catch (decodeError) {
-          console.log(`Base64 decode failed for user: ${username}, trying hex...`);
+          console.log(
+            `Base64 decode failed for user: ${username}, trying hex...`,
+          );
 
           // Try hex decoding as fallback
           try {
-            const hexDecodedPassword = Buffer.from(user.password, 'hex').toString();
+            const hexDecodedPassword = Buffer.from(
+              user.password,
+              "hex",
+            ).toString();
             if (hexDecodedPassword === password) {
               passwordValid = true;
               console.log(`Hex decoded password match for user: ${username}`);
@@ -4306,8 +4409,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Debug logging for password verification
-      console.log(`Password verification result for ${username}: ${passwordValid}`);
-      console.log(`Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`);
+      console.log(
+        `Password verification result for ${username}: ${passwordValid}`,
+      );
+      console.log(
+        `Stored password format check - Length: ${user.password.length}, First 10 chars: ${user.password.substring(0, 10)}...`,
+      );
 
       if (!passwordValid) {
         console.log(`Password verification failed for user: ${username}`);
@@ -4491,8 +4598,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           credentials: {
             username: "testuser",
-            password: "password123"
-          }
+            password: "password123",
+          },
         });
       }
 
@@ -4502,7 +4609,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         VALUES ('testuser', ${Buffer.from("password123").toString("base64")}, 'Test Retail User', 'testuser@grab.com', true)
       `);
 
-      console.log("Test retail user created successfully in grab_t_users table");
+      console.log(
+        "Test retail user created successfully in grab_t_users table",
+      );
 
       res.json({
         success: true,
@@ -4515,8 +4624,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         credentials: {
           username: "testuser",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
     } catch (error) {
       console.error("Error creating test retail user:", error);
