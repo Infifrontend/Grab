@@ -115,16 +115,20 @@ export default function AdminSettings() {
     try {
       setLoading(true);
 
+      // Map status to r_status value (1 for active, 2 for inactive)
+      const rStatus = values.status ? 1 : 2;
+
       const userData = {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         phone: values.phone,
-        username: values.email.split('@')[0], // Use email prefix as username
+        username: values.username,
         password: values.password,
         name: `${values.firstName} ${values.lastName}`,
-        role: values.role,
-        isRetailAllowed: values.role === 'retail_user' || values.status || false
+        role: values.role || 'user',
+        isRetailAllowed: values.isRetailAllowed || false,
+        rStatus: rStatus, // Add r_status mapping
       };
 
       console.log('Sending user data:', userData);

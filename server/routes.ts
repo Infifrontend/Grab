@@ -2833,9 +2833,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching all users from grab_t_users...");
 
       const userResults = await db.execute(sql`
-        SELECT id, username, name, email, phone, is_retail_allowed
-        FROM grab_t_users 
-        ORDER BY id DESC
+        SELECT u.id, u.username, u.name, u.email, u.phone, u.is_retail_allowed, u.r_status, s.status_name
+        FROM grab_t_users u
+        LEFT JOIN grab_m_status s ON u.r_status = s.id
+        ORDER BY u.id DESC
       `);
 
       const users = userResults.rows.map(user => ({
@@ -2845,6 +2846,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         phone: user.phone,
         isRetailAllowed: user.is_retail_allowed,
+        rStatus: user.r_status,
+        statusName: user.status_name,
       }));
 
       console.log(`Found ${users.length} users`);
@@ -2877,6 +2880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         role,
         isRetailAllowed,
+        rStatus,
       } = req.body;
 
       // Validate required fields
@@ -2905,15 +2909,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine retail access based on role
       const retailAllowed = role === 'retail_user' || isRetailAllowed || false;
 
-      // Create user in grab_t_users table
+      // Set default r_status to 1 (Active) if not provided
+      const userStatus = rStatus || 1;
+
+      // Create user in grab_t_users table with r_status
       await db.execute(sql`
-        INSERT INTO grab_t_users (username, password, name, email, phone, is_retail_allowed)
-        VALUES (${username}, ${hashedPassword}, ${name}, ${email}, ${phone}, ${retailAllowed})
+        INSERT INTO grab_t_users (username, password, name, email, phone, is_retail_allowed, r_status)
+        VALUES (${username}, ${hashedPassword}, ${name}, ${email}, ${phone}, ${retailAllowed}, ${userStatus})
       `);
 
       // Get the created user
       const createdUserResults = await db.execute(sql`
-        SELECT id, username, name, email, phone, is_retail_allowed 
+        SELECT id, username, name, email, phone, is_retail_allowed, r_status 
         FROM grab_t_users 
         WHERE username = ${username} 
         LIMIT 1
@@ -2931,6 +2938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: createdUser.email,
           phone: createdUser.phone,
           isRetailAllowed: createdUser.is_retail_allowed,
+          rStatus: createdUser.r_status,
         },
       });
     } catch (error) {
@@ -3858,7 +3866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const { firstName, lastName, email, phone, isRetailAllowed } = req.body;
+      const { firstName, lastName, email, phone, isRetailAllowed, rStatus } = req.body;
 
       if (!userId) {
         return res.status(400).json({
@@ -3891,11 +3899,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Update user in grab_t_users table
+      // Update user in grab_t_users table including r_status
       const updatedName = `${firstName} ${lastName}`;
+      const userStatus = rStatus || 1; // Default to 1 (Active) if not provided
+      
       await db.execute(sql`
         UPDATE grab_t_users 
-        SET name = ${updatedName}, email = ${email}, phone = ${phone}, is_retail_allowed = ${isRetailAllowed || false}, updated_at = now()
+        SET name = ${updatedName}, email = ${email}, phone = ${phone}, is_retail_allowed = ${isRetailAllowed || false}, r_status = ${userStatus}, updated_at = now()
         WHERE id = ${userId}
       `);
 
