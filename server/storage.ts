@@ -608,13 +608,25 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
+      // Map bidData to match grab_t_bids schema
+      const mappedBidData = {
+        userId: bidData.userId,
+        flightId: bidData.flightId,
+        bidAmount: bidData.bidAmount,
+        passengerCount: bidData.passengerCount,
+        bidStatus: bidData.bidStatus,
+        validUntil: bidData.validUntil,
+        totalSeatsAvailable: bidData.totalSeatsAvailable,
+        minSeatsPerBid: bidData.minSeatsPerBid,
+        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        notes: bidData.notes,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
       const [bid] = await db
         .insert(grabTBids)
-        .values({
-          ...bidData,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
+        .values(mappedBidData)
         .returning();
 
       console.log("Bid created successfully:", bid);
@@ -642,14 +654,25 @@ export class DatabaseStorage implements IStorage {
 
           console.log('grab_t_bids sequence fixed, retrying bid creation...');
 
-          // Try the insert again
+          // Try the insert again with proper mapping
+          const mappedBidData = {
+            userId: bidData.userId,
+            flightId: bidData.flightId,
+            bidAmount: bidData.bidAmount,
+            passengerCount: bidData.passengerCount,
+            bidStatus: bidData.bidStatus,
+            validUntil: bidData.validUntil,
+            totalSeatsAvailable: bidData.totalSeatsAvailable,
+            minSeatsPerBid: bidData.minSeatsPerBid,
+            maxSeatsPerBid: bidData.maxSeatsPerBid,
+            notes: bidData.notes,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+
           const [bid] = await db
             .insert(grabTBids)
-            .values({
-              ...bidData,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            })
+            .values(mappedBidData)
             .returning();
 
           console.log("Bid created successfully after sequence fix:", bid);
@@ -1157,13 +1180,25 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
+      // Map bidData to match grab_t_bids schema
+      const mappedBidData = {
+        userId: bidData.userId,
+        flightId: bidData.flightId,
+        bidAmount: bidData.bidAmount,
+        passengerCount: bidData.passengerCount,
+        bidStatus: bidData.bidStatus,
+        validUntil: bidData.validUntil,
+        totalSeatsAvailable: bidData.totalSeatsAvailable,
+        minSeatsPerBid: bidData.minSeatsPerBid,
+        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        notes: bidData.notes,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
       const [bid] = await db
         .insert(grabTBids)
-        .values({
-          ...bidData,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
+        .values(mappedBidData)
         .returning();
 
       console.log("Bid created successfully:", bid);
@@ -1191,14 +1226,25 @@ export class DatabaseStorage implements IStorage {
 
           console.log('grab_t_bids sequence fixed, retrying bid creation...');
 
-          // Try the insert again
+          // Try the insert again with proper mapping
+          const mappedBidData = {
+            userId: bidData.userId,
+            flightId: bidData.flightId,
+            bidAmount: bidData.bidAmount,
+            passengerCount: bidData.passengerCount,
+            bidStatus: bidData.bidStatus,
+            validUntil: bidData.validUntil,
+            totalSeatsAvailable: bidData.totalSeatsAvailable,
+            minSeatsPerBid: bidData.minSeatsPerBid,
+            maxSeatsPerBid: bidData.maxSeatsPerBid,
+            notes: bidData.notes,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+
           const [bid] = await db
             .insert(grabTBids)
-            .values({
-              ...bidData,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            })
+            .values(mappedBidData)
             .returning();
 
           console.log("Bid created successfully after sequence fix:", bid);

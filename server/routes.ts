@@ -1460,8 +1460,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Creating bid configuration with data:", bidData);
 
-      // Insert into grab_t_bids table instead of bids table
-      const [bidConfig] = await db.insert(grabTBids).values(bidData).returning();
+      // Insert into grab_t_bids table with proper column mapping
+      const mappedBidData = {
+        userId: bidData.userId,
+        flightId: bidData.flightId,
+        bidAmount: bidData.bidAmount,
+        passengerCount: bidData.passengerCount,
+        bidStatus: bidData.bidStatus,
+        validUntil: bidData.validUntil,
+        totalSeatsAvailable: bidData.totalSeatsAvailable,
+        minSeatsPerBid: bidData.minSeatsPerBid,
+        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        notes: bidData.notes,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const [bidConfig] = await db.insert(grabTBids).values(mappedBidData).returning();
 
       console.log("Bid configuration created successfully:", bidConfig);
 
