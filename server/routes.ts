@@ -3415,7 +3415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create retail bid submission with status 'submitted'
       const retailBidData = {
         rBidId: parseInt(bidId),
-        userId: parseInt(userId),
+        rUserId: parseInt(userId),  // Use rUserId to match schema
         flightId: originalBid.bid.flightId,
         submittedAmount: submittedAmount.toString(),
         passengerCount: parseInt(passengerCount),
