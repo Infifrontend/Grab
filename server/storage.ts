@@ -1487,29 +1487,48 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching payments for bid ID: ${bidId}`);
 
-      // Get all payments and filter those related to the bid
-      const allPayments = await db.select().from(payments);
+      // First try to get payments from grab_t_bid_payments table
+      try {
+        const bidPayments = await db.select().from(grabTBidPayments)
+          .innerJoin(grabTRetailBids, eq(grabTBidPayments.rRetailBidId, grabTRetailBids.id))
+          .where(eq(grabTRetailBids.rBidId, bidId));
+        
+        if (bidPayments.length > 0) {
+          console.log(`Found ${bidPayments.length} bid payments for bid ${bidId}`);
+          return bidPayments.map(bp => bp.grab_t_bid_payments);
+        }
+      } catch (bidPaymentError) {
+        console.log("Could not fetch from grab_t_bid_payments:", bidPaymentError.message);
+      }
 
-      // Filter payments that are related to this bid
-      const bidRelatedPayments = allPayments.filter(payment => {
-        // Check if payment reference or transaction ID contains the bid ID
-        const paymentRef = payment.paymentReference || '';
-        const transactionId = payment.transactionId || '';
+      // Fallback to legacy payments table if it exists
+      try {
+        const allPayments = await db.select().from(payments);
 
-        // Also check if bookingId matches (in case bid ID was used as booking ID)
-        const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
+        // Filter payments that are related to this bid
+        const bidRelatedPayments = allPayments.filter(payment => {
+          // Check if payment reference or transaction ID contains the bid ID
+          const paymentRef = payment.paymentReference || '';
+          const transactionId = payment.transactionId || '';
 
-        // Check if payment reference contains the bid ID
-        const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+          // Also check if bookingId matches (in case bid ID was used as booking ID)
+          const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
 
-        return bookingMatches || refMatches;
-      });
+          // Check if payment reference contains the bid ID
+          const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
 
-      console.log(`Found ${bidRelatedPayments.length} payments for bid ${bidId}`);
-      return bidRelatedPayments;
+          return bookingMatches || refMatches;
+        });
+
+        console.log(`Found ${bidRelatedPayments.length} legacy payments for bid ${bidId}`);
+        return bidRelatedPayments;
+      } catch (paymentsError) {
+        console.log("Could not fetch from payments table:", paymentsError.message);
+        return [];
+      }
     } catch (error) {
       console.error("Error getting payments by bid ID:", error);
-      throw error;
+      return [];
     }
   }
 

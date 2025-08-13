@@ -3878,7 +3878,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
 
       // Get all payments related to this bid to check for payment completion
-      const bidPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+      let bidPayments = [];
+      try {
+        bidPayments = await storage.getBidPaymentsByRetailBid(parseInt(bidId));
+      } catch (error) {
+        // If no bid payments found, try regular payments as fallback
+        try {
+          bidPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+        } catch (fallbackError) {
+          console.log("No payments found for bid:", bidId);
+          bidPayments = [];
+        }
+      }
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
       const bookedSeats = retailBids
