@@ -2824,14 +2824,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Checking retail access for username: ${username}`);
 
-      // Get user by username directly from database
-      const userResults = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.username, username))
-        .limit(1);
+      // Get user by username directly from grab_t_users table
+      const userResults = await db.execute(sql`
+        SELECT id, username, password, name, email, is_retail_allowed 
+        FROM grab_t_users 
+        WHERE username = ${username} 
+        LIMIT 1
+      `);
 
-      if (userResults.length === 0) {
+      if (userResults.rows.length === 0) {
         console.log(`User not found: ${username}`);
         return res.status(401).json({
           success: false,
@@ -2839,7 +2840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const user = userResults[0];
+      const user = userResults.rows[0];
       console.log(`User found: ${user.username}, verifying password...`);
 
       // Enhanced password verification logic
@@ -3876,15 +3877,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Login attempt for username: ${username}`);
 
-      // Get user by username
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
+      // Get user by username from grab_t_users table
+      const userResults = await db.execute(sql`
+        SELECT id, username, password, name, email, is_retail_allowed 
+        FROM grab_t_users 
+        WHERE username = ${username} 
+        LIMIT 1
+      `);
+
+      if (userResults.rows.length === 0) {
         console.log(`User not found: ${username}`);
         return res.status(401).json({
           success: false,
           message: "Invalid username or password",
         });
       }
+
+      const user = userResults.rows[0];</old_str>
 
       console.log(`User found: ${user.username}, verifying password...`);
 

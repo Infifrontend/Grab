@@ -18,6 +18,20 @@ async function setupDatabase() {
       )
     `);
     
+    // Create grab_t_users table for authentication
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS grab_t_users (
+        id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        is_retail_allowed BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT now(),
+        updated_at TIMESTAMP DEFAULT now()
+      )
+    `);
+    
     // Create other essential tables
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS flights (
@@ -72,6 +86,32 @@ async function setupDatabase() {
       `);
       console.log("Default admin user created: username=admin, password=admin123");
     }
+    
+    // Create default admin user in grab_t_users table if it doesn't exist
+    const existingGrabAdmin = await db.execute(sql`
+      SELECT * FROM grab_t_users WHERE username = 'admin' LIMIT 1
+    `);
+    
+    if (existingGrabAdmin.rows.length === 0) {
+      await db.execute(sql`
+        INSERT INTO grab_t_users (username, password, name, email, is_retail_allowed)
+        VALUES ('admin', ${Buffer.from("admin123").toString("base64")}, 'Administrator', 'admin@grab.com', true)
+      `);
+      console.log("Default admin user created in grab_t_users: username=admin, password=admin123");
+    }
+    
+    // Create the existing user in grab_t_users table if it doesn't exist
+    const existingGrabUser = await db.execute(sql`
+      SELECT * FROM grab_t_users WHERE username = 'pradeepiss637' LIMIT 1
+    `);
+    
+    if (existingGrabUser.rows.length === 0) {
+      await db.execute(sql`
+        INSERT INTO grab_t_users (username, password, name, email, is_retail_allowed)
+        VALUES ('pradeepiss637', ${Buffer.from("Infi@123").toString("base64")}, 'Pradeep', 'pradeepiss637@example.com', true)
+      `);
+      console.log("User pradeepiss637 created in grab_t_users table");
+    }</old_str>
     
   } catch (error) {
     console.error("Error setting up database:", error);
