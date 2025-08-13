@@ -233,27 +233,10 @@ export const grabTRetailBids = pgTable("grab_t_retail_bids", {
   rBidId: integer("r_bid_id").references(() => grabTBids.id).notNull(),
   rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
   submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
-  seatBooked: integer("seat_booked").notNull(),
-  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  passengerCount: integer("passenger_count").notNull(),
+  status: text("status").notNull().default("submitted"), // submitted, approved, rejected
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Add grab_t_bid_payments table based on your design
-export const grabTBidPayments = pgTable("grab_t_bid_payments", {
-  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
-  rRetailBidId: integer("r_retail_bid_id").references(() => grabTRetailBids.id).notNull(),
-  paymentReference: text("payment_reference").notNull().unique(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  currency: text("currency").notNull().default("USD"),
-  paymentMethod: text("payment_method").notNull(),
-  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  transactionId: text("transaction_id"),
-  paymentGateway: text("payment_gateway"),
-  failureReason: text("failure_reason"),
-  processedAt: timestamp("processed_at"),
-  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations
