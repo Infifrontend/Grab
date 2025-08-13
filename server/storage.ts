@@ -1556,7 +1556,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Get retail bids by bid ID
-  async getRetailBidsByBid(bidId: number): Promise<RetailBid[]> {
+  async getRetailBidsByBid(bidId: number): Promise<any[]> {
     try {
       console.log(`Fetching retail bids for bid ID: ${bidId}`);
 
@@ -1582,10 +1582,10 @@ export class DatabaseStorage implements IStorage {
       const retailBidsWithUsers = await db
         .select({
           retailBid: grabTRetailBids,
-          user: users
+          user: grabTUsers
         })
         .from(grabTRetailBids)
-        .leftJoin(users, eq(grabTRetailBids.userId, users.id))
+        .leftJoin(grabTUsers, eq(grabTRetailBids.rUserId, grabTUsers.id))
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 

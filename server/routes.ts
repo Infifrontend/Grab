@@ -3213,7 +3213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           name: user.name,
           email: user.email,
-          isRetailAllowed: user.is_retail_allowed,
+          isRetailAllowed: user.isRetailAllowed,
         },
         message: "Access granted",
       });
@@ -3298,10 +3298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parseInt(bidId),
       );
 
-      // Calculate available seats = total_seats_available minus sum of passenger_count from retail_bids with status 'under_review' or 'paid'
+      // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' or 'paid'
       const bookedSeats = existingRetailBids
-        .filter((rb) => rb.status === "under_review" || rb.status === "paid")
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+        .filter((rb) => rb.rStatus === 2 || rb.rStatus === 3) // Assuming 2=under_review, 3=paid
+        .reduce((total, rb) => total + (rb.seatBooked || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 

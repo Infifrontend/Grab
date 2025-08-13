@@ -231,11 +231,10 @@ export const retailBids = pgTable("retail_bids", {
 export const grabTRetailBids = pgTable("grab_t_retail_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   rBidId: integer("r_bid_id").references(() => grabTBids.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
   submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
-  passengerCount: integer("passenger_count").notNull(),
-  status: text("status").notNull().default("submitted"), // submitted, approved, rejected
+  seatBooked: integer("seat_booked").notNull(),
+  rStatus: integer("r_status").references(() => grabMStatus.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -353,13 +352,13 @@ export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one }) => 
     fields: [grabTRetailBids.rBidId],
     references: [grabTBids.id],
   }),
-  user: one(users, {
-    fields: [grabTRetailBids.userId],
-    references: [users.id],
+  user: one(grabTUsers, {
+    fields: [grabTRetailBids.rUserId],
+    references: [grabTUsers.id],
   }),
-  flight: one(flights, {
-    fields: [grabTRetailBids.flightId],
-    references: [flights.id],
+  status: one(grabMStatus, {
+    fields: [grabTRetailBids.rStatus],
+    references: [grabMStatus.id],
   }),
 }));
 
