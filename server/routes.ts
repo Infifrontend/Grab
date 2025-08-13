@@ -2725,9 +2725,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching all users from grab_t_users...");
       
       const userResults = await db.execute(sql`
-        SELECT id, username, name, email, phone, is_retail_allowed, created_at, updated_at
+        SELECT id, username, name, email, phone, is_retail_allowed
         FROM grab_t_users 
-        ORDER BY COALESCE(created_at, NOW()) DESC
+        ORDER BY id DESC
       `);
 
       const users = userResults.rows.map(user => ({
@@ -2737,8 +2737,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         phone: user.phone,
         isRetailAllowed: user.is_retail_allowed,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
       }));
 
       console.log(`Found ${users.length} users`);
