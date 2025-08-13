@@ -227,6 +227,7 @@ export default function Bids() {
             ).toFixed(2)}`,
             status: dynamicStatus,
             seatAvailability: seatAvailability,
+            totalSeatsFromGrabTBids: bid.totalSeatsAvailable || configData.totalSeatsAvailable || null,
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
@@ -551,8 +552,12 @@ export default function Bids() {
       key: "totalSeatsAvailable",
       render: (_, record) => {
         const seatAvailability = record.seatAvailability;
-        if (seatAvailability) {
-          return `${seatAvailability.seatsRemaining || 0} / ${seatAvailability.totalSeatsAvailable || 0}`;
+        const totalSeatsFromBid = record.totalSeatsFromGrabTBids;
+        
+        if (seatAvailability && seatAvailability.totalSeatsAvailable) {
+          return `${seatAvailability.seatsRemaining || 0} / ${seatAvailability.totalSeatsAvailable}`;
+        } else if (totalSeatsFromBid) {
+          return `${totalSeatsFromBid}`;
         }
         return "N/A";
       },
