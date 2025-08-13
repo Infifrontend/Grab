@@ -8,125 +8,125 @@ const Notification = () => {
   const [notificationOpen, setNotificationOpen] = useState(false);
 
   // Fetch notifications from API
-  const { data: notificationsData, refetch: refetchNotifications } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest("GET", "/api/notifications");
-        if (response.ok) {
-          return await response.json();
-        }
-        return { notifications: [] };
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        return { notifications: [] };
-      }
-    },
-    refetchInterval: 5000, // Poll every 5 seconds for new notifications
-  });
+  // const { data: notificationsData, refetch: refetchNotifications } = useQuery({
+  //   queryKey: ["notifications"],
+  //   queryFn: async () => {
+  //     try {
+  //       const response = await apiRequest("GET", "/api/notifications");
+  //       if (response.ok) {
+  //         return await response.json();
+  //       }
+  //       return { notifications: [] };
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error);
+  //       return { notifications: [] };
+  //     }
+  //   },
+  //   refetchInterval: 5000, // Poll every 5 seconds for new notifications
+  // });
 
-  const notifications: Notification[] = notificationsData?.notifications || [];
-  const unreadCount = notifications.filter((n:any) => !n.isRead).length;
+  // const notifications: Notification[] = notificationsData?.notifications || [];
+  // const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
-  const handleViewAllNotifications = () => {
-    console.log("View all notifications");
-    setNotificationOpen(false);
-  };
+  // const handleViewAllNotifications = () => {
+  //   console.log("View all notifications");
+  //   setNotificationOpen(false);
+  // };
 
-  const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      const response = await apiRequest(
-        "PUT",
-        `/api/notifications/${notificationId}/read`,
-        {}
-      );
-      if (response.ok) {
-        message.success("Notification marked as read");
-        refetchNotifications();
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      message.error("Failed to mark notification as read");
-    }
-  };
+  // const handleMarkAsRead = async (notificationId: string) => {
+  //   try {
+  //     const response = await apiRequest(
+  //       "PUT",
+  //       `/api/notifications/${notificationId}/read`,
+  //       {},
+  //     );
+  //     if (response.ok) {
+  //       message.success("Notification marked as read");
+  //       refetchNotifications();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error marking notification as read:", error);
+  //     message.error("Failed to mark notification as read");
+  //   }
+  // };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      const response = await apiRequest(
-        "PUT",
-        "/api/notifications/mark-all-read",
-        {}
-      );
-      if (response.ok) {
-        message.success("All notifications marked as read");
-        refetchNotifications();
-      }
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-      message.error("Failed to mark all notifications as read");
-    }
-  };
+  // const handleMarkAllAsRead = async () => {
+  //   try {
+  //     const response = await apiRequest(
+  //       "PUT",
+  //       "/api/notifications/mark-all-read",
+  //       {},
+  //     );
+  //     if (response.ok) {
+  //       message.success("All notifications marked as read");
+  //       refetchNotifications();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error marking all notifications as read:", error);
+  //     message.error("Failed to mark all notifications as read");
+  //   }
+  // };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "bid_created":
-        return (
-          <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
-            <span className="text-white text-xs">💰</span>
-          </div>
-        );
-      case "bid_accepted":
-        return (
-          <div className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center">
-            <CheckOutlined className="text-white text-xs" />
-          </div>
-        );
-      case "bid_rejected":
-        return (
-          <div className="w-4 h-4 bg-red-500 rounded-sm flex items-center justify-center">
-            <CloseOutlined className="text-white text-xs" />
-          </div>
-        );
-      case "payment_received":
-        return (
-          <div className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center">
-            <span className="text-white text-xs">💳</span>
-          </div>
-        );
-      case "booking_confirmed":
-        return (
-          <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
-            <span className="text-white text-xs">📋</span>
-          </div>
-        );
-      default:
-        return (
-          <div className="w-4 h-4 bg-gray-500 rounded-sm flex items-center justify-center">
-            <span className="text-white text-xs">ℹ️</span>
-          </div>
-        );
-    }
-  };
+  // const getNotificationIcon = (type: string) => {
+  //   switch (type) {
+  //     case "bid_created":
+  //       return (
+  //         <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
+  //           <span className="text-white text-xs">💰</span>
+  //         </div>
+  //       );
+  //     case "bid_accepted":
+  //       return (
+  //         <div className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center">
+  //           <CheckOutlined className="text-white text-xs" />
+  //         </div>
+  //       );
+  //     case "bid_rejected":
+  //       return (
+  //         <div className="w-4 h-4 bg-red-500 rounded-sm flex items-center justify-center">
+  //           <CloseOutlined className="text-white text-xs" />
+  //         </div>
+  //       );
+  //     case "payment_received":
+  //       return (
+  //         <div className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center">
+  //           <span className="text-white text-xs">💳</span>
+  //         </div>
+  //       );
+  //     case "booking_confirmed":
+  //       return (
+  //         <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
+  //           <span className="text-white text-xs">📋</span>
+  //         </div>
+  //       );
+  //     default:
+  //       return (
+  //         <div className="w-4 h-4 bg-gray-500 rounded-sm flex items-center justify-center">
+  //           <span className="text-white text-xs">ℹ️</span>
+  //         </div>
+  //       );
+  //   }
+  // };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "border-l-red-500";
-      case "medium":
-        return "border-l-orange-500";
-      default:
-        return "border-l-blue-500";
-    }
-  };
+  // const getPriorityColor = (priority: string) => {
+  //   switch (priority) {
+  //     case "high":
+  //       return "border-l-red-500";
+  //     case "medium":
+  //       return "border-l-orange-500";
+  //     default:
+  //       return "border-l-blue-500";
+  //   }
+  // };
 
   // Poll for new notifications every 5 seconds when component is mounted
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetchNotifications();
-    }, 5000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     refetchNotifications();
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, [refetchNotifications]);
+  //   return () => clearInterval(interval);
+  // }, [refetchNotifications]);
 
   return (
     <>
@@ -142,9 +142,9 @@ const Notification = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Typography.Text className="text-sm text-orange-500 font-medium">
-                  {unreadCount} Unread
+                  {/* {unreadCount} Unread */}
                 </Typography.Text>
-                {unreadCount > 0 && (
+                {/* {unreadCount > 0 && (
                   <Button
                     type="text"
                     size="small"
@@ -153,13 +153,13 @@ const Notification = () => {
                   >
                     Mark all read
                   </Button>
-                )}
+                )} */}
               </div>
             </div>
 
             {/* Notifications List */}
             <div className="max-h-96 overflow-y-auto">
-              {notifications.length === 0 ? (
+              {/* {notifications.length === 0 ? (
                 <div className="text-center py-8">
                   <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -175,7 +175,7 @@ const Notification = () => {
                   <div
                     key={notification.id}
                     className={`relative p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-b-0 border-l-4 ${getPriorityColor(
-                      notification.priority
+                      notification.priority,
                     )} ${!notification.isRead ? "bg-blue-50" : ""}`}
                     onClick={() =>
                       !notification.isRead && handleMarkAsRead(notification.id)
@@ -208,7 +208,7 @@ const Notification = () => {
                     </div>
                   </div>
                 ))
-              )}
+              )} */}
             </div>
 
             {/* View All Button */}
@@ -216,7 +216,9 @@ const Notification = () => {
               <Button
                 type="primary"
                 className="w-full h-10 bg-blue-500 hover:bg-blue-600 border-0 rounded-lg font-medium"
-                onClick={handleViewAllNotifications}
+                onClick={() => {
+                  console.log("View all notifications");
+                }}
               >
                 View All Notifications
               </Button>
@@ -229,9 +231,9 @@ const Notification = () => {
         onOpenChange={setNotificationOpen}
         className="notification-popover"
       >
-        <Badge count={unreadCount} size="small" className="cursor-pointer">
+        {/* <Badge count={unreadCount} size="small" className="cursor-pointer">
           <BellOutlined className="text-gray-500 text-lg" />
-        </Badge>
+        </Badge> */}
       </Popover>
       <style>
         {`
