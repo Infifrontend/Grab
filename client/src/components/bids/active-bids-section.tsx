@@ -37,10 +37,14 @@ export default function ActiveBidsSection() {
       }
       const bids = await response.json();
 
-      // Show only active bids, limit to recent ones
+      // Show active and open bids, limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => bid.bidStatus === "active")
-        .slice(0, 5); // Show only the 5 most recent active bids
+        .filter((bid: ActiveBid) => 
+          bid.bidStatus === "active" || 
+          bid.bidStatus === "open" ||
+          (bid.seatAvailability?.paymentStatus === "open")
+        )
+        .slice(0, 5); // Show only the 5 most recent active/open bids
     },
   });
 
@@ -105,7 +109,8 @@ export default function ActiveBidsSection() {
       case "pending":
         return { status: "Under Review", color: "blue" };
       case "active":
-        // For active bids, use dynamic status from seatAvailability if available
+      case "open":
+        // For active/open bids, use dynamic status from seatAvailability if available
         if (bid.seatAvailability?.paymentStatus) {
           switch (bid.seatAvailability.paymentStatus) {
             case 'under_review':
@@ -118,6 +123,8 @@ export default function ActiveBidsSection() {
               return { status: "Closed", color: "gray" };
             case 'completed':
               return { status: "Completed", color: "green" };
+            case 'open':
+              return { status: "Open", color: "orange" };
             default:
               return { status: "Open", color: "orange" };
           }
@@ -193,7 +200,7 @@ export default function ActiveBidsSection() {
         <Tag className="limited-time-badge">Live Bidding</Tag>
         <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
         <p className="text-sm opacity-90">
-          Current group travel bids awaiting acceptance
+          Current open and active group travel bids
         </p>
       </div>
 
