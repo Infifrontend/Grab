@@ -122,6 +122,11 @@ export default function Bids() {
                 ? formatDateToDDMMMYYYY(bid.createdAt)
                 : "N/A";
 
+          // Get total seats available from grab_t_bids table data
+          const totalSeatsAvailable = bid.totalSeatsAvailable || 
+                                    configData.totalSeatsAvailable || 
+                                    50; // Default fallback
+
           // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
           let seatAvailability = null;
@@ -135,7 +140,7 @@ export default function Bids() {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
               seatAvailability = {
-                totalSeatsAvailable: statusData.totalSeatsAvailable,
+                totalSeatsAvailable: statusData.totalSeatsAvailable || totalSeatsAvailable,
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
@@ -153,6 +158,16 @@ export default function Bids() {
               `Could not fetch dynamic status for bid ${bid.id}:`,
               error,
             );
+            // Set default seat availability when API fails
+            seatAvailability = {
+              totalSeatsAvailable: totalSeatsAvailable,
+              seatsRemaining: totalSeatsAvailable,
+              isClosed: false,
+              hasUserPaid: false,
+              userRetailBidStatus: null,
+              paymentStatus: "open",
+            };
+            
             // Fallback to enhanced static status mapping
             try {
               const notes = bid.notes ? JSON.parse(bid.notes) : {};
