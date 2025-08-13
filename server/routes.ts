@@ -2884,10 +2884,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
 
       // Create full name from firstName and lastName if name is not provided
-      const fullName = name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName);
+      let fullName = name;
+      if (!fullName && firstName && lastName) {
+        fullName = `${firstName} ${lastName}`;
+      } else if (!fullName && firstName) {
+        fullName = firstName;
+      } else if (!fullName && lastName) {
+        fullName = lastName;
+      }
 
       // Validate required fields
       if (!username || !password || !fullName || !email || !phone) {
+        console.log("Validation failed:", {
+          username: !!username,
+          password: !!password,
+          fullName: !!fullName,
+          email: !!email,
+          phone: !!phone,
+          receivedData: { firstName, lastName, name, email, phone, username }
+        });
         return res.status(400).json({
           success: false,
           message: "Username, password, name (or firstName/lastName), email, and phone are required",

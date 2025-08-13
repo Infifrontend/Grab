@@ -628,6 +628,16 @@ export default function AdminSettings() {
             <Input placeholder="Enter phone number" />
           </Form.Item>
           <Form.Item
+            name="username"
+            label="Username"
+            rules={[
+              { required: true, message: "Please enter a username" },
+              { min: 3, message: "Username must be at least 3 characters" }
+            ]}
+          >
+            <Input placeholder="Enter username" />
+          </Form.Item>
+          <Form.Item
             name="password"
             label="Password"
             rules={[
