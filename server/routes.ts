@@ -2883,11 +2883,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rStatus,
       } = req.body;
 
+      // Create full name from firstName and lastName if name is not provided
+      const fullName = name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName);
+
       // Validate required fields
-      if (!username || !password || !name || !email || !phone) {
+      if (!username || !password || !fullName || !email || !phone) {
         return res.status(400).json({
           success: false,
-          message: "Username, password, name, email, and phone are required",
+          message: "Username, password, name (or firstName/lastName), email, and phone are required",
         });
       }
 
@@ -2915,7 +2918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create user in grab_t_users table with r_status
       await db.execute(sql`
         INSERT INTO grab_t_users (username, password, name, email, phone, is_retail_allowed, r_status)
-        VALUES (${username}, ${hashedPassword}, ${name}, ${email}, ${phone}, ${retailAllowed}, ${userStatus})
+        VALUES (${username}, ${hashedPassword}, ${fullName}, ${email}, ${phone}, ${retailAllowed}, ${userStatus})
       `);
 
       // Get the created user
