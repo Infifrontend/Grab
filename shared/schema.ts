@@ -13,6 +13,16 @@ export const users = pgTable("users", {
   isRetailAllowed: boolean("is_retail_allowed").default(false),
 });
 
+export const grabMStatus = pgTable("grab_m_status", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  statusName: text("status_name").notNull(),
+  statusCode: text("status_code").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const grabTUsers = pgTable("grab_t_users", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   username: text("username").notNull().unique(),
@@ -21,6 +31,7 @@ export const grabTUsers = pgTable("grab_t_users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   isRetailAllowed: boolean("is_retail_allowed").default(false),
+  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -265,8 +276,16 @@ export const bidsRelations = relations(bids, ({ one }) => ({
   }),
 }));
 
-export const grabTUsersRelations = relations(grabTUsers, ({ many }) => ({
+export const grabMStatusRelations = relations(grabMStatus, ({ many }) => ({
+  users: many(grabTUsers),
+}));
+
+export const grabTUsersRelations = relations(grabTUsers, ({ one, many }) => ({
   grabTBids: many(grabTBids),
+  status: one(grabMStatus, {
+    fields: [grabTUsers.rStatus],
+    references: [grabMStatus.id],
+  }),
 }));
 
 export const grabTBidsRelations = relations(grabTBids, ({ one }) => ({
@@ -351,6 +370,7 @@ export type Passenger = typeof passengers.$inferSelect;
 export type Bid = typeof bids.$inferSelect;
 export type GrabTBid = typeof grabTBids.$inferSelect;
 export type GrabTUser = typeof grabTUsers.$inferSelect;
+export type GrabMStatus = typeof grabMStatus.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Refund = typeof refunds.$inferSelect;
 
