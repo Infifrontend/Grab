@@ -1666,8 +1666,8 @@ export class DatabaseStorage implements IStorage {
       // Calculate seats already under review or paid for this bid
       const existingRetailBids = await this.getRetailBidsByBid(bid.bidId);
       const seatsUnderReviewOrPaid = existingRetailBids.reduce((sum, rb) => {
-        if (rb.status === 'under_review' || rb.status === 'paid' || rb.status === 'approved') {
-          return sum + rb.passengerCount;
+        if (rb.rStatus === 2 || rb.rStatus === 3 || rb.rStatus === 4) { // Assuming 2=under_review, 3=paid, 4=approved
+          return sum + (rb.seatBooked || 0);
         }
         return sum;
       }, 0);
@@ -1683,7 +1683,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Check if user has already submitted a bid for this configuration
-      const userExistingBid = existingRetailBids.find(rb => rb.userId === bid.userId);
+      const userExistingBid = existingRetailBids.find(rb => rb.rUserId === bid.userId);
       if (userExistingBid) {
         throw new Error("You have already submitted a bid for this configuration");
       }
@@ -1718,11 +1718,10 @@ export class DatabaseStorage implements IStorage {
         .insert(grabTRetailBids)
         .values({
           rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
-          userId: bid.userId,
-          flightId: bid.flightId,
+          rUserId: bid.userId, // Use rUserId instead of userId
           submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
-          passengerCount: bid.passengerCount,
-          status: bid.status || 'submitted'
+          seatBooked: bid.passengerCount, // Use seatBooked instead of passengerCount
+          rStatus: 1 // Set initial status (assuming 1 = submitted)
         })
         .returning();
 
@@ -1756,11 +1755,10 @@ export class DatabaseStorage implements IStorage {
             .insert(grabTRetailBids)
             .values({
               rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
-              userId: bid.userId,
-              flightId: bid.flightId,
+              rUserId: bid.userId, // Use rUserId instead of userId
               submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
-              passengerCount: bid.passengerCount,
-              status: bid.status || 'submitted'
+              seatBooked: bid.passengerCount, // Use seatBooked instead of passengerCount
+              rStatus: 1 // Set initial status (assuming 1 = submitted)
             })
             .returning();
 

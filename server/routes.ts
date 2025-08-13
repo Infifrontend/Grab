@@ -3483,11 +3483,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create retail bid submission with status 'submitted'
       const retailBidData = {
         rBidId: parseInt(bidId),
-        userId: parseInt(userId),
-        flightId: originalBid.bid.flightId,
+        rUserId: parseInt(userId), // Use rUserId instead of userId
         submittedAmount: submittedAmount.toString(),
-        passengerCount: parseInt(passengerCount),
-        status: "submitted", // Set as submitted initially
+        seatBooked: parseInt(passengerCount), // Use seatBooked instead of passengerCount
+        rStatus: 1, // Set initial status (assuming 1 = submitted)
       };
 
       // Insert directly into grab_t_retail_bids table
