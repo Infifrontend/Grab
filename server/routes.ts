@@ -1444,9 +1444,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
       };
 
+      // Ensure default admin user exists in grab_t_users table
+      let defaultUserId = 1;
+      try {
+        const adminUserResults = await db.execute(sql`
+          SELECT id FROM grab_t_users WHERE username = 'admin' LIMIT 1
+        `);
+        
+        if (adminUserResults.rows.length === 0) {
+          // Create default admin user in grab_t_users table
+          await db.execute(sql`
+            INSERT INTO grab_t_users (username, password, name, email, is_retail_allowed)
+            VALUES ('admin', ${Buffer.from("admin123").toString("base64")}, 'Administrator', 'admin@grab.com', true)
+          `);
+          
+          // Get the newly created admin user ID
+          const newAdminResults = await db.execute(sql`
+            SELECT id FROM grab_t_users WHERE username = 'admin' LIMIT 1
+          `);
+          defaultUserId = newAdminResults.rows[0].id;
+        } else {
+          defaultUserId = adminUserResults.rows[0].id;
+        }
+      } catch (userError) {
+        console.error("Error ensuring admin user exists:", userError);
+        // Fallback: try to get any user ID from grab_t_users
+        try {
+          const anyUserResults = await db.execute(sql`
+            SELECT id FROM grab_t_users ORDER BY id LIMIT 1
+          `);
+          if (anyUserResults.rows.length > 0) {
+            defaultUserId = anyUserResults.rows[0].id;
+          }
+        } catch (fallbackError) {
+          console.error("No users found in grab_t_users table:", fallbackError);
+          throw new Error("No valid user found in grab_t_users table. Please create a user first.");
+        }
+      }
+
       // Create bid configuration record with seat values in dedicated columns
       const bidData = {
-        userId: 1, // Default admin user - you might want to get this from session/auth
+        userId: defaultUserId, // Use verified user ID from grab_t_users table
         flightId: flightId,
         bidAmount: validBidAmount.toString(), // Use the validated bid amount
         passengerCount: minSeatsPerBid || 1, // Keep minimum seats as passenger count reference
