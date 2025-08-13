@@ -227,6 +227,19 @@ export const retailBids = pgTable("retail_bids", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// New grab_t_retail_bids table to replace retail_bids table
+export const grabTRetailBids = pgTable("grab_t_retail_bids", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  bidId: integer("bid_id").references(() => grabTBids.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
+  passengerCount: integer("passenger_count").notNull(),
+  status: text("status").notNull().default("submitted"), // submitted, approved, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -335,6 +348,21 @@ export const retailBidsRelations = relations(retailBids, ({ one }) => ({
   }),
 }));
 
+export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one }) => ({
+  bid: one(grabTBids, {
+    fields: [grabTRetailBids.bidId],
+    references: [grabTBids.id],
+  }),
+  user: one(users, {
+    fields: [grabTRetailBids.userId],
+    references: [users.id],
+  }),
+  flight: one(flights, {
+    fields: [grabTRetailBids.flightId],
+    references: [flights.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -362,6 +390,7 @@ export const insertGrabTBidSchema = createInsertSchema(grabTBids).omit({ id: tru
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
 export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertGrabTRetailBidSchema = createInsertSchema(grabTRetailBids).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -393,3 +422,5 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type RetailBid = typeof retailBids.$inferSelect;
 export type InsertRetailBid = z.infer<typeof insertRetailBidSchema>;
+export type GrabTRetailBid = typeof grabTRetailBids.$inferSelect;
+export type InsertGrabTRetailBid = z.infer<typeof insertGrabTRetailBidSchema>;
