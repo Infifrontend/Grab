@@ -817,72 +817,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
       
-      // Fetch from grab_t_bids table with join to get flight and user data
-      const bidsQuery = userId 
-        ? sql`
-            SELECT 
-              gtb.*,
-              f.origin,
-              f.destination,
-              f.departure_time,
-              f.airline,
-              f.flight_number,
-              gtu.name as user_name,
-              gtu.email as user_email
-            FROM grab_t_bids gtb
-            LEFT JOIN flights f ON gtb.flight_id = f.id
-            LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
-            WHERE gtb.user_id = ${parseInt(userId as string)}
-            ORDER BY gtb.created_at DESC
-          `
-        : sql`
-            SELECT 
-              gtb.*,
-              f.origin,
-              f.destination,
-              f.departure_time,
-              f.airline,
-              f.flight_number,
-              gtu.name as user_name,
-              gtu.email as user_email
-            FROM grab_t_bids gtb
-            LEFT JOIN flights f ON gtb.flight_id = f.id
-            LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
-            ORDER BY gtb.created_at DESC
-          `;
+      // If userId is provided, use the user-specific logic
+      if (userId) {
+        // Use the same logic as /api/user-bids/:userId but with query parameter
+        const bidsQuery = sql`
+          SELECT 
+            gtb.id as bid_id,
+            gtb.bid_amount as title,
+            gtb.notes,
+            gtb.total_seats_available,
+            gtb.min_seats_per_bid,
+            gtb.max_seats_per_bid,
+            gtb.valid_until,
+            gtb.created_at,
+            gtb.r_status as admin_status,
+            gms_admin.status_name as admin_status_name,
+            rb.id as retail_bid_id,
+            rb.status as retail_status,
+            rb.submitted_amount,
+            rb.passenger_count as retail_passenger_count,
+            rb.created_at as retail_bid_created_at,
+            f.origin,
+            f.destination,
+            f.departure_time,
+            f.airline,
+            f.flight_number,
+            CASE 
+              WHEN rb.status IS NOT NULL THEN rb.status
+              ELSE gms_admin.status_name
+            END as display_status
+          FROM grab_t_bids gtb
+          LEFT JOIN retail_bids rb ON gtb.id = rb.bid_id AND rb.user_id = ${parseInt(userId as string)}
+          LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
+          LEFT JOIN flights f ON gtb.flight_id = f.id
+          WHERE gtb.r_status = 4
+          ORDER BY gtb.created_at DESC
+        `;
 
-      const bidsResults = await db.execute(bidsQuery);
-      
-      // Transform the results to match the expected format
-      const transformedBids = bidsResults.rows.map((row: any) => ({
-        id: row.id,
-        userId: row.user_id,
-        flightId: row.flight_id,
-        bidAmount: row.bid_amount,
-        passengerCount: row.passenger_count,
-        bidStatus: row.bid_status,
-        validUntil: row.valid_until,
-        notes: row.notes,
-        totalSeatsAvailable: row.total_seats_available,
-        minSeatsPerBid: row.min_seats_per_bid,
-        maxSeatsPerBid: row.max_seats_per_bid,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        flight: row.origin ? {
-          id: row.flight_id,
-          origin: row.origin,
-          destination: row.destination,
-          departureTime: row.departure_time,
-          airline: row.airline,
-          flightNumber: row.flight_number,
-        } : null,
-        user: row.user_name ? {
-          name: row.user_name,
-          email: row.user_email,
-        } : null,
-      }));
+        const results = await db.execute(bidsQuery);
+        
+        // Transform the results with display_status logic
+        const transformedBids = results.rows.map((row: any) => {
+          let configData = {};
+          try {
+            configData = row.notes ? JSON.parse(row.notes) : {};
+          } catch (e) {
+            configData = {};
+          }
 
-      res.json(transformedBids);
+          const bidTitle = configData.title || `Bid ${row.bid_id}`;
+          const origin = configData.origin || row.origin || "Unknown";
+          const destination = configData.destination || row.destination || "Unknown";
+
+          let displayStatus = row.display_status;
+          switch (displayStatus?.toLowerCase()) {
+            case "under review":
+            case "under_review":
+              displayStatus = "Under Review";
+              break;
+            case "approved":
+              displayStatus = "Approved";
+              break;
+            case "rejected":
+              displayStatus = "Rejected";
+              break;
+            case "active":
+            case "open":
+              displayStatus = "Open";
+              break;
+            default:
+              displayStatus = displayStatus || "Open";
+          }
+
+          return {
+            id: row.bid_id,
+            userId: parseInt(userId as string),
+            flightId: row.flight_id,
+            bidAmount: row.title,
+            passengerCount: row.retail_passenger_count || row.min_seats_per_bid,
+            bidStatus: displayStatus,
+            validUntil: row.valid_until,
+            notes: row.notes,
+            totalSeatsAvailable: row.total_seats_available,
+            minSeatsPerBid: row.min_seats_per_bid,
+            maxSeatsPerBid: row.max_seats_per_bid,
+            createdAt: row.created_at,
+            updatedAt: row.created_at,
+            flight: {
+              id: row.flight_id,
+              origin: origin,
+              destination: destination,
+              departureTime: row.departure_time,
+              airline: row.airline,
+              flightNumber: row.flight_number,
+            },
+            displayStatus: displayStatus,
+            hasUserBid: row.retail_bid_id !== null,
+            retailBidId: row.retail_bid_id,
+            submittedAmount: row.submitted_amount,
+          };
+        });
+
+        res.json(transformedBids);
+      } else {
+        // Admin view - fetch all bids from grab_t_bids table
+        const bidsQuery = sql`
+          SELECT 
+            gtb.*,
+            f.origin,
+            f.destination,
+            f.departure_time,
+            f.airline,
+            f.flight_number,
+            gtu.name as user_name,
+            gtu.email as user_email,
+            gms.status_name
+          FROM grab_t_bids gtb
+          LEFT JOIN flights f ON gtb.flight_id = f.id
+          LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
+          LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
+          ORDER BY gtb.created_at DESC
+        `;
+
+        const bidsResults = await db.execute(bidsQuery);
+        
+        // Transform the results to match the expected format
+        const transformedBids = bidsResults.rows.map((row: any) => ({
+          id: row.id,
+          userId: row.user_id,
+          flightId: row.flight_id,
+          bidAmount: row.bid_amount,
+          passengerCount: row.passenger_count,
+          bidStatus: row.status_name || row.bid_status,
+          validUntil: row.valid_until,
+          notes: row.notes,
+          totalSeatsAvailable: row.total_seats_available,
+          minSeatsPerBid: row.min_seats_per_bid,
+          maxSeatsPerBid: row.max_seats_per_bid,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          flight: row.origin ? {
+            id: row.flight_id,
+            origin: row.origin,
+            destination: row.destination,
+            departureTime: row.departure_time,
+            airline: row.airline,
+            flightNumber: row.flight_number,
+          } : null,
+          user: row.user_name ? {
+            name: row.user_name,
+            email: row.user_email,
+          } : null,
+        }));
+
+        res.json(transformedBids);
+      }
     } catch (error) {
       console.error("Error fetching bids:", error);
       res.status(500).json({ message: "Failed to fetch bids" });
@@ -3853,6 +3942,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to create default admin user",
+        error: error.message,
+      });
+    }
+  });
+
+  // Get user-specific bid status with display_status logic
+  app.get("/api/user-bids/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required",
+        });
+      }
+
+      console.log(`Fetching bids for user ID: ${userId}`);
+
+      // Query to get all admin bids where r_status = 4 (Open) with user's retail bid status
+      const bidsQuery = sql`
+        SELECT 
+          gtb.id as bid_id,
+          gtb.bid_amount as title,
+          gtb.notes,
+          gtb.total_seats_available,
+          gtb.min_seats_per_bid,
+          gtb.max_seats_per_bid,
+          gtb.valid_until,
+          gtb.created_at,
+          gtb.r_status as admin_status,
+          gms_admin.status_name as admin_status_name,
+          rb.id as retail_bid_id,
+          rb.status as retail_status,
+          rb.submitted_amount,
+          rb.passenger_count as retail_passenger_count,
+          rb.created_at as retail_bid_created_at,
+          f.origin,
+          f.destination,
+          f.departure_time,
+          f.airline,
+          f.flight_number,
+          CASE 
+            WHEN rb.status IS NOT NULL THEN rb.status
+            ELSE gms_admin.status_name
+          END as display_status
+        FROM grab_t_bids gtb
+        LEFT JOIN retail_bids rb ON gtb.id = rb.bid_id AND rb.user_id = ${parseInt(userId)}
+        LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
+        LEFT JOIN flights f ON gtb.flight_id = f.id
+        WHERE gtb.r_status = 4
+        ORDER BY gtb.created_at DESC
+      `;
+
+      const results = await db.execute(bidsQuery);
+      
+      // Transform the results to include parsed configuration data
+      const transformedBids = results.rows.map((row: any) => {
+        // Parse configuration data from notes
+        let configData = {};
+        try {
+          configData = row.notes ? JSON.parse(row.notes) : {};
+        } catch (e) {
+          console.warn(`Could not parse notes for bid ${row.bid_id}:`, e);
+          configData = {};
+        }
+
+        // Get title from config data or use bid_amount as fallback
+        const bidTitle = configData.title || `Bid ${row.bid_id}`;
+        
+        // Get route information
+        const origin = configData.origin || row.origin || "Unknown";
+        const destination = configData.destination || row.destination || "Unknown";
+        const route = `${origin} → ${destination}`;
+
+        // Format display status based on business rules
+        let displayStatus = row.display_status;
+        let statusClass = "";
+        
+        // Map status to user-friendly display and CSS classes
+        switch (displayStatus?.toLowerCase()) {
+          case "under review":
+          case "under_review":
+            displayStatus = "Under Review";
+            statusClass = "status-under-review";
+            break;
+          case "approved":
+            displayStatus = "Approved";
+            statusClass = "status-approved";
+            break;
+          case "rejected":
+            displayStatus = "Rejected";
+            statusClass = "status-rejected";
+            break;
+          case "active":
+          case "open":
+            displayStatus = "Open";
+            statusClass = "status-open";
+            break;
+          default:
+            displayStatus = displayStatus || "Open";
+            statusClass = "status-default";
+        }
+
+        return {
+          bid_id: row.bid_id,
+          title: bidTitle,
+          route: route,
+          origin: origin,
+          destination: destination,
+          display_status: displayStatus,
+          status_class: statusClass,
+          admin_status: row.admin_status,
+          admin_status_name: row.admin_status_name,
+          has_user_bid: row.retail_bid_id !== null,
+          retail_bid_id: row.retail_bid_id,
+          retail_status: row.retail_status,
+          submitted_amount: row.submitted_amount,
+          retail_passenger_count: row.retail_passenger_count,
+          retail_bid_created_at: row.retail_bid_created_at,
+          total_seats_available: row.total_seats_available,
+          min_seats_per_bid: row.min_seats_per_bid,
+          max_seats_per_bid: row.max_seats_per_bid,
+          valid_until: row.valid_until,
+          created_at: row.created_at,
+          flight: {
+            origin: row.origin,
+            destination: row.destination,
+            departure_time: row.departure_time,
+            airline: row.airline,
+            flight_number: row.flight_number,
+          },
+          config_data: configData,
+        };
+      });
+
+      console.log(`Found ${transformedBids.length} bids for user ${userId}`);
+
+      res.json({
+        success: true,
+        user_id: parseInt(userId),
+        bids: transformedBids,
+        total_count: transformedBids.length,
+      });
+    } catch (error) {
+      console.error("Error fetching user bids:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch user bids",
         error: error.message,
       });
     }
