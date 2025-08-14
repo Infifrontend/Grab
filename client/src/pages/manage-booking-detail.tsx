@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Row,
@@ -25,6 +25,8 @@ import {
   PlusOutlined,
   MinusOutlined,
   DeleteOutlined,
+  RiseOutlined,
+  FallOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
@@ -49,6 +51,7 @@ export default function ManageBookingDetail() {
   const [modal2Open, setModal2Open] = useState(false);
   const [groupSizeAction, setGroupSizeAction] = useState("");
   const [groupSizeForm] = useForm();
+  const [newGroupSize, setNewGroupSize] = useState();
   // Get booking ID from URL params
   // const bookingId = params?.id;
   const bookingId = params.id;
@@ -102,6 +105,7 @@ export default function ManageBookingDetail() {
       );
       setPassengers(emptyPassengers);
     }
+    console.log(bookingDetails, 'bookingDetails');
   }, [bookingDetails]);
 
   // Update group leader info when booking data is loaded
@@ -164,11 +168,11 @@ export default function ManageBookingDetail() {
 
   if (error || !bookingDetails) {
     console.error("Booking error details:", error);
-    
+
     // Parse error response if available
     let errorMessage = `The booking you're looking for could not be found. Booking ID: ${bookingId}. Please check the booking reference and try again.`;
     let debugInfo = null;
-    
+
     if (error?.message) {
       try {
         const errorData = JSON.parse(error.message);
@@ -181,7 +185,7 @@ export default function ManageBookingDetail() {
         errorMessage = error.message || errorMessage;
       }
     }
-    
+
     return (
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Alert
@@ -245,7 +249,7 @@ export default function ManageBookingDetail() {
   const handleSaveChanges = async () => {
     try {
       console.log("Starting to save changes for booking:", bookingId);
-      
+
       if (!bookingId) {
         console.error("No booking ID available");
         message.error("No booking ID found. Please try again.");
@@ -255,7 +259,7 @@ export default function ManageBookingDetail() {
       // Save group leader information
       console.log("Saving group leader information...");
       console.log("Group leader data:", groupLeaderInfo);
-      
+
       const groupLeaderResponse = await fetch(
         `/api/booking-details/${bookingId}`,
         {
@@ -337,10 +341,10 @@ export default function ManageBookingDetail() {
       console.log("Refetching booking details...");
       await refetch();
       console.log("Booking details refetched successfully");
-      
+
     } catch (error) {
       console.error("Error saving changes:", error);
-      
+
       let errorMessage = "Failed to save changes. Please try again.";
       if (error instanceof Error) {
         if (error.message.includes("Booking not found")) {
@@ -351,7 +355,7 @@ export default function ManageBookingDetail() {
           errorMessage = error.message;
         }
       }
-      
+
       message.error(errorMessage);
     }
   };
@@ -568,8 +572,9 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   <div className="flex items-center gap-3">
                     <Button
                       onClick={() => groupSizeFunction("upsize")}
-                      className="w-15 h-10 flex items-center justify-center"
+                      className="border border-green-200 h-10 w-full text-green-600 flex items-center justify-center hover:!bg-green-50 hover:!text-green-600 hover:!border-green-200"
                     >
+                      <RiseOutlined />
                       Upsize
                     </Button>
                     {/* <InputNumber
@@ -581,8 +586,9 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     /> */}
                     <Button
                       onClick={() => groupSizeFunction("downsize")}
-                      className="w-15 h-10 flex items-center justify-center"
+                      className="50 border border-red-200 w-full text-red-600 h-10 flex items-center justify-center hover:!bg-red-50 hover:!text-red-600 hover:!border-red-200"
                     >
+                      <FallOutlined />
                       Downsize
                     </Button>
                   </div>
@@ -1182,29 +1188,51 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
       )} */}
 
       <Modal
-        title={`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} the no of additional pessangers`}
+        title={<Row className="mb-5">
+          <Col className="w-full text-lg">
+            {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} Group`}
+          </Col>
+          <Col className="w-full text-gray-400">
+            Add more passengers to your group booking
+          </Col>
+        </Row>}
         centered
         open={modal2Open}
         onOk={() => submitGroupSize()}
         onCancel={() => setModal2Open(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setModal2Open(false)}>
+            Cancel
+          </Button>,
+          <Button disabled={bookingDetails?.booking?.passengerCount == newGroupSize} key="confirm" type="primary" onClick={submitGroupSize}>
+            Confirm {groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}
+          </Button>,
+        ]}
       >
         <Form form={groupSizeForm}>
-          <Form.Item name="adult" label="Adult" extra="12+Years">
-            <InputNumber maxLength={2}></InputNumber>
-          </Form.Item>
+          <Row className="gap-5">
 
-          <Form.Item name="child" label="Child" extra="2-12 Years">
-            <InputNumber maxLength={2}></InputNumber>
-          </Form.Item>
+            <Col xl={11}>
+              <Text className="block mb-2 text-gray-700 font-semibold">
+                Current size
+              </Text>
+              <Form.Item name="current_size">
+                <InputNumber disabled defaultValue={bookingDetails?.booking?.passengerCount} className="w-full" maxLength={2}></InputNumber>
+              </Form.Item>
+            </Col>
 
-          <Form.Item name="infant" label="Infant" extra="0-2 Years">
-            <InputNumber maxLength={2}></InputNumber>
-          </Form.Item>
+            <Col xl={11}>
+              <Text className="block mb-2 text-gray-700 font-semibold">
+                New size ( {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}` === "Downsize" ? "Min 1" : "Max 50"})
+              </Text>
 
-          <Form.Item name="remarks" label="Remarks">
-            <Textarea></Textarea>
-          </Form.Item>
+              <Form.Item name="new_size">
+                <InputNumber onChange={(value) => setNewGroupSize(value)} min={groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1) === "Downsize" ? 1 : bookingDetails?.booking?.passengerCount} max={groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1) === "Downsize" ? bookingDetails?.booking?.passengerCount : 50} defaultValue={bookingDetails?.booking?.passengerCount} className="w-full" maxLength={2} ></InputNumber>
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
+        {bookingDetails?.booking?.passengerCount == newGroupSize ? <Alert message="Please select a different group size" type="error" showIcon /> : <></>}
       </Modal>
     </div>
   );

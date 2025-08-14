@@ -50,6 +50,9 @@ export default function ActiveBidsSection() {
     },
   });
 
+  console.log(activeBids,'nnnnnnnnnn');
+  
+
   const calculateTimeLeft = (validUntil: string) => {
     const now = new Date();
     const expiry = new Date(validUntil);
