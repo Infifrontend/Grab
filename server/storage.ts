@@ -567,8 +567,6 @@ export class DatabaseStorage implements IStorage {
           rStatus: grabTBids.rStatus,
           createdAt: grabTBids.createdAt,
           updatedAt: grabTBids.updatedAt,
-          passengerCount: grabTBids.totalSeatsAvailable, // Use totalSeatsAvailable as passengerCount
-          bidStatus: "Open", // Default status
         })
         .from(grabTBids);
 
@@ -599,13 +597,13 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
-      // Map bidData to match grab_t_bids schema
+      // Map bidData to match grab_t_bids schema (without removed columns)
       const mappedBidData = {
         bidAmount: bidData.bidAmount,
         validUntil: bidData.validUntil,
-        totalSeatsAvailable: bidData.totalSeatsAvailable,
-        minSeatsPerBid: bidData.minSeatsPerBid,
-        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        totalSeatsAvailable: bidData.totalSeatsAvailable || 50,
+        minSeatsPerBid: bidData.minSeatsPerBid || 1,
+        maxSeatsPerBid: bidData.maxSeatsPerBid || 10,
         rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
@@ -1069,8 +1067,6 @@ export class DatabaseStorage implements IStorage {
           rStatus: grabTBids.rStatus,
           createdAt: grabTBids.createdAt,
           updatedAt: grabTBids.updatedAt,
-          passengerCount: grabTBids.totalSeatsAvailable, // Use totalSeatsAvailable as passengerCount
-          bidStatus: "Open", // Default status
         })
         .from(grabTBids);
 
@@ -1096,13 +1092,13 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
-      // Map bidData to match grab_t_bids schema
+      // Map bidData to match grab_t_bids schema (without removed columns)
       const mappedBidData = {
         bidAmount: bidData.bidAmount,
         validUntil: bidData.validUntil,
-        totalSeatsAvailable: bidData.totalSeatsAvailable,
-        minSeatsPerBid: bidData.minSeatsPerBid,
-        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        totalSeatsAvailable: bidData.totalSeatsAvailable || 50,
+        minSeatsPerBid: bidData.minSeatsPerBid || 1,
+        maxSeatsPerBid: bidData.maxSeatsPerBid || 10,
         rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
@@ -1634,21 +1630,6 @@ export class DatabaseStorage implements IStorage {
         availableSeats: availableSeats,
         maxSeatsPerUser: maxSeatsPerUser
       });
-
-      // Ensure the grab_t_retail_bids table exists and has the correct structure
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
-          "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-          "r_bid_id" integer NOT NULL,
-          "user_id" integer NOT NULL,
-          "flight_id" integer NOT NULL,
-          "submitted_amount" numeric(10,2) NOT NULL,
-          "passenger_count" integer NOT NULL,
-          "status" text DEFAULT 'submitted' NOT NULL,
-          "created_at" timestamp DEFAULT now(),
-          "updated_at" timestamp DEFAULT now()
-        );
-      `);
 
       // Insert the retail bid into the database
       const [newRetailBid] = await db

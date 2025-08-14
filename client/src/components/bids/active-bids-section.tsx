@@ -4,24 +4,17 @@ import { Plane, Users, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 interface ActiveBid {
   id: number;
-  userId: number;
-  flightId: number;
   bidAmount: string;
-  passengerCount: number;
-  bidStatus: string;
   validUntil: string;
   notes: string;
+  totalSeatsAvailable: number;
+  minSeatsPerBid: number;
+  maxSeatsPerBid: number;
+  rStatus: number;
   createdAt: string;
   updatedAt: string;
-  flight?: {
-    id: number;
-    flightNumber: string;
-    airline: string;
-    origin: string;
-    destination: string;
-    departureTime: string;
-    arrivalTime: string;
-    price: string;
+  seatAvailability?: {
+    paymentStatus: string;
   };
 }
 
@@ -41,8 +34,7 @@ export default function ActiveBidsSection() {
       return bids
         .filter(
           (bid: ActiveBid) =>
-            bid.bidStatus === "active" ||
-            bid.bidStatus === "Open" ||
+            bid.rStatus === 4 || // 4 = Open/Active status
             bid.seatAvailability?.paymentStatus === "open",
         )
         .slice(0, 5); // Show only the 5 most recent active/open bids
@@ -94,21 +86,18 @@ export default function ActiveBidsSection() {
       }
     }
 
-    // Fallback to bidStatus from grab_t_bids table
-    switch (bid.bidStatus?.toLowerCase()) {
-      case "under_review":
+    // Use rStatus from grab_t_bids table
+    switch (bid.rStatus) {
+      case 1:
+        return { status: "Active", color: "green" };
+      case 2:
         return { status: "Under Review", color: "blue" };
-      case "accepted":
-      case "approved":
-        return { status: "Accepted", color: "green" };
-      case "rejected":
-        return { status: "Declined", color: "red" };
-      case "expired":
-        return { status: "Expired", color: "default" };
-      case "completed":
-        return { status: "Under Review", color: "blue" };
-      case "active":
-      case "open":
+      case 3:
+        return { status: "Approved", color: "green" };
+      case 4:
+        return { status: "Open", color: "orange" };
+      case 5:
+        return { status: "Rejected", color: "red" };
       default:
         return { status: "Open", color: "orange" };
     }
@@ -196,7 +185,7 @@ export default function ActiveBidsSection() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                     <Users className="w-4 h-4" />
-                    <span>{bid.passengerCount} passengers</span>
+                    <span>{bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats available</span>
                   </div>
                 </div>
                 <Tag color={statusInfo.color} className="text-xs">
