@@ -978,8 +978,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: row.user_id,
           flightId: row.flight_id,
           bidAmount: row.bid_amount,
-          passengerCount: row.passenger_count,
-          bidStatus: row.status_name || row.bid_status,
           validUntil: row.valid_until,
           notes: row.notes,
           totalSeatsAvailable: row.total_seats_available,
@@ -2459,8 +2457,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             SET r_status = 2, updated_at = now() 
             WHERE id = ${userRetailBid.id}
           `);
-          console.log(`Updated retail bid ${userRetailBid.id} status to under_review (r_status=2)`);
-
+          console.log(
+            `Updated retail bid ${userRetailBid.id} status to under_review (r_status=2)`,
+          );
         } else {
           // Fallback to regular payments table
           payment = await storage.createPayment(paymentData);
@@ -2518,7 +2517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Check if we should update the main grab_t_bids status based on payments received
           const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const paidBids = retailBids.filter(rb => {
+          const paidBids = retailBids.filter((rb) => {
             // Check r_status: 2=under_review, 3=approved/paid
             return rb.rStatus === 2 || rb.rStatus === 3;
           });
@@ -2530,13 +2529,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               SET r_status = 2, bid_status = 'under_review', updated_at = now() 
               WHERE id = ${parseInt(bidId)} AND r_status = 4
             `);
-            console.log(`Updated main bid ${bidId} status to under_review (r_status=2) due to received payments`);
+            console.log(
+              `Updated main bid ${bidId} status to under_review (r_status=2) due to received payments`,
+            );
           }
 
           console.log(
             `Added user-specific payment tracking for user ${userId} on bid ${bidId}`,
           );
-
         } catch (error) {
           console.log("Could not update bid payment tracking:", error.message);
         }
@@ -3471,7 +3471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
-      // Create retail bid submission with status 'submitted'  
+      // Create retail bid submission with status 'submitted'
       const retailBidData = {
         rBidId: parseInt(bidId),
         rUserId: parseInt(userId), // Use rUserId instead of userId
@@ -3486,7 +3486,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values(retailBidData)
         .returning();
 
-      console.log(`Created retail bid ${newRetailBid.id} with r_status=1 (submitted)`);
+      console.log(
+        `Created retail bid ${newRetailBid.id} with r_status=1 (submitted)`,
+      );
 
       // Create notification
       await createNotification(
@@ -3656,8 +3658,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: row.updated_at,
         user: {
           name: row.user_name,
-          email: row.user_email
-        }
+          email: row.user_email,
+        },
       }));
 
       console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
@@ -3665,7 +3667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         retailBids,
-        count: retailBids.length
+        count: retailBids.length,
       });
     } catch (error) {
       console.error("Error fetching retail bids:", error);
