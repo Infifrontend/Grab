@@ -17,6 +17,7 @@ import {
   retailBids,
   grabTRetailBids,
   grabTBidPayments,
+  grabMStatus, // Import grabMStatus
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -1120,74 +1121,34 @@ export class DatabaseStorage implements IStorage {
 
   async getBidById(bidId: number) {
     try {
-      console.log(`Looking up bid with ID: ${bidId}`);
-
-      if (!bidId || isNaN(bidId) || bidId <= 0) {
-        console.error(`Invalid bid ID provided: ${bidId}`);
-        return null;
-      }
-
-      const result = await db
-        .select({
-          bid: {
-            id: grabTBids.id,
-            bidAmount: grabTBids.bidAmount,
-            validUntil: grabTBids.validUntil,
-            notes: grabTBids.notes,
-            totalSeatsAvailable: grabTBids.totalSeatsAvailable,
-            minSeatsPerBid: grabTBids.minSeatsPerBid,
-            maxSeatsPerBid: grabTBids.maxSeatsPerBid,
-            rStatus: grabTBids.rStatus,
-            createdAt: grabTBids.createdAt,
-            updatedAt: grabTBids.updatedAt,
-          },
-          flight: {
-            id: flights.id,
-            flightNumber: flights.flightNumber,
-            airline: flights.airline,
-            origin: flights.origin,
-            destination: flights.destination,
-            departureTime: flights.departureTime,
-            price: flights.price,
-          },
-          user: {
-            id: grabTUsers.id,
-            username: grabTUsers.username,
-            name: grabTUsers.name,
-          },
-        })
+      const [bid] = await db
+        .select()
         .from(grabTBids)
-        .leftJoin(flights, eq(grabTBids.flightId, flights.id))
-        .leftJoin(grabTUsers, eq(grabTBids.userId, grabTUsers.id))
         .where(eq(grabTBids.id, bidId))
         .limit(1);
 
-      if (result.length === 0) {
-        console.log(`No bid found with ID: ${bidId}`);
-
-        // Debug: Show what bids actually exist
-        const allBids = await db.select({ id: grabTBids.id, bidAmount: grabTBids.bidAmount, bidStatus: grabTBids.bidStatus }).from(grabTBids);
-        console.log(`Existing bids in database:`, allBids);
-
+      if (!bid) {
         return null;
       }
 
-      console.log(`Found bid ${bidId} successfully:`, {
-        bidId: result[0].bid.id,
-        bidAmount: result[0].bid.bidAmount,
-        bidStatus: result[0].bid.bidStatus,
-        hasUser: !!result[0].user,
-        hasFlight: !!result[0].flight
-      });
+      // Get status information
+      let status = null;
+      if (bid.rStatus) {
+        // Assuming grabMStatus table exists and has an 'id' and 'name' column for status
+        [status] = await db
+          .select({ id: grabMStatus.id, name: grabMStatus.name }) // Select relevant columns from grabMStatus
+          .from(grabMStatus)
+          .where(eq(grabMStatus.id, bid.rStatus))
+          .limit(1);
+      }
 
       return {
-        bid: result[0].bid,
-        user: result[0].user,
-        flight: result[0].flight,
+        bid,
+        status,
       };
     } catch (error) {
-      console.error(`Error fetching bid ${bidId}:`, error);
-      return null;
+      console.error("Error fetching bid by ID:", error);
+      throw error;
     }
   }
 
@@ -1332,7 +1293,8 @@ export class DatabaseStorage implements IStorage {
 
       // First try to get payments from grab_t_bid_payments table
       try {
-        const bidPayments = await db.select().from(grabTBidPayments)
+        const bidPayments = await db.select()
+          .from(grabTBidPayments)
           .innerJoin(grabTRetailBids, eq(grabTBidPayments.rRetailBidId, grabTRetailBids.id))
           .where(eq(grabTRetailBids.rBidId, bidId));
 

@@ -16,6 +16,13 @@ interface ActiveBid {
   seatAvailability?: {
     paymentStatus: string;
   };
+  retailBids?: Array<{
+    id: number;
+    rUserId: number;
+    submittedAmount: string;
+    seatBooked: number;
+    rStatus: number;
+  }>;
 }
 
 export default function ActiveBidsSection() {
@@ -68,6 +75,19 @@ export default function ActiveBidsSection() {
   };
 
   const getBidStatusInfo = (bid: ActiveBid) => {
+    // Check if there are retail bids with payments to determine user-specific status
+    if (bid.retailBids && bid.retailBids.length > 0) {
+      const hasUnderReview = bid.retailBids.some(rb => rb.rStatus === 2);
+      const hasApproved = bid.retailBids.some(rb => rb.rStatus === 3);
+      
+      if (hasApproved) {
+        return { status: "Approved", color: "green" };
+      }
+      if (hasUnderReview) {
+        return { status: "Under Review", color: "blue" };
+      }
+    }
+
     // Use seatAvailability paymentStatus if available (user-specific status)
     if (bid.seatAvailability?.paymentStatus) {
       switch (bid.seatAvailability.paymentStatus) {
@@ -91,7 +111,7 @@ export default function ActiveBidsSection() {
     // Use rStatus from grab_t_bids table
     switch (bid.rStatus) {
       case 1:
-        return { status: "Active", color: "green" };
+        return { status: "Submitted", color: "blue" };
       case 2:
         return { status: "Under Review", color: "blue" };
       case 3:
