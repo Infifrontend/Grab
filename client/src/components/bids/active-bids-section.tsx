@@ -4,47 +4,49 @@ import { Plane, Users, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 interface ActiveBid {
   id: number;
-  userId: number;
-  flightId: number;
   bidAmount: string;
-  passengerCount: number;
-  bidStatus: string;
   validUntil: string;
   notes: string;
+  totalSeatsAvailable: number;
+  minSeatsPerBid: number;
+  maxSeatsPerBid: number;
+  rStatus: number;
   createdAt: string;
   updatedAt: string;
-  flight?: {
-    id: number;
-    flightNumber: string;
-    airline: string;
-    origin: string;
-    destination: string;
-    departureTime: string;
-    arrivalTime: string;
-    price: string;
+  seatAvailability?: {
+    paymentStatus: string;
   };
+  retailBids?: Array<{
+    id: number;
+    rUserId: number;
+    submittedAmount: string;
+    seatBooked: number;
+    rStatus: number;
+  }>;
 }
 
 export default function ActiveBidsSection() {
   const navigate = useNavigate();
 
-  const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
+  const { data: activeBids, isLoading, error } = useQuery<ActiveBid[]>({
     queryKey: ["/api/bids"],
     queryFn: async () => {
-      const response = await fetch("/api/bids");
-      if (!response.ok) {
-        throw new Error("Failed to fetch bids");
-      }
-      const bids = await response.json();
+      try {
+        const response = await fetch("/api/bids");
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API error:", errorText);
+          throw new Error(`Failed to fetch bids: ${response.status}`);
+        }
+        const bids = await response.json();
+        console.log("Fetched bids:", bids);
 
-      // Show active and open bids, limit to recent ones
-      return bids
-        .filter((bid: ActiveBid) => 
-          bid.bidStatus === "active" || 
-          bid.bidStatus === "open" ||
-          (bid.seatAvailability?.paymentStatus === "open")
-        )
-        .slice(0, 5); // Show only the 5 most recent active/open bids
+        // Since the server now filters for r_status = 4, all returned bids are active/open
+        return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+      } catch (error) {
+        console.error("Error fetching bids:", error);
+        throw error;
+      }
     },
   });
 
@@ -73,88 +75,53 @@ export default function ActiveBidsSection() {
   };
 
   const getBidStatusInfo = (bid: ActiveBid) => {
-    // Check bid status first for different states
-    switch (bid.bidStatus) {
-      case "completed":
-        // For completed bids, check payment status to determine correct display
-        try {
-          const notes = bid.notes ? JSON.parse(bid.notes) : {};
-          const paymentStatus = notes.paymentInfo?.paymentStatus;
-          
-          if (notes.paymentInfo?.paymentCompleted === true) {
-            // Payment completed scenarios
-            if (paymentStatus === "Payment Completed") {
-              return { status: "Under Review", color: "blue" };
-            } else if (paymentStatus === "Accepted for Booking") {
-              return { status: "Accepted", color: "green" };
-            } else if (paymentStatus === "Open") {
-              return { status: "Open", color: "orange" };
-            } else {
-              return { status: "Under Review", color: "blue" };
-            }
-          } else {
-            return { status: "Awaiting Payment", color: "orange" };
-          }
-        } catch (e) {
-          return { status: "Under Review", color: "blue" };
-        }
-      case "accepted":
-        return { status: "Accepted", color: "green" };
-      case "approved":
-        return { status: "Accepted", color: "green" };
-      case "rejected":
-        return { status: "Declined", color: "red" };
-      case "expired":
-        return { status: "Expired", color: "default" };
-      case "pending":
+    // Check if there are retail bids with payments to determine user-specific status
+    if (bid.retailBids && bid.retailBids.length > 0) {
+      const hasUnderReview = bid.retailBids.some(rb => rb.rStatus === 2);
+      const hasApproved = bid.retailBids.some(rb => rb.rStatus === 3);
+      
+      if (hasApproved) {
+        return { status: "Approved", color: "green" };
+      }
+      if (hasUnderReview) {
         return { status: "Under Review", color: "blue" };
-      case "active":
-      case "open":
-        // For active/open bids, use dynamic status from seatAvailability if available
-        if (bid.seatAvailability?.paymentStatus) {
-          switch (bid.seatAvailability.paymentStatus) {
-            case 'under_review':
-              return { status: "Under Review", color: "blue" };
-            case 'approved':
-              return { status: "Accepted", color: "green" };
-            case 'rejected':
-              return { status: "Rejected", color: "red" };
-            case 'closed':
-              return { status: "Closed", color: "gray" };
-            case 'completed':
-              return { status: "Completed", color: "green" };
-            case 'open':
-              return { status: "Open", color: "orange" };
-            default:
-              return { status: "Open", color: "orange" };
-          }
-        }
-        
-        // Fallback to checking payment status in notes
-        try {
-          const notes = bid.notes ? JSON.parse(bid.notes) : {};
-          const paymentStatus = notes.paymentInfo?.paymentStatus;
-          
-          if (notes.paymentInfo?.paymentCompleted === true) {
-            // Payment completed scenarios for active bids
-            if (paymentStatus === "Payment Completed") {
-              return { status: "Under Review", color: "blue" };
-            } else if (paymentStatus === "Accepted for Booking") {
-              return { status: "Accepted", color: "green" };
-            } else if (paymentStatus === "Open") {
-              return { status: "Open", color: "orange" };
-            } else {
-              return { status: "Under Review", color: "blue" };
-            }
-          } else if (notes.paymentInfo?.paymentStatus === "Paid") {
-            return { status: "Deposit Paid", color: "blue" };
-          }
+      }
+    }
+
+    // Use seatAvailability paymentStatus if available (user-specific status)
+    if (bid.seatAvailability?.paymentStatus) {
+      switch (bid.seatAvailability.paymentStatus) {
+        case "under_review":
+          return { status: "Under Review", color: "blue" };
+        case "approved":
+          return { status: "Accepted", color: "green" };
+        case "rejected":
+          return { status: "Rejected", color: "red" };
+        case "closed":
+          return { status: "Closed", color: "gray" };
+        case "completed":
+          return { status: "Completed", color: "green" };
+        case "open":
           return { status: "Open", color: "orange" };
-        } catch (e) {
+        default:
           return { status: "Open", color: "orange" };
-        }
+      }
+    }
+
+    // Use rStatus from grab_t_bids table
+    switch (bid.rStatus) {
+      case 1:
+        return { status: "Submitted", color: "blue" };
+      case 2:
+        return { status: "Under Review", color: "blue" };
+      case 3:
+        return { status: "Approved", color: "green" };
+      case 4:
+        return { status: "Open", color: "orange" };
+      case 5:
+        return { status: "Rejected", color: "red" };
       default:
-        return { status: "Pending", color: "orange" };
+        return { status: "Open", color: "orange" };
     }
   };
 
@@ -170,6 +137,26 @@ export default function ActiveBidsSection() {
           </div>
         </div>
       </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="deal-card">
+        <div className="section-header relative">
+          <Tag className="limited-time-badge">Live Bidding</Tag>
+          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+          <p className="text-sm opacity-90">
+            Track your current bidding activity
+          </p>
+        </div>
+        <div className="p-6 text-center text-red-500">
+          Error loading active bids. Please try again later.
+          <div className="text-xs text-gray-500 mt-2">
+            {error.message}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -234,13 +221,21 @@ export default function ActiveBidsSection() {
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                     <Plane className="w-4 h-4" />
                     <span>
-                      {bid.flight?.origin || "New York"} →{" "}
-                      {bid.flight?.destination || "Las Vegas"}
+                      {(() => {
+                        try {
+                          const configData = bid.notes ? JSON.parse(bid.notes) : {};
+                          const origin = configData.origin || bid.flight?.origin || "Unknown";
+                          const destination = configData.destination || bid.flight?.destination || "Unknown";
+                          return `${origin} → ${destination}`;
+                        } catch (e) {
+                          return "Unknown → Unknown";
+                        }
+                      })()}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                     <Users className="w-4 h-4" />
-                    <span>{bid.passengerCount} passengers</span>
+                    <span>{bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats available</span>
                   </div>
                 </div>
                 <Tag color={statusInfo.color} className="text-xs">

@@ -185,7 +185,7 @@ export default function PaymentDetails() {
           `Unable to verify bid ${bidId}. Please check if the bid exists.`,
         );
       }
-
+      console.log("Bid data for payment verification:", bidData);
       // Check if payment has already been completed
       if (bidData.bid?.bidStatus === "completed") {
         try {

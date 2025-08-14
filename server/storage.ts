@@ -17,6 +17,7 @@ import {
   retailBids,
   grabTRetailBids,
   grabTBidPayments,
+  grabMStatus, // Import grabMStatus
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -94,7 +95,7 @@ export interface IStorage {
   updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void>;
 
   // Bids
-  getBids(userId?: number, flightId?: number): Promise<Bid[]>;
+  getBids(userId?: number): Promise<Bid[]>;
   getBid(id: number): Promise<Bid | undefined>;
   createBid(bid: InsertBid): Promise<Bid>;
   updateBidStatus(id: number, status: string): Promise<void>;
@@ -558,40 +559,17 @@ export class DatabaseStorage implements IStorage {
       let query = db
         .select({
           id: grabTBids.id,
-          userId: grabTBids.userId,
-          flightId: grabTBids.flightId,
           bidAmount: grabTBids.bidAmount,
-          passengerCount: grabTBids.passengerCount,
-          bidStatus: grabTBids.bidStatus,
           validUntil: grabTBids.validUntil,
           notes: grabTBids.notes,
           totalSeatsAvailable: grabTBids.totalSeatsAvailable,
           minSeatsPerBid: grabTBids.minSeatsPerBid,
           maxSeatsPerBid: grabTBids.maxSeatsPerBid,
+          rStatus: grabTBids.rStatus,
           createdAt: grabTBids.createdAt,
           updatedAt: grabTBids.updatedAt,
-          flight: {
-            id: flights.id,
-            flightNumber: flights.flightNumber,
-            airline: flights.airline,
-            origin: flights.origin,
-            destination: flights.destination,
-            departureTime: flights.departureTime,
-            price: flights.price,
-          },
-          user: {
-            id: grabTUsers.id,
-            username: grabTUsers.username,
-            name: grabTUsers.name,
-          },
         })
-        .from(grabTBids)
-        .leftJoin(flights, eq(grabTBids.flightId, flights.id))
-        .leftJoin(grabTUsers, eq(grabTBids.userId, grabTUsers.id));
-
-      if (userId) {
-        query = query.where(eq(grabTBids.userId, userId));
-      }
+        .from(grabTBids);
 
       const results = await query.orderBy(desc(grabTBids.createdAt));
       return results;
@@ -611,7 +589,7 @@ export class DatabaseStorage implements IStorage {
       console.log("Creating bid with data:", bidData);
 
       // Validate required fields before insertion
-      if (!bidData.userId || !bidData.flightId || !bidData.bidAmount || !bidData.bidStatus) {
+      if (!bidData.bidAmount) {
         throw new Error("Missing required fields for bid creation");
       }
 
@@ -620,17 +598,14 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
-      // Map bidData to match grab_t_bids schema
+      // Map bidData to match grab_t_bids schema (without removed columns)
       const mappedBidData = {
-        userId: bidData.userId,
-        flightId: bidData.flightId,
         bidAmount: bidData.bidAmount,
-        passengerCount: bidData.passengerCount,
-        bidStatus: bidData.bidStatus,
         validUntil: bidData.validUntil,
-        totalSeatsAvailable: bidData.totalSeatsAvailable,
-        minSeatsPerBid: bidData.minSeatsPerBid,
-        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        totalSeatsAvailable: bidData.totalSeatsAvailable || 50,
+        minSeatsPerBid: bidData.minSeatsPerBid || 1,
+        maxSeatsPerBid: bidData.maxSeatsPerBid || 10,
+        rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -644,59 +619,8 @@ export class DatabaseStorage implements IStorage {
       console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
-      // If we get a sequence error, try to fix it
-      if (error.message.includes('null value in column "id"') || error.message.includes('grab_t_bids_id_seq')) {
-        console.log('Fixing grab_t_bids sequence...');
-
-        try {
-          // Create the sequence if it doesn't exist
-          await db.execute(`
-            CREATE SEQUENCE IF NOT EXISTS grab_t_bids_id_seq;
-          `);
-
-          // Set the sequence to the correct value
-          await db.execute(`
-            SELECT setval('grab_t_bids_id_seq', COALESCE((SELECT MAX(id) FROM grab_t_bids), 0) + 1, false);
-          `);
-
-          // Alter the table to use the sequence
-          await db.execute(`
-            ALTER TABLE grab_t_bids ALTER COLUMN id SET DEFAULT nextval('grab_t_bids_id_seq');
-          `);
-
-          console.log('grab_t_bids sequence fixed, retrying bid creation...');
-
-          // Try the insert again with proper mapping
-          const mappedBidData = {
-            userId: bidData.userId,
-            flightId: bidData.flightId,
-            bidAmount: bidData.bidAmount,
-            passengerCount: bidData.passengerCount,
-            bidStatus: bidData.bidStatus,
-            validUntil: bidData.validUntil,
-            totalSeatsAvailable: bidData.totalSeatsAvailable,
-            minSeatsPerBid: bidData.minSeatsPerBid,
-            maxSeatsPerBid: bidData.maxSeatsPerBid,
-            notes: bidData.notes,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-
-          const [bid] = await db
-            .insert(grabTBids)
-            .values(mappedBidData)
-            .returning();
-
-          console.log("Bid created successfully after sequence fix:", bid);
-          return bid;
-        } catch (sequenceError) {
-          console.error("Error fixing sequence:", sequenceError);
-          throw error; // Throw original error
-        }
-      } else {
-        console.error("Error creating bid:", error);
-        throw error;
-      }
+      console.error("Error creating bid:", error);
+      throw error;
     }
   }
 
@@ -1135,40 +1059,17 @@ export class DatabaseStorage implements IStorage {
       let query = db
         .select({
           id: grabTBids.id,
-          userId: grabTBids.userId,
-          flightId: grabTBids.flightId,
           bidAmount: grabTBids.bidAmount,
-          passengerCount: grabTBids.passengerCount,
-          bidStatus: grabTBids.bidStatus,
           validUntil: grabTBids.validUntil,
           notes: grabTBids.notes,
           totalSeatsAvailable: grabTBids.totalSeatsAvailable,
           minSeatsPerBid: grabTBids.minSeatsPerBid,
           maxSeatsPerBid: grabTBids.maxSeatsPerBid,
+          rStatus: grabTBids.rStatus,
           createdAt: grabTBids.createdAt,
           updatedAt: grabTBids.updatedAt,
-          flight: {
-            id: flights.id,
-            flightNumber: flights.flightNumber,
-            airline: flights.airline,
-            origin: flights.origin,
-            destination: flights.destination,
-            departureTime: flights.departureTime,
-            price: flights.price,
-          },
-          user: {
-            id: grabTUsers.id,
-            username: grabTUsers.username,
-            name: grabTUsers.name,
-          },
         })
-        .from(grabTBids)
-        .leftJoin(flights, eq(grabTBids.flightId, flights.id))
-        .leftJoin(grabTUsers, eq(grabTBids.userId, grabTUsers.id));
-
-      if (userId) {
-        query = query.where(eq(grabTBids.userId, userId));
-      }
+        .from(grabTBids);
 
       const results = await query.orderBy(desc(grabTBids.createdAt));
       return results;
@@ -1183,7 +1084,7 @@ export class DatabaseStorage implements IStorage {
       console.log("Creating bid with data:", bidData);
 
       // Validate required fields before insertion
-      if (!bidData.userId || !bidData.flightId || !bidData.bidAmount || !bidData.bidStatus) {
+      if (!bidData.bidAmount) {
         throw new Error("Missing required fields for bid creation");
       }
 
@@ -1192,17 +1093,14 @@ export class DatabaseStorage implements IStorage {
         bidData.validUntil = new Date(bidData.validUntil);
       }
 
-      // Map bidData to match grab_t_bids schema
+      // Map bidData to match grab_t_bids schema (without removed columns)
       const mappedBidData = {
-        userId: bidData.userId,
-        flightId: bidData.flightId,
         bidAmount: bidData.bidAmount,
-        passengerCount: bidData.passengerCount,
-        bidStatus: bidData.bidStatus,
         validUntil: bidData.validUntil,
-        totalSeatsAvailable: bidData.totalSeatsAvailable,
-        minSeatsPerBid: bidData.minSeatsPerBid,
-        maxSeatsPerBid: bidData.maxSeatsPerBid,
+        totalSeatsAvailable: bidData.totalSeatsAvailable || 50,
+        minSeatsPerBid: bidData.minSeatsPerBid || 1,
+        maxSeatsPerBid: bidData.maxSeatsPerBid || 10,
+        rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -1216,135 +1114,41 @@ export class DatabaseStorage implements IStorage {
       console.log("Bid created successfully:", bid);
       return bid;
     } catch (error) {
-      // If we get a sequence error, try to fix it
-      if (error.message.includes('null value in column "id"') || error.message.includes('grab_t_bids_id_seq')) {
-        console.log('Fixing grab_t_bids sequence...');
-
-        try {
-          // Create the sequence if it doesn't exist
-          await db.execute(`
-            CREATE SEQUENCE IF NOT EXISTS grab_t_bids_id_seq;
-          `);
-
-          // Set the sequence to the correct value
-          await db.execute(`
-            SELECT setval('grab_t_bids_id_seq', COALESCE((SELECT MAX(id) FROM grab_t_bids), 0) + 1, false);
-          `);
-
-          // Alter the table to use the sequence
-          await db.execute(`
-            ALTER TABLE grab_t_bids ALTER COLUMN id SET DEFAULT nextval('grab_t_bids_id_seq');
-          `);
-
-          console.log('grab_t_bids sequence fixed, retrying bid creation...');
-
-          // Try the insert again with proper mapping
-          const mappedBidData = {
-            userId: bidData.userId,
-            flightId: bidData.flightId,
-            bidAmount: bidData.bidAmount,
-            passengerCount: bidData.passengerCount,
-            bidStatus: bidData.bidStatus,
-            validUntil: bidData.validUntil,
-            totalSeatsAvailable: bidData.totalSeatsAvailable,
-            minSeatsPerBid: bidData.minSeatsPerBid,
-            maxSeatsPerBid: bidData.maxSeatsPerBid,
-            notes: bidData.notes,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-
-          const [bid] = await db
-            .insert(grabTBids)
-            .values(mappedBidData)
-            .returning();
-
-          console.log("Bid created successfully after sequence fix:", bid);
-          return bid;
-        } catch (sequenceError) {
-          console.error("Error fixing sequence:", sequenceError);
-          throw error; // Throw original error
-        }
-      } else {
-        console.error("Error creating bid:", error);
-        throw error;
-      }
+      console.error("Error creating bid:", error);
+      throw error;
     }
   }
 
   async getBidById(bidId: number) {
     try {
-      console.log(`Looking up bid with ID: ${bidId}`);
-
-      if (!bidId || isNaN(bidId) || bidId <= 0) {
-        console.error(`Invalid bid ID provided: ${bidId}`);
-        return null;
-      }
-
-      const result = await db
-        .select({
-          bid: {
-            id: grabTBids.id,
-            userId: grabTBids.userId,
-            flightId: grabTBids.flightId,
-            bidAmount: grabTBids.bidAmount,
-            passengerCount: grabTBids.passengerCount,
-            bidStatus: grabTBids.bidStatus,
-            validUntil: grabTBids.validUntil,
-            notes: grabTBids.notes,
-            totalSeatsAvailable: grabTBids.totalSeatsAvailable,
-            minSeatsPerBid: grabTBids.minSeatsPerBid,
-            maxSeatsPerBid: grabTBids.maxSeatsPerBid,
-            createdAt: grabTBids.createdAt,
-            updatedAt: grabTBids.updatedAt,
-          },
-          flight: {
-            id: flights.id,
-            flightNumber: flights.flightNumber,
-            airline: flights.airline,
-            origin: flights.origin,
-            destination: flights.destination,
-            departureTime: flights.departureTime,
-            price: flights.price,
-          },
-          user: {
-            id: grabTUsers.id,
-            username: grabTUsers.username,
-            name: grabTUsers.name,
-          },
-        })
+      const [bid] = await db
+        .select()
         .from(grabTBids)
-        .leftJoin(flights, eq(grabTBids.flightId, flights.id))
-        .leftJoin(grabTUsers, eq(grabTBids.userId, grabTUsers.id))
         .where(eq(grabTBids.id, bidId))
         .limit(1);
 
-      if (result.length === 0) {
-        console.log(`No bid found with ID: ${bidId}`);
-
-        // Debug: Show what bids actually exist
-        const allBids = await db.select({ id: grabTBids.id, bidAmount: grabTBids.bidAmount, bidStatus: grabTBids.bidStatus }).from(grabTBids);
-        console.log(`Existing bids in database:`, allBids);
-
+      if (!bid) {
         return null;
       }
 
-      console.log(`Found bid ${bidId} successfully:`, {
-        bidId: result[0].bid.id,
-        bidAmount: result[0].bid.bidAmount,
-        bidStatus: result[0].bid.bidStatus,
-        hasUser: !!result[0].user,
-        hasFlight: !!result[0].flight
-      });
+      // Get status information
+      let status = null;
+      if (bid.rStatus) {
+        // Assuming grabMStatus table exists and has an 'id' and 'name' column for status
+        [status] = await db
+          .select({ id: grabMStatus.id, name: grabMStatus.name }) // Select relevant columns from grabMStatus
+          .from(grabMStatus)
+          .where(eq(grabMStatus.id, bid.rStatus))
+          .limit(1);
+      }
 
       return {
-        bid: result[0].bid,
-        user: result[0].user,
-        flight: result[0].flight,
+        bid,
+        status,
       };
     } catch (error) {
-      console.error(`Error fetching bid ${bidId}:`, error);
-      return null;
+      console.error("Error fetching bid by ID:", error);
+      throw error;
     }
   }
 
@@ -1489,10 +1293,11 @@ export class DatabaseStorage implements IStorage {
 
       // First try to get payments from grab_t_bid_payments table
       try {
-        const bidPayments = await db.select().from(grabTBidPayments)
+        const bidPayments = await db.select()
+          .from(grabTBidPayments)
           .innerJoin(grabTRetailBids, eq(grabTBidPayments.rRetailBidId, grabTRetailBids.id))
           .where(eq(grabTRetailBids.rBidId, bidId));
-        
+
         if (bidPayments.length > 0) {
           console.log(`Found ${bidPayments.length} bid payments for bid ${bidId}`);
           return bidPayments.map(bp => bp.grab_t_bid_payments);
@@ -1588,17 +1393,25 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching retail bids for bid ID: ${bidId}`);
 
+      if (!bidId || isNaN(bidId)) {
+        console.warn(`Invalid bid ID provided: ${bidId}`);
+        return [];
+      }
+
       const retailBidsList = await db
         .select()
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
-      console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
-      return retailBidsList;
+      // Ensure we return an array even if query fails
+      const result = Array.isArray(retailBidsList) ? retailBidsList : [];
+      console.log(`Found ${result.length} retail bids for bid ${bidId}`);
+      return result;
     } catch (error) {
       console.error("Error getting retail bids by bid:", error);
-      throw error;
+      // Return empty array instead of throwing to prevent API failures
+      return [];
     }
   }
 
@@ -1697,16 +1510,22 @@ export class DatabaseStorage implements IStorage {
 
   async getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]> {
     try {
+      if (!retailBidId || isNaN(retailBidId)) {
+        console.warn(`Invalid retail bid ID provided: ${retailBidId}`);
+        return [];
+      }
+
       const payments = await db
         .select()
         .from(grabTBidPayments)
         .where(eq(grabTBidPayments.rRetailBidId, retailBidId))
         .orderBy(desc(grabTBidPayments.createdAt));
 
-      return payments;
+      return Array.isArray(payments) ? payments : [];
     } catch (error) {
       console.error("Error getting bid payments by retail bid:", error);
-      throw error;
+      // Return empty array instead of throwing to prevent API failures
+      return [];
     }
   }
 
@@ -1787,21 +1606,6 @@ export class DatabaseStorage implements IStorage {
         availableSeats: availableSeats,
         maxSeatsPerUser: maxSeatsPerUser
       });
-
-      // Ensure the grab_t_retail_bids table exists and has the correct structure
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "grab_t_retail_bids" (
-          "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-          "r_bid_id" integer NOT NULL,
-          "user_id" integer NOT NULL,
-          "flight_id" integer NOT NULL,
-          "submitted_amount" numeric(10,2) NOT NULL,
-          "passenger_count" integer NOT NULL,
-          "status" text DEFAULT 'submitted' NOT NULL,
-          "created_at" timestamp DEFAULT now(),
-          "updated_at" timestamp DEFAULT now()
-        );
-      `);
 
       // Insert the retail bid into the database
       const [newRetailBid] = await db

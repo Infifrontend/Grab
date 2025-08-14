@@ -446,7 +446,7 @@ export default function BidDetails() {
       </div>
 
       {/* Airline Minimum Bid Alert */}
-      <Alert
+      {/* <Alert
         message="Airline Minimum Bid"
         description={
           <span>
@@ -463,10 +463,10 @@ export default function BidDetails() {
           backgroundColor: "var(--ant-color-warning-bg)",
           borderColor: "#e0f2fe",
         }}
-      />
+      /> */}
 
       {/* Seat Availability Alert */}
-      {transformedBidData.seatAvailability && (
+      {/* {transformedBidData.seatAvailability && (
         <Alert
           message="Seat Availability"
           description={
@@ -508,7 +508,7 @@ export default function BidDetails() {
           showIcon
           className="mb-6"
         />
-      )}
+      )} */}
 
       {/* User Payment Status Alert */}
       {transformedBidData.seatAvailability?.hasUserPaid &&

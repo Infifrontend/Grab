@@ -158,11 +158,7 @@ export const bids = pgTable("bids", {
 // New grab_t_bids table to replace bids table
 export const grabTBids = pgTable("grab_t_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  userId: integer("user_id").references(() => grabTUsers.id).notNull(),
-  flightId: integer("flight_id").references(() => flights.id).notNull(),
   bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
-  passengerCount: integer("passenger_count").notNull(),
-  bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
   validUntil: timestamp("valid_until").notNull(),
   notes: text("notes"),
   totalSeatsAvailable: integer("total_seats_available").default(50),
@@ -312,7 +308,6 @@ export const grabMStatusRelations = relations(grabMStatus, ({ many }) => ({
 }));
 
 export const grabTUsersRelations = relations(grabTUsers, ({ one, many }) => ({
-  grabTBids: many(grabTBids),
   status: one(grabMStatus, {
     fields: [grabTUsers.rStatus],
     references: [grabMStatus.id],
@@ -320,14 +315,6 @@ export const grabTUsersRelations = relations(grabTUsers, ({ one, many }) => ({
 }));
 
 export const grabTBidsRelations = relations(grabTBids, ({ one }) => ({
-  user: one(grabTUsers, {
-    fields: [grabTBids.userId],
-    references: [grabTUsers.id],
-  }),
-  flight: one(flights, {
-    fields: [grabTBids.flightId],
-    references: [flights.id],
-  }),
   status: one(grabMStatus, {
     fields: [grabTBids.rStatus],
     references: [grabMStatus.id],
