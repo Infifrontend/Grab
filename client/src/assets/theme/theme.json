@@ -7,7 +7,7 @@
         "colorPrimaryHover": "rgb(253,150,70)",
         "colorPrimaryActive": "rgb(253,150,70)",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
-        "colorLink": "#1D2F7E",
+        "colorLink": "#133769",
         "controlHeight": 40,
         "lineWidth": 0,
         "borderRadius": 6
@@ -19,7 +19,7 @@
         "colorTextLightSolid": "#ffffff"
       },
       "Radio": {
-        "colorPrimary": "#1D2F7E",
+        "colorPrimary": "#133769",
         "colorPrimaryHover": "#36152c",
         "colorPrimaryActive": "#030002",
         "colorBgContainer": "#ffffff",
@@ -87,7 +87,7 @@
       },
       "Input": {
         "borderRadius": 6,
-        "paddingBlock": 4,
+        "paddingBlock": 8,
         "paddingBlockSM": 0,
         "paddingBlockLG": 7,
         "paddingInline": 11,
@@ -119,7 +119,7 @@
         "borderRadius": 6,
         "optionSelectedColor": "#ffffff",
         "optionSelectedFontWeight": 600,
-        "optionSelectedBg": "#1D2F7E",
+        "optionSelectedBg": "#133769",
         "optionActiveBg": "rgba(0,0,0,0.04)",
         "optionPadding": "5px 12px",
         "optionFontSize": 14,
@@ -142,11 +142,12 @@
         "colorPrimary": "#2a0a22",
         "colorPrimaryActive": "rgba(13,2,8,0.62)",
         "controlHeightLG": 40,
-        "zIndexPopup": 1050
+        "zIndexPopup": 1050,
+        "controlHeight": 40
       },
       "DatePicker": {
         "borderRadius": 6,
-        "paddingBlock": 4,
+        "paddingBlock": 8,
         "paddingBlockSM": 0,
         "paddingBlockLG": 7,
         "paddingInline": 11,
@@ -187,11 +188,14 @@
         "zIndexPopup": 1050,
         "presetsWidth": 120,
         "presetsMaxWidth": 200
+      },
+      "InputNumber": {
+        "paddingBlock": 8
       }
     },
     "custom": {
-      "--infiniti-primary": "#1D2F7E",
-      "--infiniti-primary-header": "#1D2F7E",
+      "--infiniti-primary": "#133769",
+      "--infiniti-primary-header": "#133769",
       "--infiniti-secondary": "#a12885",
       "--infiniti-orange": "hsl(18, 100%, 62%)",
       "--infiniti-success": "hsl(102, 69%, 49%)",
@@ -393,14 +397,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#fff",
-        "buttonSolidCheckedBg": "#1D2F7E",
+        "buttonSolidCheckedBg": "#133769",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#ffffff",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#1D2F7E"
+        "radioBg": "#133769"
       },
       "Table": {
         "rowSelectedBg": "#666"
@@ -570,14 +574,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#FBEB3F",
-        "buttonSolidCheckedBg": "#1D2F7E",
+        "buttonSolidCheckedBg": "#133769",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#FBEB3F",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#1D2F7E"
+        "radioBg": "#133769"
       },
       "Table": {
         "rowSelectedBg": "#666"

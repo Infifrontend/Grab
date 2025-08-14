@@ -22,13 +22,13 @@ export default function Home() {
           <div className="flex items-center justify-between w-full">
             <div className="relative overflow-hidden h-6 w-full marquee-wrapper">
               <div className="flex animate-marquee whitespace-nowrap">
-                <span className="mr-12 font-semibold">
+                <span className="mr-12 text-sm font-semibold">
                   <strong>Exclusive Bid Prices Open!:</strong> Want to travel on
                   a specific route? Submit your bid for your preferred dates and
                   number of seats. If accepted, enjoy a special discounted rate
                   tailored just for you!
                 </span>
-                <span className="mr-20 font-semibold">
+                <span className="mr-20 text-sm font-semibold">
                   <strong>Exclusive Bid Prices Open!:</strong> Want to travel on
                   a specific route? Submit your bid for your preferred dates and
                   number of seats. If accepted, enjoy a special discounted rate

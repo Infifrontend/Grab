@@ -186,7 +186,7 @@ export default function OfferManagement() {
           items={[
             {
               key: "overview",
-              label: <span className="px-4 py-2">📊 Overview</span>,
+              label: <span className="px-4 py-2">Overview</span>,
               children: (
                 <div>
                   {/* Stats Cards */}
@@ -702,14 +702,14 @@ export default function OfferManagement() {
             },
             {
               key: "insights",
-              label: <span className="px-4 py-2">🔍 Insights</span>,
+              label: <span className="px-4 py-2">Insights</span>,
               children: (
                 <div>
                   {/* Forecasting & Predictions Section */}
                   <div className="mb-6">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 text-xs">🔮</span>
+                        {/* <span className="text-blue-600 text-xs">🔮</span> */}
                       </div>
                       <Title level={4} className="!mb-0">
                         Forecasting & Predictions
@@ -943,7 +943,7 @@ export default function OfferManagement() {
                             </div>
                             <div className="mt-3 p-2 bg-green-50 rounded">
                               <Text className="text-green-700 text-xs">
-                                💡 Increase marketing spend during Q1 business
+                                Increase marketing spend during Q1 business
                                 travel peak
                               </Text>
                             </div>
@@ -1005,7 +1005,7 @@ export default function OfferManagement() {
                             </div>
                             <div className="mt-3 p-2 bg-yellow-50 rounded">
                               <Text className="text-yellow-700 text-xs">
-                                🎯 Target summer vacation bookings with enhanced
+                                Target summer vacation bookings with enhanced
                                 family amenities
                               </Text>
                             </div>
@@ -1105,7 +1105,7 @@ export default function OfferManagement() {
             {
               key: "recommendations",
               label: (
-                <span className="px-4 py-2">💡 Offer Recommendations</span>
+                <span className="px-4 py-2">Offer Recommendations</span>
               ),
               children: (
                 <div>
@@ -1113,7 +1113,7 @@ export default function OfferManagement() {
                   <div className="mb-6">
                     <div className="flex items-center space-x-2 mb-4">
                       <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <span className="text-yellow-600 text-xs">💡</span>
+                        {/* <span className="text-yellow-600 text-xs">💡</span> */}
                       </div>
                       <Title level={4} className="!mb-0">
                         AI-Generated Offer Recommendations
@@ -1455,7 +1455,7 @@ export default function OfferManagement() {
               key: "dashboard",
               label: (
                 <span>
-                  <BarChartOutlined className="pr-1" />
+                  {/* <BarChartOutlined className="pr-1" /> */}
                   Dashboard
                 </span>
               ),
@@ -1464,7 +1464,7 @@ export default function OfferManagement() {
               key: "policies",
               label: (
                 <span>
-                  <span className="mr-2">🛡️</span>
+                  {/* <span className="mr-2">🛡️</span> */}
                   Policies
                 </span>
               ),
@@ -1473,7 +1473,7 @@ export default function OfferManagement() {
               key: "ancillaries",
               label: (
                 <span>
-                  <span className="mr-2">✈️</span>
+                  {/* <span className="mr-2">✈️</span> */}
                   Ancillaries
                 </span>
               ),
@@ -1482,7 +1482,7 @@ export default function OfferManagement() {
               key: "discounts",
               label: (
                 <span>
-                  <PercentageOutlined className="pr-1" />
+                  {/* <PercentageOutlined className="pr-1" /> */}
                   Discounts
                 </span>
               ),
@@ -1491,7 +1491,7 @@ export default function OfferManagement() {
               key: "promocodes",
               label: (
                 <span>
-                  <span className="mr-2">🎟️</span>
+                  {/* <span className="mr-2">🎟️</span> */}
                   Promo Codes
                 </span>
               ),
@@ -1501,7 +1501,7 @@ export default function OfferManagement() {
               label: (
                 <span>
                   <span className="mr-2">
-                    <GiftOutlined />
+                    {/* <GiftOutlined /> */}
                   </span>
                   Offers
                 </span>

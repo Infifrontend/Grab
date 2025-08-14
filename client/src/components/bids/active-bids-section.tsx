@@ -176,9 +176,9 @@ export default function ActiveBidsSection() {
   if (!activeBids || activeBids.length === 0) {
     return (
       <div className="deal-card">
-        <div className="section-header relative">
+        <div className="section-header relative flex gap-2 items-center">
           <Tag className="limited-time-badge">Live Bidding</Tag>
-          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>-
           <p className="text-sm opacity-90">
             Track your current bidding activity
           </p>
@@ -228,7 +228,7 @@ export default function ActiveBidsSection() {
               {/* Header Row */}
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-base">
+                  <h3 className="font-semibold text-gray-900" style={{fontSize:"1.15rem"}}>
                     {bidTitle}
                   </h3>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">

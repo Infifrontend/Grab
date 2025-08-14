@@ -13,6 +13,11 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontSize: {
+        base: ['0.875rem', { lineHeight: '1.25rem' }],
+        sm: ['0.875rem', { lineHeight: '1.25rem' }], 
+        xs: ['0.875rem', { lineHeight: '1.25rem' }], 
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

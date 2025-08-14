@@ -2317,7 +2317,7 @@ export default function BidManagement() {
               title="Total Transactions"
               value={6}
               suffix="This month"
-              valueStyle={{ color: "var(--infiniti-lighter-blue)" }}
+              valueStyle={{ color: "var(--infiniti-lighter-blue)" ,fontSize:"1.5rem"}}
             />
           </Card>
         </Col>
@@ -4384,6 +4384,8 @@ export default function BidManagement() {
 
         .ant-statistic-content {
           color: #1f2937;
+          font-weight:600;
+          font-family: var(--ant-font-family) !important;
         }
 
         .ant-steps-item-process .ant-steps-item-icon {

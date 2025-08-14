@@ -1,6 +1,8 @@
 import React from "react";
 import { Layout } from "antd";
 import Header from "@/layouts/components/retail-header";
+import Footer from "@/layouts/components/retail-footer";
+
 // import CFG from "@/config/config.json";
 // import AccessibilityHeader from '@/components/AccessibilityHeader/AccessibilityHeader';
 const { Content, Sider } = Layout;
@@ -14,6 +16,7 @@ const RetailLayout: React.FC<RetailLayout> = ({ children }) => (
     {/* {CFG.accessibility_pos === "horizontal" && <AccessibilityHeader position={CFG.accessibility_pos as "horizontal" | "vertical"} />} */}
     <Header />
     <Content>{children}</Content>
+    <Footer />
   </Layout>
 );
 

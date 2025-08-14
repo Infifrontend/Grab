@@ -7,7 +7,7 @@
         "colorPrimaryHover": "rgb(253,150,70)",
         "colorPrimaryActive": "rgb(253,150,70)",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
-        "colorLink": "#1D2F7E",
+        "colorLink": "#133769",
         "controlHeight": 40,
         "lineWidth": 0,
         "borderRadius": 6
@@ -19,7 +19,7 @@
         "colorTextLightSolid": "#ffffff"
       },
       "Radio": {
-        "colorPrimary": "#1D2F7E",
+        "colorPrimary": "#133769",
         "colorPrimaryHover": "#36152c",
         "colorPrimaryActive": "#030002",
         "colorBgContainer": "#ffffff",
@@ -43,8 +43,8 @@
       "select": {}
     },
     "custom": {
-      "--infiniti-primary": "#1D2F7E",
-      "--infiniti-primary-header": "#1D2F7E",
+      "--infiniti-primary": "#133769",
+      "--infiniti-primary-header": "#133769",
       "--infiniti-secondary": "#a12885",
       "--infiniti-orange": "hsl(18, 100%, 62%)",
       "--infiniti-success": "hsl(102, 69%, 49%)",
@@ -246,14 +246,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#fff",
-        "buttonSolidCheckedBg": "#1D2F7E",
+        "buttonSolidCheckedBg": "#133769",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#ffffff",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#1D2F7E"
+        "radioBg": "#133769"
       },
       "Table": {
         "rowSelectedBg": "#666"
@@ -423,14 +423,14 @@
         "colorTextDisabled": "rgba(0,0,0,0.25)",
         "colorBgContainerDisabled": "rgba(0,0,0,0.15)",
         "buttonSolidCheckedColor": "#FBEB3F",
-        "buttonSolidCheckedBg": "#1D2F7E",
+        "buttonSolidCheckedBg": "#133769",
         "buttonSolidCheckedHoverBg": "#36152c",
         "buttonSolidCheckedActiveBg": "#030002",
         "buttonCheckedBg": "#FBEB3F",
         "buttonCheckedBgDisabled": "rgba(0,0,0,0.15)",
         "buttonCheckedColorDisabled": "rgba(0,0,0,0.25)",
         "radioColor": "#000",
-        "radioBg": "#1D2F7E"
+        "radioBg": "#133769"
       },
       "Table": {
         "rowSelectedBg": "#666"

@@ -1321,7 +1321,7 @@ export default function AdminDashboard() {
                 activeTab === "overview" ? "text-blue-600" : "text-gray-500"
               }`}
             >
-              📊 Overview
+              Overview
             </Text>
           </div>
           <div
@@ -1335,7 +1335,7 @@ export default function AdminDashboard() {
                 activeTab === "bookings" ? "text-blue-600" : "text-gray-500"
               }`}
             >
-              📅 Bookings Analytics
+              Bookings Analytics
             </Text>
           </div>
           <div
@@ -1349,7 +1349,7 @@ export default function AdminDashboard() {
                 activeTab === "offers" ? "text-blue-600" : "text-gray-500"
               }`}
             >
-              💰 Offers Analytics
+              Offers Analytics
             </Text>
           </div>
           <div
@@ -1363,7 +1363,7 @@ export default function AdminDashboard() {
                 activeTab === "insights" ? "text-blue-600" : "text-gray-500"
               }`}
             >
-              📈 Insights & Forecasts
+              Insights & Forecasts
             </Text>
           </div>
         </div>

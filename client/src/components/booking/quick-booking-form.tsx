@@ -120,7 +120,9 @@ export default function QuickBookingForm() {
     },
   });
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: any) => {    
+    values.tripType = tripType
+    localStorage.setItem("bookingFormData", JSON.stringify(values));
     if (!values.origin || !values.destination || !values.departureDate) {
       message.error("Please fill in origin, destination, and departure date");
       return;
@@ -226,7 +228,7 @@ export default function QuickBookingForm() {
         requiredMark={false}
       >
         {/* Origin and Destination */}
-        <Row gutter={16} className="mb-4">
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="Origin *"
@@ -282,7 +284,7 @@ export default function QuickBookingForm() {
         </Row>
 
         {/* Dates */}
-        <Row gutter={16} className="mb-4">
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="Departure date *"

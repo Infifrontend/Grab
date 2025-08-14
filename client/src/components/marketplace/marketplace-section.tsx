@@ -34,14 +34,14 @@ export default function MarketplaceSection() {
   return (
     <div className="deal-card">
       {/* Header */}
-      <div className="section-header">
-        <h2 className="text-xl font-semibold mb-1">Your Marketplace</h2>
+      <div className="section-header flex gap-2 items-center">
+        <h2 className="text-xl font-semibold mb-1">Your Marketplace</h2> -
         <p className="text-sm opacity-90">
           Discover exclusive travel packages and deals
         </p>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 bg-gray-200">
         {/* Search Section */}
         <div className="mb-6">
           <Row gutter={16} align="bottom">
@@ -85,7 +85,7 @@ export default function MarketplaceSection() {
                 onClick={handleSearch}
                 className="infiniti-btn-primary w-full"
               >
-                Search Packages
+                Search
               </Button>
             </Col>
           </Row>
@@ -112,9 +112,8 @@ export default function MarketplaceSection() {
               <Card key={pkg.id} className="package-card">
                 {/* Package Header */}
                 <div style={{
-                  height: 170,
-                  width: 230
-                }}>
+                  height: 170
+                  }}>
                   <img style={{
                     height: "100%",
                     width: "100%",
@@ -124,34 +123,33 @@ export default function MarketplaceSection() {
                   }}
                     src={`../src/images/packages/${pkg.location.split("—")[1].trim().toLowerCase()}.jpg`}></img>
                 </div>
-                <div className="p-4 border-b border-gray-100">
-                  <div className="text-xs text-gray-500 mb-1">
+                <div className="pt-4">
+                  <div className="text-xs" style={{color:'var(--infiniti-primary)'}}>
                     {pkg.location}
                   </div>
                   <div
-                    className="text-base font-semibold text-gray-800 mb-3 truncate w-full max-w-[200px]"
+                    className="text-base font-semibold text-gray-800 my-2 truncate w-full max-w-[200px]"
                     title={pkg.title}
                   >
                     {" "}
                     {pkg.title}{" "}
                   </div>
-                  <div className="package-price">${pkg.price}</div>
+                  <div className="text-base font-semibold package-price mb-0">${pkg.price}</div>
                   {pkg.originalPrice && (
-                    <div className="text-sm text-gray-400 line-through">
+                    <div className="text-sm text-gray-400 line-through" style={{color:'var(--infiniti-primary)'}}>
                       ${pkg.originalPrice}
                     </div>
                   )}
                 </div>
 
                 {/* Package Features */}
-                <div className="p-4 bg-gray-50">
-                  <ul className="space-y-1">
+                <div className="p-4">
+                  <ul className="space-y-1" style={{ listStyle: 'disc' }} >
                     {pkg.features?.map((feature, index) => (
                       <li
                         key={index}
-                        className="flex items-start gap-2 text-xs text-gray-600"
+                        className="text-xs"
                       >
-                        <CheckCircle className="w-3 h-3 mt-0.5 infiniti-success-text flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -159,7 +157,7 @@ export default function MarketplaceSection() {
                 </div>
 
                 {/* Package Footer */}
-                <div className="p-4">
+                <div>
                   <Button
                     type="primary"
                     className="w-full infiniti-btn-primary"

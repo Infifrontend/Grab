@@ -175,7 +175,7 @@
   }
 
   .section-header {
-    @apply p-6;
+    @apply px-6 py-3;
     background-color: var(--infiniti-primary-header);
     color: white;
   }
@@ -205,9 +205,12 @@
 
   .package-price {
     @apply text-xl font-bold mb-1;
-    color: var(--infiniti-orange);
+    color: var(--infiniti-primary);
   }
 
+  .package-card .ant-card-body {
+    padding: 15px;
+  }
 
   .flight-result-card {
     border: 1px solid #e5e7eb;
@@ -470,44 +473,44 @@
   width: 100%;
 }
 
-.Home .cls-horizontal + .cls-header,
-.HomeHorizontal .cls-horizontal + .cls-header {
+.Home .cls-horizontal+.cls-header,
+.HomeHorizontal .cls-horizontal+.cls-header {
   position: sticky;
   inset-block-start: 41px;
 }
 
-.Home .cls-horizontal + .cls-header + .cls-layout-plan-b .cls-planB-container,
-.HomeHorizontal .cls-horizontal + .cls-header + .cls-layout-plan-b .cls-planB-container {
+.Home .cls-horizontal+.cls-header+.cls-layout-plan-b .cls-planB-container,
+.HomeHorizontal .cls-horizontal+.cls-header+.cls-layout-plan-b .cls-planB-container {
   margin-block-start: 0px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider,
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider,
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider {
   margin-block-start: 35px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu),
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu),
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu) {
   padding-block-start: 120px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer),
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer) {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer),
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu) .ant-drawer-content-wrapper:has(.cls-submenu-drawer) {
   inset-block-start: 120px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) ~ .cls-submenu,
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .Menu:not(.cls-horizontal-menu) ~ .cls-submenu {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu)~.cls-submenu,
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider .Menu:not(.cls-horizontal-menu)~.cls-submenu {
   margin-block-start: 6px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu,
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider .cls-horizontal-menu,
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider .cls-horizontal-menu {
   inset-block-start: 110px;
 }
 
-.Home .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu + .layout,
-.HomeHorizontal .cls-horizontal + .cls-header + .ant-layout-has-sider .cls-horizontal-menu + .layout {
+.Home .cls-horizontal+.cls-header+.ant-layout-has-sider .cls-horizontal-menu+.layout,
+.HomeHorizontal .cls-horizontal+.cls-header+.ant-layout-has-sider .cls-horizontal-menu+.layout {
   margin-block-start: 40px;
 }
 
@@ -518,4 +521,24 @@
 .HomeHorizontal .cls-horizontal .cls-by span,
 .HomeHorizontal .cls-horizontal .cls-yb span {
   padding-block: 2px;
+}
+
+.cls-footer-container {
+  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
+    rgba(14, 30, 37, 0.32) 0px 2px 10px 0px;
+}
+
+.cls-footer-container .ant-row .ant-col ul li {
+  padding-inline: 20px;
+  position: relative;
+}
+
+.cls-footer-container .ant-row .ant-col ul li a:hover {
+  color: inherit;
+}
+
+.cls-footer-container .ant-row .ant-col ul li~li::before {
+  content: '|';
+  position: absolute;
+  left: 0px;
 }

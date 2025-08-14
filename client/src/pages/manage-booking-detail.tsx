@@ -924,8 +924,17 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
             </Text>
           </div>
 
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={12}>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <Text className="text-blue-700">
+              <strong>Note:</strong> Date changes are subject to availability
+              and may incur additional fees. We'll check availability and
+              provide you with options.
+            </Text>
+          </div>
+
+          <Row gutter={[24, 24]} className="mt-8">
+            <Col xs={24} md={6} xl={8}>
               <div>
                 <Text className="block mb-2 text-gray-700 font-medium">
                   Departure Date
@@ -938,7 +947,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                 />
               </div>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={6} xl={8}>
               <div>
                 <Text className="block mb-2 text-gray-700 font-medium">
                   Return Date
@@ -951,29 +960,20 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                 />
               </div>
             </Col>
+            <Col xs={24} md={6} xl={8} className="flex gap-3 mt-6">
+              <Button size="large" onClick={handleCancelChanges}>
+                Cancel Changes
+              </Button>
+              <Button
+                type="primary"
+                size="large"
+                className="infiniti-btn-primary"
+                onClick={handleSaveChanges}
+              >
+                Save Changes
+              </Button>
+            </Col>
           </Row>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-            <Text className="text-blue-700">
-              <strong>Note:</strong> Date changes are subject to availability
-              and may incur additional fees. We'll check availability and
-              provide you with options.
-            </Text>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <Button size="large" onClick={handleCancelChanges}>
-              Cancel Changes
-            </Button>
-            <Button
-              type="primary"
-              size="large"
-              className="infiniti-btn-primary"
-              onClick={handleSaveChanges}
-            >
-              Save Changes
-            </Button>
-          </div>
         </Card>
       )}
 
@@ -1108,8 +1108,8 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
               </Text>
             </div>
 
-            <Row gutter={[24, 16]}>
-              <Col xs={24} md={12}>
+            <Row gutter={[24, 16]} className="align-center">
+              <Col xs={24} md={6}>
                 <div>
                   <Text className="block mb-2 text-gray-700 font-medium">
                     Payment Amount
@@ -1122,7 +1122,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   />
                 </div>
               </Col>
-              <Col xs={24} md={12}>
+              <Col xs={24} md={6}>
                 <div>
                   <Text className="block mb-2 text-gray-700 font-medium">
                     Payment Method
@@ -1138,10 +1138,17 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   </Select>
                 </div>
               </Col>
-            </Row>
 
-            <Row gutter={[16, 16]} className="mt-6">
-              <Col xs={24} md={12}>
+              <Col xs={24} md={6} className="mt-6">
+                <Button
+                  size="large"
+                  className="w-full"
+                  onClick={handleSetupPaymentPlan}
+                >
+                  Set Up Payment Plan
+                </Button>
+              </Col>
+              <Col xs={24} md={6} className="mt-6">
                 <Button
                   type="primary"
                   size="large"
@@ -1151,21 +1158,13 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   Make Payment
                 </Button>
               </Col>
-              <Col xs={24} md={12}>
-                <Button
-                  size="large"
-                  className="w-full"
-                  onClick={handleSetupPaymentPlan}
-                >
-                  Set Up Payment Plan
-                </Button>
-              </Col>
+
             </Row>
           </Card>
         </div>
       )}
 
-      {/* Action Buttons - Only show for non-payment tabs */}
+      {/* Action Buttons - Only show for non-payment tabs
       {activeTab !== "payment" && (
         <div className="flex justify-end gap-3 mt-8">
           <Button size="large" onClick={handleCancelChanges}>
@@ -1180,7 +1179,7 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
             Save Changes
           </Button>
         </div>
-      )}
+      )} */}
 
       <Modal
         title={`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} the no of additional pessangers`}
