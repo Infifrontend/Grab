@@ -1425,26 +1425,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY gtb.id DESC
       `;
       const adminBidsResults = await db.execute(adminBidsQuery);
-      
+
       // Get retail bids from grab_t_retail_bids
       const retailBidsQuery = sql`
         SELECT 
           grb.*,
           gtu.name as user_name,
-          gms.status_name as retail_status
+          gms.status_name as retail_status_name
         FROM grab_t_retail_bids grb
         LEFT JOIN grab_t_users gtu ON grb.r_user_id = gtu.id
         LEFT JOIN grab_m_status gms ON grb.r_status = gms.id
         ORDER BY grb.id DESC
       `;
       const retailBidsResults = await db.execute(retailBidsQuery);
-      
+
       // Get payments from grab_t_bid_payments
       const paymentsQuery = sql`
         SELECT 
           gbp.*,
           gtu.name as user_name,
-          gms.status_name as payment_status
+          gms.status_name as payment_status_name
         FROM grab_t_bid_payments gbp
         LEFT JOIN grab_t_users gtu ON gbp.r_user_id = gtu.id
         LEFT JOIN grab_m_status gms ON gbp.r_status = gms.id
@@ -1452,93 +1452,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
       const paymentsResults = await db.execute(paymentsQuery);
 
+      // Get statuses from grab_m_status
+      const statusQuery = sql`SELECT * FROM grab_m_status ORDER BY id ASC`;
+      const statusResults = await db.execute(statusQuery);
+
+      // Get users from grab_t_users
+      const usersQuery = sql`SELECT id, username, name, email, is_retail_allowed FROM grab_t_users ORDER BY id DESC`;
+      const usersResults = await db.execute(usersQuery);
+
       res.json({
         success: true,
+        statuses: statusResults,
+        users: usersResults,
+        adminBids: adminBidsResults,
+        retailBids: retailBidsResults,
+        payments: paymentsResults,
         summary: {
-          totalAdminBids: adminBidsResults.rows.length,
-          totalRetailBids: retailBidsResults.rows.length,
-          totalPayments: paymentsResults.rows.length,
+          totalStatuses: statusResults.length,
+          totalUsers: usersResults.length,
+          totalAdminBids: adminBidsResults.length,
+          totalRetailBids: retailBidsResults.length,
+          totalPayments: paymentsResults.length,
         },
-        adminBids: adminBidsResults.rows.map((bid: any) => ({
-          id: bid.id,
-          bidAmount: bid.bid_amount,
-          rStatus: bid.r_status,
-          statusName: bid.status_name,
-          totalSeatsAvailable: bid.total_seats_available,
-          validUntil: bid.valid_until,
-          createdAt: bid.created_at,
-        })),
-        retailBids: retailBidsResults.rows.map((bid: any) => ({
-          id: bid.id,
-          rBidId: bid.r_bid_id,
-          rUserId: bid.r_user_id,
-          userName: bid.user_name,
-          submittedAmount: bid.submitted_amount,
-          seatBooked: bid.seat_booked,
-          rStatus: bid.r_status,
-          retailStatus: bid.retail_status,
-          createdAt: bid.created_at,
-        })),
-        payments: paymentsResults.rows.map((payment: any) => ({
-          id: payment.id,
-          rUserId: payment.r_user_id,
-          userName: payment.user_name,
-          amount: payment.amount,
-          paymentReference: payment.payment_reference,
-          rStatus: payment.r_status,
-          paymentStatus: payment.payment_status,
-          createdAt: payment.created_at,
-        })),
+        flow: {
+          description: "Complete flow: 1) Admin creates bid in grab_t_bids with r_status=4 (Open), 2) Retail user creates bid in grab_t_retail_bids, 3) Payment created in grab_t_bid_payments, 4) Status updates via r_status FK references",
+        },
       });
     } catch (error) {
-      console.error("Error fetching debug bid flow:", error);
+      console.error("Error in debug endpoint:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to fetch debug bid flow data",
+        message: "Debug endpoint failed",
         error: error.message,
       });
     }
   });
 
   // Get bid details by ID from grab_t_bids table
-  app.get("/api/bids/:id", async (req, res) => {
+  app.get("/api/bids/:bidId", async (req, res) => {
     try {
-      const { id } = req.params;
-      const bidId = parseInt(id);
+      const { bidId } = req.params;
+      const { userId } = req.query;
 
-      console.log(`Looking up bid with ID: ${bidId} in grab_t_bids table`);
+      console.log(`Fetching bid details for ID: ${bidId}, user ID: ${userId}`);
 
-      if (isNaN(bidId) || bidId <= 0) {
-        console.log(`Invalid bid ID format: ${id} -> ${bidId}`);
+      if (!bidId || isNaN(parseInt(bidId))) {
         return res.status(400).json({
           success: false,
-          message: `Invalid bid ID: ${id}`,
+          message: `Invalid bid ID: ${bidId}`,
         });
       }
 
-      // Get bid from grab_t_bids table with status information
+      // Get bid from grab_t_bids with status
       const bidQuery = sql`
         SELECT 
           gtb.*,
-          gms.status_name
+          gms.status_name as status_name
         FROM grab_t_bids gtb
         LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
-        WHERE gtb.id = ${bidId}
-        LIMIT 1
+        WHERE gtb.id = ${parseInt(bidId)}
       `;
 
       const bidResults = await db.execute(bidQuery);
 
-      if (bidResults.rows.length === 0) {
+      if (!bidResults || bidResults.length === 0) {
         // Debug: Show available bids
         const allBidsQuery = sql`SELECT id FROM grab_t_bids ORDER BY id`;
         const allBidsResults = await db.execute(allBidsQuery);
         const availableIds = allBidsResults.rows.map((row: any) => row.id);
-        
+
         console.log(`Bid not found with ID: ${bidId}`);
         console.log(`Total bids in grab_t_bids: ${availableIds.length}`);
         console.log(`Available bid IDs: [${availableIds.join(", ")}]`);
-        
+
         return res.status(404).json({
           success: false,
           message: `Bid not found with ID: ${bidId}`,
@@ -1546,9 +1532,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const bid = bidResults.rows[0];
+      const bid = bidResults[0];
 
-      // Get retail bids for this configuration
+      // Get retail bids for this bid with user and status info
       const retailBidsQuery = sql`
         SELECT 
           grb.*,
@@ -1558,91 +1544,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM grab_t_retail_bids grb
         LEFT JOIN grab_t_users gtu ON grb.r_user_id = gtu.id
         LEFT JOIN grab_m_status gms ON grb.r_status = gms.id
-        WHERE grb.r_bid_id = ${bidId}
-        ORDER BY grb.submitted_amount DESC, grb.created_at ASC
+        WHERE grb.r_bid_id = ${parseInt(bidId)}
+        ORDER BY grb.created_at DESC
       `;
 
       const retailBidsResults = await db.execute(retailBidsQuery);
-      const retailBids = retailBidsResults.rows;
+      const retailBids = Array.isArray(retailBidsResults) ? retailBidsResults : [];
 
-      // Get payments for retail bids
+      // Get payments for this bid
       const paymentsQuery = sql`
         SELECT 
           gbp.*,
-          grb.r_user_id,
-          gtu.name as user_name
+          gtu.name as user_name,
+          gms.status_name as payment_status_name
         FROM grab_t_bid_payments gbp
+        LEFT JOIN grab_t_users gtu ON gbp.r_user_id = gtu.id
+        LEFT JOIN grab_m_status gms ON gbp.r_status = gms.id
         LEFT JOIN grab_t_retail_bids grb ON gbp.r_retail_bid_id = grb.id
-        LEFT JOIN grab_t_users gtu ON grb.r_user_id = gtu.id
-        WHERE grb.r_bid_id = ${bidId}
+        WHERE grb.r_bid_id = ${parseInt(bidId)}
         ORDER BY gbp.created_at DESC
       `;
 
       const paymentsResults = await db.execute(paymentsQuery);
-      const payments = paymentsResults.rows;
+      const payments = Array.isArray(paymentsResults) ? paymentsResults : [];
 
-      // Parse configuration data
-      let configData = {};
-      try {
-        configData = bid.notes ? JSON.parse(bid.notes) : {};
-      } catch (e) {
-        console.warn(`Could not parse notes for bid ${bidId}:`, e);
-        configData = {};
+      // Check if user has payment for this bid
+      let seatAvailability = null;
+      if (userId) {
+        const userPayment = payments.find((p) => p.r_user_id === parseInt(userId as string));
+        if (userPayment) {
+          seatAvailability = {
+            paymentStatus: userPayment.payment_status_name || "pending",
+            paymentDate: userPayment.created_at,
+            amount: userPayment.amount,
+          };
+        }
       }
 
-      console.log(`Successfully found bid ${bidId}:`, {
-        bidId: bid.id,
+      // Format the response to match the expected structure
+      const formattedBid = {
+        id: bid.id,
         bidAmount: bid.bid_amount,
+        validUntil: bid.valid_until,
+        notes: bid.notes,
+        totalSeatsAvailable: bid.total_seats_available,
+        minSeatsPerBid: bid.min_seats_per_bid,
+        maxSeatsPerBid: bid.max_seats_per_bid,
         rStatus: bid.r_status,
-        statusName: bid.status_name,
-        retailBidsCount: retailBids.length,
-        paymentsCount: payments.length,
-      });
-
-      res.json({
-        success: true,
-        bid: {
-          id: bid.id,
-          bidAmount: bid.bid_amount,
-          validUntil: bid.valid_until,
-          notes: bid.notes,
-          totalSeatsAvailable: bid.total_seats_available,
-          minSeatsPerBid: bid.min_seats_per_bid,
-          maxSeatsPerBid: bid.max_seats_per_bid,
-          rStatus: bid.r_status,
-          statusName: bid.status_name,
-          createdAt: bid.created_at,
-          updatedAt: bid.updated_at,
-          configData: configData,
-        },
-        retailBids: retailBids.map((rb: any) => ({
+        createdAt: bid.created_at,
+        updatedAt: bid.updated_at,
+        seatAvailability: seatAvailability,
+        retailBids: retailBids.map((rb) => ({
           id: rb.id,
-          rBidId: rb.r_bid_id,
           rUserId: rb.r_user_id,
           submittedAmount: rb.submitted_amount,
           seatBooked: rb.seat_booked,
           rStatus: rb.r_status,
-          statusName: rb.retail_status_name,
           userName: rb.user_name,
           userEmail: rb.user_email,
+          retailStatusName: rb.retail_status_name,
           createdAt: rb.created_at,
-          updatedAt: rb.updated_at,
         })),
-        payments: payments.map((p: any) => ({
-          id: p.id,
-          rUserId: p.r_user_id,
-          rRetailBidId: p.r_retail_bid_id,
-          paymentReference: p.payment_reference,
-          amount: p.amount,
-          currency: p.currency,
-          paymentMethod: p.payment_method,
-          rStatus: p.r_status,
-          transactionId: p.transaction_id,
-          userName: p.user_name,
-          processedAt: p.processed_at,
-          createdAt: p.created_at,
-        })),
-      });
+        payments: payments,
+      };
+
+      console.log(`Successfully retrieved bid ${bidId} details.`);
+      res.json(formattedBid);
     } catch (error) {
       console.error("Error fetching bid details:", error);
       res.status(500).json({
@@ -1837,7 +1804,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating bid configuration:", error);
 
-      // Provide more specific error messages
       let errorMessage = "Failed to create bid configuration";
 
       if (error.message) {
@@ -2592,7 +2558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bidId) {
         // Find the retail bid for this user and bid
         const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-        const userRetailBid = retailBids.find((rb) => rb.rUserId === userId);
+        const userRetailBid = retailBids.find((rb) => rb.userId === currentUserId);
 
         if (userRetailBid) {
           // Create payment in grab_t_bid_payments table
@@ -3032,8 +2998,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newBidStatus: newBidStatus,
         previousBidStatus: existingBid.bid.bidStatus,
         seatsRemaining: seatsRemaining,
-        totalSeatsAvailable: totalSeatsAvailable,
         isClosed: seatsRemaining <= 0,
+        totalSeatsAvailable: totalSeatsAvailable,
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
@@ -3451,8 +3417,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' or 'paid'
       const bookedSeats = existingRetailBids
-        .filter((rb) => rb.rStatus === 2 || rb.rStatus === 3) // Assuming 2=under_review, 3=paid
-        .reduce((total, rb) => total + (rb.seatBooked || 0), 0);
+        .filter((rb) => rb.status === "under_review" || rb.status === "paid")
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
@@ -3790,61 +3756,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bidId } = req.params;
       console.log(`Fetching retail bids for bid ID: ${bidId}`);
 
-      // Get retail bids with user information
-      const retailBidsQuery = sql`
-        SELECT 
-          grb.*,
-          gtu.name as user_name,
-          gtu.email as user_email,
-          gms.status_name
-        FROM grab_t_retail_bids grb
-        LEFT JOIN grab_t_users gtu ON grb.r_user_id = gtu.id
-        LEFT JOIN grab_m_status gms ON grb.r_status = gms.id
-        WHERE grb.r_bid_id = ${parseInt(bidId)}
-        ORDER BY grb.submitted_amount DESC, grb.created_at ASC
-      `;
-
-      const results = await db.execute(retailBidsQuery);
-
-      const retailBids = results.rows.map((row: any) => ({
-        id: row.id,
-        rBidId: row.r_bid_id,
-        rUserId: row.r_user_id,
-        submittedAmount: row.submitted_amount,
-        seatBooked: row.seat_booked,
-        rStatus: row.r_status,
-        statusName: row.status_name,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        user: {
-          name: row.user_name,
-          email: row.user_email,
-        },
-      }));
-
-      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
-
-      res.json({
-        success: true,
-        retailBids,
-        count: retailBids.length,
-      });
-    } catch (error) {
-      console.error("Error fetching retail bids:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch retail bids",
-        error: error.message,
-      });
-    }
-  });
-
-  // Get detailed retail user data for a bid (for admin expansion)
-  app.get("/api/bids/:bidId/retail-users", async (req, res) => {
-    try {
-      const { bidId } = req.params;
-      console.log(`Fetching retail users for bid ID: ${bidId}`);
-
       // Get the main bid configuration
       const bidDetails = await storage.getBidById(parseInt(bidId));
       if (!bidDetails) {
@@ -3854,7 +3765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Parse bid configuration data
+      // Parse configuration data
       let configData = {};
       try {
         configData = bidDetails.bid.notes
@@ -3926,7 +3837,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
                 bidAmount: baseBidAmount + randomIncrement,
                 passengerCount: Math.floor(Math.random() * 3) + 1, // 1-3 passengers
-                status: i === 0 ? "approved" : "pending_approval",
+                status:
+                  i === 0 ? "approved" : "pending_approval",
                 createdAt: new Date(Date.now() - Math.random() * 86400000 * 3), // Random within last 3 days
               });
             }
@@ -4005,7 +3917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bidId } = req.params;
       const { userId } = req.query;
 
-      console.log(`Fetching bid status for bidId: ${bidId}, userId: ${userId}`);
+      console.log(`Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`);
 
       // Validate bidId
       const parsedBidId = parseInt(bidId);
@@ -4081,30 +3993,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
-      const bookedSeats = retailBids
-        .filter((rb) => {
-          if (!rb) return false;
-          const status = rb.status || rb.rStatus;
-          return (
-            status === "under_review" ||
-            status === "paid" ||
-            status === "approved" ||
-            status === 2 || // under_review
-            status === 3    // paid/approved
-          );
-        })
-        .reduce((total, rb) => {
+      const bookedSeats = retailBids.reduce((total, rb) => {
+        if (!rb) return total;
+        const status = rb.status || rb.rStatus;
+        if (
+          status === "under_review" ||
+          status === "paid" ||
+          status === "approved" ||
+          status === 2 || // under_review
+          status === 3    // paid/approved
+        ) {
           const passengerCount = rb.passengerCount || rb.seatBooked || 0;
           return total + passengerCount;
-        }, 0);
+        }
+        return total;
+      }, 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
+      const bidFullyBooked = availableSeats <= 0;
 
-      // Determine user-specific status
-      let displayStatus = "Open";
-      let statusForUser = "open";
+      // User-specific status
       let hasUserPaid = false;
-      let userPaymentStatus = "open";
+      let userPaymentStatus = "not_paid";
+      let userRetailBidStatus = null;
 
       if (userId && !isNaN(parseInt(userId as string))) {
         const currentUserId = parseInt(userId as string);
@@ -4217,18 +4128,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         seatsRemaining: availableSeats,
         isClosed: bidFullyBooked && !hasUserPaid,
         hasUserPaid: hasUserPaid,
-        userRetailBidStatus: userId
-          ? retailBids.find((rb) => rb.userId === parseInt(userId as string))
-              ?.status
-          : null,
+        userRetailBidStatus: userRetailBidStatus,
         allUsersWhoHavePaid: retailBids
-          .filter(
-            (rb) =>
-              rb.status === "under_review" ||
-              rb.status === "paid" ||
-              rb.status === "approved",
-          )
-          .map((rb) => rb.userId),
+          .filter((rb) => {
+            if (!rb) return false;
+            const payment = bidPayments.find((p) => p.rUserId === rb.rUserId);
+            return payment && payment.r_status === 3;
+          })
+          .map((rb) => rb.rUserId),
+        bid: bid,
+        retailBids: retailBids,
+        payments: bidPayments,
       });
     } catch (error) {
       console.error("Error fetching bid status:", error);
