@@ -1393,17 +1393,25 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching retail bids for bid ID: ${bidId}`);
 
+      if (!bidId || isNaN(bidId)) {
+        console.warn(`Invalid bid ID provided: ${bidId}`);
+        return [];
+      }
+
       const retailBidsList = await db
         .select()
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
-      console.log(`Found ${retailBidsList.length} retail bids for bid ${bidId}`);
-      return retailBidsList;
+      // Ensure we return an array even if query fails
+      const result = Array.isArray(retailBidsList) ? retailBidsList : [];
+      console.log(`Found ${result.length} retail bids for bid ${bidId}`);
+      return result;
     } catch (error) {
       console.error("Error getting retail bids by bid:", error);
-      throw error;
+      // Return empty array instead of throwing to prevent API failures
+      return [];
     }
   }
 
@@ -1502,16 +1510,22 @@ export class DatabaseStorage implements IStorage {
 
   async getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]> {
     try {
+      if (!retailBidId || isNaN(retailBidId)) {
+        console.warn(`Invalid retail bid ID provided: ${retailBidId}`);
+        return [];
+      }
+
       const payments = await db
         .select()
         .from(grabTBidPayments)
         .where(eq(grabTBidPayments.rRetailBidId, retailBidId))
         .orderBy(desc(grabTBidPayments.createdAt));
 
-      return payments;
+      return Array.isArray(payments) ? payments : [];
     } catch (error) {
       console.error("Error getting bid payments by retail bid:", error);
-      throw error;
+      // Return empty array instead of throwing to prevent API failures
+      return [];
     }
   }
 

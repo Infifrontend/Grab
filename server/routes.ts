@@ -4007,42 +4007,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Fetching bid status for bidId: ${bidId}, userId: ${userId}`);
 
+      // Validate bidId
+      const parsedBidId = parseInt(bidId);
+      if (isNaN(parsedBidId) || parsedBidId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid bid ID",
+        });
+      }
+
       // Get the bid configuration
-      const bidDetails = await storage.getBidById(parseInt(bidId));
-      if (!bidDetails) {
+      const bidDetails = await storage.getBidById(parsedBidId);
+      if (!bidDetails || !bidDetails.bid) {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
         });
       }
 
-      // Parse configuration data
+      // Parse configuration data safely
       let configData = {};
       try {
-        configData = bidDetails.bid.notes
-          ? JSON.parse(bidDetails.bid.notes)
-          : {};
+        if (bidDetails.bid.notes && typeof bidDetails.bid.notes === 'string') {
+          configData = JSON.parse(bidDetails.bid.notes);
+        }
       } catch (e) {
+        console.warn(`Could not parse bid notes for bid ${bidId}:`, e);
         configData = {};
       }
 
-      // Get total seats available
+      // Ensure configData is an object
+      if (!configData || typeof configData !== 'object') {
+        configData = {};
+      }
+
+      // Get total seats available with safe fallback
       const totalSeatsAvailable =
         bidDetails.bid.totalSeatsAvailable ||
-        configData.totalSeatsAvailable ||
+        (configData && configData.totalSeatsAvailable) ||
         100;
 
       // Get all retail bids for this configuration
-      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      let retailBids = [];
+      try {
+        retailBids = await storage.getRetailBidsByBid(parsedBidId);
+        // Ensure retailBids is an array
+        if (!Array.isArray(retailBids)) {
+          retailBids = [];
+        }
+      } catch (error) {
+        console.warn(`Error fetching retail bids for bid ${bidId}:`, error);
+        retailBids = [];
+      }
 
       // Get all payments related to this bid to check for payment completion
       let bidPayments = [];
       try {
-        bidPayments = await storage.getBidPaymentsByRetailBid(parseInt(bidId));
+        bidPayments = await storage.getBidPaymentsByRetailBid(parsedBidId);
+        if (!Array.isArray(bidPayments)) {
+          bidPayments = [];
+        }
       } catch (error) {
         // If no bid payments found, try regular payments as fallback
         try {
-          bidPayments = await storage.getPaymentsByBidId(parseInt(bidId));
+          bidPayments = await storage.getPaymentsByBidId(parsedBidId);
+          if (!Array.isArray(bidPayments)) {
+            bidPayments = [];
+          }
         } catch (fallbackError) {
           console.log("No payments found for bid:", bidId);
           bidPayments = [];
@@ -4051,13 +4082,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
       const bookedSeats = retailBids
-        .filter(
-          (rb) =>
-            rb.status === "under_review" ||
-            rb.status === "paid" ||
-            rb.status === "approved",
-        )
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+        .filter((rb) => {
+          if (!rb) return false;
+          const status = rb.status || rb.rStatus;
+          return (
+            status === "under_review" ||
+            status === "paid" ||
+            status === "approved" ||
+            status === 2 || // under_review
+            status === 3    // paid/approved
+          );
+        })
+        .reduce((total, rb) => {
+          const passengerCount = rb.passengerCount || rb.seatBooked || 0;
+          return total + passengerCount;
+        }, 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
@@ -4067,29 +4106,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let hasUserPaid = false;
       let userPaymentStatus = "open";
 
-      if (userId) {
+      if (userId && !isNaN(parseInt(userId as string))) {
         const currentUserId = parseInt(userId as string);
 
         // Check if THIS user has a retail bid for this bid_id
-        const userRetailBid = retailBids.find(
-          (rb) => rb.userId === currentUserId,
-        );
+        const userRetailBid = retailBids.find((rb) => {
+          if (!rb) return false;
+          return rb.userId === currentUserId || rb.rUserId === currentUserId;
+        });
 
         // Check if this user has made a payment for this bid (check by userId in payments table)
         const userPayment = bidPayments.find((payment) => {
-          return payment.userId === currentUserId;
+          if (!payment) return false;
+          return payment.userId === currentUserId || payment.rUserId === currentUserId;
         });
 
         // Check bid notes for payment completion by this user (user-specific tracking)
         let userPaidFromBidNotes = false;
         try {
-          const userPayments = configData.userPayments || [];
-          const userPaymentRecord = userPayments.find(
-            (up) => up.userId === currentUserId,
-          );
-          userPaidFromBidNotes =
-            userPaymentRecord && userPaymentRecord.paymentCompleted === true;
+          if (configData && typeof configData === 'object' && configData.userPayments && Array.isArray(configData.userPayments)) {
+            const userPaymentRecord = configData.userPayments.find(
+              (up) => up && up.userId === currentUserId,
+            );
+            userPaidFromBidNotes =
+              userPaymentRecord && userPaymentRecord.paymentCompleted === true;
+          }
         } catch (e) {
+          console.warn(`Error checking user payments in bid notes:`, e);
           userPaidFromBidNotes = false;
         }
 
