@@ -21,23 +21,25 @@ interface ActiveBid {
 export default function ActiveBidsSection() {
   const navigate = useNavigate();
 
-  const { data: activeBids, isLoading } = useQuery<ActiveBid[]>({
+  const { data: activeBids, isLoading, error } = useQuery<ActiveBid[]>({
     queryKey: ["/api/bids"],
     queryFn: async () => {
-      const response = await fetch("/api/bids");
-      if (!response.ok) {
-        throw new Error("Failed to fetch bids");
-      }
-      const bids = await response.json();
+      try {
+        const response = await fetch("/api/bids");
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API error:", errorText);
+          throw new Error(`Failed to fetch bids: ${response.status}`);
+        }
+        const bids = await response.json();
+        console.log("Fetched bids:", bids);
 
-      // Show active and open bids, limit to recent ones
-      return bids
-        .filter(
-          (bid: ActiveBid) =>
-            bid.rStatus === 4 || // 4 = Open/Active status
-            bid.seatAvailability?.paymentStatus === "open",
-        )
-        .slice(0, 5); // Show only the 5 most recent active/open bids
+        // Since the server now filters for r_status = 4, all returned bids are active/open
+        return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+      } catch (error) {
+        console.error("Error fetching bids:", error);
+        throw error;
+      }
     },
   });
 
@@ -118,6 +120,26 @@ export default function ActiveBidsSection() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="deal-card">
+        <div className="section-header relative">
+          <Tag className="limited-time-badge">Live Bidding</Tag>
+          <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+          <p className="text-sm opacity-90">
+            Track your current bidding activity
+          </p>
+        </div>
+        <div className="p-6 text-center text-red-500">
+          Error loading active bids. Please try again later.
+          <div className="text-xs text-gray-500 mt-2">
+            {error.message}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!activeBids || activeBids.length === 0) {
     return (
       <div className="deal-card">
@@ -179,8 +201,16 @@ export default function ActiveBidsSection() {
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                     <Plane className="w-4 h-4" />
                     <span>
-                      {bid.flight?.origin || "New York"} →{" "}
-                      {bid.flight?.destination || "Las Vegas"}
+                      {(() => {
+                        try {
+                          const configData = bid.notes ? JSON.parse(bid.notes) : {};
+                          const origin = configData.origin || bid.flight?.origin || "Unknown";
+                          const destination = configData.destination || bid.flight?.destination || "Unknown";
+                          return `${origin} → ${destination}`;
+                        } catch (e) {
+                          return "Unknown → Unknown";
+                        }
+                      })()}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">

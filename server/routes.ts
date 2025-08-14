@@ -951,57 +951,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(transformedBids);
       } else {
-        // Admin view - fetch all bids from grab_t_bids table
+        // Default view - fetch active/open bids from grab_t_bids table
         const bidsQuery = sql`
           SELECT 
-            gtb.*,
-            f.origin,
-            f.destination,
-            f.departure_time,
-            f.airline,
-            f.flight_number,
-            gtu.name as user_name,
-            gtu.email as user_email,
+            gtb.id,
+            gtb.bid_amount,
+            gtb.valid_until,
+            gtb.notes,
+            gtb.total_seats_available,
+            gtb.min_seats_per_bid,
+            gtb.max_seats_per_bid,
+            gtb.r_status,
+            gtb.created_at,
+            gtb.updated_at,
             gms.status_name
           FROM grab_t_bids gtb
-          LEFT JOIN flights f ON gtb.flight_id = f.id
-          LEFT JOIN grab_t_users gtu ON gtb.user_id = gtu.id
           LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
+          WHERE gtb.r_status = 4
           ORDER BY gtb.created_at DESC
         `;
 
         const bidsResults = await db.execute(bidsQuery);
 
-        // Transform the results to match the expected format
-        const transformedBids = bidsResults.rows.map((row: any) => ({
-          id: row.id,
-          userId: row.user_id,
-          flightId: row.flight_id,
-          bidAmount: row.bid_amount,
-          validUntil: row.valid_until,
-          notes: row.notes,
-          totalSeatsAvailable: row.total_seats_available,
-          minSeatsPerBid: row.min_seats_per_bid,
-          maxSeatsPerBid: row.max_seats_per_bid,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          flight: row.origin
-            ? {
-                id: row.flight_id,
-                origin: row.origin,
-                destination: row.destination,
-                departureTime: row.departure_time,
-                airline: row.airline,
-                flightNumber: row.flight_number,
-              }
-            : null,
-          user: row.user_name
-            ? {
-                name: row.user_name,
-                email: row.user_email,
-              }
-            : null,
-        }));
+        // Transform the results to match the expected format for active-bids-section
+        const transformedBids = bidsResults.rows.map((row: any) => {
+          let configData = {};
+          try {
+            configData = row.notes ? JSON.parse(row.notes) : {};
+          } catch (e) {
+            configData = {};
+          }
+
+          return {
+            id: row.id,
+            bidAmount: row.bid_amount,
+            validUntil: row.valid_until,
+            notes: row.notes,
+            totalSeatsAvailable: row.total_seats_available,
+            minSeatsPerBid: row.min_seats_per_bid,
+            maxSeatsPerBid: row.max_seats_per_bid,
+            rStatus: row.r_status,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            seatAvailability: {
+              paymentStatus: "open"
+            }
+          };
+        });
 
         res.json(transformedBids);
       }
@@ -4667,6 +4663,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to create test retail user",
+        error: error.message,
+      });
+    }
+  });
+
+  // Create test bid data for testing
+  app.post("/api/create-test-bid-data", async (req, res) => {
+    try {
+      console.log("Creating test bid data...");
+
+      // Check if we already have bids
+      const existingBids = await db.execute(sql`
+        SELECT COUNT(*) as count FROM grab_t_bids WHERE r_status = 4
+      `);
+
+      if (existingBids.rows[0].count > 0) {
+        return res.json({
+          success: true,
+          message: "Test bid data already exists",
+          count: existingBids.rows[0].count,
+        });
+      }
+
+      // Create sample bid configurations
+      const sampleBids = [
+        {
+          bidAmount: "500.00",
+          validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          totalSeatsAvailable: 50,
+          minSeatsPerBid: 1,
+          maxSeatsPerBid: 10,
+          rStatus: 4, // Open status
+          notes: JSON.stringify({
+            title: "Delhi to Mumbai Flight",
+            origin: "Delhi", 
+            destination: "Mumbai",
+            flightType: "Domestic",
+            fareType: "Economy",
+            configType: "bid_configuration",
+            createdAt: new Date().toISOString(),
+          }),
+        },
+        {
+          bidAmount: "750.00",
+          validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+          totalSeatsAvailable: 40,
+          minSeatsPerBid: 2,
+          maxSeatsPerBid: 8,
+          rStatus: 4, // Open status
+          notes: JSON.stringify({
+            title: "Mumbai to Bangalore Flight",
+            origin: "Mumbai",
+            destination: "Bangalore", 
+            flightType: "Domestic",
+            fareType: "Economy",
+            configType: "bid_configuration",
+            createdAt: new Date().toISOString(),
+          }),
+        },
+        {
+          bidAmount: "1200.00",
+          validUntil: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
+          totalSeatsAvailable: 30,
+          minSeatsPerBid: 1,
+          maxSeatsPerBid: 5,
+          rStatus: 4, // Open status
+          notes: JSON.stringify({
+            title: "Delhi to Bangalore Business Class",
+            origin: "Delhi",
+            destination: "Bangalore",
+            flightType: "Domestic", 
+            fareType: "Business",
+            configType: "bid_configuration",
+            createdAt: new Date().toISOString(),
+          }),
+        },
+      ];
+
+      let createdCount = 0;
+      for (const bid of sampleBids) {
+        await db
+          .insert(grabTBids)
+          .values({
+            ...bid,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        createdCount++;
+      }
+
+      console.log(`Created ${createdCount} test bid configurations`);
+
+      res.json({
+        success: true,
+        message: `Created ${createdCount} test bid configurations successfully`,
+        count: createdCount,
+      });
+    } catch (error) {
+      console.error("Error creating test bid data:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create test bid data",
         error: error.message,
       });
     }
