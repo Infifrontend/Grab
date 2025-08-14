@@ -868,23 +868,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gtb.r_status as admin_status,
             gms_admin.status_name as admin_status_name,
             grb.id as retail_bid_id,
-            grb.status as retail_status,
+            grb.r_status as retail_status,
             grb.submitted_amount,
-            grb.passenger_count as retail_passenger_count,
+            grb.seat_booked as retail_passenger_count,
             grb.created_at as retail_bid_created_at,
-            f.origin,
-            f.destination,
-            f.departure_time,
-            f.airline,
-            f.flight_number,
             CASE 
-              WHEN grb.status IS NOT NULL THEN grb.status
+              WHEN grb.r_status IS NOT NULL THEN gms_retail.status_name
               ELSE gms_admin.status_name
             END as display_status
           FROM grab_t_bids gtb
-          LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.bid_id AND grb.user_id = ${parseInt(userId as string)}
+          LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.r_bid_id AND grb.r_user_id = ${parseInt(userId as string)}
           LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
-          LEFT JOIN flights f ON gtb.flight_id = f.id
+          LEFT JOIN grab_m_status gms_retail ON grb.r_status = gms_retail.id
           WHERE gtb.r_status = 4
           ORDER BY gtb.created_at DESC
         `;
@@ -2505,8 +2500,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           payment = await storage.createBidPayment(bidPaymentData);
-          
-          // Update the retail bid status to "under_review" using grab_m_status FK
+
+          // Update the retail bid status to 'under_review' using grab_m_status FK
           await db.execute(sql`
             UPDATE grab_t_retail_bids 
             SET r_status = 2, updated_at = now() 
@@ -3696,7 +3691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
 
       const results = await db.execute(retailBidsQuery);
-      
+
       const retailBids = results.rows.map((row: any) => ({
         id: row.id,
         rBidId: row.r_bid_id,
@@ -4166,23 +4161,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           gtb.r_status as admin_status,
           gms_admin.status_name as admin_status_name,
           grb.id as retail_bid_id,
-          grb.status as retail_status,
+          grb.r_status as retail_status,
           grb.submitted_amount,
-          grb.passenger_count as retail_passenger_count,
+          grb.seat_booked as retail_passenger_count,
           grb.created_at as retail_bid_created_at,
-          f.origin,
-          f.destination,
-          f.departure_time,
-          f.airline,
-          f.flight_number,
           CASE 
-            WHEN grb.status IS NOT NULL THEN grb.status
+            WHEN grb.r_status IS NOT NULL THEN gms_retail.status_name
             ELSE gms_admin.status_name
           END as display_status
         FROM grab_t_bids gtb
-        LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.bid_id AND grb.user_id = ${parseInt(userId)}
+        LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.r_bid_id AND grb.r_user_id = ${parseInt(userId as string)}
         LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
-        LEFT JOIN flights f ON gtb.flight_id = f.id
+        LEFT JOIN grab_m_status gms_retail ON grb.r_status = gms_retail.id
         WHERE gtb.r_status = 4
         ORDER BY gtb.created_at DESC
       `;
