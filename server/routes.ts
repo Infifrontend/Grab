@@ -2498,13 +2498,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             amount: amount.toString(),
             currency: currency || "USD",
             paymentMethod: paymentMethod,
-            rStatus: 1, // Assuming 1 = completed
+            rStatus: 1, // Status 1 = payment completed
             transactionId: `txn_${nanoid(8)}`,
             paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
             processedAt: new Date(),
           };
 
           payment = await storage.createBidPayment(bidPaymentData);
+          
+          // Update the retail bid status to "under_review" using grab_m_status FK
+          await db.execute(sql`
+            UPDATE grab_t_retail_bids 
+            SET r_status = 2, updated_at = now() 
+            WHERE id = ${userRetailBid.id}
+          `);
+          console.log(`Updated retail bid ${userRetailBid.id} status to under_review (r_status=2)`);
+
         } else {
           // Fallback to regular payments table
           payment = await storage.createPayment(paymentData);
@@ -2516,7 +2525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Payment created successfully:", payment);
 
-      // If this payment is for a bid, update ONLY the user-specific payment tracking
+      // If this payment is for a bid, update user-specific payment tracking and main bid status
       if (bidId) {
         try {
           // Get existing bid notes
@@ -2546,7 +2555,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const updatedNotes = {
             ...existingNotes,
             userPayments: userPayments,
-            // Keep legacy paymentInfo for backwards compatibility, but don't use it for global validation
             paymentInfo: {
               latestPaymentId: payment.id,
               latestPaymentReference: paymentReference,
@@ -2555,29 +2563,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
           };
 
-          // DON'T change the global bid status - keep it as 'active' so other users can still pay
-          // Only update the notes to track this user's payment
+          // Update bid notes and check if we should update main bid status
           await storage.updateBidDetails(parseInt(bidId), {
-            // Keep original bidStatus unchanged for other users
             notes: JSON.stringify(updatedNotes),
             updatedAt: new Date(),
           });
+
+          // Check if we should update the main grab_t_bids status based on payments received
+          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+          const paidBids = retailBids.filter(rb => {
+            // Check r_status: 2=under_review, 3=approved/paid
+            return rb.rStatus === 2 || rb.rStatus === 3;
+          });
+
+          if (paidBids.length > 0) {
+            // Update main bid status to "under_review" when first payment is received
+            await db.execute(sql`
+              UPDATE grab_t_bids 
+              SET r_status = 2, bid_status = 'under_review', updated_at = now() 
+              WHERE id = ${parseInt(bidId)} AND r_status = 4
+            `);
+            console.log(`Updated main bid ${bidId} status to under_review (r_status=2) due to received payments`);
+          }
+
           console.log(
-            `Added user-specific payment tracking for user ${userId} on bid ${bidId} without changing global status`,
+            `Added user-specific payment tracking for user ${userId} on bid ${bidId}`,
           );
 
-          // Mark the retail bid as 'under_review' for THIS user only
-          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const userRetailBid = retailBids.find((rb) => rb.userId === userId);
-          if (userRetailBid) {
-            await storage.updateRetailBidStatus(
-              userRetailBid.id,
-              "under_review",
-            );
-            console.log(
-              `Updated retail bid ${userRetailBid.id} status to under_review for user ${userId}`,
-            );
-          }
         } catch (error) {
           console.log("Could not update bid payment tracking:", error.message);
         }
@@ -3512,13 +3524,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
-      // Create retail bid submission with status 'submitted'
+      // Create retail bid submission with status 'submitted'  
       const retailBidData = {
         rBidId: parseInt(bidId),
         rUserId: parseInt(userId), // Use rUserId instead of userId
         submittedAmount: submittedAmount.toString(),
         seatBooked: parseInt(passengerCount), // Use seatBooked instead of passengerCount
-        rStatus: 1, // Set initial status (assuming 1 = submitted)
+        rStatus: 1, // Set initial status (1 = submitted, 2 = under_review, 3 = approved, 4 = open/active)
       };
 
       // Insert directly into grab_t_retail_bids table
@@ -3526,6 +3538,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(grabTRetailBids)
         .values(retailBidData)
         .returning();
+
+      console.log(`Created retail bid ${newRetailBid.id} with r_status=1 (submitted)`);
 
       // Create notification
       await createNotification(
