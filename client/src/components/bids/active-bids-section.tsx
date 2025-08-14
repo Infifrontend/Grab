@@ -39,10 +39,11 @@ export default function ActiveBidsSection() {
 
       // Show active and open bids, limit to recent ones
       return bids
-        .filter((bid: ActiveBid) => 
-          bid.bidStatus === "active" || 
-          bid.bidStatus === "open" ||
-          (bid.seatAvailability?.paymentStatus === "open")
+        .filter(
+          (bid: ActiveBid) =>
+            bid.bidStatus === "active" ||
+            bid.bidStatus === "Open" ||
+            bid.seatAvailability?.paymentStatus === "open",
         )
         .slice(0, 5); // Show only the 5 most recent active/open bids
     },
@@ -80,7 +81,7 @@ export default function ActiveBidsSection() {
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
           const paymentStatus = notes.paymentInfo?.paymentStatus;
-          
+
           if (notes.paymentInfo?.paymentCompleted === true) {
             // Payment completed scenarios
             if (paymentStatus === "Payment Completed") {
@@ -113,28 +114,28 @@ export default function ActiveBidsSection() {
         // For active/open bids, use dynamic status from seatAvailability if available
         if (bid.seatAvailability?.paymentStatus) {
           switch (bid.seatAvailability.paymentStatus) {
-            case 'under_review':
+            case "under_review":
               return { status: "Under Review", color: "blue" };
-            case 'approved':
+            case "approved":
               return { status: "Accepted", color: "green" };
-            case 'rejected':
+            case "rejected":
               return { status: "Rejected", color: "red" };
-            case 'closed':
+            case "closed":
               return { status: "Closed", color: "gray" };
-            case 'completed':
+            case "completed":
               return { status: "Completed", color: "green" };
-            case 'open':
+            case "open":
               return { status: "Open", color: "orange" };
             default:
               return { status: "Open", color: "orange" };
           }
         }
-        
+
         // Fallback to checking payment status in notes
         try {
           const notes = bid.notes ? JSON.parse(bid.notes) : {};
           const paymentStatus = notes.paymentInfo?.paymentStatus;
-          
+
           if (notes.paymentInfo?.paymentCompleted === true) {
             // Payment completed scenarios for active bids
             if (paymentStatus === "Payment Completed") {
