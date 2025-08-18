@@ -4214,7 +4214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if ALL seats are booked (bid should be closed for everyone who hasn't paid)
-      if (bidFullyBooked && !hasUserPaid) {
+      if (isBidFullyBooked && !hasUserPaid) {
         displayStatus = "Closed";
         statusForUser = "closed";
         userPaymentStatus = "closed";
