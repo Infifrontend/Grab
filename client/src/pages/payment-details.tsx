@@ -216,11 +216,28 @@ export default function PaymentDetails() {
       const [getUserRole] = localStorageAccessor("userRole");
       const [getUserLoggedIn] = localStorageAccessor("userLoggedIn");
       
-      const userId = getUserId();
-      const userEmail = getUserEmail();
-      const userName = getUserName();
-      const userRole = getUserRole();
-      const userLoggedIn = getUserLoggedIn();
+      let userId = getUserId();
+      let userEmail = getUserEmail();
+      let userName = getUserName();
+      let userRole = getUserRole();
+      let userLoggedIn = getUserLoggedIn();
+
+      // Fallback to direct localStorage access if accessor returns null
+      if (!userId) {
+        userId = localStorage.getItem("userId");
+        userEmail = localStorage.getItem("userEmail");
+        userName = localStorage.getItem("userName");
+        userRole = localStorage.getItem("userRole");
+        userLoggedIn = localStorage.getItem("userLoggedIn");
+      }
+
+      console.log("Retrieved user information from localStorage:", {
+        userId,
+        userEmail,
+        userName,
+        userRole,
+        userLoggedIn
+      });
       
       if (!userId) {
         throw new Error("Please log in to submit a bid");
