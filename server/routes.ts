@@ -3982,7 +3982,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bidId } = req.params;
       const { userId } = req.query;
 
-      console.log(`Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`);
+      console.log(
+        `Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`,
+      );
 
       // Validate bidId
       const parsedBidId = parseInt(bidId, 10);
@@ -3994,11 +3996,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Import the new bidding storage
-      const { biddingStorage } = await import('./bidding-storage.js');
-      
+      const { biddingStorage } = await import("./bidding-storage.js");
+
       // Get complete bid details using the new workflow
-      const bidDetails = await biddingStorage.getBidWithDetails(parsedBidId, userId ? parseInt(userId as string) : undefined);
-      
+      const bidDetails = await biddingStorage.getBidWithDetails(
+        parsedBidId,
+        userId ? parseInt(userId as string) : undefined,
+      );
+
       if (!bidDetails) {
         return res.status(404).json({
           success: false,
@@ -4017,7 +4022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         statusForUser,
         userPaymentStatus,
         hasUserPaid,
-        userRetailBidStatus
+        userRetailBidStatus,
       } = bidDetails;
 
       console.log(

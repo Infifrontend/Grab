@@ -217,7 +217,9 @@ export default function PaymentDetails() {
 
         // Validate bidParticipationData exists
         if (!bidParticipationData) {
-          throw new Error("Bid participation data is missing. Please go back and enter your bid details.");
+          throw new Error(
+            "Bid participation data is missing. Please go back and enter your bid details.",
+          );
         }
 
         // Ensure bidId and userId are valid
@@ -235,16 +237,29 @@ export default function PaymentDetails() {
         const retailBidData = {
           bidId: validBidId,
           userId: validUserId,
-          submittedAmount: parseFloat(bidParticipationData.bidAmount) || parseFloat(bidParticipationData.totalBid) || 0,
+          submittedAmount:
+            parseFloat(bidParticipationData.bidAmount) ||
+            parseFloat(bidParticipationData?.totalBid) ||
+            0,
           passengerCount: parseInt(bidParticipationData.passengerCount) || 1,
         };
 
         // Additional validation with detailed error messages
-        if (!retailBidData.submittedAmount || retailBidData.submittedAmount <= 0) {
-          throw new Error(`Invalid bid amount: ${retailBidData.submittedAmount}. Please check your bid details.`);
+        if (
+          !retailBidData.submittedAmount ||
+          retailBidData.submittedAmount <= 0
+        ) {
+          throw new Error(
+            `Invalid bid amount: ${retailBidData.submittedAmount}. Please check your bid details.`,
+          );
         }
-        if (!retailBidData.passengerCount || retailBidData.passengerCount <= 0) {
-          throw new Error(`Invalid passenger count: ${retailBidData.passengerCount}. Must be at least 1.`);
+        if (
+          !retailBidData.passengerCount ||
+          retailBidData.passengerCount <= 0
+        ) {
+          throw new Error(
+            `Invalid passenger count: ${retailBidData.passengerCount}. Must be at least 1.`,
+          );
         }
 
         // Log the data being sent for debugging
@@ -253,7 +268,7 @@ export default function PaymentDetails() {
           userId: retailBidData.userId,
           submittedAmount: retailBidData.submittedAmount,
           passengerCount: retailBidData.passengerCount,
-          originalBidParticipationData: bidParticipationData
+          originalBidParticipationData: bidParticipationData,
         });
 
         console.log("Retail bid data being sent:", retailBidData);
@@ -267,7 +282,9 @@ export default function PaymentDetails() {
         });
 
         if (!retailBidResponse.ok) {
-          const retailBidError = await retailBidResponse.json().catch(() => ({}));
+          const retailBidError = await retailBidResponse
+            .json()
+            .catch(() => ({}));
           throw new Error(retailBidError.message || "Failed to submit bid");
         }
 
@@ -284,7 +301,7 @@ export default function PaymentDetails() {
             bidId: parseInt(bidId),
             userId: parseInt(userId), // Current user ID from localStorage
             bookingId: null, // Set to null for bid payments to avoid foreign key issues
-            amount: bidParticipationData.totalBid.toString(),
+            amount: bidParticipationData?.totalBid?.toString(),
             currency: "USD",
             paymentMethod: paymentMethod,
             paymentStatus: "completed",
@@ -402,7 +419,7 @@ export default function PaymentDetails() {
                       Total Bid Amount:
                     </Text>
                     <Text className="text-gray-900 font-semibold text-lg">
-                      ${bidParticipationData.totalBid?.toLocaleString()}
+                      ${bidParticipationData?.totalBid?.toLocaleString()}
                     </Text>
                   </Col>
                   <Col span={12}>
@@ -410,7 +427,7 @@ export default function PaymentDetails() {
                       Deposit Required:
                     </Text>
                     <Text className="text-blue-600 font-bold text-xl">
-                      ${bidParticipationData.totalBid?.toLocaleString()}
+                      ${bidParticipationData?.totalBid?.toLocaleString()}
                     </Text>
                   </Col>
                 </Row>
@@ -600,7 +617,7 @@ export default function PaymentDetails() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Total Bid Amount</Text>
                   <Text className="text-gray-900 font-semibold">
-                    ${bidParticipationData.totalBid?.toLocaleString()}
+                    ${bidParticipationData?.totalBid?.toLocaleString()}
                   </Text>
                 </div>
 
@@ -622,11 +639,11 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${bidParticipationData.totalBid?.toLocaleString()} & Submit
+                Pay ${bidParticipationData?.totalBid?.toLocaleString()} & Submit
                 Bid
               </Button>
             </Card>
-          </Col>   
+          </Col>
         </Row>
       </div>
 
