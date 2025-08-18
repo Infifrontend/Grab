@@ -37,7 +37,6 @@ const localStorageAccessor = (key) => {
   return [getter];
 };
 
-
 const { Title, Text } = Typography;
 
 export default function PaymentDetails() {
