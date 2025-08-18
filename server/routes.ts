@@ -1448,7 +1448,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM grab_t_bid_payments gbp
         LEFT JOIN grab_t_users gtu ON gbp.r_user_id = gtu.id
         LEFT JOIN grab_m_status gms ON gbp.r_status = gms.id
-        LEFT JOIN grab_t_retail_bids grb ON gbp.r_retail_bid_id = grb.id
         ORDER BY gbp.id DESC
       `;
       const paymentsResults = await db.execute(paymentsQuery);
@@ -2388,7 +2387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         bidId,
-        userId,
+        userId: requestUserId,
         bookingId,
         amount,
         currency,
@@ -2415,7 +2414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the actual user ID from request or localStorage
       const currentUserId =
-        parseInt(userId) ||
+        parseInt(requestUserId) ||
         parseInt(localStorage?.getItem("userId")) ||
         null;
 

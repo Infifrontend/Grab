@@ -208,7 +208,7 @@ export default function PaymentDetails() {
       const formValues =
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // Get user ID from localStorage with validation
+      // First, submit the retail bid
       const userId = localStorage.getItem("userId");
       if (!userId) {
         throw new Error("Please log in to submit a bid");
@@ -216,38 +216,42 @@ export default function PaymentDetails() {
 
       console.log(`Creating payment for user ${userId} and bid ${bidId}`);
 
-      // Validate bidParticipationData exists
-      if (!bidParticipationData) {
-        throw new Error(
-          "Bid participation data is missing. Please go back and enter your bid details.",
-        );
-      }
+      if (bidId && userId) {
+        console.log("Submitting retail bid before payment...");
+        console.log("bidParticipationData:", bidParticipationData);
 
-      // Ensure bidId and userId are valid
-      const validBidId = parseInt(bidId);
-      const validUserId = parseInt(userId);
+        // Validate bidParticipationData exists
+        if (!bidParticipationData) {
+          throw new Error(
+            "Bid participation data is missing. Please go back and enter your bid details.",
+          );
+        }
 
-      if (isNaN(validBidId) || validBidId <= 0) {
-        throw new Error("Invalid bid ID");
-      }
-      if (isNaN(validUserId) || validUserId <= 0) {
-        throw new Error("Invalid user ID");
-      }
+        // Ensure bidId and userId are valid
+        const validBidId = parseInt(bidId);
+        const validUserId = parseInt(userId);
 
-      // Prepare retail bid data with exact field names expected by the API
-      const submittedAmountValue =
-        bidParticipationData.bidAmount ||
-        bidParticipationData.totalBid / bidParticipationData.passengerCount ||
-        0;
+        if (isNaN(validBidId) || validBidId <= 0) {
+          throw new Error("Invalid bid ID");
+        }
+        if (isNaN(validUserId) || validUserId <= 0) {
+          throw new Error("Invalid user ID");
+        }
 
-      const retailBidData = {
-        bidId: validBidId,
-        userId: validUserId,
-        submittedAmount: parseFloat(submittedAmountValue.toString()),
-        passengerCount: parseInt(
-          bidParticipationData.passengerCount?.toString() || "1",
-        ),
-      };
+        // Prepare retail bid data with exact field names expected by the API
+        const submittedAmountValue =
+          bidParticipationData.bidAmount ||
+          bidParticipationData.totalBid / bidParticipationData.passengerCount ||
+          0;
+
+        const retailBidData = {
+          bidId: validBidId,
+          userId: validUserId,
+          submittedAmount: parseFloat(submittedAmountValue.toString()),
+          passengerCount: parseInt(
+            bidParticipationData.passengerCount?.toString() || "1",
+          ),
+        };
 
         // Additional validation with detailed error messages
         if (
@@ -303,8 +307,8 @@ export default function PaymentDetails() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            bidId: validBidId,
-            user_id: validUserId,
+            bidId: parseInt(bidId),
+            user_id: parseInt(userId), // Current user ID from localStorage
             bookingId: null, // Set to null for bid payments to avoid foreign key issues
             amount: (bidParticipationData?.totalBid || 0).toString(),
             currency: "USD",
