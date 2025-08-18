@@ -22,6 +22,22 @@ import {
 } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 
+// Assuming localStorageAccessor is imported from a utility file like client/src/utils/browserStorage.ts
+// For the purpose of this standalone example, we'll define a mock accessor.
+// In a real scenario, this would be imported.
+const localStorageAccessor = (key) => {
+  const getter = () => {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.error("Error accessing localStorage:", e);
+      return null;
+    }
+  };
+  return [getter];
+};
+
+
 const { Title, Text } = Typography;
 
 export default function PaymentDetails() {
@@ -38,7 +54,7 @@ export default function PaymentDetails() {
   useEffect(() => {
     const loadBidData = async () => {
       // Load bid participation data from localStorage
-      const storedData = localStorage.getItem("bidParticipationData");
+      const storedData = localStorageAccessor("bidParticipationData")?.[0]();
 
       if (storedData) {
         const parsedData = JSON.parse(storedData);
@@ -209,7 +225,7 @@ export default function PaymentDetails() {
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
       // First, submit the retail bid
-      const userId = localStorage.getItem("userId");
+      const userId = localStorageAccessor("userId")?.[0]();
       if (!userId) {
         throw new Error("Please log in to submit a bid");
       }
