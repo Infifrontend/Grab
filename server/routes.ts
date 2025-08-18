@@ -994,8 +994,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             seatAvailability: {
-              paymentStatus: "open"
-            }
+              paymentStatus: "open",
+            },
           };
         });
 
@@ -1475,7 +1475,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalPayments: paymentsResults.length,
         },
         flow: {
-          description: "Complete flow: 1) Admin creates bid in grab_t_bids with r_status=4 (Open), 2) Retail user creates bid in grab_t_retail_bids, 3) Payment created in grab_t_bid_payments, 4) Status updates via r_status FK references",
+          description:
+            "Complete flow: 1) Admin creates bid in grab_t_bids with r_status=4 (Open), 2) Retail user creates bid in grab_t_retail_bids, 3) Payment created in grab_t_bid_payments, 4) Status updates via r_status FK references",
         },
       });
     } catch (error) {
@@ -1519,7 +1520,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Debug: Show available bids
         const allBidsQuery = sql`SELECT id FROM grab_t_bids ORDER BY id`;
         const allBidsResults = await db.execute(allBidsQuery);
-        const availableIds = allBidsResults.rows ? allBidsResults.rows.map((row: any) => row.id) : [];
+        const availableIds = allBidsResults.rows
+          ? allBidsResults.rows.map((row: any) => row.id)
+          : [];
 
         console.log(`Bid not found with ID: ${bidId}`);
         console.log(`Total bids in grab_t_bids: ${availableIds.length}`);
@@ -1571,7 +1574,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has payment for this bid
       let seatAvailability = null;
       if (userId) {
-        const userPayment = payments.find((p) => p.r_user_id === parseInt(userId as string));
+        const userPayment = payments.find(
+          (p) => p.r_user_id === parseInt(userId as string),
+        );
         if (userPayment) {
           seatAvailability = {
             paymentStatus: userPayment.payment_status_name || "pending",
@@ -1608,7 +1613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: rb.created_at,
           })),
           payments: payments,
-        }
+        },
       };
 
       console.log(`Successfully retrieved bid ${bidId} details.`);
@@ -2561,7 +2566,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bidId) {
         // Find the retail bid for this user and bid
         const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-        const userRetailBid = retailBids.find((rb) => rb.userId === currentUserId);
+        const userRetailBid = retailBids.find(
+          (rb) => rb.userId === currentUserId,
+        );
 
         if (userRetailBid) {
           // Create payment in grab_t_bid_payments table
@@ -3380,33 +3387,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invalidFields = [];
 
       // Check for missing fields
-      if (bidId === undefined || bidId === null) missingFields.push('bidId');
-      if (userId === undefined || userId === null) missingFields.push('userId');
-      if (submittedAmount === undefined || submittedAmount === null) missingFields.push('submittedAmount');
-      if (passengerCount === undefined || passengerCount === null) missingFields.push('passengerCount');
+      if (bidId === undefined || bidId === null) missingFields.push("bidId");
+      if (userId === undefined || userId === null) missingFields.push("userId");
+      if (submittedAmount === undefined || submittedAmount === null)
+        missingFields.push("submittedAmount");
+      if (passengerCount === undefined || passengerCount === null)
+        missingFields.push("passengerCount");
 
       // Check for invalid field types/values
-      if (bidId && (isNaN(parseInt(bidId)) || parseInt(bidId) <= 0)) invalidFields.push('bidId (must be positive integer)');
-      if (userId && (isNaN(parseInt(userId)) || parseInt(userId) <= 0)) invalidFields.push('userId (must be positive integer)');
-      if (submittedAmount && (isNaN(parseFloat(submittedAmount)) || parseFloat(submittedAmount) <= 0)) invalidFields.push('submittedAmount (must be positive number)');
-      if (passengerCount && (isNaN(parseInt(passengerCount)) || parseInt(passengerCount) <= 0)) invalidFields.push('passengerCount (must be positive integer)');
+      if (bidId && (isNaN(parseInt(bidId)) || parseInt(bidId) <= 0))
+        invalidFields.push("bidId (must be positive integer)");
+      if (userId && (isNaN(parseInt(userId)) || parseInt(userId) <= 0))
+        invalidFields.push("userId (must be positive integer)");
+      if (
+        submittedAmount &&
+        (isNaN(parseFloat(submittedAmount)) || parseFloat(submittedAmount) <= 0)
+      )
+        invalidFields.push("submittedAmount (must be positive number)");
+      if (
+        passengerCount &&
+        (isNaN(parseInt(passengerCount)) || parseInt(passengerCount) <= 0)
+      )
+        invalidFields.push("passengerCount (must be positive integer)");
 
       if (missingFields.length > 0) {
-        console.log('Missing fields in retail bid submission:', missingFields);
-        console.log('Received data:', { bidId, userId, submittedAmount, passengerCount });
+        console.log("Missing fields in retail bid submission:", missingFields);
+        console.log("Received data:", {
+          bidId,
+          userId,
+          submittedAmount,
+          passengerCount,
+        });
         return res.status(400).json({
           success: false,
-          message: `Missing required fields: ${missingFields.join(', ')}`,
-          receivedData: { bidId, userId, submittedAmount, passengerCount }
+          message: `Missing required fields: ${missingFields.join(", ")}`,
+          receivedData: { bidId, userId, submittedAmount, passengerCount },
         });
       }
 
       if (invalidFields.length > 0) {
-        console.log('Invalid fields in retail bid submission:', invalidFields);
+        console.log("Invalid fields in retail bid submission:", invalidFields);
         return res.status(400).json({
           success: false,
-          message: `Invalid field values: ${invalidFields.join(', ')}`,
-          receivedData: { bidId, userId, submittedAmount, passengerCount }
+          message: `Invalid field values: ${invalidFields.join(", ")}`,
+          receivedData: { bidId, userId, submittedAmount, passengerCount },
         });
       }
 
@@ -3636,7 +3660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parsedBidId,
         parsedUserId,
         parsedSubmittedAmount,
-        parsedPassengerCount
+        parsedPassengerCount,
       });
 
       // Create retail bid submission with status 'submitted'
@@ -3879,8 +3903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
                 bidAmount: baseBidAmount + randomIncrement,
                 passengerCount: Math.floor(Math.random() * 3) + 1, // 1-3 passengers
-                status:
-                  i === 0 ? "approved" : "pending_approval",
+                status: i === 0 ? "approved" : "pending_approval",
                 createdAt: new Date(Date.now() - Math.random() * 86400000 * 3), // Random within last 3 days
               });
             }
@@ -3959,7 +3982,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bidId } = req.params;
       const { userId } = req.query;
 
-      console.log(`Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`);
+      console.log(
+        `Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`,
+      );
 
       // Validate bidId
       const parsedBidId = parseInt(bidId);
@@ -3972,7 +3997,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the bid configuration with comprehensive null checks
       const bidDetails = await storage.getBidById(parsedBidId);
-      if (!bidDetails || !bidDetails.bid || typeof bidDetails.bid !== 'object') {
+      if (
+        !bidDetails ||
+        !bidDetails.bid ||
+        typeof bidDetails.bid !== "object"
+      ) {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
@@ -3982,9 +4011,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse configuration data safely with proper null checks
       let configData = {};
       try {
-        if (bidDetails.bid && bidDetails.bid.notes && typeof bidDetails.bid.notes === 'string' && bidDetails.bid.notes.trim() !== '') {
+        if (
+          bidDetails.bid &&
+          bidDetails.bid.notes &&
+          typeof bidDetails.bid.notes === "string" &&
+          bidDetails.bid.notes.trim() !== ""
+        ) {
           const parsedData = JSON.parse(bidDetails.bid.notes);
-          configData = parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData) ? parsedData : {};
+          configData =
+            parsedData &&
+            typeof parsedData === "object" &&
+            !Array.isArray(parsedData)
+              ? parsedData
+              : {};
         }
       } catch (e) {
         console.warn(`Could not parse bid notes for bid ${bidId}:`, e);
@@ -3992,14 +4031,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Ensure configData is a valid object
-      if (!configData || typeof configData !== 'object' || Array.isArray(configData)) {
+      if (
+        !configData ||
+        typeof configData !== "object" ||
+        Array.isArray(configData)
+      ) {
         configData = {};
       }
 
       // Get total seats available with safe fallback and null checks
       const totalSeatsAvailable =
         (bidDetails.bid && bidDetails.bid.totalSeatsAvailable) ||
-        (configData && typeof configData === 'object' && configData.totalSeatsAvailable) ||
+        (configData &&
+          typeof configData === "object" &&
+          configData.totalSeatsAvailable) ||
         100;
 
       // Get all retail bids for this configuration
@@ -4044,7 +4089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status === "paid" ||
           status === "approved" ||
           status === 2 || // under_review
-          status === 3    // paid/approved
+          status === 3 // paid/approved
         ) {
           const passengerCount = rb.passengerCount || rb.seatBooked || 0;
           return total + passengerCount;
@@ -4074,20 +4119,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if this user has made a payment for this bid (check by userId in payments table)
         const userPayment = bidPayments.find((payment) => {
           if (!payment) return false;
-          return payment.userId === currentUserId || payment.rUserId === currentUserId;
+          return (
+            payment.userId === currentUserId ||
+            payment.rUserId === currentUserId
+          );
         });
 
         // Check bid notes for payment completion by this user (user-specific tracking)
         let userPaidFromBidNotes = false;
         try {
-          if (configData && 
-              typeof configData === 'object' && 
-              configData !== null &&
-              !Array.isArray(configData) &&
-              configData.userPayments && 
-              Array.isArray(configData.userPayments)) {
+          if (
+            configData &&
+            typeof configData === "object" &&
+            configData !== null &&
+            !Array.isArray(configData) &&
+            configData.userPayments &&
+            Array.isArray(configData.userPayments)
+          ) {
             const userPaymentRecord = configData.userPayments.find(
-              (up) => up && typeof up === 'object' && up.userId === currentUserId,
+              (up) =>
+                up && typeof up === "object" && up.userId === currentUserId,
             );
             userPaidFromBidNotes =
               userPaymentRecord && userPaymentRecord.paymentCompleted === true;
@@ -4863,7 +4914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rStatus: 4, // Open status
           notes: JSON.stringify({
             title: "Delhi to Mumbai Flight",
-            origin: "Delhi", 
+            origin: "Delhi",
             destination: "Mumbai",
             flightType: "Domestic",
             fareType: "Economy",
@@ -4881,7 +4932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notes: JSON.stringify({
             title: "Mumbai to Bangalore Flight",
             origin: "Mumbai",
-            destination: "Bangalore", 
+            destination: "Bangalore",
             flightType: "Domestic",
             fareType: "Economy",
             configType: "bid_configuration",
@@ -4899,7 +4950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             title: "Delhi to Bangalore Business Class",
             origin: "Delhi",
             destination: "Bangalore",
-            flightType: "Domestic", 
+            flightType: "Domestic",
             fareType: "Business",
             configType: "bid_configuration",
             createdAt: new Date().toISOString(),
@@ -4909,13 +4960,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let createdCount = 0;
       for (const bid of sampleBids) {
-        await db
-          .insert(grabTBids)
-          .values({
-            ...bid,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+        await db.insert(grabTBids).values({
+          ...bid,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
         createdCount++;
       }
 
