@@ -210,12 +210,23 @@ export default function PaymentDetails() {
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
       // First, submit the retail bid
-      const userId = localStorageAccessor("userId")?.[0]();
+      const [getUserId] = localStorageAccessor("userId");
+      const [getUserEmail] = localStorageAccessor("userEmail");
+      const [getUserName] = localStorageAccessor("userName");
+      const [getUserRole] = localStorageAccessor("userRole");
+      const [getUserLoggedIn] = localStorageAccessor("userLoggedIn");
+      
+      const userId = getUserId();
+      const userEmail = getUserEmail();
+      const userName = getUserName();
+      const userRole = getUserRole();
+      const userLoggedIn = getUserLoggedIn();
+      
       if (!userId) {
         throw new Error("Please log in to submit a bid");
       }
 
-      console.log(`Creating payment for user ${userId} and bid ${bidId}`);
+      console.log(`Creating payment for user ${userId} (${userName}) and bid ${bidId}`);
 
       if (bidId && userId) {
         console.log("Submitting retail bid before payment...");
@@ -310,6 +321,10 @@ export default function PaymentDetails() {
           body: JSON.stringify({
             bidId: parseInt(bidId),
             user_id: parseInt(userId), // Current user ID from localStorage
+            userEmail: userEmail,
+            userName: userName,
+            userRole: userRole,
+            userLoggedIn: userLoggedIn,
             bookingId: null, // Set to null for bid payments to avoid foreign key issues
             amount: (bidParticipationData?.totalBid || 0).toString(),
             currency: "USD",

@@ -2388,6 +2388,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         bidId,
         user_id: requestUserId,
+        userEmail,
+        userName,
+        userRole,
+        userLoggedIn,
         bookingId,
         amount,
         currency,
@@ -2412,11 +2416,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the actual user ID from request or localStorage
-      const currentUserId =
-        parseInt(requestUserId) ||
-        parseInt(localStorage?.getItem("userId")) ||
-        null;
+      // Get the actual user ID from request body
+      const currentUserId = parseInt(requestUserId) || null;
+      
+      // Validate that user details are provided
+      if (!currentUserId) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required for payment",
+        });
+      }
+      
+      if (!userEmail || !userName) {
+        return res.status(400).json({
+          success: false,
+          message: "User email and name are required for payment",
+        });
+      }
+      
+      console.log(`Payment request from user: ${userName} (${userEmail}), ID: ${currentUserId}, Role: ${userRole}`);
 
       // Check if THIS SPECIFIC USER has already paid for this bid (prevent duplicate payments by same user)
       if (bidId && currentUserId) {
@@ -2492,31 +2510,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Use the current user ID or ensure default user exists
+      // Use the current user ID 
       let userId = currentUserId;
-
-      if (!userId) {
-        // Ensure default user exists if no user ID provided
-        try {
-          let defaultUser = await storage.getUserByUsername("default_user");
-          if (!defaultUser) {
-            console.log("Creating default user for payments...");
-            defaultUser = await storage.createUser({
-              username: "default_user",
-              password: "default_password",
-              name: "Default User",
-            });
-            console.log("Default user created:", defaultUser);
-          }
-          userId = defaultUser.id;
-        } catch (userError) {
-          console.error("Error handling default user:", userError);
-          return res.status(500).json({
-            success: false,
-            message: "Failed to setup user information for payment",
-          });
-        }
-      }
 
       // Validate bid exists if bidId is provided
       if (bidId) {
