@@ -21,21 +21,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
-
-// Assuming localStorageAccessor is imported from a utility file like client/src/utils/browserStorage.ts
-// For the purpose of this standalone example, we'll define a mock accessor.
-// In a real scenario, this would be imported.
-const localStorageAccessor = (key) => {
-  const getter = () => {
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.error("Error accessing localStorage:", e);
-      return null;
-    }
-  };
-  return [getter];
-};
+import { localStorageAccessor } from "../utils/browserStorage";
 
 const { Title, Text } = Typography;
 
