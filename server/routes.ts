@@ -1123,6 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update bid status (accept/reject)
+  
   app.put("/api/bids/:id/status", async (req, res) => {
     try {
       const { id } = req.params;
@@ -1393,6 +1394,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  
 
   // Create a new bid
   app.post("/api/bids", async (req, res) => {
@@ -3977,108 +3980,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get bid status with seat availability for retail users
-  app.get("/api/bid-status/:bidId", async (req, res) => {
+  app.get("/api/bid-status/:bidId/", async (req, res) => {
     try {
       const { bidId } = req.params;
       const { userId } = req.query;
 
-      console.log(
-        `Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`,
-      );
+      console.log(`Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`);
 
       // Validate bidId
-      const parsedBidId = parseInt(bidId);
+      const parsedBidId = parseInt(bidId, 10);
       if (isNaN(parsedBidId) || parsedBidId <= 0) {
         return res.status(400).json({
           success: false,
           message: "Invalid bid ID",
         });
       }
-
-      // Get the bid configuration with comprehensive null checks
+      // Get the bid configuration
       const bidDetails = await storage.getBidById(parsedBidId);
-      if (
-        !bidDetails ||
-        !bidDetails.bid ||
-        typeof bidDetails.bid !== "object"
-      ) {
+
+
+      const bid = bidDetails?.bid;
+      if (!bid || typeof bid !== "object") {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
         });
       }
 
-      // Parse configuration data safely with proper null checks
+      // Parse configuration data safely
       let configData = {};
       try {
-        if (
-          bidDetails.bid &&
-          bidDetails.bid.notes &&
-          typeof bidDetails.bid.notes === "string" &&
-          bidDetails.bid.notes.trim() !== ""
-        ) {
-          const parsedData = JSON.parse(bidDetails.bid.notes);
-          configData =
-            parsedData &&
-            typeof parsedData === "object" &&
-            !Array.isArray(parsedData)
-              ? parsedData
-              : {};
+        if (typeof bid.notes === "string" && bid.notes.trim() !== "") {
+          const parsedData = JSON.parse(bid.notes);
+          if (parsedData && typeof parsedData === "object" && !Array.isArray(parsedData)) {
+            configData = parsedData;
+          }
         }
       } catch (e) {
         console.warn(`Could not parse bid notes for bid ${bidId}:`, e);
-        configData = {};
       }
 
-      // Ensure configData is a valid object
-      if (
-        !configData ||
-        typeof configData !== "object" ||
-        Array.isArray(configData)
-      ) {
-        configData = {};
-      }
-
-      // Get total seats available with safe fallback and null checks
+      // Total seats available (safe fallback)
       const totalSeatsAvailable =
-        (bidDetails.bid && bidDetails.bid.totalSeatsAvailable) ||
-        (configData &&
-          typeof configData === "object" &&
-          configData.totalSeatsAvailable) ||
+        (typeof bid.totalSeatsAvailable === "number" ? bid.totalSeatsAvailable : undefined) ??
+        (typeof configData.totalSeatsAvailable === "number" ? configData.totalSeatsAvailable : undefined) ??
         100;
 
-      // Get all retail bids for this configuration
+      console.log("totalSeatsAvailable:", totalSeatsAvailable);
+
+      // Get retail bids
       let retailBids = [];
       try {
         retailBids = await storage.getRetailBidsByBid(parsedBidId);
-        // Ensure retailBids is an array
-        if (!Array.isArray(retailBids)) {
-          retailBids = [];
-        }
+        if (!Array.isArray(retailBids)) retailBids = [];
       } catch (error) {
         console.warn(`Error fetching retail bids for bid ${bidId}:`, error);
-        retailBids = [];
       }
 
-      // Get all payments related to this bid to check for payment completion
+      // Get bid payments
       let bidPayments = [];
       try {
         bidPayments = await storage.getBidPaymentsByRetailBid(parsedBidId);
-        if (!Array.isArray(bidPayments)) {
-          bidPayments = [];
-        }
+        if (!Array.isArray(bidPayments)) bidPayments = [];
       } catch (error) {
-        // If no bid payments found, try regular payments as fallback
+        console.warn(`Error fetching bid payments for bid ${bidId}:`, error);
         try {
           bidPayments = await storage.getPaymentsByBidId(parsedBidId);
-          if (!Array.isArray(bidPayments)) {
-            bidPayments = [];
-          }
+          if (!Array.isArray(bidPayments)) bidPayments = [];
         } catch (fallbackError) {
           console.log("No payments found for bid:", bidId);
-          bidPayments = [];
         }
       }
+
+      // Example logic: derive dynamic status
+      let dynamicStatus = "Open";
+
+      // If seats filled
+      const seatsTaken = retailBids.reduce(
+        (sum, rb) => sum + (rb?.seatCount ?? 0),
+        0
+      );
+      if (seatsTaken >= totalSeatsAvailable) {
+        dynamicStatus = "Closed";
+      }
+
+      // If user has paid
+      if (userId && bidPayments.some(p => String(p.userId) === String(userId) && p.status === "paid")) {
+        dynamicStatus = "Confirmed";
+      }
+
+      return res.json({
+        success: true,
+        bidStatus: dynamicStatus,
+        totalSeatsAvailable,
+        seatsTaken,
+        retailBidsCount: retailBids.length,
+        paymentsCount: bidPayments.length,
+      });
+    } catch (err) {
+      console.error("Unexpected error fetching bid status:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch bid status",
+        error: err.message,
+      });
+    }
+  });
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
       const bookedSeats = retailBids.reduce((total, rb) => {

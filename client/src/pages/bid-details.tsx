@@ -82,7 +82,7 @@ export default function BidDetails() {
     queryFn: async () => {
       const userId = localStorage.getItem("userId");
       const response = await fetch(
-        `/api/bid-status/${bidId}?userId=${userId || ""}`,
+        `/api/bid-status/${bidId}/?userId=${userId || ""}`,
       );
       if (response.ok) {
         return await response.json();

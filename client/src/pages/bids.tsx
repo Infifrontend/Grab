@@ -25,6 +25,7 @@ import {
   UndoOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { log } from "console";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -123,24 +124,23 @@ export default function Bids() {
                 : "N/A";
 
           // Get total seats available from grab_t_bids table data
-          const totalSeatsAvailable = bid.totalSeatsAvailable || 
-                                    configData.totalSeatsAvailable || 
-                                    50; // Default fallback
+          const totalSeatsAvailable =
+            bid.totalSeatsAvailable || configData.totalSeatsAvailable || 50; // Default fallback
 
           // Fetch dynamic status based on seat availability and user payment status
           let dynamicStatus = "Open";
           let seatAvailability = null;
           const userId = localStorage.getItem("userId");
-
           try {
             const statusResponse = await fetch(
-              `/api/bid-status/${bid.id}?userId=${userId || ""}`,
+              `/api/bid-status/${bid.id}/?userId=${userId || ""}`,
             );
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";
               seatAvailability = {
-                totalSeatsAvailable: statusData.totalSeatsAvailable || totalSeatsAvailable,
+                totalSeatsAvailable:
+                  statusData.totalSeatsAvailable || totalSeatsAvailable,
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
@@ -167,7 +167,7 @@ export default function Bids() {
               userRetailBidStatus: null,
               paymentStatus: "open",
             };
-            
+
             // Fallback to enhanced static status mapping
             try {
               const notes = bid.notes ? JSON.parse(bid.notes) : {};
@@ -227,7 +227,8 @@ export default function Bids() {
             ).toFixed(2)}`,
             status: dynamicStatus,
             seatAvailability: seatAvailability,
-            totalSeatsFromGrabTBids: bid.totalSeatsAvailable || configData.totalSeatsAvailable || null,
+            totalSeatsFromGrabTBids:
+              bid.totalSeatsAvailable || configData.totalSeatsAvailable || null,
             payment:
               bid.bidStatus === "completed"
                 ? "Payment Completed"
@@ -553,7 +554,7 @@ export default function Bids() {
       render: (_, record) => {
         const seatAvailability = record.seatAvailability;
         const totalSeatsFromBid = record.totalSeatsFromGrabTBids;
-        
+
         if (seatAvailability && seatAvailability.totalSeatsAvailable) {
           return `${seatAvailability.seatsRemaining || 0} / ${seatAvailability.totalSeatsAvailable}`;
         } else if (totalSeatsFromBid) {
@@ -687,7 +688,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-blue-600">
-                { statistics.activeBids ? statistics.activeBids : "-"}
+                {statistics.activeBids ? statistics.activeBids : "-"}
               </Title>
             )}
           </Card>
@@ -732,7 +733,10 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-purple-600">
-                { formatCurrency(statistics.depositsPaid) && formatCurrency(statistics.depositsPaid)!= "NaN" ? `${formatCurrency(statistics.depositsPaid)}` : "-"}
+                {formatCurrency(statistics.depositsPaid) &&
+                formatCurrency(statistics.depositsPaid) != "NaN"
+                  ? `${formatCurrency(statistics.depositsPaid)}`
+                  : "-"}
               </Title>
             )}
           </Card>
@@ -747,7 +751,10 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-orange-600">
-                { formatCurrency(statistics.refundsReceived) && formatCurrency(statistics.refundsReceived)!= "NaN" ? `${formatCurrency(statistics.refundsReceived)}` : "-"}
+                {formatCurrency(statistics.refundsReceived) &&
+                formatCurrency(statistics.refundsReceived) != "NaN"
+                  ? `${formatCurrency(statistics.refundsReceived)}`
+                  : "-"}
               </Title>
             )}
           </Card>
