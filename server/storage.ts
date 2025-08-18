@@ -1508,42 +1508,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBidPaymentsByRetailBid(bidId: number): Promise<GrabTBidPayment[]> {
+  async getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]> {
     try {
-      if (!bidId || isNaN(bidId)) {
-        console.warn(`Invalid bid ID provided: ${bidId}`);
+      if (!retailBidId || isNaN(retailBidId)) {
+        console.warn(`Invalid retail bid ID provided: ${retailBidId}`);
         return [];
       }
 
-      // Get retail bids for this bid first
-      const retailBids = await this.getRetailBidsByBid(bidId);
-      if (!Array.isArray(retailBids) || retailBids.length === 0) {
-        console.log(`No retail bids found for bid ${bidId}`);
-        return [];
-      }
+      const payments = await db
+        .select()
+        .from(grabTBidPayments)
+        .where(eq(grabTBidPayments.rRetailBidId, retailBidId))
+        .orderBy(desc(grabTBidPayments.createdAt));
 
-      // Get all payments for retail bids of this bid
-      const allPayments = [];
-      for (const retailBid of retailBids) {
-        try {
-          const payments = await db
-            .select()
-            .from(grabTBidPayments)
-            .where(eq(grabTBidPayments.rRetailBidId, retailBid.id))
-            .orderBy(desc(grabTBidPayments.createdAt));
-          
-          if (Array.isArray(payments)) {
-            allPayments.push(...payments);
-          }
-        } catch (paymentError) {
-          console.warn(`Error fetching payments for retail bid ${retailBid.id}:`, paymentError);
-        }
-      }
-
-      console.log(`Found ${allPayments.length} payments for bid ${bidId}`);
-      return allPayments;
+      return Array.isArray(payments) ? payments : [];
     } catch (error) {
-      console.error("Error getting bid payments by bid:", error);
+      console.error("Error getting bid payments by retail bid:", error);
+      // Return empty array instead of throwing to prevent API failures
       return [];
     }
   }

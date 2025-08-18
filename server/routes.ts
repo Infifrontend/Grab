@@ -4047,37 +4047,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           configData.totalSeatsAvailable) ||
         100;
 
-      // Get all retail bids for this configuration with comprehensive error handling
+      // Get all retail bids for this configuration
       let retailBids = [];
       try {
-        const fetchedRetailBids = await storage.getRetailBidsByBid(parsedBidId);
-        retailBids = Array.isArray(fetchedRetailBids) ? fetchedRetailBids : [];
-        console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
+        retailBids = await storage.getRetailBidsByBid(parsedBidId);
+        // Ensure retailBids is an array
+        if (!Array.isArray(retailBids)) {
+          retailBids = [];
+        }
       } catch (error) {
-        console.warn(`Error fetching retail bids for bid ${bidId}:`, error.message);
+        console.warn(`Error fetching retail bids for bid ${bidId}:`, error);
         retailBids = [];
       }
 
       // Get all payments related to this bid to check for payment completion
       let bidPayments = [];
       try {
-        const fetchedBidPayments = await storage.getBidPaymentsByRetailBid(parsedBidId);
-        bidPayments = Array.isArray(fetchedBidPayments) ? fetchedBidPayments : [];
-        
-        // If no bid payments found, try regular payments as fallback
-        if (bidPayments.length === 0) {
-          try {
-            const fallbackPayments = await storage.getPaymentsByBidId(parsedBidId);
-            bidPayments = Array.isArray(fallbackPayments) ? fallbackPayments : [];
-          } catch (fallbackError) {
-            console.log("No fallback payments found for bid:", bidId);
-          }
+        bidPayments = await storage.getBidPaymentsByRetailBid(parsedBidId);
+        if (!Array.isArray(bidPayments)) {
+          bidPayments = [];
         }
-        
-        console.log(`Found ${bidPayments.length} payments for bid ${bidId}`);
       } catch (error) {
-        console.warn(`Error fetching payments for bid ${bidId}:`, error.message);
-        bidPayments = [];
+        // If no bid payments found, try regular payments as fallback
+        try {
+          bidPayments = await storage.getPaymentsByBidId(parsedBidId);
+          if (!Array.isArray(bidPayments)) {
+            bidPayments = [];
+          }
+        } catch (fallbackError) {
+          console.log("No payments found for bid:", bidId);
+          bidPayments = [];
+        }
       }
 
       // Calculate booked seats from retail bids with status 'under_review', 'paid', or 'approved'
@@ -4110,28 +4110,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId && !isNaN(parseInt(userId as string))) {
         const currentUserId = parseInt(userId as string);
 
-        // Check if THIS user has a retail bid for this bid_id with null safety
+        // Check if THIS user has a retail bid for this bid_id
         const userRetailBid = retailBids.find((rb) => {
-          try {
-            if (!rb || typeof rb !== 'object') return false;
-            const rbUserId = rb.userId || rb.rUserId;
-            return rbUserId === currentUserId;
-          } catch (e) {
-            console.warn("Error checking user retail bid:", e);
-            return false;
-          }
+          if (!rb) return false;
+          return rb.userId === currentUserId || rb.rUserId === currentUserId;
         });
 
-        // Check if this user has made a payment for this bid with null safety
+        // Check if this user has made a payment for this bid (check by userId in payments table)
         const userPayment = bidPayments.find((payment) => {
-          try {
-            if (!payment || typeof payment !== 'object') return false;
-            const paymentUserId = payment.userId || payment.rUserId;
-            return paymentUserId === currentUserId;
-          } catch (e) {
-            console.warn("Error checking user payment:", e);
-            return false;
-          }
+          if (!payment) return false;
+          return (
+            payment.userId === currentUserId ||
+            payment.rUserId === currentUserId
+          );
         });
 
         // Check bid notes for payment completion by this user (user-specific tracking)
@@ -4157,22 +4148,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userPaidFromBidNotes = false;
         }
 
-        // Determine if this specific user has paid with comprehensive checks
-        try {
-          hasUserPaid =
-            (userRetailBid &&
-              typeof userRetailBid === 'object' &&
-              (userRetailBid.status === "under_review" ||
-                userRetailBid.status === "paid" ||
-                userRetailBid.status === "approved" ||
-                userRetailBid.rStatus === 2 || // under_review
-                userRetailBid.rStatus === 3)) || // paid/approved
-            userPayment !== undefined ||
-            userPaidFromBidNotes;
-        } catch (statusError) {
-          console.warn("Error determining user payment status:", statusError);
-          hasUserPaid = false;
-        }
+        // Determine if this specific user has paid
+        hasUserPaid =
+          (userRetailBid &&
+            (userRetailBid.status === "under_review" ||
+              userRetailBid.status === "paid" ||
+              userRetailBid.status === "approved")) ||
+          userPayment !== undefined ||
+          userPaidFromBidNotes;
 
         if (hasUserPaid) {
           // User has paid - show their specific status
@@ -4224,7 +4207,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if ALL seats are booked (bid should be closed for everyone who hasn't paid)
-      const bidFullyBooked = availableSeats <= 0;
       if (bidFullyBooked && !hasUserPaid) {
         displayStatus = "Closed";
         statusForUser = "closed";
@@ -4254,9 +4236,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return payment && payment.r_status === 3;
           })
           .map((rb) => rb.rUserId),
-        bid: bidDetails?.bid || null,
-        retailBids: retailBids || [],
-        payments: bidPayments || [],
+        bid: bid,
+        retailBids: retailBids,
+        payments: bidPayments,
       });
     } catch (error) {
       console.error("Error fetching bid status:", error);
