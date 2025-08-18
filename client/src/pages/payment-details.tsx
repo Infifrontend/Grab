@@ -42,7 +42,7 @@ export default function PaymentDetails() {
       const storedData = localStorageAccessor("bidParticipationData")?.[0]();
 
       if (storedData) {
-        const parsedData = JSON.parse(storedData);
+        const parsedData = storedData;
         // Ensure configData exists with fallback values
         if (!parsedData.configData) {
           parsedData.configData = {
