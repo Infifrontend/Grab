@@ -2387,7 +2387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         bidId,
-        userId: requestUserId,
+        user_id: requestUserId,
         bookingId,
         amount,
         currency,
