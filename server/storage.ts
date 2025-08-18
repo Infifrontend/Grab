@@ -1607,16 +1607,21 @@ export class DatabaseStorage implements IStorage {
         maxSeatsPerUser: maxSeatsPerUser
       });
 
+      // Ensure proper data types before insertion
+      const validatedBid = {
+        rBidId: parseInt(bid.bidId),
+        rUserId: parseInt(bid.userId),
+        submittedAmount: parseFloat(bid.submittedAmount).toString(), // Ensure decimal format
+        seatBooked: parseInt(bid.passengerCount),
+        rStatus: 1 // Set initial status (1 = submitted)
+      };
+
+      console.log("Validated retail bid data for insertion:", validatedBid);
+
       // Insert the retail bid into the database
       const [newRetailBid] = await db
         .insert(grabTRetailBids)
-        .values({
-          rBidId: bid.bidId, // Use bidId from the InsertRetailBid interface
-          rUserId: bid.userId, // Use rUserId instead of userId
-          submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
-          seatBooked: bid.passengerCount, // Use seatBooked instead of passengerCount
-          rStatus: 1 // Set initial status (assuming 1 = submitted)
-        })
+        .values(validatedBid)
         .returning();
 
       console.log("Retail bid created successfully:", newRetailBid);

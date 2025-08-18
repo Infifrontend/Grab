@@ -220,27 +220,41 @@ export default function PaymentDetails() {
           throw new Error("Bid participation data is missing. Please go back and enter your bid details.");
         }
 
-        // Validate data before sending
-        const retailBidData = {
-          bidId: parseInt(bidId),
-          userId: parseInt(userId),
-          submittedAmount: bidParticipationData.bidAmount || 0,
-          passengerCount: bidParticipationData.passengerCount || 1,
-        };
+        // Ensure bidId and userId are valid
+        const validBidId = parseInt(bidId);
+        const validUserId = parseInt(userId);
 
-        // Additional validation
-        if (!retailBidData.bidId || isNaN(retailBidData.bidId)) {
+        if (isNaN(validBidId) || validBidId <= 0) {
           throw new Error("Invalid bid ID");
         }
-        if (!retailBidData.userId || isNaN(retailBidData.userId)) {
+        if (isNaN(validUserId) || validUserId <= 0) {
           throw new Error("Invalid user ID");
         }
+
+        // Prepare retail bid data with exact field names expected by the API
+        const retailBidData = {
+          bidId: validBidId,
+          userId: validUserId,
+          submittedAmount: parseFloat(bidParticipationData.bidAmount) || parseFloat(bidParticipationData.totalBid) || 0,
+          passengerCount: parseInt(bidParticipationData.passengerCount) || 1,
+        };
+
+        // Additional validation with detailed error messages
         if (!retailBidData.submittedAmount || retailBidData.submittedAmount <= 0) {
-          throw new Error("Invalid bid amount");
+          throw new Error(`Invalid bid amount: ${retailBidData.submittedAmount}. Please check your bid details.`);
         }
         if (!retailBidData.passengerCount || retailBidData.passengerCount <= 0) {
-          throw new Error("Invalid passenger count");
+          throw new Error(`Invalid passenger count: ${retailBidData.passengerCount}. Must be at least 1.`);
         }
+
+        // Log the data being sent for debugging
+        console.log("Retail bid data validation passed:", {
+          bidId: retailBidData.bidId,
+          userId: retailBidData.userId,
+          submittedAmount: retailBidData.submittedAmount,
+          passengerCount: retailBidData.passengerCount,
+          originalBidParticipationData: bidParticipationData
+        });
 
         console.log("Retail bid data being sent:", retailBidData);
 

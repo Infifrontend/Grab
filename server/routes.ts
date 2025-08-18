@@ -3377,10 +3377,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate required fields with specific error messages
       const missingFields = [];
-      if (!bidId) missingFields.push('bidId');
-      if (!userId) missingFields.push('userId');
-      if (!submittedAmount) missingFields.push('submittedAmount');
-      if (!passengerCount) missingFields.push('passengerCount');
+      const invalidFields = [];
+
+      // Check for missing fields
+      if (bidId === undefined || bidId === null) missingFields.push('bidId');
+      if (userId === undefined || userId === null) missingFields.push('userId');
+      if (submittedAmount === undefined || submittedAmount === null) missingFields.push('submittedAmount');
+      if (passengerCount === undefined || passengerCount === null) missingFields.push('passengerCount');
+
+      // Check for invalid field types/values
+      if (bidId && (isNaN(parseInt(bidId)) || parseInt(bidId) <= 0)) invalidFields.push('bidId (must be positive integer)');
+      if (userId && (isNaN(parseInt(userId)) || parseInt(userId) <= 0)) invalidFields.push('userId (must be positive integer)');
+      if (submittedAmount && (isNaN(parseFloat(submittedAmount)) || parseFloat(submittedAmount) <= 0)) invalidFields.push('submittedAmount (must be positive number)');
+      if (passengerCount && (isNaN(parseInt(passengerCount)) || parseInt(passengerCount) <= 0)) invalidFields.push('passengerCount (must be positive integer)');
 
       if (missingFields.length > 0) {
         console.log('Missing fields in retail bid submission:', missingFields);
@@ -3388,6 +3397,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: `Missing required fields: ${missingFields.join(', ')}`,
+          receivedData: { bidId, userId, submittedAmount, passengerCount }
+        });
+      }
+
+      if (invalidFields.length > 0) {
+        console.log('Invalid fields in retail bid submission:', invalidFields);
+        return res.status(400).json({
+          success: false,
+          message: `Invalid field values: ${invalidFields.join(', ')}`,
           receivedData: { bidId, userId, submittedAmount, passengerCount }
         });
       }
@@ -3608,12 +3626,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
+      // Parse and validate the input data
+      const parsedBidId = parseInt(bidId);
+      const parsedUserId = parseInt(userId);
+      const parsedSubmittedAmount = parseFloat(submittedAmount);
+      const parsedPassengerCount = parseInt(passengerCount);
+
+      console.log("Parsed retail bid data:", {
+        parsedBidId,
+        parsedUserId,
+        parsedSubmittedAmount,
+        parsedPassengerCount
+      });
+
       // Create retail bid submission with status 'submitted'
       const retailBidData = {
-        rBidId: parseInt(bidId),
-        rUserId: parseInt(userId), // Use rUserId instead of userId
-        submittedAmount: submittedAmount.toString(),
-        seatBooked: parseInt(passengerCount), // Use seatBooked instead of passengerCount
+        rBidId: parsedBidId,
+        rUserId: parsedUserId,
+        submittedAmount: parsedSubmittedAmount.toString(),
+        seatBooked: parsedPassengerCount,
         rStatus: 1, // Set initial status (1 = submitted, 2 = under_review, 3 = approved, 4 = open/active)
       };
 

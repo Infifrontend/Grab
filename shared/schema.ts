@@ -442,6 +442,14 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type RetailBid = typeof retailBids.$inferSelect;
 export type InsertRetailBid = z.infer<typeof insertRetailBidSchema>;
+
+// Extended interface for API retail bid submission
+export interface RetailBidSubmission {
+  bidId: number;
+  userId: number;
+  submittedAmount: number;
+  passengerCount: number;
+}
 export type GrabTRetailBid = typeof grabTRetailBids.$inferSelect;
 export type InsertGrabTRetailBid = z.infer<typeof insertGrabTRetailBidSchema>;
 export type GrabTBidPayment = typeof grabTBidPayments.$inferSelect;
