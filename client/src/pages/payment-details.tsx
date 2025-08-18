@@ -92,8 +92,8 @@ export default function PaymentDetails() {
                       configData.travelDate ||
                       (bidData.flight?.departureTime
                         ? new Date(bidData.flight.departureTime)
-                          .toISOString()
-                          .split("T")[0]
+                            .toISOString()
+                            .split("T")[0]
                         : "Unknown"),
                   },
                 };
@@ -256,7 +256,7 @@ export default function PaymentDetails() {
         const errorData = await paymentResponse.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
-          `Payment processing failed: ${paymentResponse.status}`,
+            `Payment processing failed: ${paymentResponse.status}`,
         );
       }
 
@@ -360,7 +360,7 @@ export default function PaymentDetails() {
                       Total Bid Amount:
                     </Text>
                     <Text className="text-gray-900 font-semibold text-lg">
-                      ${bidParticipationData.totalBid.toLocaleString()}
+                      ${bidParticipationData.totalBid?.toLocaleString()}
                     </Text>
                   </Col>
                   <Col span={12}>
@@ -368,7 +368,7 @@ export default function PaymentDetails() {
                       Deposit Required:
                     </Text>
                     <Text className="text-blue-600 font-bold text-xl">
-                      ${bidParticipationData.totalBid.toLocaleString()}
+                      ${bidParticipationData.totalBid?.toLocaleString()}
                     </Text>
                   </Col>
                 </Row>
@@ -558,7 +558,7 @@ export default function PaymentDetails() {
                 <div className="flex justify-between">
                   <Text className="text-gray-600">Total Bid Amount</Text>
                   <Text className="text-gray-900 font-semibold">
-                    ${bidParticipationData.totalBid.toLocaleString()}
+                    ${bidParticipationData.totalBid?.toLocaleString()}
                   </Text>
                 </div>
 
@@ -580,11 +580,11 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${bidParticipationData.totalBid.toLocaleString()} & Submit
+                Pay ${bidParticipationData.totalBid?.toLocaleString()} & Submit
                 Bid
               </Button>
             </Card>
-          </Col>
+          </Col>   
         </Row>
       </div>
 
