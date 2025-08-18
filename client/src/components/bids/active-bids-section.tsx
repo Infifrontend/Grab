@@ -50,9 +50,6 @@ export default function ActiveBidsSection() {
     },
   });
 
-  console.log(activeBids,'nnnnnnnnnn');
-  
-
   const calculateTimeLeft = (validUntil: string) => {
     const now = new Date();
     const expiry = new Date(validUntil);
@@ -82,7 +79,7 @@ export default function ActiveBidsSection() {
     if (bid.retailBids && bid.retailBids.length > 0) {
       const hasUnderReview = bid.retailBids.some(rb => rb.rStatus === 2);
       const hasApproved = bid.retailBids.some(rb => rb.rStatus === 3);
-      
+
       if (hasApproved) {
         return { status: "Approved", color: "green" };
       }
@@ -186,19 +183,18 @@ export default function ActiveBidsSection() {
       style={{ backgroundColor: "var(--infiniti-bg-container)" }}
     >
       {/* Header */}
-      <div className="section-header relative">
-        <Tag className="limited-time-badge">Live Bidding</Tag>
-        <h2 className="text-xl font-semibold mb-1">Active Bids</h2>
+      <div className="section-header flex gap-2 items-center relative">
+        <Tag className="limited-time-badge top-3">Live Bidding</Tag>
+        <h2 className="text-xl font-semibold mb-1">Active Bids</h2> -
         <p className="text-sm opacity-90">
           Current open and active group travel bids
         </p>
       </div>
 
+
       {/* Active Bids Content */}
       <div
-        className="p-6"
-        style={{ backgroundColor: "var(--infiniti-bg-container)" }}
-      >
+        className="p-6 bg-gray-200">
         {activeBids.map((bid, index) => {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);
@@ -211,47 +207,55 @@ export default function ActiveBidsSection() {
           return (
             <div
               key={bid.id}
-              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${
-                activeBids.length !== index + 1 ? "mb-4" : ""
-              }`}
+              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${activeBids.length !== index + 1 ? "mb-4" : ""
+                }`}
             >
               {/* Header Row */}
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-5">
                 <div>
-                  <h3 className="font-semibold text-gray-900" style={{fontSize:"1.15rem"}}>
+                  <h3 className="font-semibold text-gray-900" style={{ fontSize: "1.15rem" }}>
                     {bidTitle}
                   </h3>
-                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
-                    <Plane className="w-4 h-4" />
-                    <span>
-                      {(() => {
-                        try {
-                          const configData = bid.notes ? JSON.parse(bid.notes) : {};
-                          const origin = configData.origin || bid.flight?.origin || "Unknown";
-                          const destination = configData.destination || bid.flight?.destination || "Unknown";
-                          return `${origin} → ${destination}`;
-                        } catch (e) {
-                          return "Unknown → Unknown";
-                        }
-                      })()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
-                    <Users className="w-4 h-4" />
-                    <span>{bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats available</span>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                      <Plane className="w-4 h-4" />
+                      <span>
+                        {(() => {
+                          try {
+                            const configData = bid.notes ? JSON.parse(bid.notes) : {};
+                            const origin = configData.origin || bid.flight?.origin || "Unknown";
+                            const destination = configData.destination || bid.flight?.destination || "Unknown";
+                            return `${origin} → ${destination}`;
+                          } catch (e) {
+                            return "Unknown → Unknown";
+                          }
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                      <Users className="w-4 h-4" />
+                      <span>{bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats available</span>
+                    </div>
+
                   </div>
                 </div>
-                <Tag color={statusInfo.color} className="text-xs">
-                  {statusInfo.status}
-                </Tag>
+                <div className="flex flex-col gap-2 items-center">
+                  <Tag color={statusInfo.color} className="text-xs">
+                    {statusInfo.status}
+                  </Tag>
+                  <div className="flex items-center gap-1 text-blue-600 text-sm">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs">{timeLeft}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Bid Details Row */}
-              <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="grid grid-cols-4 gap-4 mb-3 items-center">
                 <div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
                     <DollarSign className="w-4 h-4" />
-                    <span>Bid Amount</span>
+                    <span className="text-sm">Bid Amount</span>
                   </div>
                   <div className="font-bold text-lg text-green-600">
                     ${bid.bidAmount}
@@ -261,34 +265,28 @@ export default function ActiveBidsSection() {
                 <div>
                   <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
                     <span>💳</span>
-                    <span>Payment</span>
+                    <span className="text-sm">Payment</span>
                   </div>
                   <div className="font-semibold text-green-600">
                     Deposit Paid
                   </div>
                   <div className="text-xs text-gray-500">$2,125</div>
                 </div>
-              </div>
-
-              {/* Footer Row */}
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                {/* Footer Row */}
+                {/* <div className="flex justify-between items-center pt-3 border-t border-gray-100"> */}
                 <div className="text-sm text-gray-500">{createdDate}</div>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 text-blue-600 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>{timeLeft}</span>
-                  </div>
-                  <a
-                    href={`/bid-details/${bid.id}`}
+                  <Button
                     onClick={(e) => {
                       e.preventDefault();
                       navigate(`/bid-details/${bid.id}`);
                     }}
-                    className="text-blue-700 hover:text-blue-800 text-sm font-medium underline cursor-pointer"
+                    type='default'
                   >
                     View Details
-                  </a>
+                  </Button>
                 </div>
+                {/* </div> */}
               </div>
             </div>
           );

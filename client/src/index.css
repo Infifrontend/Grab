@@ -128,7 +128,7 @@
   .lg\:col-span-7 .deal-card,
   .lg\:col-span-5>.ant-card,
   .lg\:col-span-7>.ant-card {
-    height: 600px;
+    height: 580px;
     display: flex;
     flex-direction: column;
   }
@@ -541,4 +541,26 @@
   content: '|';
   position: absolute;
   left: 0px;
+}
+
+.custom-collapse {
+  background-color: white !important;
+
+  .ant-collapse-header {
+    border-bottom: none !important;
+    padding: 25px !important;
+    align-items: center !important;
+    border-radius: 12px;
+
+    /* border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); */
+    h3 {
+
+      font-size: 18px !important;
+    }
+  }
+
+  .ant-collapse-content {
+    border: 0px;
+  }
 }

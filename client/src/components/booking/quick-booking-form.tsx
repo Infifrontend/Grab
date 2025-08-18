@@ -120,7 +120,7 @@ export default function QuickBookingForm() {
     },
   });
 
-  const handleSubmit = async (values: any) => {    
+  const handleSubmit = async (values: any) => {
     values.tripType = tripType
     localStorage.setItem("bookingFormData", JSON.stringify(values));
     if (!values.origin || !values.destination || !values.departureDate) {
@@ -196,7 +196,7 @@ export default function QuickBookingForm() {
 
   return (
     <Card className="h-fit">
-      <div className="mb-6">
+      <div className="mb-5">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">
           Quick Booking
         </h2>
@@ -206,7 +206,7 @@ export default function QuickBookingForm() {
       </div>
 
       {/* Trip Type Selection */}
-      <div className="mb-6">
+      <div className="mb-5">
         <Radio.Group
           value={tripType}
           onChange={(e) => setTripType(e.target.value)}
@@ -234,6 +234,7 @@ export default function QuickBookingForm() {
               label="Origin *"
               name="origin"
               rules={[{ required: true, message: "Please select origin" }]}
+              className="mb-3"
             >
               <Select
                 mode="combobox"
@@ -260,6 +261,7 @@ export default function QuickBookingForm() {
               label="Destination *"
               name="destination"
               rules={[{ required: true, message: "Please select destination" }]}
+              className="mb-3"
             >
               <Select
                 mode="combobox"
@@ -292,6 +294,7 @@ export default function QuickBookingForm() {
               rules={[
                 { required: true, message: "Please select departure date" },
               ]}
+              className="mb-3"
             >
               <DatePicker
                 className="w-full"
@@ -305,7 +308,8 @@ export default function QuickBookingForm() {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Return date" name="returnDate">
+            <Form.Item label="Return date" className="mb-3"
+              name="returnDate">
               <DatePicker
                 className="w-full"
                 placeholder="DD MMM YYYY"
@@ -318,7 +322,7 @@ export default function QuickBookingForm() {
         </Row>
 
         {/* Passengers */}
-        <div className="mb-4">
+        <div className="mb-3">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Passengers *
           </label>

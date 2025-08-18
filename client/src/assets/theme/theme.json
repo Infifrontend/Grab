@@ -8,8 +8,16 @@
         "colorPrimaryActive": "rgb(253,150,70)",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
         "colorLink": "#133769",
+        "defaultActiveBg": "rgb(255,255,255)",
+        "defaultActiveBorderColor": "#133769",
+        "defaultHoverBorderColor": "#133769",
+        "defaultActiveColor": "#133769",
+        "defaultHoverColor": "#133769",
+        "defaultBorderColor": "#133769",
+        "defaultColor": "#133769",
+        "defaultBg": "#FFFFFF",
         "controlHeight": 40,
-        "lineWidth": 0,
+        "lineWidth": 1,
         "borderRadius": 6
       },
       "Switch": {

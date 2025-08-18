@@ -8,16 +8,20 @@ import {
   Checkbox,
   Badge,
   Tabs,
+  Collapse
 } from "antd";
 import {
   ArrowLeftOutlined,
   CheckOutlined,
+  DownOutlined,
   MinusOutlined,
   PlusOutlined,
+  UpOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import BookingSteps from "@/components/booking/booking-steps";
 import BookingSummary from "@/components/booking-summary/booking-summary";
+import { Color } from "antd/es/color-picker";
 
 const { Title, Text } = Typography;
 
@@ -26,12 +30,13 @@ interface BundleOption {
   name: string;
   description: string;
   originalPrice: number;
+  offerPercentage:number;
   discountedPrice: number;
   savings: number;
   features: string[];
   popular?: boolean;
-  icon: string;
   color: string;
+  highLight: string;
 }
 
 interface IndividualService {
@@ -50,11 +55,11 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 59,
     discountedPrice: 29,
     savings: 30,
+    offerPercentage:20,
     popular: false,
-    icon: "💳",
     color: "blue",
+    highLight:"Convenience",
     features: [
-      "Convenience",
       "Pay 50% now, 50% later",
       "No interest charges",
       "Automatic payment reminders",
@@ -68,10 +73,10 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 39,
     discountedPrice: 19,
     savings: 20,
-    icon: "📅",
+    offerPercentage:20,
     color: "green",
+    highLight: "Flexibility",
     features: [
-      "Flexibility",
       "Reserve seats immediately",
       "Add passenger names up to 30 days before travel",
       "Email reminders for pending details",
@@ -85,10 +90,10 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 65,
     discountedPrice: 45,
     savings: 20,
-    icon: "🛡️",
+    offerPercentage:20,
     color: "purple",
+    highLight:"Peace of Mind",
     features: [
-      "Peace of Mind",
       "One free date change per booking",
       "Waived change fees",
       "Subject to fare difference only",
@@ -102,10 +107,10 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 85,
     discountedPrice: 65,
     savings: 20,
-    icon: "✅",
+    offerPercentage:20,
     color: "red",
+    highLight:"Full Protection",
     features: [
-      "Full Protection",
       "100% refund if cancelled 48+ hours before",
       "75% refund if cancelled 24-48 hours before",
       "No questions asked policy",
@@ -119,10 +124,10 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 35,
     discountedPrice: 25,
     savings: 10,
-    icon: "👥",
+    offerPercentage:20,
     color: "orange",
+    highLight:"Group Convenience",
     features: [
-      "Group Convenience",
       "Split payment among up to 10 people",
       "Individual payment links",
       "Automatic payment tracking",
@@ -136,10 +141,10 @@ const premiumBundles: BundleOption[] = [
     originalPrice: 119,
     discountedPrice: 89,
     savings: 30,
-    icon: "⭐",
+    offerPercentage:20,
     color: "gold",
+    highLight: "Best Value",
     features: [
-      "Best Value",
       "Includes FlexPay Plus",
       "Includes Schedule Shield",
       "Includes Worry-Free Cancellation",
@@ -158,10 +163,10 @@ const standardBundles: BundleOption[] = [
     discountedPrice: 89,
     savings: 30,
     popular: true,
-    icon: "🎯",
+    offerPercentage:20,
     color: "green",
+    highLight:"Priority boarding",
     features: [
-      "Priority boarding",
       "Extra legroom seat",
       "Premium meal",
       "1 additional checked bag",
@@ -175,10 +180,10 @@ const standardBundles: BundleOption[] = [
     originalPrice: 200,
     discountedPrice: 149,
     savings: 51,
-    icon: "💼",
+    offerPercentage:20,
     color: "blue",
+    highLight:"Lounge access",
     features: [
-      "Lounge access",
       "Fast-track security",
       "Premium seat selection",
       "Wi-Fi access",
@@ -192,10 +197,10 @@ const standardBundles: BundleOption[] = [
     originalPrice: 85,
     discountedPrice: 65,
     savings: 20,
-    icon: "👨‍👩‍👧‍👦",
+    offerPercentage:20,    
     color: "orange",
+    highLight:"Kids meal",
     features: [
-      "Kids meal",
       "Entertainment package",
       "Priority family boarding",
       "Extra baggage allowance",
@@ -203,6 +208,113 @@ const standardBundles: BundleOption[] = [
     ],
   },
 ];
+const servicesForm = [
+  {
+    id: "seat-selection",
+    title: "Seat Selection",
+    description: "Choose your preferred seat",
+    price: 25,
+    highLight: "Comfort",
+    color: "blue",
+  },
+  {
+    id: "airport-lounge",
+    title: "Airport Lounge Access",
+    description: "Relax in premium lounges",
+    price: 40,
+    highLight: "VIP Access",
+    color: "purple",
+  },
+  {
+    id: "extra-legroom",
+    title: "Extra Legroom Seat",
+    description: "More space to stretch out",
+    price: 40,
+    highLight: "More Space",
+    color: "teal",
+  },
+  {
+    id: "extra-baggage",
+    title: "Extra Baggage (23kg)",
+    description: "Additional checked baggage",
+    price: 45,
+    highLight: "Extra Capacity",
+    color: "orange",
+  },
+  {
+    id: "priority-baggage",
+    title: "Priority Baggage",
+    description: "First off the carousel",
+    price: 20,
+    highLight: "First Pick",
+    color: "red",
+  },
+  {
+    id: "priority-boarding",
+    title: "Priority Boarding",
+    description: "Board the aircraft first",
+    price: 15,
+    highLight: "Skip the Line",
+    color: "green",
+  },
+  {
+    id: "fast-track-security",
+    title: "Fast Track Security",
+    description: "Skip the security queues",
+    price: 25,
+    highLight: "Speed Pass",
+    color: "yellow",
+  },
+  {
+    id: "premium-meal",
+    title: "Premium Meal",
+    description: "Upgrade your in-flight dining",
+    price: 35,
+    highLight: "Gourmet",
+    color: "pink",
+  },
+  {
+    id: "inflight-wifi",
+    title: "In-flight WiFi",
+    description: "Stay connected during your flight",
+    price: 20,
+    highLight: "Stay Online",
+    color: "cyan",
+  },
+  {
+    id: "travel-insurance",
+    title: "Travel Insurance",
+    description: "Comprehensive travel protection",
+    price: 55,
+    highLight: "Peace of Mind",
+    color: "indigo",
+  },
+];
+
+const bundleSections = [
+  {
+    key: "premium",
+    title: "Special Bundles",
+    description: "Ultimate flexibility and peace of mind packages",
+    data: premiumBundles,
+    type: "bundle", // to decide rendering style
+  },
+  {
+    key: "standard",
+    title: "Popular Bundles",
+    description: "Ultimate flexibility and peace of mind packages",
+    data: standardBundles,
+    type: "bundle",
+  },
+  {
+    key: "services",
+    title: "Individual Services",
+    description: "Ultimate flexibility and peace of mind packages",
+    data: servicesForm,
+    type: "service",
+  },
+];
+
 
 const services: Record<string, IndividualService[]> = {
   comfort: [
@@ -435,7 +547,7 @@ export default function AddServicesBundles() {
     isSelected: boolean;
     onToggle: () => void;
   }) => (
-    <div className="relative">
+    <div className="relative h-full">
       {bundle.popular && (
         <div className="absolute -top-3 left-4 z-10">
           <Badge
@@ -454,12 +566,6 @@ export default function AddServicesBundles() {
         onClick={onToggle}
       >
         <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl bg-${bundle.color}-100`}
-            >
-              {bundle.icon}
-            </div>
             <div>
               <Title level={5} className="!mb-1">
                 {bundle.name}
@@ -468,25 +574,9 @@ export default function AddServicesBundles() {
                 {bundle.description}
               </Text>
             </div>
-          </div>
           <Checkbox checked={isSelected} />
         </div>
-
-        <div className="mb-4">
-          <div className="flex items-baseline gap-2">
-            <Text className="text-2xl font-bold">
-              ${bundle.discountedPrice}
-            </Text>
-            <Text className="text-gray-500 line-through text-sm">
-              ${bundle.originalPrice}
-            </Text>
-            <Text className="text-green-600 font-medium text-sm">
-              Save ${bundle.savings}
-            </Text>
-          </div>
-        </div>
-
-        <div className="space-y-2">
+        <div className="space-y-2 bg-gray-100 p-3 rounded-md">
           {bundle.features.map((feature, index) => (
             <div key={index} className="flex items-center gap-2">
               <CheckOutlined className="text-green-500 text-xs" />
@@ -494,6 +584,28 @@ export default function AddServicesBundles() {
             </div>
           ))}
         </div>
+
+        <div className="my-4 py-2 border-t border-gray-200">
+          <div className="flex items-baseline gap-2">
+            <Text className="text-2xl font-bold">
+              ${bundle.discountedPrice}
+            </Text>
+            <Text className="text-gray-500 line-through text-sm">
+              ${bundle.originalPrice}
+            </Text>
+            <div className="bg-green-200 rounded-lg py-1 px-2">
+                <Text className="font-bold text  text-green-700 text-sm">{bundle.offerPercentage}% OFF</Text>            
+            </div>
+            
+          </div>
+            <Text className="ont-bold  text-green-600 font-medium text-sm block">
+              Save ${bundle.savings}
+            </Text>
+        </div>
+        <div className="rounded-lg py-1 px-2 absolute -top-2.5 -right-2.5" style={{ backgroundColor: bundle.color }}>
+          <Text className="font-bold text-white text-sm">{bundle.highLight}</Text>
+        </div>
+
       </Card>
     </div>
   );
@@ -507,7 +619,7 @@ export default function AddServicesBundles() {
     count: number;
     onUpdate: (count: number) => void;
   }) => (
-    <div className="flex justify-between items-center py-4">
+    <div className="py-4  bg-white rounded-xl ">
       <div className="flex-1">
         <Title level={5} className="!mb-1">
           {service.name}
@@ -577,7 +689,7 @@ export default function AddServicesBundles() {
       </div>
 
       {/* Premium Bundles */}
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <div className="flex items-center gap-2 mb-6">
           <Title level={3} className="!mb-0 text-gray-800">
             Special Bundles
@@ -595,586 +707,258 @@ export default function AddServicesBundles() {
             </Col>
           ))}
         </Row>
-      </div>
+      </div> */}
+
+       {/* Premium Bundles */}
+      {/* <div className="mb-8">
+        <Collapse
+          size="large"
+          expandIconPosition="end"
+          expandIcon={({ isActive }) =>
+            isActive ? <UpOutlined /> : <DownOutlined />
+          }
+          className="custom-collapse rounded-lg"
+          items={[
+            {
+              key: "1",
+              label: (
+                <><Title level={3} className="!mb-1 text-black text-md">
+                  Special Bundles
+                </Title><Text className="text-gray-600 ">Ultimate flexibility and peace of mind packages</Text></>
+              ),
+              children: (
+                <Row gutter={[24, 24]}>
+                  {premiumBundles.map((bundle) => (
+                    <Col xs={24} lg={8} key={bundle.id}>
+                      <BundleCard
+                        bundle={bundle}
+                        isSelected={selectedBundles.includes(bundle.id)}
+                        onToggle={() => toggleBundle(bundle.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+              ),
+            },
+          ]}
+        />
+      </div> */}
+
+        {/* Premium Bundles */}
+      {/* <div className="mb-8">
+        <Collapse
+          size="large"
+          expandIconPosition="end"
+          expandIcon={({ isActive }) =>
+            isActive ? <UpOutlined /> : <DownOutlined />
+          }
+          className="custom-collapse"
+          items={[
+            {
+              key: "1",
+              label: (
+                <><Title level={3} className="!mb-1 text-black">
+                  Popular Bundles
+                </Title><Text className="text-gray-600 ">Ultimate flexibility and peace of mind packages</Text></>
+              ),
+              children: (
+                <Row gutter={[24, 24]}>
+                  {standardBundles.map((bundle) => (
+                    <Col xs={24} lg={8} key={bundle.id}>
+                      <BundleCard
+                        bundle={bundle}
+                        isSelected={selectedBundles.includes(bundle.id)}
+                        onToggle={() => toggleBundle(bundle.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+              ),
+            },
+          ]}
+        />
+      </div> */}
 
       {/* Standard Bundles */}
+
+{/* 
       <div className="mb-8">
-        <Title level={3} className="!mb-6 text-gray-800">
-          Popular Bundles
-        </Title>
+        <Collapse
+          size="large"
+          expandIconPosition="end"
+          expandIcon={({ isActive }) =>
+            isActive ? <UpOutlined /> : <DownOutlined />
+          }
+          className="custom-collapse"
+          items={[
+            {
+              key: "1",
+              label: (
+                <><Title level={3} className="!mb-1 text-black">
+                  Individual Services
+                </Title><Text className="text-gray-600 ">Ultimate flexibility and peace of mind packages</Text></>
+              ),
+              children: (
+                <Row gutter={[24, 24]}>
+                {servicesForm.map((service:any) => (
+                  <Col xs={24} md={12} lg={6} key={service.id} className="items-stretch">
+                    <Card className="py-4 bg-white rounded-xl shadow-md">
+                      <div className="flex-1">
+                        <Title level={5} className="!mb-1">
+                          {service.title}
+                        </Title>
+                        <Text className="text-gray-600 text-sm">
+                          {service.description}
+                        </Text>
+                      </div>
+                      <div className="flex justify-between border-t pt-3 mt-3">
+                        <Text className="font-bold text-lg">${service.price}</Text>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            icon={<MinusOutlined />}
+                            size="small"
+                            className="border"
+                            onClick={() =>
+                              updateServiceCount(
+                                service.id,
+                                (individualServiceCounts[service.id] || 0) - 1
+                              )
+                            }
+                            disabled={(individualServiceCounts[service.id] || 0) === 0}
+                          />
+                          <span className="mx-3 min-w-[2rem] text-center">
+                            {individualServiceCounts[service.id] || 0}
+                          </span>
+                          <Button
+                            icon={<PlusOutlined />}
+                            size="small"
+                            className="border"
+                            onClick={() =>
+                              updateServiceCount(
+                                service.id,
+                                (individualServiceCounts[service.id] || 0) + 1
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="rounded-lg py-1 px-2 absolute -top-2.5 -right-2.5" style={{ backgroundColor: service.color }}>
+                        <Text className="font-bold text-white text-sm">{service.highLight}</Text>
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+              ),
+            },
+          ]}
+        />
+      </div> */}
 
-        <Row gutter={[24, 24]}>
-          {standardBundles.map((bundle) => (
-            <Col xs={24} lg={8} key={bundle.id}>
-              <BundleCard
-                bundle={bundle}
-                isSelected={selectedBundles.includes(bundle.id)}
-                onToggle={() => toggleBundle(bundle.id)}
-              />
-            </Col>
-          ))}
-        </Row>
-      </div>
-
-      {/* Individual Services */}
-      <div className="mb-8">
-        <Title level={3} className="!mb-6 text-gray-800">
-          Individual Services
-        </Title>
-
-        <Card>
-          <Tabs
-            defaultActiveKey="comfort"
-            type="card"
-            className="individual-services-tabs"
+      {/* Premium Bundles */}
+      {bundleSections.map((section) => (
+        <div className="mb-8" key={section.key}>
+          <Collapse
+            size="large"
+            expandIconPosition="end"
+            expandIcon={({ isActive }) =>
+              isActive ? <UpOutlined /> : <DownOutlined />
+            }
+            className="custom-collapse"
             items={[
               {
-                key: "comfort",
+                key: section.key,
                 label: (
-                  <span className="flex items-center gap-2">
-                    <span>🛋️</span>
-                    Comfort
-                  </span>
+                  <>
+                    <Title level={3} className="!mb-1 text-black">
+                      {section.title}
+                    </Title>
+                    <Text className="text-gray-600">{section.description}</Text>
+                  </>
                 ),
                 children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Seat Selection
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Choose your preferred seat
-                            </Text>
-                            <Text className="font-bold text-lg">$25</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "seat-selection",
-                                  (individualServiceCounts["seat-selection"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["seat-selection"] ||
-                                  0) === 0
-                              }
+                  <Row gutter={[24, 24]}>
+                    {section.type === "bundle"
+                      ? section.data.map((bundle: any) => (
+                          <Col xs={24} md={8} lg={8} key={bundle.id}>
+                            <BundleCard
+                              bundle={bundle}
+                              isSelected={selectedBundles.includes(bundle.id)}
+                              onToggle={() => toggleBundle(bundle.id)}
                             />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["seat-selection"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "seat-selection",
-                                  (individualServiceCounts["seat-selection"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Airport Lounge Access
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Relax in premium lounges
-                            </Text>
-                            <Text className="font-bold text-lg">$65</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "airport-lounge",
-                                  (individualServiceCounts["airport-lounge"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["airport-lounge"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["airport-lounge"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "airport-lounge",
-                                  (individualServiceCounts["airport-lounge"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Extra Legroom Seat
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              More space to stretch out
-                            </Text>
-                            <Text className="font-bold text-lg">$40</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "extra-legroom",
-                                  (individualServiceCounts["extra-legroom"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["extra-legroom"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["extra-legroom"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "extra-legroom",
-                                  (individualServiceCounts["extra-legroom"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ),
-              },
-              {
-                key: "baggage",
-                label: (
-                  <span className="flex items-center gap-2">
-                    <span>🧳</span>
-                    Baggage
-                  </span>
-                ),
-                children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Extra Baggage (23kg)
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Additional checked baggage
-                            </Text>
-                            <Text className="font-bold text-lg">$45</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "extra-baggage",
-                                  (individualServiceCounts["extra-baggage"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["extra-baggage"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["extra-baggage"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "extra-baggage",
-                                  (individualServiceCounts["extra-baggage"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Priority Baggage
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              First off the carousel
-                            </Text>
-                            <Text className="font-bold text-lg">$20</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "priority-baggage",
-                                  (individualServiceCounts[
-                                    "priority-baggage"
-                                  ] || 0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["priority-baggage"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["priority-baggage"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "priority-baggage",
-                                  (individualServiceCounts[
-                                    "priority-baggage"
-                                  ] || 0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ),
-              },
-              {
-                key: "convenience",
-                label: (
-                  <span className="flex items-center gap-2">
-                    <span>⚡</span>
-                    Convenience
-                  </span>
-                ),
-                children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Priority Boarding
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Board the aircraft first
-                            </Text>
-                            <Text className="font-bold text-lg">$15</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "priority-boarding",
-                                  (individualServiceCounts[
-                                    "priority-boarding"
-                                  ] || 0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["priority-boarding"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["priority-boarding"] ||
-                                0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "priority-boarding",
-                                  (individualServiceCounts[
-                                    "priority-boarding"
-                                  ] || 0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Fast Track Security
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Skip the security queues
-                            </Text>
-                            <Text className="font-bold text-lg">$25</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "fast-track-security",
-                                  (individualServiceCounts[
-                                    "fast-track-security"
-                                  ] || 0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts[
-                                  "fast-track-security"
-                                ] || 0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["fast-track-security"] ||
-                                0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "fast-track-security",
-                                  (individualServiceCounts[
-                                    "fast-track-security"
-                                  ] || 0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ),
-              },
-              {
-                key: "dining",
-                label: (
-                  <span className="flex items-center gap-2">
-                    <span>🍽️</span>
-                    Dining
-                  </span>
-                ),
-                children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Premium Meal
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Upgrade your in-flight dining
-                            </Text>
-                            <Text className="font-bold text-lg">$35</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "premium-meal",
-                                  (individualServiceCounts["premium-meal"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["premium-meal"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["premium-meal"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "premium-meal",
-                                  (individualServiceCounts["premium-meal"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ),
-              },
-              {
-                key: "connectivity",
-                label: (
-                  <span className="flex items-center gap-2">
-                    <span>📶</span>
-                    Connectivity
-                  </span>
-                ),
-                children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              In-flight WiFi
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Stay connected during your flight
-                            </Text>
-                            <Text className="font-bold text-lg">$20</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "inflight-wifi",
-                                  (individualServiceCounts["inflight-wifi"] ||
-                                    0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["inflight-wifi"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["inflight-wifi"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "inflight-wifi",
-                                  (individualServiceCounts["inflight-wifi"] ||
-                                    0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ),
-              },
-              {
-                key: "insurance",
-                label: (
-                  <span className="flex items-center gap-2">
-                    <span>🛡️</span>
-                    Insurance
-                  </span>
-                ),
-                children: (
-                  <div className="space-y-4">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div className="flex justify-between items-center py-4">
-                          <div className="flex-1">
-                            <Title level={5} className="!mb-1">
-                              Travel Insurance
-                            </Title>
-                            <Text className="text-gray-600 text-sm">
-                              Comprehensive travel protection
-                            </Text>
-                            <Text className="font-bold text-lg">$55</Text>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              icon={<MinusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "travel-insurance",
-                                  (individualServiceCounts[
-                                    "travel-insurance"
-                                  ] || 0) - 1
-                                )
-                              }
-                              disabled={
-                                (individualServiceCounts["travel-insurance"] ||
-                                  0) === 0
-                              }
-                            />
-                            <span className="mx-3 min-w-[2rem] text-center">
-                              {individualServiceCounts["travel-insurance"] || 0}
-                            </span>
-                            <Button
-                              icon={<PlusOutlined />}
-                              size="small"
-                              onClick={() =>
-                                updateServiceCount(
-                                  "travel-insurance",
-                                  (individualServiceCounts[
-                                    "travel-insurance"
-                                  ] || 0) + 1
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
+                          </Col>
+                        ))
+                      : section.data.map((service: any) => (
+                          <Col
+                            xs={24}
+                            md={12}
+                            lg={6}
+                            key={service.id}
+                            className="items-stretch"
+                          >
+                            <Card className="py-4 bg-white rounded-xl shadow-md relative h-full">
+                              <div className="flex-1">
+                                <Title level={5} className="!mb-1">
+                                  {service.title}
+                                </Title>
+                                <Text className="text-gray-600 text-sm">
+                                  {service.description}
+                                </Text>
+                              </div>
+                              <div className="flex justify-between border-t pt-3 mt-3">
+                                <Text className="font-bold text-lg">
+                                  ${service.price}
+                                </Text>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    icon={<MinusOutlined />}
+                                    size="small"
+                                    className="border"
+                                    onClick={() =>
+                                      updateServiceCount(
+                                        service.id,
+                                        (individualServiceCounts[service.id] || 0) - 1
+                                      )
+                                    }
+                                    disabled={
+                                      (individualServiceCounts[service.id] || 0) === 0
+                                    }
+                                  />
+                                  <span className="mx-3 min-w-[2rem] text-center">
+                                    {individualServiceCounts[service.id] || 0}
+                                  </span>
+                                  <Button
+                                    icon={<PlusOutlined />}
+                                    size="small"
+                                    className="border"
+                                    onClick={() =>
+                                      updateServiceCount(
+                                        service.id,
+                                        (individualServiceCounts[service.id] || 0) + 1
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div
+                                className="rounded-lg py-1 px-2 absolute -top-2.5 -right-2.5"
+                                style={{ backgroundColor: service.color }}
+                              >
+                                <Text className="font-bold text-white text-sm">
+                                  {service.highLight}
+                                </Text>
+                              </div>
+                            </Card>
+                          </Col>
+                        ))}
+                  </Row>
                 ),
               },
             ]}
           />
-        </Card>
-      </div>
+        </div>
+      ))}    
+      
 
       {/* Navigation Buttons */}
       <div className="flex justify-between items-center">

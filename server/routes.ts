@@ -4010,7 +4010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
-      const bidFullyBooked = availableSeats <= 0;
+      const isBidFullyBooked = availableSeats <= 0;
 
       // User-specific status
       let hasUserPaid = false;
@@ -4127,7 +4127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookedSeats: bookedSeats,
         availableSeats: availableSeats,
         seatsRemaining: availableSeats,
-        isClosed: bidFullyBooked && !hasUserPaid,
+        isClosed: isBidFullyBooked && !hasUserPaid,
         hasUserPaid: hasUserPaid,
         userRetailBidStatus: userRetailBidStatus,
         allUsersWhoHavePaid: retailBids

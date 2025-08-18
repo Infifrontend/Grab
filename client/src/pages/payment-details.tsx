@@ -92,8 +92,8 @@ export default function PaymentDetails() {
                       configData.travelDate ||
                       (bidData.flight?.departureTime
                         ? new Date(bidData.flight.departureTime)
-                            .toISOString()
-                            .split("T")[0]
+                          .toISOString()
+                          .split("T")[0]
                         : "Unknown"),
                   },
                 };
@@ -256,7 +256,7 @@ export default function PaymentDetails() {
         const errorData = await paymentResponse.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
-            `Payment processing failed: ${paymentResponse.status}`,
+          `Payment processing failed: ${paymentResponse.status}`,
         );
       }
 
@@ -345,6 +345,14 @@ export default function PaymentDetails() {
                 Payment Summary
               </Title>
 
+              <Alert
+                message="Deposit Information"
+                description="This deposit secures your participation in the bid. If your bid is not accepted by the airline, the full amount will be refunded within 5-7 business days."
+                type="info"
+                showIcon
+                className="mb-6"
+              />
+
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <Row gutter={[16, 16]}>
                   <Col span={12}>
@@ -365,14 +373,6 @@ export default function PaymentDetails() {
                   </Col>
                 </Row>
               </div>
-
-              <Alert
-                message="Deposit Information"
-                description="This deposit secures your participation in the bid. If your bid is not accepted by the airline, the full amount will be refunded within 5-7 business days."
-                type="info"
-                showIcon
-                className="mb-6"
-              />
             </Card>
 
             {/* Payment Method */}
@@ -497,22 +497,22 @@ export default function PaymentDetails() {
 
           {/* Right Column - Bid Summary */}
           <Col xs={24} lg={10}>
-            <Card className="sticky top-6">
+            <Card className="sticky" style={{ top: "12%" }}>
               <Title level={4} className="!mb-4 text-gray-800">
                 Bid Summary
               </Title>
 
-              <div className="space-y-4 mb-6">
-                <div>
+              <Row className="mb-6 gap-x-9 gap-y-5">
+                <Col xl={11}>
                   <Text className="text-gray-500 text-sm block mb-1">
                     Bid Configuration
                   </Text>
                   <Text className="text-gray-900 font-medium">
                     {bidParticipationData?.configData?.title || "Bid Payment"}
                   </Text>
-                </div>
+                </Col>
 
-                <div>
+                <Col xl={11}>
                   <Text className="text-gray-500 text-sm block mb-1">
                     Route
                   </Text>
@@ -520,9 +520,9 @@ export default function PaymentDetails() {
                     {bidParticipationData?.configData?.route ||
                       "Route not specified"}
                   </Text>
-                </div>
+                </Col>
 
-                <div>
+                <Col xl={11}>
                   <Text className="text-gray-500 text-sm block mb-1">
                     Travel Date
                   </Text>
@@ -530,9 +530,9 @@ export default function PaymentDetails() {
                     {bidParticipationData?.configData?.travelDate ||
                       "Date not specified"}
                   </Text>
-                </div>
+                </Col>
 
-                <div>
+                <Col xl={11}>
                   <Text className="text-gray-500 text-sm block mb-1">
                     Passengers
                   </Text>
@@ -540,17 +540,17 @@ export default function PaymentDetails() {
                     {bidParticipationData.passengerCount} passenger
                     {bidParticipationData.passengerCount > 1 ? "s" : ""}
                   </Text>
-                </div>
+                </Col>
 
-                <div>
+                <Col xl={11}>
                   <Text className="text-gray-500 text-sm block mb-1">
                     Bid Amount (per person)
                   </Text>
                   <Text className="text-gray-900 font-medium">
                     ${bidParticipationData.bidAmount.toLocaleString()}
                   </Text>
-                </div>
-              </div>
+                </Col>
+              </Row>
 
               <Divider />
 

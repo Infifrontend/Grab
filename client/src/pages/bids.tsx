@@ -687,7 +687,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-blue-600">
-                {statistics.activeBids}
+                { statistics.activeBids ? statistics.activeBids : "-"}
               </Title>
             )}
           </Card>
@@ -702,7 +702,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-green-600">
-                {statistics.acceptedBids}
+                {statistics.acceptedBids ? statistics.acceptedBids : "-"}
               </Title>
             )}
           </Card>
@@ -717,7 +717,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-orange-600">
-                ${statistics.totalSavings}
+                {statistics.totalSavings ? `${statistics.totalSavings}` : "-"}
               </Title>
             )}
           </Card>
@@ -732,7 +732,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-purple-600">
-                ${formatCurrency(statistics.depositsPaid)}
+                { formatCurrency(statistics.depositsPaid) && formatCurrency(statistics.depositsPaid)!= "NaN" ? `${formatCurrency(statistics.depositsPaid)}` : "-"}
               </Title>
             )}
           </Card>
@@ -747,7 +747,7 @@ export default function Bids() {
               <Spin size="small" />
             ) : (
               <Title level={2} className="!mb-0 text-orange-600">
-                ${formatCurrency(statistics.refundsReceived)}
+                { formatCurrency(statistics.refundsReceived) && formatCurrency(statistics.refundsReceived)!= "NaN" ? `${formatCurrency(statistics.refundsReceived)}` : "-"}
               </Title>
             )}
           </Card>

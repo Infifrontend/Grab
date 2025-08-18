@@ -30,7 +30,15 @@
         "colorPrimaryHover": "#3a1a32",
         "colorPrimaryActive": "#5a2a52",
         "boxShadow": "0 4px 12px rgba(42, 10, 34, 0.3)",
-        "colorLink": "#80206a"
+        "colorLink": "#80206a",
+        "defaultActiveBg": "rgb(255,255,255)",
+        "defaultActiveBorderColor": "#3a1a32",
+        "defaultHoverBorderColor": "#3a1a32",
+        "defaultActiveColor": "#3a1a32",
+        "defaultHoverColor": "#3a1a32",
+        "defaultBorderColor": "#3a1a32",
+        "defaultColor": "#3a1a32",
+        "defaultBg": "#FFFFFF"
       },
       "Typography": {},
       "Alert": {
