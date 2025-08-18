@@ -3375,12 +3375,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Received retail bid submission:", req.body);
 
-      // Validate required fields
-      if (!bidId || !userId || !submittedAmount || !passengerCount) {
+      // Validate required fields with specific error messages
+      const missingFields = [];
+      if (!bidId) missingFields.push('bidId');
+      if (!userId) missingFields.push('userId');
+      if (!submittedAmount) missingFields.push('submittedAmount');
+      if (!passengerCount) missingFields.push('passengerCount');
+
+      if (missingFields.length > 0) {
+        console.log('Missing fields in retail bid submission:', missingFields);
+        console.log('Received data:', { bidId, userId, submittedAmount, passengerCount });
         return res.status(400).json({
           success: false,
-          message:
-            "All fields are required: bidId, userId, submittedAmount, passengerCount",
+          message: `Missing required fields: ${missingFields.join(', ')}`,
+          receivedData: { bidId, userId, submittedAmount, passengerCount }
         });
       }
 
