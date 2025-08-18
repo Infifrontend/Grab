@@ -387,9 +387,9 @@ export default function BidDetails() {
     const configData = transformedBidData.configData;
 
     const participationData = {
-      totalBid: parseFloat((amount * passengerCount).toFixed(2)),
-      bidAmount: parseFloat(amount.toFixed(2)),
-      passengerCount: parseInt(passengerCount.toString()),
+      totalBid: parseFloat((amount * passengerCount)?.toFixed(2)),
+      bidAmount: parseFloat(amount?.toFixed(2)),
+      passengerCount: parseInt(passengerCount?.toString()),
       configData: configData,
     };
 

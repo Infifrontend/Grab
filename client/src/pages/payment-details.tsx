@@ -78,9 +78,13 @@ export default function PaymentDetails() {
                 }
 
                 // Create participation data from bid
-                const bidAmountValue = parseFloat(bidData.bid.bidAmount?.toString() || "0");
-                const passengerCountValue = parseInt(bidData.bid.passengerCount?.toString() || "1");
-                
+                const bidAmountValue = parseFloat(
+                  bidData.bid.bidAmount?.toString() || "0",
+                );
+                const passengerCountValue = parseInt(
+                  bidData.bid.passengerCount?.toString() || "1",
+                );
+
                 const participationData = {
                   totalBid: bidAmountValue * passengerCountValue,
                   bidAmount: bidAmountValue,
@@ -235,15 +239,18 @@ export default function PaymentDetails() {
         }
 
         // Prepare retail bid data with exact field names expected by the API
-        const submittedAmountValue = bidParticipationData.bidAmount || 
-                                   (bidParticipationData.totalBid / bidParticipationData.passengerCount) || 
-                                   0;
-        
+        const submittedAmountValue =
+          bidParticipationData.bidAmount ||
+          bidParticipationData.totalBid / bidParticipationData.passengerCount ||
+          0;
+
         const retailBidData = {
           bidId: validBidId,
           userId: validUserId,
           submittedAmount: parseFloat(submittedAmountValue.toString()),
-          passengerCount: parseInt(bidParticipationData.passengerCount?.toString() || "1"),
+          passengerCount: parseInt(
+            bidParticipationData.passengerCount?.toString() || "1",
+          ),
         };
 
         // Additional validation with detailed error messages
@@ -301,7 +308,7 @@ export default function PaymentDetails() {
           },
           body: JSON.stringify({
             bidId: parseInt(bidId),
-            userId: parseInt(userId), // Current user ID from localStorage
+            user_id: parseInt(userId), // Current user ID from localStorage
             bookingId: null, // Set to null for bid payments to avoid foreign key issues
             amount: (bidParticipationData?.totalBid || 0).toString(),
             currency: "USD",
@@ -641,8 +648,8 @@ export default function PaymentDetails() {
                 onClick={handlePaymentSubmit}
                 className="bg-blue-600 hover:bg-blue-700 font-semibold"
               >
-                Pay ${(bidParticipationData?.totalBid || 0).toLocaleString()} & Submit
-                Bid
+                Pay ${(bidParticipationData?.totalBid || 0).toLocaleString()} &
+                Submit Bid
               </Button>
             </Card>
           </Col>
