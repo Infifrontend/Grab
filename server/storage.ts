@@ -192,13 +192,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkRetailAccess(userId: number): Promise<boolean> {
-    const result = await db
-      .select({ isRetailAllowed: users.isRetailAllowed })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+    try {
+      console.log("Checking retail access for user ID:", userId);
 
-    return result[0]?.isRetailAllowed || false;
+      const userResults = await db
+        .select({
+          isRetailAllowed: grabTUsers.isRetailAllowed
+        })
+        .from(grabTUsers)
+        .where(eq(grabTUsers.id, userId))
+        .limit(1);
+
+      if (!userResults || userResults.length === 0) {
+        console.log("User not found with ID:", userId);
+        return false;
+      }
+
+      const hasAccess = userResults[0]?.isRetailAllowed || false;
+      console.log(`User ${userId} retail access:`, hasAccess);
+      return hasAccess;
+    } catch (error) {
+      console.error("Error checking retail access:", error);
+      return false;
+    }
   }
 
   async updateUserRetailAccess(userId: number, isAllowed: boolean) {
@@ -1117,25 +1133,48 @@ export class DatabaseStorage implements IStorage {
 
   async getBidById(bidId: number) {
     try {
-      const [bid] = await db
-        .select()
+      console.log("Fetching bid by ID:", bidId);
+
+      const bidResults = await db
+        .select({
+          id: grabTBids.id,
+          bidAmount: grabTBids.bidAmount,
+          validUntil: grabTBids.validUntil,
+          notes: grabTBids.notes,
+          totalSeatsAvailable: grabTBids.totalSeatsAvailable,
+          minSeatsPerBid: grabTBids.minSeatsPerBid,
+          maxSeatsPerBid: grabTBids.maxSeatsPerBid,
+          rStatus: grabTBids.rStatus,
+          createdAt: grabTBids.createdAt,
+          updatedAt: grabTBids.updatedAt
+        })
         .from(grabTBids)
         .where(eq(grabTBids.id, bidId))
         .limit(1);
 
-      if (!bid) {
+      if (!bidResults || bidResults.length === 0) {
+        console.log("No bid found with ID:", bidId);
         return null;
       }
+
+      const bid = bidResults[0];
+      console.log("Found bid:", bid);
 
       // Get status information
       let status = null;
       if (bid.rStatus) {
-        // Assuming grabMStatus table exists and has an 'id' and 'name' column for status
-        [status] = await db
-          .select({ id: grabMStatus.id, name: grabMStatus.name }) // Select relevant columns from grabMStatus
+        const statusResults = await db
+          .select({
+            id: grabMStatus.id,
+            statusName: grabMStatus.statusName
+          })
           .from(grabMStatus)
           .where(eq(grabMStatus.id, bid.rStatus))
           .limit(1);
+
+        if (statusResults && statusResults.length > 0) {
+          status = statusResults[0];
+        }
       }
 
       return {
@@ -1387,25 +1426,27 @@ export class DatabaseStorage implements IStorage {
   // Get retail bids by bid ID
   async getRetailBidsByBid(bidId: number): Promise<any[]> {
     try {
-      console.log(`Fetching retail bids for bid ID: ${bidId}`);
+      console.log("Fetching retail bids for bid ID:", bidId);
 
-      if (!bidId || isNaN(bidId)) {
-        console.warn(`Invalid bid ID provided: ${bidId}`);
-        return [];
-      }
-
-      const retailBidsList = await db
-        .select()
+      const retailBids = await db
+        .select({
+          id: grabTRetailBids.id,
+          rBidId: grabTRetailBids.rBidId,
+          rUserId: grabTRetailBids.rUserId,
+          submittedAmount: grabTRetailBids.submittedAmount,
+          seatBooked: grabTRetailBids.seatBooked,
+          rStatus: grabTRetailBids.rStatus,
+          createdAt: grabTRetailBids.createdAt,
+          updatedAt: grabTRetailBids.updatedAt
+        })
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
-      // Ensure we return an array even if query fails
-      const result = Array.isArray(retailBidsList) ? retailBidsList : [];
-      console.log(`Found ${result.length} retail bids for bid ${bidId}`);
-      return result;
+      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
+      return retailBids;
     } catch (error) {
-      console.error("Error getting retail bids by bid:", error);
+      console.error("Error fetching retail bids:", error);
       // Return empty array instead of throwing to prevent API failures
       return [];
     }
