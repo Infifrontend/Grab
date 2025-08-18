@@ -1515,11 +1515,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bidResults = await db.execute(bidQuery);
 
-      if (!bidResults || bidResults.length === 0) {
+      if (!bidResults || !bidResults.rows || bidResults.rows.length === 0) {
         // Debug: Show available bids
         const allBidsQuery = sql`SELECT id FROM grab_t_bids ORDER BY id`;
         const allBidsResults = await db.execute(allBidsQuery);
-        const availableIds = allBidsResults.rows.map((row: any) => row.id);
+        const availableIds = allBidsResults.rows ? allBidsResults.rows.map((row: any) => row.id) : [];
 
         console.log(`Bid not found with ID: ${bidId}`);
         console.log(`Total bids in grab_t_bids: ${availableIds.length}`);
@@ -1532,7 +1532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const bid = bidResults[0];
+      const bid = bidResults.rows[0];
 
       // Get retail bids for this bid with user and status info
       const retailBidsQuery = sql`
@@ -1549,7 +1549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
 
       const retailBidsResults = await db.execute(retailBidsQuery);
-      const retailBids = Array.isArray(retailBidsResults) ? retailBidsResults : [];
+      const retailBids = retailBidsResults.rows || [];
 
       // Get payments for this bid
       const paymentsQuery = sql`
@@ -1566,7 +1566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
 
       const paymentsResults = await db.execute(paymentsQuery);
-      const payments = Array.isArray(paymentsResults) ? paymentsResults : [];
+      const payments = paymentsResults.rows || [];
 
       // Check if user has payment for this bid
       let seatAvailability = null;
@@ -1583,29 +1583,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Format the response to match the expected structure
       const formattedBid = {
-        id: bid.id,
-        bidAmount: bid.bid_amount,
-        validUntil: bid.valid_until,
-        notes: bid.notes,
-        totalSeatsAvailable: bid.total_seats_available,
-        minSeatsPerBid: bid.min_seats_per_bid,
-        maxSeatsPerBid: bid.max_seats_per_bid,
-        rStatus: bid.r_status,
-        createdAt: bid.created_at,
-        updatedAt: bid.updated_at,
-        seatAvailability: seatAvailability,
-        retailBids: retailBids.map((rb) => ({
-          id: rb.id,
-          rUserId: rb.r_user_id,
-          submittedAmount: rb.submitted_amount,
-          seatBooked: rb.seat_booked,
-          rStatus: rb.r_status,
-          userName: rb.user_name,
-          userEmail: rb.user_email,
-          retailStatusName: rb.retail_status_name,
-          createdAt: rb.created_at,
-        })),
-        payments: payments,
+        success: true,
+        bid: {
+          id: bid.id,
+          bidAmount: bid.bid_amount,
+          validUntil: bid.valid_until,
+          notes: bid.notes,
+          totalSeatsAvailable: bid.total_seats_available,
+          minSeatsPerBid: bid.min_seats_per_bid,
+          maxSeatsPerBid: bid.max_seats_per_bid,
+          rStatus: bid.r_status,
+          createdAt: bid.created_at,
+          updatedAt: bid.updated_at,
+          seatAvailability: seatAvailability,
+          retailBids: retailBids.map((rb) => ({
+            id: rb.id,
+            rUserId: rb.r_user_id,
+            submittedAmount: rb.submitted_amount,
+            seatBooked: rb.seat_booked,
+            rStatus: rb.r_status,
+            userName: rb.user_name,
+            userEmail: rb.user_email,
+            retailStatusName: rb.retail_status_name,
+            createdAt: rb.created_at,
+          })),
+          payments: payments,
+        }
       };
 
       console.log(`Successfully retrieved bid ${bidId} details.`);
