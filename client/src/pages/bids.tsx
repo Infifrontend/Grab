@@ -131,9 +131,12 @@ export default function Bids() {
           let dynamicStatus = "Open";
           let seatAvailability = null;
           const userId = localStorage.getItem("userId");
+          console.log(bid, "bid");
+          console.log(userId, "userId");
+
           try {
             const statusResponse = await fetch(
-              `/api/bid-status/${bid.id}/?userId=${userId || ""}`,
+              `/api/bid-status/${bid.id}`,
             );
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
