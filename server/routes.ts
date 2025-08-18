@@ -3931,35 +3931,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the bid configuration
+      // Get the bid configuration with comprehensive null checks
       const bidDetails = await storage.getBidById(parsedBidId);
-      if (!bidDetails || !bidDetails.bid) {
+      if (!bidDetails || !bidDetails.bid || typeof bidDetails.bid !== 'object') {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
         });
       }
 
-      // Parse configuration data safely
+      // Parse configuration data safely with proper null checks
       let configData = {};
       try {
-        if (bidDetails.bid.notes && typeof bidDetails.bid.notes === 'string') {
-          configData = JSON.parse(bidDetails.bid.notes);
+        if (bidDetails.bid && bidDetails.bid.notes && typeof bidDetails.bid.notes === 'string' && bidDetails.bid.notes.trim() !== '') {
+          const parsedData = JSON.parse(bidDetails.bid.notes);
+          configData = parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData) ? parsedData : {};
         }
       } catch (e) {
         console.warn(`Could not parse bid notes for bid ${bidId}:`, e);
         configData = {};
       }
 
-      // Ensure configData is an object
-      if (!configData || typeof configData !== 'object') {
+      // Ensure configData is a valid object
+      if (!configData || typeof configData !== 'object' || Array.isArray(configData)) {
         configData = {};
       }
 
-      // Get total seats available with safe fallback
+      // Get total seats available with safe fallback and null checks
       const totalSeatsAvailable =
-        bidDetails.bid.totalSeatsAvailable ||
-        (configData && configData.totalSeatsAvailable) ||
+        (bidDetails.bid && bidDetails.bid.totalSeatsAvailable) ||
+        (configData && typeof configData === 'object' && configData.totalSeatsAvailable) ||
         100;
 
       // Get all retail bids for this configuration
@@ -4040,9 +4041,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check bid notes for payment completion by this user (user-specific tracking)
         let userPaidFromBidNotes = false;
         try {
-          if (configData && typeof configData === 'object' && configData.userPayments && Array.isArray(configData.userPayments)) {
+          if (configData && 
+              typeof configData === 'object' && 
+              configData !== null &&
+              !Array.isArray(configData) &&
+              configData.userPayments && 
+              Array.isArray(configData.userPayments)) {
             const userPaymentRecord = configData.userPayments.find(
-              (up) => up && up.userId === currentUserId,
+              (up) => up && typeof up === 'object' && up.userId === currentUserId,
             );
             userPaidFromBidNotes =
               userPaymentRecord && userPaymentRecord.paymentCompleted === true;
