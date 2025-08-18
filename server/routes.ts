@@ -4016,6 +4016,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let hasUserPaid = false;
       let userPaymentStatus = "not_paid";
       let userRetailBidStatus = null;
+      let displayStatus = "";
+      let statusForUser = "";
 
       if (userId && !isNaN(parseInt(userId as string))) {
         const currentUserId = parseInt(userId as string);
@@ -4106,7 +4108,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if ALL seats are booked (bid should be closed for everyone who hasn't paid)
-      const bidFullyBooked = availableSeats <= 0;
       if (bidFullyBooked && !hasUserPaid) {
         displayStatus = "Closed";
         statusForUser = "closed";
