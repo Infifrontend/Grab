@@ -142,6 +142,21 @@ The application is structured as a monorepo with clear separation between client
 
 ## Recent Changes
 
+### August 2025 - Complete Bidding System Implementation
+- **2025-08-18**: Implemented comprehensive airline booking and bidding system
+- **Bidding Workflow**: Complete end-to-end workflow where retail users bid on flights, make payments, and admins approve/reject
+- **Database Integration**: Fixed critical schema inconsistencies and implemented specialized bidding storage layer
+- **API Endpoints**: 8 new API endpoints for complete bidding functionality:
+  - Admin bid creation (`POST /api/admin/bids`)
+  - Retail bid submission (`POST /api/retail/bids/:bidId/submit`)
+  - Payment processing (`POST /api/retail/bids/:bidId/payment`)
+  - Admin bid management (`GET /api/admin/bids/:bidId`)
+  - Admin approval/rejection (`PUT /api/admin/retail-bids/:retailBidId/status`)
+  - User bid history (`GET /api/retail/my-bids/:userId`)
+- **Status Tracking**: Real-time bid status updates from submission → payment → under review → approved/rejected
+- **Seat Management**: Dynamic seat availability calculation and booking limits
+- **Payment Integration**: Complete payment workflow with reference tracking and status management
+
 ### July 2025 - Database Integration & Quick Booking
 - **2025-07-14**: Implemented complete flight booking system with PostgreSQL database
 - **Database Schema**: 10+ interconnected tables for flights, bookings, passengers, bids, payments

@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { setupBiddingRoutes } from "./bidding-routes.js";
 import { setupVite, serveStatic, log } from "./vite";
 import { ensureSearchRequestsTable } from "./ensure-search-requests-table.js";
 
@@ -40,6 +41,7 @@ app.use((req, res, next) => {
 (async () => {
   async function setupServer() {
     const server = await registerRoutes(app);
+    setupBiddingRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;

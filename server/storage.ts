@@ -17,7 +17,7 @@ import {
   retailBids,
   grabTRetailBids,
   grabTBidPayments,
-  grabMStatus, // Import grabMStatus
+  grabMStatus,
   type InsertUser,
   type InsertDeal,
   type InsertPackage,
@@ -41,8 +41,16 @@ import {
   type Payment,
   type Refund,
   type RetailBid,
+  type InsertRetailBid,
+  type GrabTBid,
+  type InsertGrabTBid,
+  type GrabTRetailBid,
+  type InsertGrabTRetailBid,
+  type GrabTBidPayment,
   type InsertGrabTBidPayment,
-  type GrabTBidPayment
+  type GrabTUser,
+  type InsertGrabTUser,
+  type GrabMStatus
 } from "../shared/schema.js";
 import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -553,25 +561,13 @@ export class DatabaseStorage implements IStorage {
     await db.update(passengers).set(passenger).where(eq(passengers.id, id));
   }
 
-  // Bids
-  async getBids(userId?: number): Promise<Bid[]> {
+  // Bids - using grab_t_bids table
+  async getBids(userId?: number): Promise<GrabTBid[]> {
     try {
-      let query = db
-        .select({
-          id: grabTBids.id,
-          bidAmount: grabTBids.bidAmount,
-          validUntil: grabTBids.validUntil,
-          notes: grabTBids.notes,
-          totalSeatsAvailable: grabTBids.totalSeatsAvailable,
-          minSeatsPerBid: grabTBids.minSeatsPerBid,
-          maxSeatsPerBid: grabTBids.maxSeatsPerBid,
-          rStatus: grabTBids.rStatus,
-          createdAt: grabTBids.createdAt,
-          updatedAt: grabTBids.updatedAt,
-        })
-        .from(grabTBids);
-
-      const results = await query.orderBy(desc(grabTBids.createdAt));
+      const results = await db
+        .select()
+        .from(grabTBids)
+        .orderBy(desc(grabTBids.createdAt));
       return results;
     } catch (error) {
       console.error("Error getting bids:", error);
@@ -579,7 +575,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBid(id: number): Promise<Bid | undefined> {
+  async getBid(id: number): Promise<GrabTBid | undefined> {
     const [bid] = await db.select().from(grabTBids).where(eq(grabTBids.id, id));
     return bid || undefined;
   }
