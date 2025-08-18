@@ -162,6 +162,12 @@ export interface IStorage {
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
   getRetailBidById(retailBidId: number): Promise<any>; // Added this line
+  submitRetailBid(retailBidData: {
+    bidId: number;
+    userId: number;
+    submittedAmount: number;
+    seatBooked: number;
+  }): Promise<number>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1707,6 +1713,42 @@ export class DatabaseStorage implements IStorage {
       } else {
         throw new Error(`Failed to submit retail bid: ${error.message}`);
       }
+    }
+  }
+
+  async submitRetailBid(retailBidData: {
+    bidId: number;
+    userId: number;
+    submittedAmount: number;
+    seatBooked: number;
+  }): Promise<number> {
+    try {
+      console.log('Submitting retail bid:', retailBidData);
+
+      // Validate the data before inserting
+      if (!retailBidData.bidId || !retailBidData.userId || !retailBidData.submittedAmount) {
+        throw new Error('Missing required retail bid data');
+      }
+
+      const result = await db
+        .insert(grabTRetailBids)
+        .values({
+          rBidId: retailBidData.bidId,
+          rUserId: retailBidData.userId,
+          submittedAmount: retailBidData.submittedAmount.toString(),
+          seatBooked: retailBidData.seatBooked,
+          rStatus: 1, // Default status: pending
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning({ id: grabTRetailBids.id });
+
+      console.log('Retail bid submitted successfully:', result[0]);
+      return result[0].id;
+
+    } catch (error) {
+      console.error('Error submitting retail bid:', error);
+      throw error;
     }
   }
 }

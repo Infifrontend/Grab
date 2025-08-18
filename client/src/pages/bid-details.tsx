@@ -382,22 +382,31 @@ export default function BidDetails() {
   };
 
   const handleContinueToPayment = () => {
-    const amount = bidAmount;
-    const passengerCount = passengers;
-    const configData = transformedBidData.configData;
+    const amount = bidAmount || 0;
+    const passengerCount = passengers || 1;
+    const configData = transformedBidData?.configData || {};
+
+    // Ensure we have valid numbers
+    const validAmount = parseFloat(amount.toString()) || 0;
+    const validPassengerCount = parseInt(passengerCount.toString()) || 1;
 
     const participationData = {
-      totalBid: parseFloat((amount * passengerCount)?.toFixed(2)),
-      bidAmount: parseFloat(amount?.toFixed(2)),
-      passengerCount: parseInt(passengerCount?.toString()),
+      totalBid: parseFloat((validAmount * validPassengerCount).toFixed(2)),
+      bidAmount: parseFloat(validAmount.toFixed(2)),
+      passengerCount: validPassengerCount,
       configData: configData,
     };
 
     console.log("Storing bid participation data:", participationData);
-    localStorage.setItem(
-      "bidParticipationData",
-      JSON.stringify(participationData),
-    );
+    
+    // Only access localStorage on client side
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(
+        "bidParticipationData",
+        JSON.stringify(participationData),
+      );
+    }
+    
     navigate(`/payment-details/${bidId}`);
   };
 
