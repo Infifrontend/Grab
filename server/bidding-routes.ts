@@ -273,6 +273,24 @@ export function setupBiddingRoutes(app: Express) {
       const { retailBidId } = req.params;
       const { status, adminNote } = req.body; // status: 'approved' | 'rejected'
 
+      // Get the retail bid details first
+      const retailBid = await biddingStorage.getRetailBidById(parseInt(retailBidId));
+      if (!retailBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Retail bid not found",
+        });
+      }
+
+      // Get the main bid details
+      const mainBid = await biddingStorage.getBidWithDetails(retailBid.rBidId);
+      if (!mainBid) {
+        return res.status(404).json({
+          success: false,
+          message: "Main bid not found",
+        });
+      }
+
       // Map status to dynamic status ID
       let statusId: number | null = null;
       switch (status) {
@@ -306,20 +324,47 @@ export function setupBiddingRoutes(app: Express) {
         statusId,
       );
 
-      // If approved, update payment status as well
       if (status === "approved") {
-        const retailBids = await biddingStorage.getRetailBidsByBid(
-          parseInt(retailBidId),
-        );
-        // Note: This is simplified - in a real app you'd find the specific retail bid and its payment
-      }
+        // Update main bid status to 'approved'
+        const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+        if (approvedStatusId) {
+          await biddingStorage.updateBidStatus(retailBid.rBidId, approvedStatusId);
+        }
 
-      res.json({
-        success: true,
-        message: `Bid ${status} successfully`,
-        status: status,
-        adminNote: adminNote,
-      });
+        // Reject all other retail bids for this main bid
+        const allRetailBids = await biddingStorage.getRetailBidsByBid(retailBid.rBidId);
+        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+        
+        if (rejectedStatusId) {
+          for (const otherRetailBid of allRetailBids) {
+            if (otherRetailBid.id !== parseInt(retailBidId)) {
+              await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+            }
+          }
+        }
+
+        res.json({
+          success: true,
+          message: "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
+          status: status,
+          adminNote: adminNote,
+        });
+      } else if (status === "rejected") {
+        // Just reject this retail bid, don't change main bid status
+        res.json({
+          success: true,
+          message: "Retail user rejected successfully",
+          status: status,
+          adminNote: adminNote,
+        });
+      } else {
+        res.json({
+          success: true,
+          message: `Bid ${status} successfully`,
+          status: status,
+          adminNote: adminNote,
+        });
+      }
     } catch (error: any) {
       console.error("Error updating bid status:", error);
       res.status(500).json({

@@ -86,30 +86,51 @@ export class BiddingStorage {
     }
   }
 
-  async updateBidStatus(bidId: number, statusId: number): Promise<void> {
+  // Get status by ID
+  async getStatusById(statusId: number): Promise<GrabMStatus | null> {
     try {
-      await db
-        .update(grabTBids)
-        .set({ rStatus: statusId, updatedAt: new Date() })
-        .where(eq(grabTBids.id, bidId));
+      const result = await this.db
+        .select()
+        .from(grabMStatus)
+        .where(eq(grabMStatus.id, statusId))
+        .limit(1);
+
+      return result[0] || null;
     } catch (error) {
-      console.error("Error updating bid status:", error);
+      console.error("Error getting status by ID:", error);
       throw error;
     }
   }
 
-  // Helper method to get status ID by status_code
-  async getStatusIdByCode(statusCode: string): Promise<number | null> {
+  // Get retail bid by ID
+  async getRetailBidById(retailBidId: number): Promise<GrabTRetailBid | null> {
     try {
-      const [status] = await db
-        .select({ id: grabMStatus.id })
-        .from(grabMStatus)
-        .where(eq(grabMStatus.statusCode, statusCode))
+      const result = await this.db
+        .select()
+        .from(grabTRetailBids)
+        .where(eq(grabTRetailBids.id, retailBidId))
         .limit(1);
-      return status?.id || null;
+
+      return result[0] || null;
     } catch (error) {
-      console.error("Error fetching status by code:", error);
-      return null;
+      console.error("Error getting retail bid by ID:", error);
+      throw error;
+    }
+  }
+
+  // Update bid status
+  async updateBidStatus(bidId: number, statusId: number): Promise<void> {
+    try {
+      await this.db
+        .update(grabTBids)
+        .set({
+          rStatus: statusId,
+          updatedAt: new Date(),
+        })
+        .where(eq(bidId, bidId));
+    } catch (error) {
+      console.error("Error updating bid status:", error);
+      throw error;
     }
   }
 
@@ -324,17 +345,6 @@ export class BiddingStorage {
       console.error("Error fetching statuses:", error);
       return [];
     }
-  }
-
-  async getStatusById(statusId: number): Promise<GrabMStatus> {
-    const [status] = await db
-      .select()
-      .from(grabMStatus)
-      .where(eq(grabMStatus.id, 6))
-      .limit(1);
-
-    if (!status) throw new Error(`Status ID ${statusId} not found`);
-    return status;
   }
 
   async createStatus(statusData: {
