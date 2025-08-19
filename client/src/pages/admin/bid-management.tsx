@@ -960,7 +960,7 @@ export default function BidManagement() {
 
     try {
       console.log(`Fetching retail users for bid ID: ${bidId}`);
-      const response = await apiRequest("GET", `/api/admin/bids/${bidId}`);
+      const response = await apiRequest("GET", `/api/retail-bids/${bidId}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -970,32 +970,59 @@ export default function BidManagement() {
       console.log(`Retail users data received for bid ${bidId}:`, result);
 
       if (result.success) {
-        // Use the data directly from the API response since it's already in the correct format
-        const apiData = result.data;
+        // Transform the retail bids data to match expected format
+        const retailBids = result.retailBids || [];
+        const baseBidAmount = parseFloat(
+          activeBids
+            .find((b) => b.key === bidId.toString())
+            ?.bidAmount.replace("$", "")
+            .replace(",", "") || "0",
+        );
 
         const transformedData = {
-          bidId: apiData.bidId || bidId,
-          baseBidAmount: apiData.baseBidAmount,
-          totalRetailUsers: apiData.totalRetailUsers,
-          totalSeatsAvailable: apiData.totalSeatsAvailable,
-          bookedSeats: apiData.bookedSeats,
-          availableSeats: apiData.availableSeats,
-          highestBidAmount: apiData.highestBidAmount,
-          retailUsers: apiData.retailUsers.map((user, index) => ({
-            id: user.id || index + 1,
-            name: user.name,
-            email: user.email,
-            bookingRef: user.bookingRef.includes('NaN') ? `GR00${1230 + index}` : user.bookingRef,
-            seatNumber: user.seatNumber.includes('NaN') || user.seatNumber.includes('\u0000') ? `1${2 + index}${String.fromCharCode(65 + (index % 26))}` : user.seatNumber,
-            bidAmount: user.bidAmount,
-            passengerCount: user.passengerCount,
-            status: "pending_approval", // Default status for retail users
-            differenceFromBase: user.differenceFromBase,
-            isHighestBidder: user.isHighestBidder,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
+          bidId: bidId,
+          baseBidAmount: baseBidAmount,
+          totalRetailUsers: retailBids.length,
+          retailUsers: retailBids.map((retailBid, index) => ({
+            id: retailBid.id,
+            name: retailBid.user?.name || `User ${retailBid.rUserId}`,
+            email:
+              retailBid.user?.email || `user${retailBid.rUserId}@email.com`,
+            bookingRef: `GR00${1230 + retailBid.rUserId}`,
+            seatNumber: `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
+            bidAmount: parseFloat(retailBid.submittedAmount),
+            passengerCount: retailBid.seatBooked,
+            status:
+              retailBid.rStatus === 1
+                ? "pending_approval"
+                : retailBid.rStatus === 2
+                  ? "approved"
+                  : retailBid.rStatus === 3
+                    ? "rejected"
+                    : "pending_approval",
+            differenceFromBase:
+              parseFloat(retailBid.submittedAmount) - baseBidAmount,
+            isHighestBidder: false, // Will be calculated below
+            createdAt: retailBid.createdAt,
+            updatedAt: retailBid.updatedAt,
           })),
+          highestBidAmount: Math.max(
+            ...retailBids.map((rb) => parseFloat(rb.submittedAmount)),
+          ),
         };
+
+        // Mark the highest bidder
+        if (transformedData.retailUsers.length > 0) {
+          const maxBid = Math.max(
+            ...transformedData.retailUsers.map((u) => u.bidAmount),
+          );
+          transformedData.retailUsers = transformedData.retailUsers.map(
+            (user) => ({
+              ...user,
+              isHighestBidder: user.bidAmount === maxBid,
+            }),
+          );
+        }
 
         setRetailUsersData((prev) => ({
           ...prev,
@@ -2670,12 +2697,7 @@ export default function BidManagement() {
           items={[
             {
               key: "overview",
-              label: (
-                <span className="flex items-center">
-                  <BarChartOutlined className="mr-2" />
-                  Overview
-                </span>
-              ),
+              label: "Overview",
               children: (
                 <div>
                   {/* Stats Cards Row */}
@@ -2931,12 +2953,7 @@ export default function BidManagement() {
             },
             {
               key: "insights",
-              label: (
-                <span className="flex items-center">
-                  <InfoCircleOutlined className="mr-2" />
-                  Insights
-                </span>
-              ),
+              label: "Insights",
               children: (
                 <div>
                   {/* Insights Alert Cards */}
@@ -3386,7 +3403,7 @@ export default function BidManagement() {
       key: "1",
       label: (
         <span className="flex items-center">
-          <DashboardOutlined className="mr-2" />
+          <BarChartOutlined className="mr-2" />
           Dashboard
         </span>
       ),
