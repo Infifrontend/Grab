@@ -1369,6 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM grab_t_bid_payments gbp
         LEFT JOIN grab_t_users gtu ON gbp.r_user_id = gtu.id
         LEFT JOIN grab_m_status gms ON gbp.r_status = gms.id
+        LEFT JOIN grab_t_retail_bids grb ON gbp.r_retail_bid_id = grb.id
         ORDER BY gbp.id DESC
       `;
       const paymentsResults = await db.execute(paymentsQuery);
@@ -2602,8 +2603,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
+      // Import the bidding storage
+      const { biddingStorage } = await import("./bidding-storage.js");
+
       // Get existing bid
-      const existingBid = await storage.getBidById(parseInt(bidId));
+      const existingBid = await biddingStorage.getBidById(parseInt(bidId));
       if (!existingBid) {
         return res.status(404).json({
           success: false,
@@ -2628,9 +2632,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         100;
 
       // Get status IDs for different statuses
-      const approvedStatusId = await storage.getStatusIdByCode("AP");
-      const rejectedStatusId = await storage.getStatusIdByCode("R");
-      const underReviewStatusId = await storage.getStatusIdByCode("UR");
+      const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+      const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
 
       if (!approvedStatusId || !rejectedStatusId) {
         return res.status(500).json({
@@ -2640,7 +2644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get all retail bids for this bid
-      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+      const retailBids = await biddingStorage.getRetailBidsByBid(parseInt(bidId));
 
       // Find the retail bid for this user
       const userRetailBid = retailBids.find(
@@ -2652,20 +2656,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (action === "approve") {
         if (userRetailBid) {
           // Update the user's retail bid status to approved
-          await storage.updateRetailBidStatus(
+          await biddingStorage.updateRetailBidStatus(
             userRetailBid.id,
             approvedStatusId,
           );
         }
 
         // Update main bid status to approved
-        await storage.updateBidStatus(parseInt(bidId), approvedStatusId);
+        await biddingStorage.updateBidStatus(parseInt(bidId), approvedStatusId);
         newBidStatus = approvedStatusId;
 
         // Reject all other retail bids for this bid
         for (const otherRetailBid of retailBids) {
           if (otherRetailBid.rUserId !== parseInt(userId)) {
-            await storage.updateRetailBidStatus(
+            await biddingStorage.updateRetailBidStatus(
               otherRetailBid.id,
               rejectedStatusId,
             );
@@ -2678,7 +2682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (action === "reject") {
         if (userRetailBid) {
           // Update the user's retail bid status to rejected
-          await storage.updateRetailBidStatus(
+          await biddingStorage.updateRetailBidStatus(
             userRetailBid.id,
             rejectedStatusId,
           );
@@ -2691,9 +2695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // If no other approved bids, keep bid open or set to appropriate status
         if (otherApprovedBids.length === 0) {
-          const openStatusId = await storage.getStatusIdByCode("O");
+          const openStatusId = await biddingStorage.getStatusIdByCode("O");
           if (openStatusId) {
-            await storage.updateBidStatus(parseInt(bidId), openStatusId);
+            await biddingStorage.updateBidStatus(parseInt(bidId), openStatusId);
             newBidStatus = openStatusId;
           }
         }
@@ -2733,10 +2737,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date(),
       };
 
-      await storage.updateBidDetails(parseInt(bidId), updateData);
+      await biddingStorage.updateBidDetails(parseInt(bidId), updateData);
 
       // Get the updated bid status name for response
-      const statusInfo = await storage.getStatusById(newBidStatus);
+      const statusInfo = await biddingStorage.getStatusById(newBidStatus);
       const statusName = statusInfo?.statusName || "Unknown";
 
       // Calculate seat utilization
@@ -3729,10 +3733,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Import the new bidding storage
-      const { biddingStorage } = await import("./bidding-storage.js");
-
       // Get complete bid details using the new workflow
+      const { biddingStorage } = await import("./bidding-storage.js");
       const bidDetails = await biddingStorage.getBidWithDetails(
         parsedBidId,
         userId ? parseInt(userId as string) : undefined,
