@@ -2614,7 +2614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`Parsed IDs - Bid: ${numericBidId}, User: ${numericUserId} (retail user, not admin)`);
+      console.log(`Parsed IDs - Bid: ${numericBidId}, User: ${numericUserId}`);
 
       // Import the bidding storage
       const { biddingStorage } = await import("./bidding-storage.js");
