@@ -89,16 +89,18 @@ export class BiddingStorage {
   // Get status by ID
   async getStatusById(statusId: number): Promise<GrabMStatus | null> {
     try {
+      console.log(`Looking up status by ID: ${statusId}`);
       const result = await db
         .select()
         .from(grabMStatus)
         .where(eq(grabMStatus.id, statusId))
         .limit(1);
 
+      console.log(`Status lookup result for ID ${statusId}:`, result);
       return result[0] || null;
     } catch (error) {
-      console.error("Error getting status by ID:", error);
-      throw error;
+      console.error(`Error getting status by ID ${statusId}:`, error);
+      return null;
     }
   }
 
@@ -121,15 +123,24 @@ export class BiddingStorage {
   // Update bid status
   async updateBidStatus(bidId: number, statusId: number): Promise<void> {
     try {
-      await db
+      console.log(`Updating main bid ${bidId} to status ${statusId}`);
+
+      const result = await db
         .update(grabTBids)
         .set({
           rStatus: statusId,
-          updatedAt: new Date(),
+          updatedAt: new Date()
         })
-        .where(eq(grabTBids.id, bidId));
+        .where(eq(grabTBids.id, bidId))
+        .returning();
+
+      console.log(`Successfully updated main bid ${bidId} status, affected rows:`, result.length);
+
+      if (result.length === 0) {
+        throw new Error(`No main bid found with ID ${bidId}`);
+      }
     } catch (error) {
-      console.error("Error updating bid status:", error);
+      console.error(`Error updating main bid status:`, error);
       throw error;
     }
   }
@@ -195,12 +206,24 @@ export class BiddingStorage {
     statusId: number,
   ): Promise<void> {
     try {
-      await db
+      console.log(`Updating retail bid ${retailBidId} to status ${statusId}`);
+
+      const result = await db
         .update(grabTRetailBids)
-        .set({ rStatus: statusId, updatedAt: new Date() })
-        .where(eq(grabTRetailBids.id, retailBidId));
+        .set({
+          rStatus: statusId,
+          updatedAt: new Date()
+        })
+        .where(eq(grabTRetailBids.id, retailBidId))
+        .returning();
+
+      console.log(`Successfully updated retail bid ${retailBidId} status, affected rows:`, result.length);
+
+      if (result.length === 0) {
+        throw new Error(`No retail bid found with ID ${retailBidId}`);
+      }
     } catch (error) {
-      console.error("Error updating retail bid status:", error);
+      console.error(`Error updating retail bid status:`, error);
       throw error;
     }
   }
@@ -349,14 +372,17 @@ export class BiddingStorage {
 
   async getStatusIdByCode(statusCode: string): Promise<number | null> {
     try {
-      const [status] = await db
-        .select()
+      console.log(`Looking up status ID for code: ${statusCode}`);
+      const result = await db
+        .select({ id: grabMStatus.id })
         .from(grabMStatus)
         .where(eq(grabMStatus.statusCode, statusCode))
         .limit(1);
-      return status?.id || null;
+
+      console.log(`Status lookup result for ${statusCode}:`, result);
+      return result.length > 0 ? result[0].id : null;
     } catch (error) {
-      console.error("Error getting status by code:", error);
+      console.error(`Error getting status ID for code ${statusCode}:`, error);
       return null;
     }
   }

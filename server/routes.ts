@@ -2631,10 +2631,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         existingNotes.totalSeatsAvailable ||
         100;
 
-      // Get status IDs for different statuses
+      // Get status IDs for different statuses using the exact status codes
       const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
       const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
-      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+      const openStatusId = await biddingStorage.getStatusIdByCode("O");
+
+      console.log(`Status IDs: Approved=${approvedStatusId}, Rejected=${rejectedStatusId}, Open=${openStatusId}`);
 
       if (!approvedStatusId || !rejectedStatusId) {
         return res.status(500).json({
@@ -2645,30 +2647,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all retail bids for this bid
       const retailBids = await biddingStorage.getRetailBidsByBid(parseInt(bidId));
+      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
 
       // Find the retail bid for this user
       const userRetailBid = retailBids.find(
         (rb) => rb.rUserId === parseInt(userId),
       );
 
-      let newBidStatus = existingBid.bid.rStatus; // Keep current bid status by default
+      if (!userRetailBid) {
+        return res.status(404).json({
+          success: false,
+          message: "User retail bid not found",
+        });
+      }
+
+      console.log(`Found user retail bid with ID: ${userRetailBid.id}, current status: ${userRetailBid.rStatus}`);
+
+      let newMainBidStatus = existingBid.bid.rStatus; // Keep current bid status by default
 
       if (action === "approve") {
-        if (userRetailBid) {
-          // Update the user's retail bid status to approved
-          await biddingStorage.updateRetailBidStatus(
-            userRetailBid.id,
-            approvedStatusId,
-          );
-        }
+        // Update the user's retail bid status to approved
+        console.log(`Updating retail bid ${userRetailBid.id} status to approved (${approvedStatusId})`);
+        await biddingStorage.updateRetailBidStatus(
+          userRetailBid.id,
+          approvedStatusId,
+        );
 
         // Update main bid status to approved
+        console.log(`Updating main bid ${bidId} status to approved (${approvedStatusId})`);
         await biddingStorage.updateBidStatus(parseInt(bidId), approvedStatusId);
-        newBidStatus = approvedStatusId;
+        newMainBidStatus = approvedStatusId;
 
         // Reject all other retail bids for this bid
         for (const otherRetailBid of retailBids) {
           if (otherRetailBid.rUserId !== parseInt(userId)) {
+            console.log(`Rejecting retail bid ${otherRetailBid.id} for user ${otherRetailBid.rUserId}`);
             await biddingStorage.updateRetailBidStatus(
               otherRetailBid.id,
               rejectedStatusId,
@@ -2680,72 +2693,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `Approved user ${userId} for bid ${bidId}, rejected all others, updated main bid status to approved`,
         );
       } else if (action === "reject") {
-        if (userRetailBid) {
-          // Update the user's retail bid status to rejected
-          await biddingStorage.updateRetailBidStatus(
-            userRetailBid.id,
-            rejectedStatusId,
-          );
-        }
+        // Update the user's retail bid status to rejected
+        console.log(`Updating retail bid ${userRetailBid.id} status to rejected (${rejectedStatusId})`);
+        await biddingStorage.updateRetailBidStatus(
+          userRetailBid.id,
+          rejectedStatusId,
+        );
 
         // Check if there are any other approved retail bids
         const otherApprovedBids = retailBids.filter(
           (rb) => rb.rUserId !== parseInt(userId) && rb.rStatus === approvedStatusId,
         );
 
-        // If no other approved bids, keep bid open or set to appropriate status
+        console.log(`Found ${otherApprovedBids.length} other approved retail bids`);
+
+        // If no other approved bids, keep bid open
         if (otherApprovedBids.length === 0) {
-          const openStatusId = await biddingStorage.getStatusIdByCode("O");
           if (openStatusId) {
+            console.log(`Setting main bid ${bidId} status back to open (${openStatusId})`);
             await biddingStorage.updateBidStatus(parseInt(bidId), openStatusId);
-            newBidStatus = openStatusId;
+            newMainBidStatus = openStatusId;
           }
         }
 
         console.log(`Rejected user ${userId} for bid ${bidId}`);
       }
 
-      // Update bid notes (if any changes were made)
-      if (action === "approve" || action === "reject") {
-        // Update notes if needed based on action, e.g., marking as closed due to capacity
-        if (action === "approve") {
-          const approvedRetailBids = retailBids.filter(
-            (rb) => rb.rStatus === approvedStatusId,
-          );
-          const currentApprovedSeats = approvedRetailBids.reduce(
-            (total, rb) => total + (rb.seatBooked || 0),
-            0,
-          );
-          const seatsRemaining = totalSeatsAvailable - currentApprovedSeats;
+      // Update bid notes with action history
+      existingNotes.actionHistory = existingNotes.actionHistory || [];
+      existingNotes.actionHistory.push({
+        action: action,
+        userId: parseInt(userId),
+        timestamp: new Date().toISOString(),
+        adminUser: "system", // You can get this from session if available
+      });
 
-          if (seatsRemaining <= 0) {
-            // Update bid notes to indicate it's closed due to capacity
-            existingNotes.closedDueToCapacity = true;
-            existingNotes.closedAt = new Date().toISOString();
-          }
-        }
-
-        console.log(
-          `Updating bid ${bidId} status from ${existingBid.bid.rStatus} to ${newBidStatus}`,
+      if (action === "approve") {
+        const approvedRetailBids = retailBids.filter(
+          (rb) => rb.rUserId === parseInt(userId) || rb.rStatus === approvedStatusId,
         );
+        const currentApprovedSeats = approvedRetailBids.reduce(
+          (total, rb) => total + (rb.seatBooked || 0),
+          0,
+        );
+        const seatsRemaining = totalSeatsAvailable - currentApprovedSeats;
+
+        if (seatsRemaining <= 0) {
+          existingNotes.closedDueToCapacity = true;
+          existingNotes.closedAt = new Date().toISOString();
+        }
       }
 
-      // Update the bid with new notes and potentially new bid status
+      console.log(
+        `Updating bid ${bidId} status from ${existingBid.bid.rStatus} to ${newMainBidStatus}`,
+      );
+
+      // Update the bid with new notes and new bid status
       const updateData = {
         notes: JSON.stringify(existingNotes),
-        rStatus: newBidStatus, // Use rStatus for the main bid status
+        rStatus: newMainBidStatus,
         updatedAt: new Date(),
       };
 
       await biddingStorage.updateBidDetails(parseInt(bidId), updateData);
 
       // Get the updated bid status name for response
-      const statusInfo = await biddingStorage.getStatusById(newBidStatus);
+      const statusInfo = await biddingStorage.getStatusById(newMainBidStatus);
       const statusName = statusInfo?.statusName || "Unknown";
 
       // Calculate seat utilization
       const approvedRetailBids = retailBids.filter(
-        (rb) => rb.rStatus === approvedStatusId,
+        (rb) => rb.rStatus === approvedStatusId || (rb.id === userRetailBid.id && action === "approve"),
       );
       const bookedSeats = approvedRetailBids.reduce(
         (total, rb) => total + (rb.seatBooked || 0),
@@ -2757,11 +2775,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message:
           action === "approve"
-            ? `User ${userId} approved for bid ${bidId}. Bid status updated.`
-            : `User ${userId} rejected for bid ${bidId}. Bid status updated.`,
+            ? `User ${userId} approved for bid ${bidId}. Main bid status updated to ${statusName}.`
+            : `User ${userId} rejected for bid ${bidId}. Main bid status updated to ${statusName}.`,
         bidStatus: statusName,
-        rStatusId: newBidStatus,
-        seatsRemaining: seatsRemaining,
+        rStatusId: newMainBidStatus,
+        seatsRemaining: Math.max(0, seatsRemaining),
         isClosedDueToCapacity: existingNotes.closedDueToCapacity || false,
       });
     } catch (error) {

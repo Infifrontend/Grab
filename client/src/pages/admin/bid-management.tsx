@@ -1264,10 +1264,13 @@ export default function BidManagement() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update retail user status");
+        const errorText = await response.text();
+        console.error("API response error:", errorText);
+        throw new Error(`Failed to update retail user status: ${errorText}`);
       }
 
       const result = await response.json();
+      console.log("Action result:", result);
 
       if (result.success) {
         if (action === "approve") {
@@ -1281,12 +1284,26 @@ export default function BidManagement() {
           );
         }
 
-        // Refresh the data to update the UI with new bid status and retail user statuses
-        queryClient.invalidateQueries(["recent-bids"]);
-        queryClient.invalidateQueries(["bid-configurations"]);
+        // Clear retail users data for this bid to force refetch
+        setRetailUsersData((prev) => {
+          const updated = { ...prev };
+          delete updated[parseInt(numericBidId)];
+          return updated;
+        });
 
-        // Force refetch to get latest data
-        refetchBids();
+        // Refresh the data to update the UI with new bid status and retail user statuses
+        await Promise.all([
+          queryClient.invalidateQueries(["recent-bids"]),
+          queryClient.invalidateQueries(["bid-configurations"]),
+          refetchBids()
+        ]);
+
+        // Small delay to ensure data is updated, then force re-expand if expanded
+        setTimeout(() => {
+          // Force refresh retail users data by fetching again
+          fetchRetailUsers(parseInt(numericBidId));
+        }, 500);
+
       } else {
         throw new Error(result.message || `Failed to ${action} retail user`);
       }
