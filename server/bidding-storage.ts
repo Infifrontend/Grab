@@ -301,18 +301,19 @@ export class BiddingStorage {
       const retailBids = await this.getRetailBidsByBid(bidId);
       const bidPayments = await this.getBidPaymentsByRetailBid(bidId);
 
-      // Calculate seat availability
+      // Calculate seat availability using correct status values
       const totalSeatsAvailable = bid.totalSeatsAvailable || (configData as any).totalSeatsAvailable || 100;
       const bookedSeats = retailBids.reduce((total, rb) => {
         if (!rb) return total;
         const status = rb.rStatus;
-        if (status === 2 || status === 3) { // under_review or paid/approved
+        // Only count seats as booked if they are under_review (2) or paid/approved (3)
+        if (status === 2 || status === 3) {
           return total + (rb.seatBooked || 0);
         }
         return total;
       }, 0);
 
-      const availableSeats = totalSeatsAvailable - bookedSeats;
+      const availableSeats = Math.max(0, totalSeatsAvailable - bookedSeats);
       const isBidFullyBooked = availableSeats <= 0;
 
       // User-specific status
@@ -320,54 +321,69 @@ export class BiddingStorage {
       let userPaymentStatus = "not_paid";
       let displayStatus = "";
       let statusForUser = "";
+      let userRetailBidStatus = null;
 
       if (userId) {
         const userRetailBid = retailBids.find(rb => rb.rUserId === userId);
         const userPayment = bidPayments.find(payment => payment.rUserId === userId);
+        
+        userRetailBidStatus = userRetailBid?.rStatus || null;
 
-        hasUserPaid = userRetailBid && (userRetailBid.rStatus === 2 || userRetailBid.rStatus === 3) || !!userPayment;
+        // Check if user has paid (has retail bid with status 2 or 3, or direct payment)
+        hasUserPaid = (userRetailBid && (userRetailBid.rStatus === 2 || userRetailBid.rStatus === 3)) || !!userPayment;
 
-        if (hasUserPaid) {
-          if (userRetailBid?.rStatus === 3) {
-            displayStatus = "Approved";
-            statusForUser = "approved";
-            userPaymentStatus = "approved";
-          } else if (userRetailBid?.rStatus === 4) {
-            displayStatus = "Rejected";
-            statusForUser = "rejected";
-            userPaymentStatus = "rejected";
-          } else {
-            displayStatus = "Under Review";
-            statusForUser = "under_review";
-            userPaymentStatus = "under_review";
+        if (userRetailBid) {
+          switch (userRetailBid.rStatus) {
+            case 1: // submitted
+              displayStatus = "Submitted";
+              statusForUser = "submitted";
+              userPaymentStatus = "payment_pending";
+              break;
+            case 2: // under_review
+              displayStatus = "Under Review";
+              statusForUser = "under_review";
+              userPaymentStatus = "under_review";
+              hasUserPaid = true;
+              break;
+            case 3: // approved/paid
+              displayStatus = "Approved";
+              statusForUser = "approved";
+              userPaymentStatus = "approved";
+              hasUserPaid = true;
+              break;
+            case 4: // rejected
+              displayStatus = "Rejected";
+              statusForUser = "rejected";
+              userPaymentStatus = "rejected";
+              break;
+            default:
+              displayStatus = "Submitted";
+              statusForUser = "submitted";
+              userPaymentStatus = "payment_pending";
           }
         } else {
-          if (availableSeats > 0) {
-            displayStatus = "Open";
-            statusForUser = "open";
-            userPaymentStatus = "open";
-          } else {
+          // User hasn't submitted a bid yet
+          if (isBidFullyBooked) {
             displayStatus = "Closed";
             statusForUser = "closed";
             userPaymentStatus = "closed";
+          } else {
+            displayStatus = "Open";
+            statusForUser = "open";
+            userPaymentStatus = "open";
           }
         }
       } else {
-        if (availableSeats > 0) {
-          displayStatus = "Open";
-          statusForUser = "open";
-          userPaymentStatus = "open";
-        } else {
+        // No user context - show general bid status
+        if (isBidFullyBooked) {
           displayStatus = "Closed";
           statusForUser = "closed";
           userPaymentStatus = "closed";
+        } else {
+          displayStatus = "Open";
+          statusForUser = "open";
+          userPaymentStatus = "open";
         }
-      }
-
-      if (isBidFullyBooked && !hasUserPaid) {
-        displayStatus = "Closed";
-        statusForUser = "closed";
-        userPaymentStatus = "closed";
       }
 
       return {
@@ -383,7 +399,7 @@ export class BiddingStorage {
         statusForUser,
         userPaymentStatus,
         hasUserPaid,
-        userRetailBidStatus: retailBids.find(rb => rb.rUserId === userId)?.rStatus || null
+        userRetailBidStatus
       };
     } catch (error) {
       console.error("Error getting bid with details:", error);
