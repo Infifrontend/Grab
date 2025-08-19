@@ -3546,13 +3546,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
-      // Create retail bid submission with status 'submitted'
+      // Import bidding storage to use status_code lookup
+      const { biddingStorage } = await import("./bidding-storage.js");
+      
+      // Get Under Review status ID using status_code
+      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+      if (!underReviewStatusId) {
+        return res.status(500).json({
+          success: false,
+          message: "Under Review status not found in system",
+        });
+      }
+
+      // Create retail bid submission
       const retailBidData = {
-        rBidId: parsedBidId,
-        rUserId: parsedUserId,
-        submittedAmount: parsedSubmittedAmount.toString(),
-        seatBooked: parsedPassengerCount,
-        rStatus: 6, // Set status to 6 (Under Review) as per grab_m_status table
+        rBidId: parseInt(bidId),
+        rUserId: parseInt(userId),
+        submittedAmount: submittedAmount.toString(),
+        seatBooked: parseInt(passengerCount),
+        rStatus: underReviewStatusId,
       };
 
       // Insert directly into grab_t_retail_bids table

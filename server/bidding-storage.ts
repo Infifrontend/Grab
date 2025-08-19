@@ -22,6 +22,16 @@ export class BiddingStorage {
   async createBid(bidData: InsertGrabTBid): Promise<GrabTBid> {
     try {
       console.log("Creating bid with data:", bidData);
+      
+      // If no rStatus provided, default to "Open" status
+      if (!bidData.rStatus) {
+        const openStatusId = await this.getStatusIdByCode("O");
+        if (!openStatusId) {
+          throw new Error("Open status not found in grab_m_status table");
+        }
+        bidData.rStatus = openStatusId;
+      }
+
       const [bid] = await db
         .insert(grabTBids)
         .values(bidData)
@@ -91,13 +101,34 @@ export class BiddingStorage {
     }
   }
 
+  // Helper method to get status ID by status_code
+  async getStatusIdByCode(statusCode: string): Promise<number | null> {
+    try {
+      const [status] = await db
+        .select({ id: grabMStatus.id })
+        .from(grabMStatus)
+        .where(eq(grabMStatus.statusCode, statusCode))
+        .limit(1);
+      return status?.id || null;
+    } catch (error) {
+      console.error("Error fetching status by code:", error);
+      return null;
+    }
+  }
+
   // Retail Bids (User bid submissions)
   async createRetailBid(retailBidData: InsertGrabTRetailBid): Promise<GrabTRetailBid> {
     try {
-      // Use status ID 6 = "Under Review" (UR) as per grab_m_status table
+      // Fetch "Under Review" status ID using status_code
+      const underReviewStatusId = await this.getStatusIdByCode("UR");
+      
+      if (!underReviewStatusId) {
+        throw new Error("Under Review status not found in grab_m_status table");
+      }
+
       const bidDataWithStatus = {
         ...retailBidData,
-        rStatus: retailBidData.rStatus || 6 // Use status ID 6 for Under Review
+        rStatus: retailBidData.rStatus || underReviewStatusId
       };
 
       const [retailBid] = await db
@@ -154,10 +185,16 @@ export class BiddingStorage {
   // Payments Management
   async createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment> {
     try {
-      // Use status ID 9 = "Approved" (AP) for completed payments
+      // Fetch "Approved" status ID using status_code
+      const approvedStatusId = await this.getStatusIdByCode("AP");
+      
+      if (!approvedStatusId) {
+        throw new Error("Approved status not found in grab_m_status table");
+      }
+
       const paymentDataWithStatus = {
         ...paymentData,
-        rStatus: paymentData.rStatus || 9, // Use status ID 9 for Approved payments
+        rStatus: paymentData.rStatus || approvedStatusId,
         processedAt: paymentData.processedAt || new Date()
       };
 
@@ -216,12 +253,19 @@ export class BiddingStorage {
     isRetailAllowed?: boolean;
   }): Promise<GrabTUser> {
     try {
+      // Fetch "Active" status ID using status_code
+      const activeStatusId = await this.getStatusIdByCode("A");
+      
+      if (!activeStatusId) {
+        throw new Error("Active status not found in grab_m_status table");
+      }
+
       const [user] = await db
         .insert(grabTUsers)
         .values({
           ...userData,
           isRetailAllowed: userData.isRetailAllowed ?? true,
-          rStatus: 1, // Default status: active
+          rStatus: activeStatusId,
         })
         .returning();
       return user;
@@ -316,10 +360,15 @@ export class BiddingStorage {
 
       // Calculate seat availability
       const totalSeatsAvailable = bid.totalSeatsAvailable || (configData as any).totalSeatsAvailable || 100;
+      
+      // Get status IDs for Under Review and Approved
+      const underReviewStatusId = await this.getStatusIdByCode("UR");
+      const approvedStatusId = await this.getStatusIdByCode("AP");
+      
       const bookedSeats = retailBids.reduce((total, rb) => {
         if (!rb) return total;
         const status = rb.rStatus;
-        if (status === 2 || status === 3) { // under_review or paid/approved
+        if (status === underReviewStatusId || status === approvedStatusId) {
           return total + (rb.seatBooked || 0);
         }
         return total;
@@ -338,14 +387,19 @@ export class BiddingStorage {
         const userRetailBid = retailBids.find(rb => rb.rUserId === userId);
         const userPayment = bidPayments.find(payment => payment.rUserId === userId);
 
-        hasUserPaid = userRetailBid && (userRetailBid.rStatus === 2 || userRetailBid.rStatus === 3) || !!userPayment;
+        // Get status IDs for checking
+        const underReviewStatusId = await this.getStatusIdByCode("UR");
+        const approvedStatusId = await this.getStatusIdByCode("AP");
+        const rejectedStatusId = await this.getStatusIdByCode("R");
+
+        hasUserPaid = userRetailBid && (userRetailBid.rStatus === underReviewStatusId || userRetailBid.rStatus === approvedStatusId) || !!userPayment;
 
         if (hasUserPaid) {
-          if (userRetailBid?.rStatus === 3) {
+          if (userRetailBid?.rStatus === approvedStatusId) {
             displayStatus = "Approved";
             statusForUser = "approved";
             userPaymentStatus = "approved";
-          } else if (userRetailBid?.rStatus === 4) {
+          } else if (userRetailBid?.rStatus === rejectedStatusId) {
             displayStatus = "Rejected";
             statusForUser = "rejected";
             userPaymentStatus = "rejected";
