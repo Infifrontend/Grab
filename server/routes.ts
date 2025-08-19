@@ -965,7 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(transformedBids);
       } else {
-        // Default view - fetch active/open bids from grab_t_bids table
+        // Default view - fetch ALL bids from grab_t_bids table (not just r_status = 4)
         const bidsQuery = sql`
           SELECT 
             gtb.id,
@@ -975,13 +975,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gtb.total_seats_available,
             gtb.min_seats_per_bid,
             gtb.max_seats_per_bid,
-            gtb.r_status,
+            COALESCE(gtb.r_status, 4) as r_status,
             gtb.created_at,
             gtb.updated_at,
-            gms.status_name
+            COALESCE(gms.status_name, 'Open') as status_name
           FROM grab_t_bids gtb
           LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
-          WHERE gtb.r_status = 4
           ORDER BY gtb.created_at DESC
         `;
 
@@ -996,6 +995,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             configData = {};
           }
 
+          // Set default status to 4 (Open) if not set
+          const rStatus = row.r_status || 4;
+          const statusName = row.status_name || 'Open';
+
           return {
             id: row.id,
             bidAmount: row.bid_amount,
@@ -1004,11 +1007,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalSeatsAvailable: row.total_seats_available,
             minSeatsPerBid: row.min_seats_per_bid,
             maxSeatsPerBid: row.max_seats_per_bid,
-            rStatus: row.r_status,
+            rStatus: rStatus,
+            statusName: statusName,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             seatAvailability: {
-              paymentStatus: "open",
+              paymentStatus: rStatus === 4 ? "open" : statusName.toLowerCase(),
             },
           };
         });
