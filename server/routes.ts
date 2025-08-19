@@ -3546,26 +3546,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
-      // Parse and validate the input data
-      const parsedBidId = parseInt(bidId);
-      const parsedUserId = parseInt(userId);
-      const parsedSubmittedAmount = parseFloat(submittedAmount);
-      const parsedPassengerCount = parseInt(passengerCount);
-
-      console.log("Parsed retail bid data:", {
-        parsedBidId,
-        parsedUserId,
-        parsedSubmittedAmount,
-        parsedPassengerCount,
-      });
-
       // Create retail bid submission with status 'submitted'
       const retailBidData = {
         rBidId: parsedBidId,
         rUserId: parsedUserId,
         submittedAmount: parsedSubmittedAmount.toString(),
         seatBooked: parsedPassengerCount,
-        rStatus: 1, // Set initial status (1 = submitted, 2 = under_review, 3 = approved, 4 = open/active)
+        rStatus: 6, // Set status to 6 (Under Review) as per grab_m_status table
       };
 
       // Insert directly into grab_t_retail_bids table
@@ -3575,7 +3562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
 
       console.log(
-        `Created retail bid ${newRetailBid.id} with r_status=1 (submitted)`,
+        `Created retail bid ${newRetailBid.id} with r_status=6 (under_review)`,
       );
 
       // Create notification
@@ -3800,7 +3787,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 bidAmount: baseBidAmount + randomIncrement,
                 passengerCount: Math.floor(Math.random() * 3) + 1, // 1-3 passengers
                 status: i === 0 ? "approved" : "pending_approval",
-                createdAt: new Date(Date.now() - Math.random() * 86400000 * 3), // Random within last 3 days
               });
             }
           }

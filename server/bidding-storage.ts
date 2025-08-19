@@ -94,9 +94,15 @@ export class BiddingStorage {
   // Retail Bids (User bid submissions)
   async createRetailBid(retailBidData: InsertGrabTRetailBid): Promise<GrabTRetailBid> {
     try {
+      // Use status ID 6 = "Under Review" (UR) as per grab_m_status table
+      const bidDataWithStatus = {
+        ...retailBidData,
+        rStatus: retailBidData.rStatus || 6 // Use status ID 6 for Under Review
+      };
+
       const [retailBid] = await db
         .insert(grabTRetailBids)
-        .values(retailBidData)
+        .values(bidDataWithStatus)
         .returning();
       return retailBid;
     } catch (error) {
@@ -148,9 +154,16 @@ export class BiddingStorage {
   // Payments Management
   async createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment> {
     try {
+      // Use status ID 9 = "Approved" (AP) for completed payments
+      const paymentDataWithStatus = {
+        ...paymentData,
+        rStatus: paymentData.rStatus || 9, // Use status ID 9 for Approved payments
+        processedAt: paymentData.processedAt || new Date()
+      };
+
       const [payment] = await db
         .insert(grabTBidPayments)
-        .values(paymentData)
+        .values(paymentDataWithStatus)
         .returning();
       return payment;
     } catch (error) {
@@ -164,7 +177,7 @@ export class BiddingStorage {
       // Get retail bids for this bid first
       const retailBids = await this.getRetailBidsByBid(bidId);
       const retailBidIds = retailBids.map(rb => rb.id);
-      
+
       if (retailBidIds.length === 0) {
         return [];
       }
@@ -173,7 +186,7 @@ export class BiddingStorage {
         .select()
         .from(grabTBidPayments)
         .where(eq(grabTBidPayments.rRetailBidId, retailBidIds[0])); // Simplified for now
-      
+
       return payments;
     } catch (error) {
       console.error("Error fetching bid payments:", error);
@@ -283,7 +296,7 @@ export class BiddingStorage {
       }
 
       const { bid } = bidDetails;
-      
+
       // Parse configuration data safely
       let configData = {};
       try {
