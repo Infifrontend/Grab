@@ -343,20 +343,9 @@ export class BiddingStorage {
     description?: string;
   }): Promise<GrabMStatus> {
     try {
-      // Only include fields that exist in the table
-      const insertData: any = {
-        statusName: statusData.statusName,
-        statusCode: statusData.statusCode,
-      };
-      
-      // Only add description if it's provided and the column exists
-      if (statusData.description) {
-        insertData.description = statusData.description;
-      }
-
       const [status] = await db
         .insert(grabMStatus)
-        .values(insertData)
+        .values(statusData)
         .returning();
       return status;
     } catch (error) {
@@ -371,27 +360,33 @@ export class BiddingStorage {
         {
           statusName: "Open",
           statusCode: "O",
+          description: "Bid is open for submissions",
         },
         {
           statusName: "Under Review",
           statusCode: "UR",
+          description: "Payment received, under review",
         },
         {
           statusName: "Approved",
           statusCode: "AP",
+          description: "Bid approved by admin",
         },
         {
           statusName: "Rejected",
           statusCode: "R",
+          description: "Bid rejected by admin",
         },
         {
           statusName: "Processing",
           statusCode: "P",
+          description: "Payment is processing",
         },
-        { statusName: "Active", statusCode: "A" },
+        { statusName: "Active", statusCode: "A", description: "Active status" },
         {
           statusName: "Completed",
           statusCode: "C",
+          description: "Bid process completed",
         },
       ];
 
