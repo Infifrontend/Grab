@@ -209,7 +209,7 @@ export default function PaymentDetails() {
       const formValues =
         paymentMethod === "creditCard" ? form.getFieldsValue() : {};
 
-      // First, submit the retail bid
+      // Get user information from localStorage
       const [getUserId] = localStorageAccessor("userId");
       const [getUserEmail] = localStorageAccessor("userEmail");
       const [getUserName] = localStorageAccessor("userName");
@@ -244,11 +244,11 @@ export default function PaymentDetails() {
       }
 
       console.log(
-        `Creating payment for user ${userId} (${userName}) and bid ${bidId}`,
+        `Processing payment for user ${userId} (${userName}) and bid ${bidId}`,
       );
 
       if (bidId && userId) {
-        console.log("Submitting retail bid before payment...");
+        console.log("Processing retail bid submission and payment...");
         console.log("bidParticipationData:", bidParticipationData);
 
         // Validate bidParticipationData exists
@@ -269,88 +269,68 @@ export default function PaymentDetails() {
           throw new Error("Invalid user ID");
         }
 
-        // Prepare retail bid data with exact field names expected by the API
+        // Calculate submitted amount and seat count
         const submittedAmountValue =
           bidParticipationData.bidAmount ||
           bidParticipationData.totalBid / bidParticipationData.passengerCount ||
           0;
 
-        const retailBidData = {
+        const seatBooked = parseInt(
+          bidParticipationData.passengerCount?.toString() || "1",
+        );
+
+        // Additional validation
+        if (!submittedAmountValue || submittedAmountValue <= 0) {
+          throw new Error(
+            `Invalid bid amount: ${submittedAmountValue}. Please check your bid details.`,
+          );
+        }
+        if (!seatBooked || seatBooked <= 0) {
+          throw new Error(
+            `Invalid seat count: ${seatBooked}. Must be at least 1.`,
+          );
+        }
+
+        console.log("Processing retail bid with new bidding system:", {
           bidId: validBidId,
           userId: validUserId,
-          submittedAmount: parseFloat(submittedAmountValue.toString()),
-          passengerCount: parseInt(
-            bidParticipationData.passengerCount?.toString() || "1",
-          ),
-        };
-
-        // Additional validation with detailed error messages
-        if (
-          !retailBidData.submittedAmount ||
-          retailBidData.submittedAmount <= 0
-        ) {
-          throw new Error(
-            `Invalid bid amount: ${retailBidData.submittedAmount}. Please check your bid details.`,
-          );
-        }
-        if (
-          !retailBidData.passengerCount ||
-          retailBidData.passengerCount <= 0
-        ) {
-          throw new Error(
-            `Invalid passenger count: ${retailBidData.passengerCount}. Must be at least 1.`,
-          );
-        }
-
-        // Log the data being sent for debugging
-        console.log("Retail bid data validation passed:", {
-          bidId: retailBidData.bidId,
-          userId: retailBidData.userId,
-          submittedAmount: retailBidData.submittedAmount,
-          passengerCount: retailBidData.passengerCount,
-          originalBidParticipationData: bidParticipationData,
+          submittedAmount: submittedAmountValue,
+          seatBooked: seatBooked,
         });
 
-        console.log("Retail bid data being sent:", retailBidData);
-
-        const retailBidResponse = await fetch("/api/retail-bids", {
+        // Submit retail bid using the new bidding routes
+        const retailBidResponse = await fetch(`/api/retail/bids/${validBidId}/submit`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(retailBidData),
+          body: JSON.stringify({
+            userId: validUserId,
+            submittedAmount: submittedAmountValue,
+            seatBooked: seatBooked,
+          }),
         });
 
         if (!retailBidResponse.ok) {
           const retailBidError = await retailBidResponse
             .json()
             .catch(() => ({}));
-          throw new Error(retailBidError.message || "Failed to submit bid");
+          throw new Error(retailBidError.message || "Failed to submit retail bid");
         }
 
         const retailBidResult = await retailBidResponse.json();
         console.log("Retail bid submitted successfully:", retailBidResult);
-console.log(userId,'userIdddddd')
-        // Create payment record using bid ID
-        const paymentResponse = await fetch("/api/payments", {
+
+        // Process payment using the new bidding payment system
+        const paymentResponse = await fetch(`/api/retail/bids/${validBidId}/payment`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            bidId: parseInt(bidId),
-            userId: parseInt(userId), // Current user ID from localStorage
-            userEmail: userEmail,
-            userName: userName,
-            userRole: userRole,
-            userLoggedIn: userLoggedIn,
-            bookingId: null, // Set to null for bid payments to avoid foreign key issues
-            amount: (bidParticipationData?.totalBid || 0).toString(),
-            currency: "USD",
+            userId: validUserId,
+            amount: bidParticipationData?.totalBid || 0,
             paymentMethod: paymentMethod,
-            paymentStatus: "completed",
-            paymentType: "full_payment",
-            cardDetails: paymentMethod === "creditCard" ? formValues : null,
           }),
         });
 
@@ -363,42 +343,12 @@ console.log(userId,'userIdddddd')
         }
 
         const paymentResult = await paymentResponse.json();
-        console.log("Payment created successfully:", paymentResult);
-
-        // Update bid status to completed after successful payment
-        const bidUpdateResponse = await fetch(
-          `/api/bids/${bidId}/payment-status`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              bidStatus: "completed",
-              paymentStatus: "Paid",
-              passengerCount: bidParticipationData.passengerCount,
-              bidAmount: bidParticipationData.bidAmount,
-            }),
-          },
-        );
-
-        if (!bidUpdateResponse.ok) {
-          console.warn("Payment succeeded but bid status update failed");
-          // Don't throw error here as payment was successful
-        }
+        console.log("Payment processed successfully:", paymentResult);
 
         // Store payment reference for display
         setPaymentReference(
           paymentResult.paymentReference || `PAY-${bidId}-${Date.now()}`,
         );
-
-        // Clear localStorage
-        localStorage.removeItem("bidParticipationData");
-
-        message.success("Bid submitted and payment processed successfully!");
-
-        // Show success modal
-        setShowSuccessModal(true);
       }
     } catch (error) {
       console.error("Payment processing error:", error);
@@ -664,13 +614,6 @@ console.log(userId,'userIdddddd')
                     ${(bidParticipationData?.totalBid || 0).toLocaleString()}
                   </Text>
                 </div>
-
-                {/* <div className="flex justify-between">
-                  <Text className="text-gray-600">Deposit Required (10%)</Text>
-                  <Text className="text-blue-600 font-bold text-lg">
-                    ${bidParticipationData.depositRequired.toLocaleString()}
-                  </Text>
-                </div> */}
               </div>
 
               <Divider />

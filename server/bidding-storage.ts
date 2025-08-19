@@ -377,11 +377,13 @@ export class BiddingStorage {
       const availableSeats = totalSeatsAvailable - bookedSeats;
       const isBidFullyBooked = availableSeats <= 0;
 
-      // User-specific status
+      // Status Priority Logic Implementation
       let hasUserPaid = false;
       let userPaymentStatus = "not_paid";
       let displayStatus = "";
       let statusForUser = "";
+      let statusSource = "global_bid"; // Default source
+      let finalStatus = bid.rStatus; // Default to bid's main status
 
       if (userId) {
         const userRetailBid = retailBids.find(rb => rb.rUserId === userId);
@@ -391,19 +393,26 @@ export class BiddingStorage {
         const underReviewStatusId = await this.getStatusIdByCode("UR");
         const approvedStatusId = await this.getStatusIdByCode("AP");
         const rejectedStatusId = await this.getStatusIdByCode("R");
+        const openStatusId = await this.getStatusIdByCode("O");
 
-        hasUserPaid = userRetailBid && (userRetailBid.rStatus === underReviewStatusId || userRetailBid.rStatus === approvedStatusId) || !!userPayment;
-
-        if (hasUserPaid) {
-          if (userRetailBid?.rStatus === approvedStatusId) {
+        // Status Priority Logic:
+        // If retail bid row exists → use grab_t_retail_bids.r_status
+        // If no retail bid row → use default grab_t_bids.r_status
+        if (userRetailBid) {
+          finalStatus = userRetailBid.rStatus;
+          statusSource = "retail_bid";
+          hasUserPaid = true;
+          
+          // Map retail bid status to display status
+          if (userRetailBid.rStatus === approvedStatusId) {
             displayStatus = "Approved";
             statusForUser = "approved";
             userPaymentStatus = "approved";
-          } else if (userRetailBid?.rStatus === rejectedStatusId) {
+          } else if (userRetailBid.rStatus === rejectedStatusId) {
             displayStatus = "Rejected";
             statusForUser = "rejected";
             userPaymentStatus = "rejected";
-          } else if (userRetailBid?.rStatus === underReviewStatusId) {
+          } else if (userRetailBid.rStatus === underReviewStatusId) {
             displayStatus = "Under Review";
             statusForUser = "under_review";
             userPaymentStatus = "under_review";
@@ -413,7 +422,12 @@ export class BiddingStorage {
             userPaymentStatus = "under_review";
           }
         } else {
-          if (availableSeats > 0) {
+          // No retail bid exists, use global bid status
+          finalStatus = bid.rStatus;
+          statusSource = "global_bid";
+          hasUserPaid = false;
+          
+          if (availableSeats > 0 && bid.rStatus === openStatusId) {
             displayStatus = "Open";
             statusForUser = "open";
             userPaymentStatus = "open";
@@ -424,7 +438,12 @@ export class BiddingStorage {
           }
         }
       } else {
-        if (availableSeats > 0) {
+        // No user provided, use global bid status
+        finalStatus = bid.rStatus;
+        statusSource = "global_bid";
+        
+        const openStatusId = await this.getStatusIdByCode("O");
+        if (availableSeats > 0 && bid.rStatus === openStatusId) {
           displayStatus = "Open";
           statusForUser = "open";
           userPaymentStatus = "open";
@@ -435,6 +454,7 @@ export class BiddingStorage {
         }
       }
 
+      // Override status if bid is fully booked and user hasn't paid
       if (isBidFullyBooked && !hasUserPaid) {
         displayStatus = "Closed";
         statusForUser = "closed";
@@ -454,6 +474,8 @@ export class BiddingStorage {
         statusForUser,
         userPaymentStatus,
         hasUserPaid,
+        statusSource, // Indicates whether status comes from "global_bid" or "retail_bid"
+        finalStatus, // The actual status ID being used
         userRetailBidStatus: retailBids.find(rb => rb.rUserId === userId)?.rStatus || null
       };
     } catch (error) {
