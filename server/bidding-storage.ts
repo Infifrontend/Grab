@@ -340,14 +340,12 @@ export class BiddingStorage {
   async createStatus(statusData: {
     statusName: string;
     statusCode: string;
+    description?: string;
   }): Promise<GrabMStatus> {
     try {
       const [status] = await db
         .insert(grabMStatus)
-        .values({
-          statusName: statusData.statusName,
-          statusCode: statusData.statusCode,
-        })
+        .values(statusData)
         .returning();
       return status;
     } catch (error) {
@@ -362,27 +360,33 @@ export class BiddingStorage {
         {
           statusName: "Open",
           statusCode: "O",
+          description: "Bid is open for submissions",
         },
         {
           statusName: "Under Review",
           statusCode: "UR",
+          description: "Payment received, under review",
         },
         {
           statusName: "Approved",
           statusCode: "AP",
+          description: "Bid approved by admin",
         },
         {
           statusName: "Rejected",
           statusCode: "R",
+          description: "Bid rejected by admin",
         },
         {
           statusName: "Processing",
           statusCode: "P",
+          description: "Payment is processing",
         },
-        { statusName: "Active", statusCode: "A" },
+        { statusName: "Active", statusCode: "A", description: "Active status" },
         {
           statusName: "Completed",
           statusCode: "C",
+          description: "Bid process completed",
         },
       ];
 
