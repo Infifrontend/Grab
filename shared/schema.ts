@@ -1,4 +1,11 @@
-import { pgTable, text, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  decimal,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -17,9 +24,6 @@ export const grabMStatus = pgTable("grab_m_status", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   statusName: text("status_name").notNull(),
   statusCode: text("status_code").notNull().unique(),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const grabTUsers = pgTable("grab_t_users", {
@@ -30,7 +34,10 @@ export const grabTUsers = pgTable("grab_t_users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   isRetailAllowed: boolean("is_retail_allowed").default(false),
-  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  rStatus: integer("r_status").references(() => grabMStatus.id, {
+    onDelete: "restrict",
+    onUpdate: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -40,8 +47,14 @@ export const deals = pgTable("deals", {
   title: text("title").notNull(),
   subtitle: text("subtitle"),
   discountPercentage: integer("discount_percentage").notNull(),
-  originalPrice: decimal("original_price", { precision: 10, scale: 2 }).notNull(),
-  discountedPrice: decimal("discounted_price", { precision: 10, scale: 2 }).notNull(),
+  originalPrice: decimal("original_price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  discountedPrice: decimal("discounted_price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   origin: text("origin").notNull(),
   destination: text("destination").notNull(),
   rating: decimal("rating", { precision: 2, scale: 1 }).notNull(),
@@ -110,7 +123,9 @@ export const flightBookings = pgTable("flight_bookings", {
   bookingReference: text("booking_reference").notNull().unique(),
   pnr: text("pnr").notNull().unique(),
   userId: integer("user_id").references(() => users.id),
-  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  flightId: integer("flight_id")
+    .references(() => flights.id)
+    .notNull(),
   passengerCount: integer("passenger_count").notNull(),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   bookingStatus: text("booking_status").notNull().default("pending"), // pending, confirmed, cancelled, completed
@@ -124,7 +139,9 @@ export const flightBookings = pgTable("flight_bookings", {
 // Passenger details for bookings
 export const passengers = pgTable("passengers", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  bookingId: integer("booking_id").references(() => flightBookings.id).notNull(),
+  bookingId: integer("booking_id")
+    .references(() => flightBookings.id)
+    .notNull(),
   title: text("title").notNull(), // Mr, Mrs, Ms, Dr
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -140,8 +157,12 @@ export const passengers = pgTable("passengers", {
 // Bids module for flight offers
 export const bids = pgTable("bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  flightId: integer("flight_id").references(() => flights.id).notNull(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .notNull(),
+  flightId: integer("flight_id")
+    .references(() => flights.id)
+    .notNull(),
   bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   bidStatus: text("bid_status").notNull().default("active"), // active, accepted, rejected, expired, withdrawn
@@ -163,7 +184,10 @@ export const grabTBids = pgTable("grab_t_bids", {
   totalSeatsAvailable: integer("total_seats_available").default(50),
   minSeatsPerBid: integer("min_seats_per_bid").default(1),
   maxSeatsPerBid: integer("max_seats_per_bid").default(10),
-  rStatus: integer("r_status").references(() => grabMStatus.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  rStatus: integer("r_status").references(() => grabMStatus.id, {
+    onDelete: "restrict",
+    onUpdate: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -188,7 +212,9 @@ export const payments = pgTable("payments", {
 // Payment refunds tracking
 export const refunds = pgTable("refunds", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  paymentId: integer("payment_id").references(() => payments.id).notNull(),
+  paymentId: integer("payment_id")
+    .references(() => payments.id)
+    .notNull(),
   refundReference: text("refund_reference").notNull().unique(),
   refundAmount: decimal("refund_amount", { precision: 10, scale: 2 }).notNull(),
   refundReason: text("refund_reason").notNull(),
@@ -212,10 +238,19 @@ export const notifications = pgTable("notifications", {
 // Retail bids table for storing retail user bid submissions
 export const retailBids = pgTable("retail_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  bidId: integer("bid_id").references(() => bids.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  flightId: integer("flight_id").references(() => flights.id).notNull(),
-  submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
+  bidId: integer("bid_id")
+    .references(() => bids.id)
+    .notNull(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .notNull(),
+  flightId: integer("flight_id")
+    .references(() => flights.id)
+    .notNull(),
+  submittedAmount: decimal("submitted_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   passengerCount: integer("passenger_count").notNull(),
   status: text("status").notNull().default("submitted"), // submitted, approved, rejected
   createdAt: timestamp("created_at").defaultNow(),
@@ -225,9 +260,16 @@ export const retailBids = pgTable("retail_bids", {
 // New grab_t_retail_bids table to replace retail_bids table
 export const grabTRetailBids = pgTable("grab_t_retail_bids", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  rBidId: integer("r_bid_id").references(() => grabTBids.id).notNull(),
-  rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
-  submittedAmount: decimal("submitted_amount", { precision: 10, scale: 2 }).notNull(),
+  rBidId: integer("r_bid_id")
+    .references(() => grabTBids.id)
+    .notNull(),
+  rUserId: integer("r_user_id")
+    .references(() => grabTUsers.id)
+    .notNull(),
+  submittedAmount: decimal("submitted_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   seatBooked: integer("seat_booked").notNull(),
   rStatus: integer("r_status").references(() => grabMStatus.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -237,7 +279,9 @@ export const grabTRetailBids = pgTable("grab_t_retail_bids", {
 // New grab_t_bid_payments table to replace payments table for bid-related payments
 export const grabTBidPayments = pgTable("grab_t_bid_payments", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  rUserId: integer("r_user_id").references(() => grabTUsers.id).notNull(),
+  rUserId: integer("r_user_id")
+    .references(() => grabTUsers.id)
+    .notNull(),
   rRetailBidId: integer("r_retail_bid_id").references(() => grabTRetailBids.id),
   paymentReference: text("payment_reference").notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
@@ -270,18 +314,21 @@ export const flightsRelations = relations(flights, ({ many }) => ({
   bids: many(bids),
 }));
 
-export const flightBookingsRelations = relations(flightBookings, ({ one, many }) => ({
-  user: one(users, {
-    fields: [flightBookings.userId],
-    references: [users.id],
+export const flightBookingsRelations = relations(
+  flightBookings,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [flightBookings.userId],
+      references: [users.id],
+    }),
+    flight: one(flights, {
+      fields: [flightBookings.flightId],
+      references: [flights.id],
+    }),
+    passengers: many(passengers),
+    payments: many(payments),
   }),
-  flight: one(flights, {
-    fields: [flightBookings.flightId],
-    references: [flights.id],
-  }),
-  passengers: many(passengers),
-  payments: many(payments),
-}));
+);
 
 export const passengersRelations = relations(passengers, ({ one }) => ({
   booking: one(flightBookings, {
@@ -350,36 +397,42 @@ export const retailBidsRelations = relations(retailBids, ({ one }) => ({
   }),
 }));
 
-export const grabTRetailBidsRelations = relations(grabTRetailBids, ({ one, many }) => ({
-  bid: one(grabTBids, {
-    fields: [grabTRetailBids.rBidId],
-    references: [grabTBids.id],
+export const grabTRetailBidsRelations = relations(
+  grabTRetailBids,
+  ({ one, many }) => ({
+    bid: one(grabTBids, {
+      fields: [grabTRetailBids.rBidId],
+      references: [grabTBids.id],
+    }),
+    user: one(grabTUsers, {
+      fields: [grabTRetailBids.rUserId],
+      references: [grabTUsers.id],
+    }),
+    status: one(grabMStatus, {
+      fields: [grabTRetailBids.rStatus],
+      references: [grabMStatus.id],
+    }),
+    payments: many(grabTBidPayments),
   }),
-  user: one(grabTUsers, {
-    fields: [grabTRetailBids.rUserId],
-    references: [grabTUsers.id],
-  }),
-  status: one(grabMStatus, {
-    fields: [grabTRetailBids.rStatus],
-    references: [grabMStatus.id],
-  }),
-  payments: many(grabTBidPayments),
-}));
+);
 
-export const grabTBidPaymentsRelations = relations(grabTBidPayments, ({ one }) => ({
-  user: one(grabTUsers, {
-    fields: [grabTBidPayments.rUserId],
-    references: [grabTUsers.id],
+export const grabTBidPaymentsRelations = relations(
+  grabTBidPayments,
+  ({ one }) => ({
+    user: one(grabTUsers, {
+      fields: [grabTBidPayments.rUserId],
+      references: [grabTUsers.id],
+    }),
+    retailBid: one(grabTRetailBids, {
+      fields: [grabTBidPayments.rRetailBidId],
+      references: [grabTRetailBids.id],
+    }),
+    status: one(grabMStatus, {
+      fields: [grabTBidPayments.rStatus],
+      references: [grabMStatus.id],
+    }),
   }),
-  retailBid: one(grabTRetailBids, {
-    fields: [grabTBidPayments.rRetailBidId],
-    references: [grabTRetailBids.id],
-  }),
-  status: one(grabMStatus, {
-    fields: [grabTBidPayments.rStatus],
-    references: [grabMStatus.id],
-  }),
-}));
+);
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -391,25 +444,66 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertDealSchema = createInsertSchema(deals);
 export const insertPackageSchema = createInsertSchema(packages);
-export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
-export const insertSearchRequestSchema = createInsertSchema(searchRequests).extend({
-  departureDate: z.string().or(z.date()).transform((val) => 
-    typeof val === 'string' ? new Date(val) : val
-  ),
-  returnDate: z.string().or(z.date()).nullable().transform((val) => 
-    val ? (typeof val === 'string' ? new Date(val) : val) : null
-  ),
+export const insertBookingSchema = createInsertSchema(bookings).omit({
+  id: true,
+  createdAt: true,
 });
-export const insertFlightSchema = createInsertSchema(flights).omit({ id: true, createdAt: true });
-export const insertFlightBookingSchema = createInsertSchema(flightBookings).omit({ id: true, bookedAt: true, updatedAt: true });
-export const insertPassengerSchema = createInsertSchema(passengers).omit({ id: true });
-export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertGrabTBidSchema = createInsertSchema(grabTBids).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, processedAt: true, createdAt: true });
-export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, processedAt: true, createdAt: true });
-export const insertRetailBidSchema = createInsertSchema(retailBids).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertGrabTRetailBidSchema = createInsertSchema(grabTRetailBids).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertGrabTBidPaymentSchema = createInsertSchema(grabTBidPayments).omit({ id: true, processedAt: true, createdAt: true });
+export const insertSearchRequestSchema = createInsertSchema(
+  searchRequests,
+).extend({
+  departureDate: z
+    .string()
+    .or(z.date())
+    .transform((val) => (typeof val === "string" ? new Date(val) : val)),
+  returnDate: z
+    .string()
+    .or(z.date())
+    .nullable()
+    .transform((val) =>
+      val ? (typeof val === "string" ? new Date(val) : val) : null,
+    ),
+});
+export const insertFlightSchema = createInsertSchema(flights).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertFlightBookingSchema = createInsertSchema(
+  flightBookings,
+).omit({ id: true, bookedAt: true, updatedAt: true });
+export const insertPassengerSchema = createInsertSchema(passengers).omit({
+  id: true,
+});
+export const insertBidSchema = createInsertSchema(bids).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertGrabTBidSchema = createInsertSchema(grabTBids).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  processedAt: true,
+  createdAt: true,
+});
+export const insertRefundSchema = createInsertSchema(refunds).omit({
+  id: true,
+  processedAt: true,
+  createdAt: true,
+});
+export const insertRetailBidSchema = createInsertSchema(retailBids).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertGrabTRetailBidSchema = createInsertSchema(
+  grabTRetailBids,
+).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertGrabTBidPaymentSchema = createInsertSchema(
+  grabTBidPayments,
+).omit({ id: true, processedAt: true, createdAt: true });
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
