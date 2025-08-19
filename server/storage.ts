@@ -660,17 +660,9 @@ export class DatabaseStorage implements IStorage {
     return payment || undefined;
   }
 
-  async createPayment(paymentData: InsertPayment): Promise<Payment> {
-    try {
-      console.log("Creating payment with data:", paymentData);
-      // Fix: Use the correct column name 'userId' instead of 'user_id'
-      const [payment] = await db.insert(payments).values(paymentData).returning();
-      console.log("Payment created successfully:", payment);
-      return payment;
-    } catch (error) {
-      console.error("Error creating payment:", error);
-      throw error;
-    }
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db.insert(payments).values(payment).returning();
+    return newPayment;
   }
 
   async updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void> {
@@ -930,10 +922,9 @@ export class DatabaseStorage implements IStorage {
       // Generate payment reference if not provided
       const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
-      // Fix: Ensure userId is correctly passed and mapped to the schema's userId column
       const [payment] = await db.insert(payments).values({
         bookingId: paymentData.bookingId || null,
-        userId: paymentData.userId || 1, // Ensure userId is present
+        userId: paymentData.userId || 1,
         paymentReference: paymentReference,
         amount: paymentData.amount,
         currency: paymentData.currency || 'USD',
@@ -961,7 +952,7 @@ export class DatabaseStorage implements IStorage {
 
         const [payment] = await db.insert(payments).values({
           bookingId: paymentData.bookingId || null,
-          userId: paymentData.userId || 1, // Ensure userId is present
+          userId: paymentData.userId || 1,
           paymentReference: paymentReference,
           amount: paymentData.amount,
           currency: paymentData.currency || 'USD',
@@ -1381,86 +1372,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Get retail bids with payment status
-  async getRetailBidsWithPaymentStatus(bidId: number): Promise<any[]> {
-    try {
-      const retailBids = await db
-        .select({
-          retailBidId: grabTRetailBids.id,
-          userId: grabTRetailBids.rUserId,
-          submittedAmount: grabTRetailBids.submittedAmount,
-          seatBooked: grabTRetailBids.seatBooked,
-          status: grabTRetailBids.rStatus,
-          paymentStatus: grabTBidPayments.rStatus, // Join to get payment status
-          createdAt: grabTRetailBids.createdAt,
-        })
-        .from(grabTRetailBids)
-        .leftJoin(grabTBidPayments, eq(grabTRetailBids.id, grabTBidPayments.rRetailBidId))
-        .where(eq(grabTRetailBids.rBidId, bidId))
-        .orderBy(desc(grabTRetailBids.createdAt));
-
-      // Process statuses for clarity
-      const processedBids = retailBids.map(bid => {
-        let displayStatus = "Submitted"; // Default for grabTRetailBids.rStatus = 1
-        switch (bid.status) {
-          case 2: displayStatus = "Under Review"; break;
-          case 3: displayStatus = "Paid"; break;
-          case 4: displayStatus = "Approved"; break;
-          case 5: displayStatus = "Rejected"; break;
-          default: displayStatus = "Submitted";
-        }
-
-        let paymentDisplayStatus = "Pending"; // Default for grabTBidPayments.rStatus = 0
-        switch (bid.paymentStatus) {
-          case 0: paymentDisplayStatus = "Pending"; break;
-          case 1: paymentDisplayStatus = "Success"; break;
-          case 2: paymentDisplayStatus = "Failed"; break;
-          default: paymentDisplayStatus = "Pending";
-        }
-
-        return {
-          ...bid,
-          status: displayStatus,
-          paymentStatus: paymentDisplayStatus,
-        };
-      });
-
-      return processedBids;
-    } catch (error) {
-      console.error("Error fetching retail bids with payment status:", error);
-      throw error;
-    }
-  }
-
-  // Check if seats are available for a bid
-  async checkBidSeatAvailability(bidId: number): Promise<boolean> {
-    try {
-      const bid = await this.getBidById(bidId);
-      if (!bid) {
-        console.log(`Bid ${bidId} not found.`);
-        return false;
-      }
-
-      const totalSeatsAvailable = bid.bid.totalSeatsAvailable || 100; // Default to 100 if not specified
-      const existingRetailBids = await this.getRetailBidsByBid(bidId);
-
-      const seatsBooked = existingRetailBids.reduce((sum, rb) => {
-        // Consider bids that are submitted, under review, or paid as booked
-        if (rb.rStatus === 1 || rb.rStatus === 2 || rb.rStatus === 3 || rb.rStatus === 4) {
-          return sum + (rb.seatBooked || 0);
-        }
-        return sum;
-      }, 0);
-
-      const remainingSeats = totalSeatsAvailable - seatsBooked;
-      console.log(`Bid ${bidId}: Total Seats: ${totalSeatsAvailable}, Seats Booked: ${seatsBooked}, Remaining Seats: ${remainingSeats}`);
-      return remainingSeats > 0;
-    } catch (error) {
-      console.error(`Error checking seat availability for bid ${bidId}:`, error);
-      throw error;
-    }
-  }
-
   // Fix database sequences to prevent duplicate key errors
   async fixDatabaseSequences() {
     try {
@@ -1714,7 +1625,6 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Passenger count (${bid.passengerCount}) exceeds maximum allowed per user (${maxSeatsPerUser}).`);
       }
       if (bid.passengerCount > availableSeats) {
-        // Overbooking issue: Block payment if no seats are available
         throw new Error(`Not enough seats available. ${availableSeats} seats remaining.`);
       }
 
@@ -1752,10 +1662,6 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       console.log("Retail bid created successfully:", newRetailBid);
-
-      // Status Update Issue: Update bid status to 'Under Review' after successful bid creation/payment
-      await this.updateRetailBidStatus(newRetailBid.id, 'Under Review'); // Assuming 'Under Review' corresponds to a status code
-
       return newRetailBid;
     } catch (error) {
       console.error("Error creating retail bid:", error);
@@ -1793,9 +1699,6 @@ export class DatabaseStorage implements IStorage {
             .returning();
 
           console.log("Retail bid created successfully after sequence fix:", newRetailBid);
-          // Status Update Issue: Update bid status to 'Under Review' after successful bid creation/payment
-          await this.updateRetailBidStatus(newRetailBid.id, 'Under Review');
-
           return newRetailBid;
         } catch (retryError) {
           console.error("Failed to create retail bid even after sequence fix:", retryError);

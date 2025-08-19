@@ -2395,7 +2395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingId,
         amount,
         currency,
-        paymentMethod,
+        paymentMethod, // fixed: was 'retailBidspaymentMethod' in body but you used paymentMethod
         paymentStatus,
         paymentType,
         cardDetails,
@@ -2435,7 +2435,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `Payment request from user: ${userName} (${userEmail}), ID: ${currentUserId}, Role: ${userRole}`,
       );
 
-      // Enhanced bid validation and seat availability check
+      // Check if user already paid for this bid
+      if (bidId && currentUserId) {
+        try {
+          const bidDetails = await storage.getBidById(parseInt(bidId));
+          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+
+          const userRetailBid = retailBids.find(
+            (rb) => rb.userId === currentUserId,
+          );
+
+          if (
+            userRetailBid &&
+            (userRetailBid.status === "under_review" ||
+              userRetailBid.status === "paid")
+          ) {
+            return res.status(400).json({
+              success: false,
+              message: "You have already completed payment for this bid",
+            });
+          }
+
+          const existingPayments = await storage.getPaymentsByBidId(
+            parseInt(bidId),
+          );
+          const userPayment = existingPayments.find(
+            (payment) => payment.rUserId === currentUserId,
+          );
+
+          if (userPayment) {
+            return res.status(400).json({
+              success: false,
+              message: "You have already completed payment for this bid",
+            });
+          }
+
+          // Check bid notes
+          const notes = bidDetails?.bid?.notes
+            ? JSON.parse(bidDetails.bid.notes)
+            : {};
+          const userPaymentsInNotes = notes.userPayments || [];
+          const userPaymentInNotes = userPaymentsInNotes.find(
+            (up) => up.userId === currentUserId,
+          );
+
+          if (userPaymentInNotes && userPaymentInNotes.paymentCompleted) {
+            return res.json({
+              success: true,
+              alreadyPaid: true,
+              message: "You have already completed payment for this bid",
+            });
+          }
+        } catch (err) {
+          console.log("Error checking user payment status:", err.message);
+        }
+      }
+
+      // Validate bid exists if bidId is provided
       if (bidId) {
         const parsedBidId = parseInt(bidId);
         if (isNaN(parsedBidId)) {
@@ -2452,78 +2508,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: `Bid not found with ID: ${bidId}`,
           });
         }
-
-        // Parse configuration data for seat availability
-        let configData = {};
-        try {
-          configData = bidDetails.bid.notes ? JSON.parse(bidDetails.bid.notes) : {};
-        } catch (e) {
-          configData = {};
-        }
-
-        const totalSeatsAvailable = bidDetails.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-        
-        // Get all retail bids for this bid configuration
-        const retailBids = await storage.getRetailBidsByBid(parsedBidId);
-        
-        // Calculate seats already booked by users with status "under_review" (2) or "paid/approved" (3)
-        const bookedSeats = retailBids.reduce((total, rb) => {
-          if (rb.rStatus === 2 || rb.rStatus === 3) { // under_review or paid/approved
-            return total + (rb.seatBooked || 0);
-          }
-          return total;
-        }, 0);
-
-        const availableSeats = totalSeatsAvailable - bookedSeats;
-
-        // Check if user already has a retail bid for this configuration
-        const userRetailBid = retailBids.find(rb => rb.rUserId === currentUserId);
-        
-        if (!userRetailBid) {
-          return res.status(400).json({
-            success: false,
-            message: "You must submit a bid before making payment",
-          });
-        }
-
-        // Check if user already paid
-        if (userRetailBid.rStatus === 2 || userRetailBid.rStatus === 3) {
-          return res.status(400).json({
-            success: false,
-            message: "You have already completed payment for this bid",
-          });
-        }
-
-        // Check seat availability for this specific user's bid
-        const userRequestedSeats = userRetailBid.seatBooked || 1;
-        
-        if (availableSeats < userRequestedSeats) {
-          return res.status(400).json({
-            success: false,
-            message: `Sorry, this bid is fully booked. Only ${availableSeats} seats remaining, but you requested ${userRequestedSeats} seats.`,
-            availableSeats: availableSeats,
-            requestedSeats: userRequestedSeats,
-            totalSeats: totalSeatsAvailable
-          });
-        }
-
-        // Additional payment validation - check for existing payments
-        const existingPayments = await storage.getPaymentsByBidId(parsedBidId);
-        const userPayment = existingPayments.find(payment => payment.rUserId === currentUserId);
-
-        if (userPayment) {
-          return res.status(400).json({
-            success: false,
-            message: "You have already completed payment for this bid",
-          });
-        }
       }
 
       const paymentReference = `PAY-${bidId || "BOOK"}-USER${currentUserId}-${nanoid(4)}`;
 
       const paymentData = {
         bookingId: bookingId && !bidId ? parseInt(bookingId) : null,
-        userId: currentUserId, // Fixed: use userId instead of user_id to match schema
+        user_id: currentUserId,
         paymentReference,
         amount: amount.toString(),
         currency: currency || "USD",
@@ -2539,7 +2530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (bidId) {
         const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-        const userRetailBid = retailBids.find(rb => rb.rUserId === currentUserId);
+        const userRetailBid = retailBids.find(
+          (rb) => rb.userId === currentUserId,
+        );
 
         if (userRetailBid) {
           const bidPaymentData = {
@@ -2549,7 +2542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             amount: amount.toString(),
             currency: currency || "USD",
             paymentMethod,
-            rStatus: 3, // Set to paid/completed status
+            rStatus: 1, // completed
             transactionId: `txn_${nanoid(8)}`,
             paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
             processedAt: new Date(),
@@ -2557,14 +2550,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           payment = await storage.createBidPayment(bidPaymentData);
 
-          // Update retail bid status to "under_review" (status 2)
+          // Update retail bid status
           await db.execute(sql`
             UPDATE grab_t_retail_bids 
             SET r_status = 2, updated_at = now() 
             WHERE id = ${userRetailBid.id}
           `);
-
-          console.log(`Updated retail bid ${userRetailBid.id} status to 2 (under_review) after payment`);
         } else {
           payment = await storage.createPayment(paymentData);
         }
@@ -2572,12 +2563,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         payment = await storage.createPayment(paymentData);
       }
 
-      // Update bid notes with payment information
+      // Update bid notes
       if (bidId) {
         const bidDetails = await storage.getBidById(parseInt(bidId));
         let existingNotes = {};
         try {
-          existingNotes = bidDetails?.bid?.notes ? JSON.parse(bidDetails.bid.notes) : {};
+          existingNotes = bidDetails?.bid?.notes
+            ? JSON.parse(bidDetails.bid.notes)
+            : {};
         } catch (e) {
           existingNotes = {};
         }
@@ -2591,7 +2584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount,
           paymentMethod,
           paymentCompleted: true,
-          userId: currentUserId, // Fixed: use userId consistently
+          user_id: currentUserId,
         });
 
         await storage.updateBidDetails(parseInt(bidId), {
@@ -2605,17 +2598,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         payment,
         paymentReference,
         bidId: bidId || null,
-        message: bidId ? "Payment completed successfully. Your bid is now under review." : "Payment completed successfully."
       });
     } catch (error) {
       console.error("Payment creation error:", error);
       let errorMessage = error.message || "Payment creation failed";
-      
-      // Handle specific database errors
-      if (error.message && error.message.includes('column "user_id" of relation "payments" does not exist')) {
-        errorMessage = "Database configuration error. Please contact support.";
-      }
-      
       res.status(500).json({ success: false, message: errorMessage });
     }
   });
@@ -3378,10 +3364,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parseInt(bidId),
       );
 
-      // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' (2) or 'paid' (3)
+      // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' or 'paid'
       const bookedSeats = existingRetailBids
-        .filter((rb) => rb.rStatus === 2 || rb.rStatus === 3) // under_review or paid/approved
-        .reduce((total, rb) => total + (rb.seatBooked || 0), 0);
+        .filter((rb) => rb.status === "under_review" || rb.status === "paid")
+        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
