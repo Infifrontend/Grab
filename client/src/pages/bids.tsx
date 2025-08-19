@@ -87,20 +87,29 @@ export default function Bids() {
         console.log(
           "Fetching bids data...--------------------------------------------",
         );
-        
+
         // Get userId from localStorage to ensure proper status resolution
-        const storedUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-        const userId = localStorage.getItem("isAuthenticated") === "true" ? storedUserId : null;
-        
+        const storedUserId =
+          localStorage.getItem("userId") ||
+          localStorage.getItem("currentUserId");
+        const userId =
+          localStorage.getItem("isAuthenticated") === "true"
+            ? storedUserId
+            : null;
+
         // Fetch bids with user context for proper status resolution
         const bidsUrl = userId ? `/api/user-bids/${userId}` : "/api/bids";
         console.log(`Fetching bids from: ${bidsUrl}`);
-        
+
         const bidsResponse = await fetch(bidsUrl);
         const bidsData = await bidsResponse.json();
-        
+
         // Handle the different response formats
-        const bids = bidsData.success ? bidsData.bids : (Array.isArray(bidsData) ? bidsData : []);
+        const bids = bidsData.success
+          ? bidsData.bids
+          : Array.isArray(bidsData)
+            ? bidsData
+            : [];
 
         // Transform bids data to match table format with user-specific status
         const transformedBidsPromises = bids.map(async (bid: any) => {
@@ -117,7 +126,7 @@ export default function Bids() {
           const bidId = bid.id || bid.bid_id;
           const bidAmount = bid.bidAmount || bid.bid_amount;
           const createdAt = bid.createdAt || bid.created_at;
-          
+
           // Parse configuration data from notes to get flight information
           console.log("Processing bid:", bid);
           let configData = {};
@@ -135,8 +144,13 @@ export default function Bids() {
           }
 
           // Get route information - prioritize parsed data
-          const origin = bid.origin || configData.origin || bid.flight?.origin || "Unknown";
-          const destination = bid.destination || configData.destination || bid.flight?.destination || "Unknown";
+          const origin =
+            bid.origin || configData.origin || bid.flight?.origin || "Unknown";
+          const destination =
+            bid.destination ||
+            configData.destination ||
+            bid.flight?.destination ||
+            "Unknown";
           const flightRoute = bid.route || `${origin} → ${destination}`;
 
           // Get travel date from configuration or flight data
@@ -150,31 +164,43 @@ export default function Bids() {
 
           // Get total seats available from bid data
           const totalSeatsAvailable =
-            bid.totalSeatsAvailable || bid.total_seats_available || configData.totalSeatsAvailable || 50;
+            bid.totalSeatsAvailable ||
+            bid.total_seats_available ||
+            configData.totalSeatsAvailable ||
+            50;
 
           // Use the status already resolved by the backend
           let dynamicStatus = bid.display_status || bid.statusName || "Open";
-          
+
           // Fetch additional seat availability info if needed
           let seatAvailability = null;
           const userId = localStorage.getItem("userId");
 
           try {
-            const statusResponse = await fetch(`/api/bid-status/${bidId}?userId=${userId || ""}`);
+            const statusResponse = await fetch(
+              `/api/bid-status/${bidId}/?userId=${userId || ""}`,
+            );
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               seatAvailability = {
-                totalSeatsAvailable: statusData.totalSeatsAvailable || totalSeatsAvailable,
+                totalSeatsAvailable:
+                  statusData.totalSeatsAvailable || totalSeatsAvailable,
                 seatsRemaining: statusData.availableSeats,
                 isClosed: statusData.isClosed,
                 hasUserPaid: statusData.hasUserPaid,
                 userRetailBidStatus: statusData.userRetailBidStatus,
                 paymentStatus: statusData.paymentStatus,
               };
-              console.log(`Seat availability for Bid ${bidId}:`, seatAvailability);
+              console.log(
+                `Seat availability for Bid ${bidId}:`,
+                seatAvailability,
+              );
             }
           } catch (error) {
-            console.warn(`Could not fetch seat availability for bid ${bidId}:`, error);
+            console.warn(
+              `Could not fetch seat availability for bid ${bidId}:`,
+              error,
+            );
             // Set default seat availability when API fails
             seatAvailability = {
               totalSeatsAvailable: totalSeatsAvailable,
@@ -200,13 +226,14 @@ export default function Bids() {
             status: dynamicStatus,
             seatAvailability: seatAvailability,
             totalSeatsFromGrabTBids: totalSeatsAvailable,
-            payment: dynamicStatus === "Under Review" 
-              ? "Payment Completed"
-              : dynamicStatus === "Approved"
-                ? "Accepted for Booking"
-                : dynamicStatus === "Rejected"
-                  ? "Refunded"
-                  : "Open",
+            payment:
+              dynamicStatus === "Under Review"
+                ? "Payment Completed"
+                : dynamicStatus === "Approved"
+                  ? "Accepted for Booking"
+                  : dynamicStatus === "Rejected"
+                    ? "Refunded"
+                    : "Open",
             submitted: formatDateToDDMMMYYYY(createdAt),
             actions: "View Details",
           };

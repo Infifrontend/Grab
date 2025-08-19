@@ -1,0 +1,95 @@
+  app.get("/api/bid-status/:bidId/", async (req, res) => {
+    try {
+      const { bidId } = req.params;
+      const { userId } = req.query;
+
+      console.log(
+        `Fetching bid status for bid ID: ${bidId}, user ID: ${userId}`,
+      );
+
+      // Validate bidId
+      const parsedBidId = parseInt(bidId, 10);
+      if (isNaN(parsedBidId) || parsedBidId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid bid ID",
+        });
+      }
+
+      // Import the new bidding storage
+      const { biddingStorage } = await import("./bidding-storage.js");
+
+      // Get complete bid details using the new workflow
+      const bidDetails = await biddingStorage.getBidWithDetails(
+        parsedBidId,
+        userId ? parseInt(userId as string) : undefined,
+      );
+
+      if (!bidDetails) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found",
+        });
+      }
+
+      const {
+        bid,
+        retailBids,
+        bidPayments,
+        totalSeatsAvailable,
+        bookedSeats,
+        availableSeats,
+        displayStatus,
+        statusForUser,
+        userPaymentStatus,
+        hasUserPaid,
+        userRetailBidStatus,
+      } = bidDetails;
+
+      // Get the actual status name for user's retail bid
+      let userRetailBidStatusName = null;
+      if (userRetailBidStatus && userId) {
+        const userRetailBid = retailBids.find(rb => rb.rUserId === parseInt(userId as string));
+        if (userRetailBid) {
+          const status = await biddingStorage.getStatusById(userRetailBid.rStatus);
+          userRetailBidStatusName = status?.statusName || null;
+        }
+      }
+
+      console.log(
+        `Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser}), payment: ${userPaymentStatus}, seats: ${availableSeats}/${totalSeatsAvailable}`,
+      );
+
+      return res.json({
+        success: true,
+        bidStatus: displayStatus,
+        statusForUser: statusForUser,
+        paymentStatus: userPaymentStatus,
+        totalSeatsAvailable: totalSeatsAvailable,
+        bookedSeats: bookedSeats,
+        availableSeats: availableSeats,
+        seatsRemaining: availableSeats,
+        isClosed: availableSeats <= 0 && !hasUserPaid,
+        hasUserPaid: hasUserPaid,
+        userRetailBidStatus: userRetailBidStatus,
+        userRetailBidStatusName: userRetailBidStatusName,
+        allUsersWhoHavePaid: retailBids
+          .filter((rb) => {
+            if (!rb) return false;
+            const payment = bidPayments.find((p) => p.rUserId === rb.rUserId);
+            return payment && payment.r_status === 3;
+          })
+          .map((rb) => rb.rUserId),
+        bid: bid,
+        retailBids: retailBids,
+        payments: bidPayments,
+      });
+    } catch (err) {
+      console.error("Unexpected error fetching bid status:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch bid status",
+        error: err.message,
+      });
+    }
+  });
