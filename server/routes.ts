@@ -3658,15 +3658,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         retailUsers = retailBidsWithUsers.map((item) => {
           const retailBid = item.retailBid;
           const user = item.user;
-          const userId = retailBid.rUserId || retailBid.userId || 1; // Use rUserId from database
           return {
-            id: userId,
-            name: user?.name || `User ${userId}`,
-            email: user?.email || `user${userId}@email.com`,
-            bookingRef: `GR00${1230 + userId}`,
-            seatNumber: `1${2 + userId}${String.fromCharCode(65 + (userId % 26))}`,
+            id: retailBid.userId,
+            name: user?.name || `User ${retailBid.userId}`,
+            email: user?.email || `user${retailBid.userId}@email.com`,
+            bookingRef: `GR00${1230 + retailBid.userId}`,
+            seatNumber: `1${2 + retailBid.userId}${String.fromCharCode(65 + (retailBid.userId % 26))}`,
             bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked || retailBid.passengerCount || 1,
+            passengerCount: retailBid.passengerCount,
             status: retailBid.status,
             createdAt: retailBid.createdAt,
             updatedAt: retailBid.updatedAt,
