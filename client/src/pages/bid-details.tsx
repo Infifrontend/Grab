@@ -135,7 +135,7 @@ export default function BidDetails() {
     let seatAvailabilityInfo = null;
 
     if (bidStatus?.success) {
-      status = bidStatus.bidStatus || "Open";
+      status = bidStatus.bidStatus || "Open**";
       seatAvailabilityInfo = {
         totalSeatsAvailable: bidStatus.totalSeatsAvailable,
         seatsRemaining: bidStatus.availableSeats,

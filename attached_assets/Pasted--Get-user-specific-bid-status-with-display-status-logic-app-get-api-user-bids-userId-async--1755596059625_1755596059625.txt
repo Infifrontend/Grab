@@ -1,0 +1,160 @@
+// Get user-specific bid status with display_status logic
+  app.get("/api/user-bids/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required",
+        });
+      }
+
+      console.log(`Fetching bids for user ID: ${userId}`);
+
+      // Import the bidding storage for proper status resolution
+      const { biddingStorage } = await import("./bidding-storage.js");
+
+      // Query to get ALL admin bids with user's retail bid status (if any)
+      const bidsQuery = sql`
+        SELECT 
+    gtb.id AS bid_id,
+    gtb.bid_amount,
+    gtb.notes,
+    gtb.total_seats_available,
+    gtb.min_seats_per_bid,
+    gtb.max_seats_per_bid,
+    gtb.valid_until,
+    gtb.created_at,
+    gtb.r_status AS admin_status,
+    grb.id AS retail_bid_id,
+    grb.r_status AS retail_status,
+    grb.submitted_amount,
+    grb.seat_booked AS retail_passenger_count,
+    grb.created_at AS retail_bid_created_at,
+    COALESCE(grb.r_status, gtb.r_status) AS final_status
+FROM grab_t_bids gtb
+LEFT JOIN grab_t_retail_bids grb 
+    ON gtb.id = grb.r_bid_id 
+   AND grb.r_user_id = 8
+ORDER BY gtb.created_at DESC;
+
+      `;
+
+      const results = await db.execute(bidsQuery);
+
+      // Transform the results with proper user-specific status resolution
+      const transformedBids = await Promise.all(
+        results.rows.map(async (row: any) => {
+          // Parse configuration data from notes
+          let configData = {};
+          try {
+            configData = row.notes ? JSON.parse(row.notes) : {};
+          } catch (e) {
+            console.warn(`Could not parse notes for bid ${row.bid_id}:`, e);
+            configData = {};
+          }
+
+          // Get title from config data or use bid_amount as fallback
+          const bidTitle = configData.title || `Bid ${row.bid_id}`;
+
+          // Get route information
+          const origin = configData.origin || "Unknown";
+          const destination = configData.destination || "Unknown";
+          const route = `${origin} → ${destination}`;
+
+          // ✅ Business Rule Implementation - Use bidding storage for proper status resolution
+          let displayStatus = "Open";
+          let statusClass = "status-open";
+          let statusSource = "global_bid";
+
+          if (row.retail_bid_id) {
+            // User has a retail bid - get the actual status
+            statusSource = "retail_bid";
+            try {
+              const statusInfo = await biddingStorage.getStatusById(
+                row.retail_status,
+              );
+              if (statusInfo) {
+                switch (statusInfo.statusCode?.toLowerCase()) {
+                  case "ur":
+                    displayStatus = "Under Review";
+                    statusClass = "status-under-review";
+                    break;
+                  case "ap":
+                    displayStatus = "Approved";
+                    statusClass = "status-approved";
+                    break;
+                  case "r":
+                    displayStatus = "Rejected";
+                    statusClass = "status-rejected";
+                    break;
+                  default:
+                    displayStatus = statusInfo.statusName || "Open";
+                    statusClass = "status-default";
+                }
+              }
+            } catch (e) {
+              console.warn(
+                `Could not resolve retail bid status for bid ${row.bid_id}:`,
+                e,
+              );
+              displayStatus = "Under Review"; // Safe fallback for retail bids
+              statusClass = "status-under-review";
+            }
+          } else {
+            // User has no retail bid - always show as "Open"
+            displayStatus = "Open";
+            statusClass = "status-open";
+            statusSource = "global_bid";
+          }
+
+          return {
+            bid_id: row.bid_id,
+            title: bidTitle,
+            route: route,
+            origin: origin,
+            destination: destination,
+            bid_amount: row.bid_amount,
+            display_status: displayStatus,
+            status_class: statusClass,
+            status_source: statusSource, // Indicates if status comes from retail bid or global bid
+            admin_status: row.admin_status,
+            has_user_bid: row.retail_bid_id !== null,
+            retail_bid_id: row.retail_bid_id,
+            retail_status: row.retail_status,
+            submitted_amount: row.submitted_amount,
+            retail_passenger_count: row.retail_passenger_count,
+            retail_bid_created_at: row.retail_bid_created_at,
+            total_seats_available: row.total_seats_available,
+            min_seats_per_bid: row.min_seats_per_bid,
+            max_seats_per_bid: row.max_seats_per_bid,
+            valid_until: row.valid_until,
+            created_at: row.created_at,
+            config_data: configData,
+          };
+        }),
+      );
+
+      console.log(`Found ${transformedBids.length} bids for user ${userId}`);
+      console.log(
+        `User has retail bids for: ${transformedBids.filter((b) => b.has_user_bid).length} bids`,
+      );
+
+      res.json({
+        success: true,
+        user_id: parseInt(userId),
+        bids: transformedBids,
+        total_count: transformedBids.length,
+        user_participated_count: transformedBids.filter((b) => b.has_user_bid)
+          .length,
+      });
+    } catch (error) {
+      console.error("Error fetching user bids:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch user bids",
+        error: error.message,
+      });
+    }
+  });

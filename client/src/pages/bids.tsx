@@ -83,11 +83,7 @@ export default function Bids() {
         const stats = await statsResponse.json();
         setStatistics(stats);
 
-        // Fetch bids data with user context for proper status resolution
-        console.log(
-          "Fetching bids data...--------------------------------------------",
-        );
-
+        
         // Get userId from localStorage to ensure proper status resolution
         const storedUserId =
           localStorage.getItem("userId") ||
@@ -240,7 +236,6 @@ export default function Bids() {
         });
 
         const transformedBids = await Promise.all(transformedBidsPromises);
-
         setBidsData(transformedBids);
         setFilteredBidsData(transformedBids);
 
