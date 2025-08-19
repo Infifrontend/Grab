@@ -596,15 +596,12 @@ export default function BidManagement() {
             dataSource={filteredBids}
             expandable={{
               expandedRowRender: (record: any) => {
-                // Extract the actual bid ID from the original bid data
-                const actualBidId = (recentBidsData || []).find(bid => 
-                  `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
-                )?.id;
-
-                console.log('Expanding row for bidId:', record.bidId, 'actualBidId:', actualBidId);
-                
-                const retailData = retailUsersData[actualBidId];
-                const isLoading = fetchingRetailUsers[actualBidId];
+                // Extract numeric bid ID from record.bidId (e.g., "BID001" -> "1")
+                const numericBidId =
+                  record.bidId.replace(/^BID0*/, "") ||
+                  record.bidId.replace(/\D/g, "");
+                const retailData = retailUsersData[numericBidId];
+                const isLoading = fetchingRetailUsers[numericBidId];
 
                 if (isLoading) {
                   return (
@@ -782,20 +779,14 @@ export default function BidManagement() {
               },
               onExpand: (expanded, record) => {
                 if (expanded) {
-                  // Find the actual bid ID from the original bid data
-                  const actualBidId = (recentBidsData || []).find(bid => 
-                    `BID${bid.id.toString().padStart(3, "0")}` === record.bidId
-                  )?.id;
-
+                  // Extract numeric bid ID and fetch retail users data
+                  const numericBidId =
+                    record.bidId.replace(/^BID0*/, "") ||
+                    record.bidId.replace(/\D/g, "");
                   console.log(
-                    `Expanding row for bid ${record.bidId}, actual ID: ${actualBidId}`,
+                    `Expanding row for bid ${record.bidId}, numeric ID: ${numericBidId}`,
                   );
-                  
-                  if (actualBidId) {
-                    fetchRetailUsers(actualBidId);
-                  } else {
-                    console.error('Could not find actual bid ID for:', record.bidId);
-                  }
+                  fetchRetailUsers(parseInt(numericBidId));
                 }
               },
             }}
@@ -1237,29 +1228,31 @@ export default function BidManagement() {
     try {
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
-      // Find the actual bid ID from the original bid data
-      let actualBidId;
-      if (typeof bidId === "string" && bidId.startsWith("BID")) {
-        actualBidId = (recentBidsData || []).find(bid => 
-          `BID${bid.id.toString().padStart(3, "0")}` === bidId
-        )?.id;
-      } else {
-        actualBidId = bidId;
+      // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1", "BID3" -> "3")
+      let numericBidId = bidId;
+      if (typeof bidId === "string") {
+        // Remove "BID" prefix and leading zeros, but keep the actual number
+        numericBidId = bidId.replace(/^BID0*/, "") || bidId;
+        // If it's still not a number, try to extract just the numeric part
+        const match = bidId.match(/\d+/);
+        if (match) {
+          numericBidId = match[0];
+        }
       }
 
       console.log(
-        `Converting bid ID "${bidId}" to actual ID "${actualBidId}"`,
+        `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
       );
 
       // Validate that we have a valid numeric ID
-      if (!actualBidId || isNaN(parseInt(actualBidId))) {
+      if (!numericBidId || isNaN(parseInt(numericBidId))) {
         message.error(`Invalid bid ID format: ${bidId}`);
         return;
       }
 
       const response = await apiRequest(
         "PUT",
-        `/api/bids/${actualBidId}/retail-users/${userId}/status`,
+        `/api/bids/${numericBidId}/retail-users/${userId}/status`,
         { action },
       );
 
