@@ -2387,7 +2387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         bidId,
-        user_id: requestUserId,
+        userId,
         userEmail,
         userName,
         userRole,
@@ -2395,57 +2395,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingId,
         amount,
         currency,
-        paymentMethod,
+        paymentMethod, // fixed: was 'retailBidspaymentMethod' in body but you used paymentMethod
         paymentStatus,
         paymentType,
         cardDetails,
       } = req.body;
 
+      console.log("Received payment request:", req.body);
+      console.log("User logged in:", userLoggedIn);
+
       // Validate required fields
       if (!amount || parseFloat(amount) <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid payment amount",
-        });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid payment amount" });
       }
 
       if (!paymentMethod) {
-        return res.status(400).json({
-          success: false,
-          message: "Payment method is required",
-        });
+        return res
+          .status(400)
+          .json({ success: false, message: "Payment method is required" });
       }
 
-      // Get the actual user ID from request body
-      const currentUserId = parseInt(requestUserId) || null;
-      
-      // Validate that user details are provided
+      const currentUserId = parseInt(userId);
       if (!currentUserId) {
-        return res.status(400).json({
-          success: false,
-          message: "User ID is required for payment",
-        });
+        return res
+          .status(400)
+          .json({ success: false, message: "User ID is required for payment" });
       }
-      
+
       if (!userEmail || !userName) {
         return res.status(400).json({
           success: false,
           message: "User email and name are required for payment",
         });
       }
-      
-      console.log(`Payment request from user: ${userName} (${userEmail}), ID: ${currentUserId}, Role: ${userRole}`);
 
-      // Check if THIS SPECIFIC USER has already paid for this bid (prevent duplicate payments by same user)
+      console.log(
+        `Payment request from user: ${userName} (${userEmail}), ID: ${currentUserId}, Role: ${userRole}`,
+      );
+
+      // Check if user already paid for this bid
       if (bidId && currentUserId) {
         try {
           const bidDetails = await storage.getBidById(parseInt(bidId));
-          console.log(
-            `Checking bid ${bidId} for user ${currentUserId} payment status`,
-          );
-
-          // Check if this specific user has already paid
           const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+
           const userRetailBid = retailBids.find(
             (rb) => rb.userId === currentUserId,
           );
@@ -2461,13 +2456,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          // Check if this user has already made a payment for this bid
           const existingPayments = await storage.getPaymentsByBidId(
             parseInt(bidId),
           );
-          const userPayment = existingPayments.find((payment) => {
-            return payment.userId === currentUserId;
-          });
+          const userPayment = existingPayments.find(
+            (payment) => payment.rUserId === currentUserId,
+          );
 
           if (userPayment) {
             return res.status(400).json({
@@ -2476,76 +2470,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          // Check bid notes for user-specific payment completion
-          let userPaidFromBidNotes = false;
-          try {
-            const notes = bidDetails?.bid?.notes
-              ? JSON.parse(bidDetails.bid.notes)
-              : {};
-            const userPayments = notes.userPayments || [];
-            const userPayment = userPayments.find(
-              (up) => up.userId === currentUserId,
-            );
-            userPaidFromBidNotes =
-              userPayment && userPayment.paymentCompleted === true;
-
-            if (userPaidFromBidNotes) {
-              return res.status(400).json({
-                success: false,
-                message: "You have already completed payment for this bid",
-              });
-            }
-          } catch (noteError) {
-            console.log(
-              "Could not parse bid notes for user payment check:",
-              noteError.message,
-            );
-          }
-
-          console.log(
-            `User ${currentUserId} has not paid for bid ${bidId} yet, allowing payment`,
+          // Check bid notes
+          const notes = bidDetails?.bid?.notes
+            ? JSON.parse(bidDetails.bid.notes)
+            : {};
+          const userPaymentsInNotes = notes.userPayments || [];
+          const userPaymentInNotes = userPaymentsInNotes.find(
+            (up) => up.userId === currentUserId,
           );
-        } catch (error) {
-          console.log("Error checking user payment status:", error.message);
+
+          if (userPaymentInNotes && userPaymentInNotes.paymentCompleted) {
+            return res.json({
+              success: true,
+              alreadyPaid: true,
+              message: "You have already completed payment for this bid",
+            });
+          }
+        } catch (err) {
+          console.log("Error checking user payment status:", err.message);
         }
       }
 
-      // Use the current user ID 
-      let userId = currentUserId;
-
       // Validate bid exists if bidId is provided
       if (bidId) {
-        try {
-          const parsedBidId = parseInt(bidId);
-          if (isNaN(parsedBidId)) {
-            throw new Error(`Invalid bid ID format: ${bidId}`);
-          }
-
-          const bidDetails = await storage.getBidById(parsedBidId);
-          if (!bidDetails || !bidDetails.bid) {
-            throw new Error(`Bid not found with ID: ${bidId}`);
-          }
-
-          console.log(`Validated bid ${bidId} for user ${userId} payment`);
-        } catch (error) {
-          console.error("Error validating bid for payment:", error.message);
+        const parsedBidId = parseInt(bidId);
+        if (isNaN(parsedBidId)) {
           return res.status(400).json({
             success: false,
-            message: `Invalid bid ID: ${error.message}`,
+            message: `Invalid bid ID format: ${bidId}`,
+          });
+        }
+
+        const bidDetails = await storage.getBidById(parsedBidId);
+        if (!bidDetails || !bidDetails.bid) {
+          return res.status(400).json({
+            success: false,
+            message: `Bid not found with ID: ${bidId}`,
           });
         }
       }
 
-      const paymentReference = `PAY-${bidId || "BOOK"}-USER${userId}-${nanoid(4)}`;
+      const paymentReference = `PAY-${bidId || "BOOK"}-USER${currentUserId}-${nanoid(4)}`;
 
-      // For bid payments, set bookingId to null to avoid foreign key constraint violation
       const paymentData = {
         bookingId: bookingId && !bidId ? parseInt(bookingId) : null,
-        userId: userId,
-        paymentReference: paymentReference,
+        user_id: currentUserId,
+        paymentReference,
         amount: amount.toString(),
         currency: currency || "USD",
-        paymentMethod: paymentMethod,
+        paymentMethod,
         paymentStatus: paymentStatus || "completed",
         paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
         transactionId: `txn_${nanoid(8)}`,
@@ -2553,28 +2526,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date(),
       };
 
-      console.log("Creating payment with data:", paymentData);
-
       let payment;
 
-      // If this payment is for a bid, use grab_t_bid_payments table
       if (bidId) {
-        // Find the retail bid for this user and bid
         const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
         const userRetailBid = retailBids.find(
           (rb) => rb.userId === currentUserId,
         );
 
         if (userRetailBid) {
-          // Create payment in grab_t_bid_payments table
           const bidPaymentData = {
-            rUserId: userId,
+            rUserId: currentUserId,
             rRetailBidId: userRetailBid.id,
-            paymentReference: paymentReference,
+            paymentReference,
             amount: amount.toString(),
             currency: currency || "USD",
-            paymentMethod: paymentMethod,
-            rStatus: 1, // Status 1 = payment completed
+            paymentMethod,
+            rStatus: 1, // completed
             transactionId: `txn_${nanoid(8)}`,
             paymentGateway: paymentMethod === "creditCard" ? "stripe" : "bank",
             processedAt: new Date(),
@@ -2582,126 +2550,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           payment = await storage.createBidPayment(bidPaymentData);
 
-          // Update the retail bid status to 'under_review' using grab_m_status FK
+          // Update retail bid status
           await db.execute(sql`
             UPDATE grab_t_retail_bids 
             SET r_status = 2, updated_at = now() 
             WHERE id = ${userRetailBid.id}
           `);
-          console.log(
-            `Updated retail bid ${userRetailBid.id} status to under_review (r_status=2)`,
-          );
         } else {
-          // Fallback to regular payments table
           payment = await storage.createPayment(paymentData);
         }
       } else {
-        // Use regular payments table for non-bid payments
         payment = await storage.createPayment(paymentData);
       }
 
-      console.log("Payment created successfully:", payment);
-
-      // If this payment is for a bid, update user-specific payment tracking and main bid status
+      // Update bid notes
       if (bidId) {
+        const bidDetails = await storage.getBidById(parseInt(bidId));
+        let existingNotes = {};
         try {
-          // Get existing bid notes
-          const bidDetails = await storage.getBidById(parseInt(bidId));
-          let existingNotes = {};
-          try {
-            existingNotes = bidDetails?.bid?.notes
-              ? JSON.parse(bidDetails.bid.notes)
-              : {};
-          } catch (e) {
-            existingNotes = {};
-          }
-
-          // Add payment information to bid notes with user-specific tracking
-          const userPayments = existingNotes.userPayments || [];
-          userPayments.push({
-            paymentId: payment.id,
-            paymentReference: paymentReference,
-            paymentStatus: paymentStatus || "completed",
-            paymentDate: new Date().toISOString(),
-            amount: amount,
-            paymentMethod: paymentMethod,
-            paymentCompleted: true,
-            userId: userId,
-          });
-
-          const updatedNotes = {
-            ...existingNotes,
-            userPayments: userPayments,
-            paymentInfo: {
-              latestPaymentId: payment.id,
-              latestPaymentReference: paymentReference,
-              lastPaymentDate: new Date().toISOString(),
-              totalPaymentsReceived: userPayments.length,
-            },
-          };
-
-          // Update bid notes and check if we should update main bid status
-          await storage.updateBidDetails(parseInt(bidId), {
-            notes: JSON.stringify(updatedNotes),
-            updatedAt: new Date(),
-          });
-
-          // Check if we should update the main grab_t_bids status based on payments received
-          const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-          const paidBids = retailBids.filter((rb) => {
-            // Check r_status: 2=under_review, 3=approved/paid
-            return rb.rStatus === 2 || rb.rStatus === 3;
-          });
-
-          if (paidBids.length > 0) {
-            // Update main bid status to "under_review" when first payment is received
-            await db.execute(sql`
-              UPDATE grab_t_bids 
-              SET r_status = 2, bid_status = 'under_review', updated_at = now() 
-              WHERE id = ${parseInt(bidId)} AND r_status = 4
-            `);
-            console.log(
-              `Updated main bid ${bidId} status to under_review (r_status=2) due to received payments`,
-            );
-          }
-
-          console.log(
-            `Added user-specific payment tracking for user ${userId} on bid ${bidId}`,
-          );
-        } catch (error) {
-          console.log("Could not update bid payment tracking:", error.message);
+          existingNotes = bidDetails?.bid?.notes
+            ? JSON.parse(bidDetails.bid.notes)
+            : {};
+        } catch (e) {
+          existingNotes = {};
         }
+
+        const userPayments = existingNotes.userPayments || [];
+        userPayments.push({
+          paymentId: payment.id,
+          paymentReference,
+          paymentStatus: paymentStatus || "completed",
+          paymentDate: new Date().toISOString(),
+          amount,
+          paymentMethod,
+          paymentCompleted: true,
+          user_id: currentUserId,
+        });
+
+        await storage.updateBidDetails(parseInt(bidId), {
+          notes: JSON.stringify({ ...existingNotes, userPayments }),
+          updatedAt: new Date(),
+        });
       }
 
-      // Return payment with reference for frontend use
       res.json({
         success: true,
         payment,
-        paymentReference: paymentReference,
+        paymentReference,
         bidId: bidId || null,
       });
     } catch (error) {
       console.error("Payment creation error:", error);
-
-      let errorMessage = "Payment creation failed";
-      if (error.message) {
-        if (error.message.includes("UNIQUE constraint")) {
-          errorMessage = "Duplicate payment detected";
-        } else if (error.message.includes("NOT NULL constraint")) {
-          errorMessage = "Missing required payment information";
-        } else if (error.message.includes("FOREIGN KEY constraint")) {
-          errorMessage = "Invalid booking reference provided";
-        } else if (error.message.includes("user_id")) {
-          errorMessage = "User information required for payment";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      res.status(500).json({
-        success: false,
-        message: errorMessage,
-      });
+      let errorMessage = error.message || "Payment creation failed";
+      res.status(500).json({ success: false, message: errorMessage });
     }
   });
 

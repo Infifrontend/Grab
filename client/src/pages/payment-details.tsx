@@ -215,7 +215,7 @@ export default function PaymentDetails() {
       const [getUserName] = localStorageAccessor("userName");
       const [getUserRole] = localStorageAccessor("userRole");
       const [getUserLoggedIn] = localStorageAccessor("userLoggedIn");
-      
+
       let userId = getUserId();
       let userEmail = getUserEmail();
       let userName = getUserName();
@@ -236,14 +236,16 @@ export default function PaymentDetails() {
         userEmail,
         userName,
         userRole,
-        userLoggedIn
+        userLoggedIn,
       });
-      
+
       if (!userId) {
         throw new Error("Please log in to submit a bid");
       }
 
-      console.log(`Creating payment for user ${userId} (${userName}) and bid ${bidId}`);
+      console.log(
+        `Creating payment for user ${userId} (${userName}) and bid ${bidId}`,
+      );
 
       if (bidId && userId) {
         console.log("Submitting retail bid before payment...");
@@ -328,7 +330,7 @@ export default function PaymentDetails() {
 
         const retailBidResult = await retailBidResponse.json();
         console.log("Retail bid submitted successfully:", retailBidResult);
-
+console.log(userId,'userIdddddd')
         // Create payment record using bid ID
         const paymentResponse = await fetch("/api/payments", {
           method: "POST",
@@ -337,7 +339,7 @@ export default function PaymentDetails() {
           },
           body: JSON.stringify({
             bidId: parseInt(bidId),
-            user_id: parseInt(userId), // Current user ID from localStorage
+            userId: parseInt(userId), // Current user ID from localStorage
             userEmail: userEmail,
             userName: userName,
             userRole: userRole,
