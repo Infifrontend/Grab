@@ -87,26 +87,8 @@ export default function Bids() {
         console.log(
           "Fetching bids data...--------------------------------------------",
         );
-        
-        // Get userId from localStorage if available
-        const storedUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-        const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-        const userId = isAuthenticated ? storedUserId : null;
-        
-        console.log("User ID for fetching bids (bids page):", userId);
-        
-        // Build URL with userId if available
-        const bidsUrl = userId ? `/api/bids?userId=${userId}` : "/api/bids";
-        console.log("Fetching bids from URL:", bidsUrl);
-        
-        const bidsResponse = await fetch(bidsUrl);
-        let bids = await bidsResponse.json();
-        
-        // Handle both user-specific response and general bids response
-        if (bids.success && bids.bids) {
-          // User-specific response format - use the bids array
-          bids = bids.bids;
-        }
+        const bidsResponse = await fetch("/api/bids");
+        const bids = await bidsResponse.json();
 
         // Transform bids data to match table format with dynamic status checking
         const transformedBidsPromises = bids.map(async (bid: any) => {

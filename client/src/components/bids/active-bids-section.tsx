@@ -38,16 +38,17 @@ export default function ActiveBidsSection() {
       const fetchBids = async () => {
         try {
           // Get userId from localStorage if available
-          const storedUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-          const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-          const userId = isAuthenticated ? storedUserId : null;
-
+          const storedUserId =
+            localStorage.getItem("userId") ||
+            localStorage.getItem("currentUserId");
+          const userId =
+            localStorage.getItem("isAuthenticated") === "true"
+              ? storedUserId
+              : null;
           console.log("User ID for fetching bids--------:", userId);
-
           // Build URL with userId if available
           const url = userId ? `/api/bids?userId=${userId}` : "/api/bids";
           console.log("Fetching bids from URL:", url);
-
           const response = await fetch(url);
           if (!response.ok) {
             const errorText = await response.text();
@@ -57,14 +58,8 @@ export default function ActiveBidsSection() {
           const bids = await response.json();
           console.log("Fetched bids:", bids);
 
-          // Handle both user-specific response and general bids response
-          if (bids.success && bids.bids) {
-            // User-specific response format
-            return Array.isArray(bids.bids) ? bids.bids.slice(0, 5) : [];
-          } else {
-            // General bids response format
-            return Array.isArray(bids) ? bids.slice(0, 5) : [];
-          }
+          // Since the server now filters for r_status = 4, all returned bids are active/open
+          return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
         } catch (error) {
           console.error("Error fetching bids:", error);
           throw error;
@@ -246,7 +241,9 @@ export default function ActiveBidsSection() {
                       <span>
                         {(() => {
                           try {
-                            const configData = bid.notes ? JSON.parse(bid.notes) : {};
+                            const configData = bid.notes
+                              ? JSON.parse(bid.notes)
+                              : {};
                             const origin =
                               configData.origin ||
                               bid.flight?.origin ||
