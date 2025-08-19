@@ -3549,29 +3549,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import bidding storage to use status_code lookup
       const { biddingStorage } = await import("./bidding-storage.js");
       
-      // Get Under Review status ID using status_code
-      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
-      if (!underReviewStatusId) {
-        return res.status(500).json({
-          success: false,
-          message: "Under Review status not found in system",
-        });
-      }
-
-      // Create retail bid submission
+      // Create retail bid submission using the proper method
       const retailBidData = {
         rBidId: parseInt(bidId),
         rUserId: parseInt(userId),
         submittedAmount: submittedAmount.toString(),
         seatBooked: parseInt(passengerCount),
-        rStatus: underReviewStatusId,
       };
 
-      // Insert directly into grab_t_retail_bids table
-      const [newRetailBid] = await db
-        .insert(grabTRetailBids)
-        .values(retailBidData)
-        .returning();
+      // Use bidding storage method which properly sets UR status
+      const newRetailBid = await biddingStorage.createRetailBid(retailBidData);
 
       console.log(
         `Created retail bid ${newRetailBid.id} with r_status=6 (under_review)`,
@@ -3919,6 +3906,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userRetailBidStatus,
       } = bidDetails;
 
+      // Get the actual status name for user's retail bid
+      let userRetailBidStatusName = null;
+      if (userRetailBidStatus && userId) {
+        const userRetailBid = retailBids.find(rb => rb.rUserId === parseInt(userId as string));
+        if (userRetailBid) {
+          const status = await biddingStorage.getStatusById(userRetailBid.rStatus);
+          userRetailBidStatusName = status?.statusName || null;
+        }
+      }
+
       console.log(
         `Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser}), payment: ${userPaymentStatus}, seats: ${availableSeats}/${totalSeatsAvailable}`,
       );
@@ -3935,6 +3932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isClosed: availableSeats <= 0 && !hasUserPaid,
         hasUserPaid: hasUserPaid,
         userRetailBidStatus: userRetailBidStatus,
+        userRetailBidStatusName: userRetailBidStatusName,
         allUsersWhoHavePaid: retailBids
           .filter((rb) => {
             if (!rb) return false;
@@ -4087,6 +4085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             displayStatus = "Approved";
             statusClass = "status-approved";
             break;
+          case "reject":
           case "rejected":
             displayStatus = "Rejected";
             statusClass = "status-rejected";

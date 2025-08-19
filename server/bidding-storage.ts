@@ -403,6 +403,10 @@ export class BiddingStorage {
             displayStatus = "Rejected";
             statusForUser = "rejected";
             userPaymentStatus = "rejected";
+          } else if (userRetailBid?.rStatus === underReviewStatusId) {
+            displayStatus = "Under Review";
+            statusForUser = "under_review";
+            userPaymentStatus = "under_review";
           } else {
             displayStatus = "Under Review";
             statusForUser = "under_review";
