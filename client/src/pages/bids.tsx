@@ -84,6 +84,9 @@ export default function Bids() {
         setStatistics(stats);
 
         // Fetch bids data
+        console.log(
+          "Fetching bids data...--------------------------------------------",
+        );
         const bidsResponse = await fetch("/api/bids");
         const bids = await bidsResponse.json();
 
@@ -135,9 +138,7 @@ export default function Bids() {
           console.log(userId, "userId");
 
           try {
-            const statusResponse = await fetch(
-              `/api/bid-status/${bid.id}`,
-            );
+            const statusResponse = await fetch(`/api/bid-status/${bid.id}`);
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               dynamicStatus = statusData.bidStatus || "Open";

@@ -28,18 +28,27 @@ interface ActiveBid {
 export default function ActiveBidsSection() {
   const navigate = useNavigate();
 
-  const { data: activeBids, isLoading, error } = useQuery<ActiveBid[]>({
+  const {
+    data: activeBids,
+    isLoading,
+    error,
+  } = useQuery<ActiveBid[]>({
     queryKey: ["/api/bids"],
     queryFn: async () => {
       const fetchBids = async () => {
         try {
           // Get userId from localStorage if available
-          const storedUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-          const userId = localStorage.getItem("isAuthenticated") === "true" ? storedUserId : null;
-
+          const storedUserId =
+            localStorage.getItem("userId") ||
+            localStorage.getItem("currentUserId");
+          const userId =
+            localStorage.getItem("isAuthenticated") === "true"
+              ? storedUserId
+              : null;
+          console.log("User ID for fetching bids--------:", userId);
           // Build URL with userId if available
           const url = userId ? `/api/bids?userId=${userId}` : "/api/bids";
-
+          console.log("Fetching bids from URL:", url);
           const response = await fetch(url);
           if (!response.ok) {
             const errorText = await response.text();
@@ -87,8 +96,8 @@ export default function ActiveBidsSection() {
   const getBidStatusInfo = (bid: ActiveBid) => {
     // Check if there are retail bids with payments to determine user-specific status
     if (bid.retailBids && bid.retailBids.length > 0) {
-      const hasUnderReview = bid.retailBids.some(rb => rb.rStatus === 2);
-      const hasApproved = bid.retailBids.some(rb => rb.rStatus === 3);
+      const hasUnderReview = bid.retailBids.some((rb) => rb.rStatus === 2);
+      const hasApproved = bid.retailBids.some((rb) => rb.rStatus === 3);
 
       if (hasApproved) {
         return { status: "Approved", color: "green" };
@@ -162,9 +171,7 @@ export default function ActiveBidsSection() {
         </div>
         <div className="p-6 text-center text-red-500">
           Error loading active bids. Please try again later.
-          <div className="text-xs text-gray-500 mt-2">
-            {error.message}
-          </div>
+          <div className="text-xs text-gray-500 mt-2">{error.message}</div>
         </div>
       </div>
     );
@@ -201,10 +208,8 @@ export default function ActiveBidsSection() {
         </p>
       </div>
 
-
       {/* Active Bids Content */}
-      <div
-        className="p-6 bg-gray-200">
+      <div className="p-6 bg-gray-200">
         {activeBids.map((bid, index) => {
           const timeLeft = calculateTimeLeft(bid.validUntil);
           const bidTitle = getBidTitle(bid);
@@ -217,13 +222,17 @@ export default function ActiveBidsSection() {
           return (
             <div
               key={bid.id}
-              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${activeBids.length !== index + 1 ? "mb-4" : ""
-                }`}
+              className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${
+                activeBids.length !== index + 1 ? "mb-4" : ""
+              }`}
             >
               {/* Header Row */}
               <div className="flex justify-between items-start mb-5">
                 <div>
-                  <h3 className="font-semibold text-gray-900" style={{ fontSize: "1.15rem" }}>
+                  <h3
+                    className="font-semibold text-gray-900"
+                    style={{ fontSize: "1.15rem" }}
+                  >
                     {bidTitle}
                   </h3>
                   <div className="flex gap-4">
@@ -232,9 +241,17 @@ export default function ActiveBidsSection() {
                       <span>
                         {(() => {
                           try {
-                            const configData = bid.notes ? JSON.parse(bid.notes) : {};
-                            const origin = configData.origin || bid.flight?.origin || "Unknown";
-                            const destination = configData.destination || bid.flight?.destination || "Unknown";
+                            const configData = bid.notes
+                              ? JSON.parse(bid.notes)
+                              : {};
+                            const origin =
+                              configData.origin ||
+                              bid.flight?.origin ||
+                              "Unknown";
+                            const destination =
+                              configData.destination ||
+                              bid.flight?.destination ||
+                              "Unknown";
                             return `${origin} → ${destination}`;
                           } catch (e) {
                             return "Unknown → Unknown";
@@ -244,9 +261,11 @@ export default function ActiveBidsSection() {
                     </div>
                     <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                       <Users className="w-4 h-4" />
-                      <span>{bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats available</span>
+                      <span>
+                        {bid.minSeatsPerBid}-{bid.maxSeatsPerBid} seats
+                        available
+                      </span>
                     </div>
-
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 items-center">
@@ -291,7 +310,7 @@ export default function ActiveBidsSection() {
                       e.preventDefault();
                       navigate(`/bid-details/${bid.id}`);
                     }}
-                    type='default'
+                    type="default"
                   >
                     View Details
                   </Button>
