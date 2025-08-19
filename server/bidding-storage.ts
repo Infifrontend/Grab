@@ -360,33 +360,27 @@ export class BiddingStorage {
         {
           statusName: "Open",
           statusCode: "O",
-          description: "Bid is open for submissions",
         },
         {
           statusName: "Under Review",
           statusCode: "UR",
-          description: "Payment received, under review",
         },
         {
           statusName: "Approved",
           statusCode: "AP",
-          description: "Bid approved by admin",
         },
         {
           statusName: "Rejected",
           statusCode: "R",
-          description: "Bid rejected by admin",
         },
         {
           statusName: "Processing",
           statusCode: "P",
-          description: "Payment is processing",
         },
-        { statusName: "Active", statusCode: "A", description: "Active status" },
+        { statusName: "Active", statusCode: "A" },
         {
           statusName: "Completed",
           statusCode: "C",
-          description: "Bid process completed",
         },
       ];
 
