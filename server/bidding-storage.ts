@@ -425,6 +425,22 @@ export class BiddingStorage {
     }
   }
 
+  // Update bid details
+  async updateBidDetails(bidId: number, updateData: Partial<GrabTBid>): Promise<void> {
+    try {
+      await db
+        .update(grabTBids)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+        })
+        .where(eq(grabTBids.id, bidId));
+    } catch (error) {
+      console.error("Error updating bid details:", error);
+      throw error;
+    }
+  }
+
   // Complete Bidding Workflow
   async getBidWithDetails(bidId: number, userId?: number) {
     try {
