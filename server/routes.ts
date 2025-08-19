@@ -3791,128 +3791,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // First get the main bid from grab_t_bids
-      const mainBidQuery = sql`
-        SELECT gtb.*, gms.status_name as status_name, gms.status_code
-        FROM grab_t_bids gtb
-        LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
-        WHERE gtb.id = ${parsedBidId}
-      `;
+      // Import the new bidding storage
+      const { biddingStorage } = await import("./bidding-storage.js");
 
-      const mainBidResult = await db.execute(mainBidQuery);
-      if (!mainBidResult.rows || mainBidResult.rows.length === 0) {
+      // Get complete bid details using the new workflow
+      const bidDetails = await biddingStorage.getBidWithDetails(
+        parsedBidId,
+        userId ? parseInt(userId as string) : undefined,
+      );
+
+      if (!bidDetails) {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
         });
       }
 
-      const mainBid = mainBidResult.rows[0];
-      let effectiveStatus = mainBid.r_status;
-      let effectiveStatusName = mainBid.status_name;
-      let effectiveStatusCode = mainBid.status_code;
-      let statusSource = "global_bid";
-
-      // If user is provided, check grab_t_retail_bids for user-specific status
-      if (userId) {
-        const parsedUserId = parseInt(userId as string);
-        
-        console.log(`Checking retail bid for user ${parsedUserId} and bid ${parsedBidId}`);
-        
-        const retailBidQuery = sql`
-          SELECT grb.*, gms.status_name as retail_status_name, gms.status_code as retail_status_code
-          FROM grab_t_retail_bids grb
-          LEFT JOIN grab_m_status gms ON grb.r_status = gms.id
-          WHERE grb.r_bid_id = ${parsedBidId} AND grb.r_user_id = ${parsedUserId}
-          LIMIT 1
-        `;
-
-        const retailBidResult = await db.execute(retailBidQuery);
-        
-        if (retailBidResult.rows && retailBidResult.rows.length > 0) {
-          // Match found in grab_t_retail_bids - use retail bid status
-          const retailBid = retailBidResult.rows[0];
-          effectiveStatus = retailBid.r_status;
-          effectiveStatusName = retailBid.retail_status_name;
-          effectiveStatusCode = retailBid.retail_status_code;
-          statusSource = "retail_bid";
-          
-          console.log(`User ${parsedUserId} has retail bid for bid ${parsedBidId}, using retail status: ${effectiveStatusName} (${effectiveStatus})`);
-        } else {
-          // No match found in grab_t_retail_bids - use default grab_t_bids status
-          console.log(`User ${parsedUserId} has no retail bid for bid ${parsedBidId}, using global status: ${effectiveStatusName} (${effectiveStatus})`);
-        }
-      }
-
-      // Get additional bid details
-      const { biddingStorage } = await import("./bidding-storage.js");
-      const bidDetails = await biddingStorage.getBidWithDetails(parsedBidId, userId ? parseInt(userId as string) : undefined);
-
       const {
+        bid,
         retailBids,
         bidPayments,
         totalSeatsAvailable,
         bookedSeats,
         availableSeats,
-      } = bidDetails || {
-        retailBids: [],
-        bidPayments: [],
-        totalSeatsAvailable: mainBid.total_seats_available || 50,
-        bookedSeats: 0,
-        availableSeats: mainBid.total_seats_available || 50,
-      };
+        displayStatus,
+        statusForUser,
+        userPaymentStatus,
+        hasUserPaid,
+        userRetailBidStatus,
+      } = bidDetails;
 
-      // Determine display status based on effective status code
-      let displayStatus = effectiveStatusName || "Unknown";
-      switch (effectiveStatusCode?.toLowerCase()) {
-        case "o":
-        case "open":
-          displayStatus = "Open";
-          break;
-        case "ur":
-          displayStatus = "Under Review";
-          break;
-        case "ap":
-          displayStatus = "Approved";
-          break;
-        case "r":
-          displayStatus = "Rejected";
-          break;
-        case "c":
-          displayStatus = "Completed";
-          break;
-        default:
-          displayStatus = effectiveStatusName || "Open";
+      // Get the actual status name for user's retail bid
+      let userRetailBidStatusName = null;
+      if (userRetailBidStatus && userId) {
+        const userRetailBid = retailBids.find(rb => rb.rUserId === parseInt(userId as string));
+        if (userRetailBid) {
+          const status = await biddingStorage.getStatusById(userRetailBid.rStatus);
+          userRetailBidStatusName = status?.statusName || null;
+        }
       }
 
       console.log(
-        `Final status for bid ${bidId}, user ${userId}: ${displayStatus} (status_id: ${effectiveStatus}, source: ${statusSource})`
+        `Final status for bid ${bidId}, user ${userId}: ${displayStatus} (${statusForUser}), payment: ${userPaymentStatus}, seats: ${availableSeats}/${totalSeatsAvailable}`,
       );
 
       return res.json({
         success: true,
         bidStatus: displayStatus,
-        statusId: effectiveStatus,
-        statusName: effectiveStatusName,
-        statusCode: effectiveStatusCode,
-        statusSource: statusSource, // "global_bid" or "retail_bid"
+        statusForUser: statusForUser,
+        paymentStatus: userPaymentStatus,
         totalSeatsAvailable: totalSeatsAvailable,
         bookedSeats: bookedSeats,
         availableSeats: availableSeats,
         seatsRemaining: availableSeats,
-        isClosed: availableSeats <= 0,
-        bid: {
-          id: mainBid.id,
-          bidAmount: mainBid.bid_amount,
-          validUntil: mainBid.valid_until,
-          notes: mainBid.notes,
-          totalSeatsAvailable: mainBid.total_seats_available,
-          minSeatsPerBid: mainBid.min_seats_per_bid,
-          maxSeatsPerBid: mainBid.max_seats_per_bid,
-          rStatus: effectiveStatus,
-          createdAt: mainBid.created_at,
-          updatedAt: mainBid.updated_at
-        },
+        isClosed: availableSeats <= 0 && !hasUserPaid,
+        hasUserPaid: hasUserPaid,
+        userRetailBidStatus: userRetailBidStatus,
+        userRetailBidStatusName: userRetailBidStatusName,
+        allUsersWhoHavePaid: retailBids
+          .filter((rb) => {
+            if (!rb) return false;
+            const payment = bidPayments.find((p) => p.rUserId === rb.rUserId);
+            return payment && payment.r_status === 3;
+          })
+          .map((rb) => rb.rUserId),
+        bid: bid,
         retailBids: retailBids,
         payments: bidPayments,
       });
