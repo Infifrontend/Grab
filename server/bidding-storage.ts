@@ -143,13 +143,11 @@ export class BiddingStorage {
 
   async getRetailBidsByBid(bidId: number): Promise<GrabTRetailBid[]> {
     try {
-      console.log(`Fetching retail bids for bid ID: ${bidId}`);
       const retailBids = await db
         .select()
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
-      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}:`, retailBids);
       return retailBids;
     } catch (error) {
       console.error("Error fetching retail bids:", error);
@@ -332,7 +330,7 @@ export class BiddingStorage {
     const [status] = await db
       .select()
       .from(grabMStatus)
-      .where(eq(grabMStatus.id, statusId))
+      .where(eq(grabMStatus.id, 6))
       .limit(1);
 
     if (!status) throw new Error(`Status ID ${statusId} not found`);

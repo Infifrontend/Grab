@@ -235,27 +235,15 @@ export function setupBiddingRoutes(app: Express) {
       const retailBids = await biddingStorage.getRetailBidsByBid(
         parseInt(bidId),
       );
-      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
-      
       const retailBidsWithUsers = await Promise.all(
         retailBids.map(async (rb) => {
-          try {
-            const user = await biddingStorage.getGrabUserById(rb.rUserId);
-            const status = await biddingStorage.getStatusById(rb.rStatus || 1);
-            console.log(`Processing retail bid ${rb.id} for user ${rb.rUserId}`);
-            return {
-              ...rb,
-              user: user,
-              statusInfo: status,
-            };
-          } catch (error) {
-            console.error(`Error processing retail bid ${rb.id}:`, error);
-            return {
-              ...rb,
-              user: null,
-              statusInfo: null,
-            };
-          }
+          const user = await biddingStorage.getGrabUserById(rb.rUserId);
+          const status = await biddingStorage.getStatusById(rb.rStatus || 1);
+          return {
+            ...rb,
+            user: user,
+            statusInfo: status,
+          };
         }),
       );
 
