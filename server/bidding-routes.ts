@@ -3,12 +3,12 @@ import { biddingStorage } from "./bidding-storage.js";
 import { nanoid } from "nanoid";
 
 export function setupBiddingRoutes(app: Express) {
-  
+
   // 1. Admin creates a bid (flight offer)
   app.post("/api/admin/bids", async (req, res) => {
     try {
       const bidData = req.body;
-      
+
       // Validate required fields
       if (!bidData.bidAmount || !bidData.validUntil) {
         return res.status(400).json({
@@ -127,7 +127,7 @@ export function setupBiddingRoutes(app: Express) {
       // Check if user has a retail bid for this bid
       const retailBids = await biddingStorage.getRetailBidsByUser(parseInt(userId));
       const userRetailBid = retailBids.find(rb => rb.rBidId === parseInt(bidId));
-      
+
       if (!userRetailBid) {
         return res.status(404).json({
           success: false,
@@ -138,7 +138,7 @@ export function setupBiddingRoutes(app: Express) {
       // Get dynamic status IDs instead of hardcoding
       const processingStatusId = await biddingStorage.getStatusIdByCode("P");
       const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
-      
+
       if (!processingStatusId || !underReviewStatusId) {
         throw new Error("Required statuses not found in status management system");
       }
@@ -177,7 +177,7 @@ export function setupBiddingRoutes(app: Express) {
   app.get("/api/admin/bids", async (req, res) => {
     try {
       const allBids = await biddingStorage.getAllBids();
-      
+
       // Get detailed information for each bid
       const bidsWithDetails = await Promise.all(
         allBids.map(async (bid) => {
@@ -207,7 +207,7 @@ export function setupBiddingRoutes(app: Express) {
   app.get("/api/admin/bids/:bidId", async (req, res) => {
     try {
       const { bidId } = req.params;
-      
+
       const bidDetails = await biddingStorage.getBidWithDetails(parseInt(bidId));
       if (!bidDetails) {
         return res.status(404).json({
@@ -311,9 +311,9 @@ export function setupBiddingRoutes(app: Express) {
   app.get("/api/retail/my-bids/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       const userRetailBids = await biddingStorage.getRetailBidsByUser(parseInt(userId));
-      
+
       // Get bid details for each submission
       const bidsWithDetails = await Promise.all(
         userRetailBids.map(async (rb) => {
@@ -364,7 +364,7 @@ export function setupBiddingRoutes(app: Express) {
     try {
       // Check if statuses exist
       const existingStatuses = await biddingStorage.getAllStatuses();
-      
+
       if (existingStatuses.length === 0) {
         // Insert default statuses
         const defaultStatuses = [
