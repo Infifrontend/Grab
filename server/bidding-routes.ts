@@ -57,6 +57,9 @@ export function setupBiddingRoutes(app: Express) {
         });
       }
 
+      // Ensure required statuses exist in the database
+      await biddingStorage.ensureRequiredStatuses();
+
       // Check if bid exists and is active
       const bidDetails = await biddingStorage.getBidWithDetails(parseInt(bidId));
       if (!bidDetails) {
@@ -117,6 +120,9 @@ export function setupBiddingRoutes(app: Express) {
           message: "Missing required fields: userId, amount, paymentMethod"
         });
       }
+
+      // Ensure required statuses exist in the database
+      await biddingStorage.ensureRequiredStatuses();
 
       // Check if user has a retail bid for this bid
       const retailBids = await biddingStorage.getRetailBidsByUser(parseInt(userId));
@@ -335,7 +341,25 @@ export function setupBiddingRoutes(app: Express) {
     }
   });
 
-  // 8. Initialize default statuses if not exists
+  // 8. Check existing statuses
+  app.get("/api/admin/statuses", async (req, res) => {
+    try {
+      const existingStatuses = await biddingStorage.getAllStatuses();
+      res.json({
+        success: true,
+        statuses: existingStatuses
+      });
+    } catch (error: any) {
+      console.error("Error fetching statuses:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch statuses",
+        error: error.message
+      });
+    }
+  });
+
+  // 9. Initialize default statuses if not exists
   app.post("/api/admin/init-statuses", async (req, res) => {
     try {
       // Check if statuses exist

@@ -331,6 +331,48 @@ export class BiddingStorage {
     }
   }
 
+  async createStatus(statusData: {
+    statusName: string;
+    statusCode: string;
+    description?: string;
+  }): Promise<GrabMStatus> {
+    try {
+      const [status] = await db
+        .insert(grabMStatus)
+        .values(statusData)
+        .returning();
+      return status;
+    } catch (error) {
+      console.error("Error creating status:", error);
+      throw error;
+    }
+  }
+
+  async ensureRequiredStatuses(): Promise<void> {
+    try {
+      const requiredStatuses = [
+        { statusName: "Open", statusCode: "O", description: "Bid is open for submissions" },
+        { statusName: "Under Review", statusCode: "UR", description: "Payment received, under review" },
+        { statusName: "Approved", statusCode: "AP", description: "Bid approved by admin" },
+        { statusName: "Rejected", statusCode: "R", description: "Bid rejected by admin" },
+        { statusName: "Processing", statusCode: "P", description: "Payment is processing" },
+        { statusName: "Active", statusCode: "A", description: "Active status" },
+        { statusName: "Completed", statusCode: "C", description: "Bid process completed" }
+      ];
+
+      for (const statusData of requiredStatuses) {
+        const existingStatus = await this.getStatusIdByCode(statusData.statusCode);
+        if (!existingStatus) {
+          console.log(`Creating missing status: ${statusData.statusName} (${statusData.statusCode})`);
+          await this.createStatus(statusData);
+        }
+      }
+    } catch (error) {
+      console.error("Error ensuring required statuses:", error);
+      throw error;
+    }
+  }
+
   // Complete Bidding Workflow
   async getBidWithDetails(bidId: number, userId?: number) {
     try {
