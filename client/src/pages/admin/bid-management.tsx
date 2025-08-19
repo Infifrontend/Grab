@@ -597,11 +597,15 @@ export default function BidManagement() {
             expandable={{
               expandedRowRender: (record: any) => {
                 // Extract numeric bid ID from record.bidId (e.g., "BID001" -> "1")
-                const numericBidId =
-                  record.bidId.replace(/^BID0*/, "") ||
-                  record.bidId.replace(/\D/g, "");
+                let numericBidId = record.bidId.replace(/^BID0*/, "");
+                if (!numericBidId) {
+                  numericBidId = record.bidId.replace(/\D/g, "");
+                }
+                
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
+
+                console.log(`Rendering expandable row for bid ${record.bidId}, numericBidId: ${numericBidId}, retailData:`, retailData, 'isLoading:', isLoading);
 
                 if (isLoading) {
                   return (
@@ -614,12 +618,19 @@ export default function BidManagement() {
                   );
                 }
 
-                if (!retailData) {
+                if (!retailData || !retailData.retailUsers || retailData.retailUsers.length === 0) {
                   return (
                     <div className="bg-gray-50 p-4 rounded-lg text-center">
                       <Text className="text-gray-500">
-                        No retail users found for this bid
+                        No retail users found for this bid (ID: {numericBidId})
                       </Text>
+                      {!retailData && (
+                        <div className="mt-2">
+                          <Text className="text-gray-400 text-xs">
+                            Debug: retailData is null/undefined
+                          </Text>
+                        </div>
+                      )}
                     </div>
                   );
                 }
@@ -780,9 +791,11 @@ export default function BidManagement() {
               onExpand: (expanded, record) => {
                 if (expanded) {
                   // Extract numeric bid ID and fetch retail users data
-                  const numericBidId =
-                    record.bidId.replace(/^BID0*/, "") ||
-                    record.bidId.replace(/\D/g, "");
+                  let numericBidId = record.bidId.replace(/^BID0*/, "");
+                  // If after removing BID and leading zeros we get empty string, extract all digits
+                  if (!numericBidId) {
+                    numericBidId = record.bidId.replace(/\D/g, "");
+                  }
                   console.log(
                     `Expanding row for bid ${record.bidId}, numeric ID: ${numericBidId}`,
                   );
@@ -969,61 +982,34 @@ export default function BidManagement() {
       const result = await response.json();
       console.log(`Retail users data received for bid ${bidId}:`, result);
 
-      if (result.success) {
-        // Transform the retail bids data to match expected format
-        const retailBids = result.retailBids || [];
-        const baseBidAmount = parseFloat(
-          activeBids
-            .find((b) => b.key === bidId.toString())
-            ?.bidAmount.replace("$", "")
-            .replace(",", "") || "0",
-        );
-
+      if (result.success && result.data) {
+        // Use the data from the API response directly
+        const apiData = result.data;
+        const retailUsers = apiData.retailUsers || [];
+        
         const transformedData = {
-          bidId: bidId,
-          baseBidAmount: baseBidAmount,
-          totalRetailUsers: retailBids.length,
-          retailUsers: retailBids.map((retailBid, index) => ({
-            id: retailBid.id,
-            name: retailBid.user?.name || `User ${retailBid.rUserId}`,
-            email:
-              retailBid.user?.email || `user${retailBid.rUserId}@email.com`,
-            bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            seatNumber: `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
-            bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked,
-            status:
-              retailBid.rStatus === 1
-                ? "pending_approval"
-                : retailBid.rStatus === 2
-                  ? "approved"
-                  : retailBid.rStatus === 3
-                    ? "rejected"
-                    : "pending_approval",
-            differenceFromBase:
-              parseFloat(retailBid.submittedAmount) - baseBidAmount,
-            isHighestBidder: false, // Will be calculated below
-            createdAt: retailBid.createdAt,
-            updatedAt: retailBid.updatedAt,
+          bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
+          baseBidAmount: apiData.baseBidAmount || 0,
+          totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
+          retailUsers: retailUsers.map((user, index) => ({
+            id: index + 1, // Use index as ID since API doesn't provide ID
+            name: user.name || `User ${index + 1}`,
+            email: user.email || `user${index + 1}@email.com`,
+            bookingRef: user.bookingRef || `GR00${1230 + index}`,
+            seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
+            bidAmount: parseFloat(user.bidAmount) || 0,
+            passengerCount: user.passengerCount || 1,
+            status: "pending_approval", // Default status
+            differenceFromBase: user.differenceFromBase || 0,
+            isHighestBidder: user.isHighestBidder || false,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
           })),
-          highestBidAmount: Math.max(
-            ...retailBids.map((rb) => parseFloat(rb.submittedAmount)),
-          ),
+          highestBidAmount: apiData.highestBidAmount || 0,
         };
 
-        // Mark the highest bidder
-        if (transformedData.retailUsers.length > 0) {
-          const maxBid = Math.max(
-            ...transformedData.retailUsers.map((u) => u.bidAmount),
-          );
-          transformedData.retailUsers = transformedData.retailUsers.map(
-            (user) => ({
-              ...user,
-              isHighestBidder: user.bidAmount === maxBid,
-            }),
-          );
-        }
-        log;
+        console.log(`Transformed data for bid ${bidId}:`, transformedData);
+        
         setRetailUsersData((prev) => ({
           ...prev,
           [bidId]: transformedData,
@@ -1031,13 +1017,34 @@ export default function BidManagement() {
       } else {
         console.error(
           `Failed to fetch retail users for bid ${bidId}:`,
-          result.message,
+          result.message || "No data received",
         );
-        message.error(result.message || "Failed to fetch retail users");
+        // Still set empty data to prevent infinite loading
+        setRetailUsersData((prev) => ({
+          ...prev,
+          [bidId]: {
+            bidId: bidId,
+            baseBidAmount: 0,
+            totalRetailUsers: 0,
+            retailUsers: [],
+            highestBidAmount: 0,
+          },
+        }));
       }
     } catch (error) {
       console.error(`Error fetching retail users for bid ${bidId}:`, error);
       message.error("Failed to fetch retail users data");
+      // Set empty data to prevent infinite loading
+      setRetailUsersData((prev) => ({
+        ...prev,
+        [bidId]: {
+          bidId: bidId,
+          baseBidAmount: 0,
+          totalRetailUsers: 0,
+          retailUsers: [],
+          highestBidAmount: 0,
+        },
+      }));
     } finally {
       setFetchingRetailUsers((prev) => ({ ...prev, [bidId]: false }));
     }
