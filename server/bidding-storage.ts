@@ -89,7 +89,7 @@ export class BiddingStorage {
   // Get status by ID
   async getStatusById(statusId: number): Promise<GrabMStatus | null> {
     try {
-      const result = await this.db
+      const result = await db
         .select()
         .from(grabMStatus)
         .where(eq(grabMStatus.id, statusId))
@@ -105,7 +105,7 @@ export class BiddingStorage {
   // Get retail bid by ID
   async getRetailBidById(retailBidId: number): Promise<GrabTRetailBid | null> {
     try {
-      const result = await this.db
+      const result = await db
         .select()
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.id, retailBidId))
@@ -121,13 +121,13 @@ export class BiddingStorage {
   // Update bid status
   async updateBidStatus(bidId: number, statusId: number): Promise<void> {
     try {
-      await this.db
+      await db
         .update(grabTBids)
         .set({
           rStatus: statusId,
           updatedAt: new Date(),
         })
-        .where(eq(bidId, bidId));
+        .where(eq(grabTBids.id, bidId));
     } catch (error) {
       console.error("Error updating bid status:", error);
       throw error;
@@ -344,6 +344,20 @@ export class BiddingStorage {
     } catch (error) {
       console.error("Error fetching statuses:", error);
       return [];
+    }
+  }
+
+  async getStatusIdByCode(statusCode: string): Promise<number | null> {
+    try {
+      const [status] = await db
+        .select()
+        .from(grabMStatus)
+        .where(eq(grabMStatus.statusCode, statusCode))
+        .limit(1);
+      return status?.id || null;
+    } catch (error) {
+      console.error("Error getting status by code:", error);
+      return null;
     }
   }
 

@@ -871,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Default view - fetch ALL bids from grab_t_bids table with default "Open" status
         // Since no user is specified, all bids should show as "Open"
         const bidsQuery = sql`
-          SELECT 
+          SELECT
             gtb.id,
             gtb.bid_amount,
             gtb.valid_until,
@@ -1338,7 +1338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get admin bids from grab_t_bids
       const adminBidsQuery = sql`
-        SELECT 
+        SELECT
           gtb.*,
           gms.status_name
         FROM grab_t_bids gtb
@@ -1349,7 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get retail bids from grab_t_retail_bids
       const retailBidsQuery = sql`
-        SELECT 
+        SELECT
           grb.*,
           gtu.name as user_name,
           gms.status_name as retail_status_name
@@ -1362,7 +1362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get payments from grab_t_bid_payments
       const paymentsQuery = sql`
-        SELECT 
+        SELECT
           gbp.*,
           gtu.name as user_name,
           gms.status_name as payment_status_name
@@ -1427,7 +1427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get bid from grab_t_bids with status
       const bidQuery = sql`
-        SELECT 
+        SELECT
           gtb.*,
           gms.status_name as status_name
         FROM grab_t_bids gtb
@@ -1460,7 +1460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get retail bids for this bid with user and status info
       const retailBidsQuery = sql`
-        SELECT 
+        SELECT
           grb.*,
           gtu.name as user_name,
           gtu.email as user_email,
@@ -1477,7 +1477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get payments for this bid
       const paymentsQuery = sql`
-        SELECT 
+        SELECT
           gbp.*,
           gtu.name as user_name,
           gms.status_name as payment_status_name
@@ -2473,8 +2473,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Update retail bid status
           await db.execute(sql`
-            UPDATE grab_t_retail_bids 
-            SET r_status = 2, updated_at = now() 
+            UPDATE grab_t_retail_bids
+            SET r_status = 2, updated_at = now()
             WHERE id = ${userRetailBid.id}
           `);
         } else {
@@ -2626,207 +2626,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
         existingBid.bid.totalSeatsAvailable ||
         existingNotes.totalSeatsAvailable ||
         100;
-      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
-      const currentSeatsBooked = retailBids
-        .filter((rb) => rb.status === "approved" || rb.status === "paid")
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
 
-      // Initialize retail users array if it doesn't exist or ensure we have enough users
-      if (
-        !existingNotes.retailUsers ||
-        existingNotes.retailUsers.length === 0
-      ) {
-        const names = [
-          "John Smith",
-          "Sarah Johnson",
-          "Mike Wilson",
-          "Emma Davis",
-          "David Brown",
-          "Lisa Garcia",
-        ];
-        const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
-        const userCount = Math.max(parseInt(userId), 5); // Ensure we have at least as many users as the requested userId
+      // Get status IDs for different statuses
+      const approvedStatusId = await storage.getStatusIdByCode("AP");
+      const rejectedStatusId = await storage.getStatusIdByCode("R");
+      const underReviewStatusId = await storage.getStatusIdByCode("UR");
 
-        existingNotes.retailUsers = [];
-        for (let i = 0; i < userCount; i++) {
-          const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
-          const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
-
-          existingNotes.retailUsers.push({
-            id: i + 1,
-            name: names[i] || `User ${i + 1}`,
-            email:
-              `${names[i]?.toLowerCase().replace(" ", ".")}@${domains[i % domains.length]}` ||
-              `user${i + 1}@email.com`,
-            bookingRef: `GR00123${i + 4}`,
-            seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
-            bidAmount: baseBidAmount + randomIncrement,
-            passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
-            status:
-              existingBid.bid.bidStatus === "approved" && i === 0
-                ? "approved"
-                : "pending_approval",
-          });
-        }
+      if (!approvedStatusId || !rejectedStatusId) {
+        return res.status(500).json({
+          success: false,
+          message: "Required statuses not found in database",
+        });
       }
 
-      // Find and update the specific retail user
-      let retailUserIndex = existingNotes.retailUsers.findIndex(
-        (user) => user.id === parseInt(userId),
+      // Get all retail bids for this bid
+      const retailBids = await storage.getRetailBidsByBid(parseInt(bidId));
+
+      // Find the retail bid for this user
+      const userRetailBid = retailBids.find(
+        (rb) => rb.rUserId === parseInt(userId),
       );
 
-      // If user still not found, add them dynamically
-      if (retailUserIndex === -1) {
-        const baseBidAmount = parseFloat(existingBid.bid.bidAmount) || 500;
-        const randomIncrement = Math.floor(Math.random() * 100) + 20;
-        const names = [
-          "John Smith",
-          "Sarah Johnson",
-          "Mike Wilson",
-          "Emma Davis",
-          "David Brown",
-        ];
-        const domains = ["gmail.com", "yahoo.com", "email.com", "outlook.com"];
-        const userIdNum = parseInt(userId);
-
-        const newUser = {
-          id: userIdNum,
-          name: names[userIdNum - 1] || `User ${userIdNum}`,
-          email:
-            `${names[userIdNum - 1]?.toLowerCase().replace(" ", ".")}@${domains[userIdNum % domains.length]}` ||
-            `user${userIdNum}@email.com`,
-          bookingRef: `GR00123${userIdNum + 3}`,
-          seatNumber: `1${2 + userIdNum - 1}${String.fromCharCode(64 + userIdNum)}`, // 12A, 13B, etc.
-          bidAmount: baseBidAmount + randomIncrement,
-          passengerCount: Math.floor(Math.random() * 5) + 1, // 1-5 passengers
-          status: "pending_approval",
-        };
-
-        existingNotes.retailUsers.push(newUser);
-        retailUserIndex = existingNotes.retailUsers.length - 1;
-
-        console.log(`Created new retail user dynamically:`, newUser);
-      }
-
-      let newBidStatus = existingBid.bid.bidStatus; // Keep current bid status by default
-      let seatsWillBeBooked = 0;
+      let newBidStatus = existingBid.bid.rStatus; // Keep current bid status by default
 
       if (action === "approve") {
-        const userPassengerCount =
-          existingNotes.retailUsers[retailUserIndex].passengerCount || 1;
-
-        // Check if approving this user would exceed seat limit
-        if (currentSeatsBooked + userPassengerCount > totalSeatsAvailable) {
-          return res.status(400).json({
-            success: false,
-            message: `Cannot approve: Not enough seats available. User needs ${userPassengerCount} seats but only ${totalSeatsAvailable - currentSeatsBooked} remaining.`,
-          });
+        if (userRetailBid) {
+          // Update the user's retail bid status to approved
+          await storage.updateRetailBidStatus(
+            userRetailBid.id,
+            approvedStatusId,
+          );
         }
 
-        seatsWillBeBooked = userPassengerCount;
+        // Update main bid status to approved
+        await storage.updateBidStatus(parseInt(bidId), approvedStatusId);
+        newBidStatus = approvedStatusId;
 
-        // If approving this user, reject all other users automatically
-        existingNotes.retailUsers.forEach((user, index) => {
-          if (index === retailUserIndex) {
-            // Approve the selected user
-            user.status = "approved";
-            user.updatedAt = new Date().toISOString();
-            user.updatedBy = "Admin";
-          } else if (
-            user.status === "pending_approval" ||
-            user.status === "approved"
-          ) {
-            // Reject all other users who were pending or previously approved
-            user.status = "rejected";
-            user.updatedAt = new Date().toISOString();
-            user.updatedBy = "Admin (Auto-rejected)";
+        // Reject all other retail bids for this bid
+        for (const otherRetailBid of retailBids) {
+          if (otherRetailBid.rUserId !== parseInt(userId)) {
+            await storage.updateRetailBidStatus(
+              otherRetailBid.id,
+              rejectedStatusId,
+            );
           }
-        });
-
-        // Update bid status to "approved" when a retail user is approved
-        newBidStatus = "approved";
-
-        // Update the retail bid status in the retail_bids table
-        const retailBid = retailBids.find(
-          (rb) => rb.userId === parseInt(userId),
-        );
-        if (retailBid) {
-          await storage.updateRetailBidStatus(retailBid.id, "approved");
-        }
-
-        // Check if the bid should be closed due to seat capacity
-        const newTotalSeatsBooked = currentSeatsBooked + seatsWillBeBooked;
-        if (newTotalSeatsBooked >= totalSeatsAvailable) {
-          // Update bid notes to indicate it's closed due to capacity
-          existingNotes.closedDueToCapacity = true;
-          existingNotes.closedAt = new Date().toISOString();
         }
 
         console.log(
-          `Updating bid ${bidId} status from ${existingBid.bid.bidStatus} to ${newBidStatus}. Seats booked: ${newTotalSeatsBooked}/${totalSeatsAvailable}`,
+          `Approved user ${userId} for bid ${bidId}, rejected all others, updated main bid status to approved`,
         );
-      } else {
-        // If rejecting this user, just update their status
-        existingNotes.retailUsers[retailUserIndex].status = "rejected";
-        existingNotes.retailUsers[retailUserIndex].updatedAt =
-          new Date().toISOString();
-        existingNotes.retailUsers[retailUserIndex].updatedBy = "Admin";
-
-        // Update the retail bid status in the retail_bids table
-        const retailBid = retailBids.find(
-          (rb) => rb.userId === parseInt(userId),
-        );
-        if (retailBid) {
-          await storage.updateRetailBidStatus(retailBid.id, "rejected");
+      } else if (action === "reject") {
+        if (userRetailBid) {
+          // Update the user's retail bid status to rejected
+          await storage.updateRetailBidStatus(
+            userRetailBid.id,
+            rejectedStatusId,
+          );
         }
+
+        // Check if there are any other approved retail bids
+        const otherApprovedBids = retailBids.filter(
+          (rb) => rb.rUserId !== parseInt(userId) && rb.rStatus === approvedStatusId,
+        );
+
+        // If no other approved bids, keep bid open or set to appropriate status
+        if (otherApprovedBids.length === 0) {
+          const openStatusId = await storage.getStatusIdByCode("O");
+          if (openStatusId) {
+            await storage.updateBidStatus(parseInt(bidId), openStatusId);
+            newBidStatus = openStatusId;
+          }
+        }
+
+        console.log(`Rejected user ${userId} for bid ${bidId}`);
+      }
+
+      // Update bid notes (if any changes were made)
+      if (action === "approve" || action === "reject") {
+        // Update notes if needed based on action, e.g., marking as closed due to capacity
+        if (action === "approve") {
+          const approvedRetailBids = retailBids.filter(
+            (rb) => rb.rStatus === approvedStatusId,
+          );
+          const currentApprovedSeats = approvedRetailBids.reduce(
+            (total, rb) => total + (rb.seatBooked || 0),
+            0,
+          );
+          const seatsRemaining = totalSeatsAvailable - currentApprovedSeats;
+
+          if (seatsRemaining <= 0) {
+            // Update bid notes to indicate it's closed due to capacity
+            existingNotes.closedDueToCapacity = true;
+            existingNotes.closedAt = new Date().toISOString();
+          }
+        }
+
+        console.log(
+          `Updating bid ${bidId} status from ${existingBid.bid.rStatus} to ${newBidStatus}`,
+        );
       }
 
       // Update the bid with new notes and potentially new bid status
       const updateData = {
         notes: JSON.stringify(existingNotes),
-        bidStatus: newBidStatus,
+        rStatus: newBidStatus, // Use rStatus for the main bid status
         updatedAt: new Date(),
       };
 
       await storage.updateBidDetails(parseInt(bidId), updateData);
 
-      // Calculate final seat availability
-      const finalSeatsBooked =
-        currentSeatsBooked + (action === "approve" ? seatsWillBeBooked : 0);
-      const seatsRemaining = totalSeatsAvailable - finalSeatsBooked;
+      // Get the updated bid status name for response
+      const statusInfo = await storage.getStatusById(newBidStatus);
+      const statusName = statusInfo?.statusName || "Unknown";
 
-      // Create notification for the action
-      await createNotification(
-        "retail_user_status_updated",
-        `Retail User ${action === "approve" ? "Approved" : "Rejected"}`,
-        action === "approve"
-          ? `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been approved for bid ${bidId}. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
-          : `Retail user ${existingNotes.retailUsers[retailUserIndex].name} has been rejected for bid ${bidId}`,
-        "medium",
-        {
-          bidId: parseInt(bidId),
-          userId: parseInt(userId),
-          action: action === "approve" ? "approved" : "rejected",
-          userName: existingNotes.retailUsers[retailUserIndex].name,
-          seatsBooked: seatsWillBeBooked,
-          seatsRemaining: seatsRemaining,
-          totalSeatsAvailable: totalSeatsAvailable,
-        },
+      // Calculate seat utilization
+      const approvedRetailBids = retailBids.filter(
+        (rb) => rb.rStatus === approvedStatusId,
       );
+      const bookedSeats = approvedRetailBids.reduce(
+        (total, rb) => total + (rb.seatBooked || 0),
+        0,
+      );
+      const seatsRemaining = totalSeatsAvailable - bookedSeats;
 
       res.json({
         success: true,
         message:
           action === "approve"
-            ? `Retail user approved successfully. ${seatsWillBeBooked} seats booked. ${seatsRemaining} seats remaining.`
-            : `Retail user rejected successfully`,
-        retailUser: existingNotes.retailUsers[retailUserIndex],
-        bidStatusUpdated: newBidStatus !== existingBid.bid.bidStatus,
-        newBidStatus: newBidStatus,
-        previousBidStatus: existingBid.bid.bidStatus,
+            ? `User ${userId} approved for bid ${bidId}. Bid status updated.`
+            : `User ${userId} rejected for bid ${bidId}. Bid status updated.`,
+        bidStatus: statusName,
+        rStatusId: newBidStatus,
         seatsRemaining: seatsRemaining,
-        isClosed: seatsRemaining <= 0,
-        totalSeatsAvailable: totalSeatsAvailable,
+        isClosedDueToCapacity: existingNotes.closedDueToCapacity || false,
       });
     } catch (error) {
       console.error(`Error ${req.body.action}ing retail user:`, error);
@@ -3015,9 +2947,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the created user
       const createdUserResults = await db.execute(sql`
-        SELECT id, username, name, email, phone, is_retail_allowed, r_status 
-        FROM grab_t_users 
-        WHERE username = ${username} 
+        SELECT id, username, name, email, phone, is_retail_allowed, r_status
+        FROM grab_t_users
+        WHERE username = ${username}
         LIMIT 1
       `);
 
@@ -3061,9 +2993,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user by username directly from grab_t_users table
       const userResults = await db.execute(sql`
-        SELECT id, username, password, name, email, is_retail_allowed 
-        FROM grab_t_users 
-        WHERE username = ${username} 
+        SELECT id, username, password, name, email, is_retail_allowed
+        FROM grab_t_users
+        WHERE username = ${username}
         LIMIT 1
       `);
 
@@ -3288,7 +3220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' or 'paid'
       const bookedSeats = existingRetailBids
         .filter((rb) => rb.status === "under_review" || rb.status === "paid")
-        .reduce((total, rb) => total + (rb.passengerCount || 0), 0);
+        .reduce((total, rb) => total + (rb.seatBooked || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;
 
@@ -3349,9 +3281,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Get user by username from grab_t_users table
           const userResults = await db.execute(sql`
-        SELECT id, username, password, name, email, is_retail_allowed 
-        FROM grab_t_users 
-        WHERE username = ${username} 
+        SELECT id, username, password, name, email, is_retail_allowed
+        FROM grab_t_users
+        WHERE username = ${username}
         LIMIT 1
       `);
 
@@ -3944,7 +3876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Fetching bids for user ID: ${userId}`);
 
       const bidsQuery = sql`
-        SELECT 
+        SELECT
     gtb.id AS bid_id,
     gtb.bid_amount,
     gtb.notes,
@@ -3964,12 +3896,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     COALESCE(grb.r_status, gtb.r_status) AS final_status_id,
     COALESCE(ms_retail.status_name, ms_admin.status_name) AS final_status
 FROM grab_t_bids gtb
-LEFT JOIN grab_t_retail_bids grb 
-    ON gtb.id = grb.r_bid_id 
+LEFT JOIN grab_t_retail_bids grb
+    ON gtb.id = grb.r_bid_id
    AND grb.r_user_id = ${parseInt(userId, 10)}
-LEFT JOIN grab_m_status ms_admin 
+LEFT JOIN grab_m_status ms_admin
     ON gtb.r_status = ms_admin.id
-LEFT JOIN grab_m_status ms_retail 
+LEFT JOIN grab_m_status ms_retail
     ON grb.r_status = ms_retail.id
 ORDER BY gtb.created_at DESC;
       `;
@@ -4130,7 +4062,7 @@ ORDER BY gtb.created_at DESC;
       const userStatus = rStatus || 1; // Default to 1 (Active) if not provided
 
       await db.execute(sql`
-        UPDATE grab_t_users 
+        UPDATE grab_t_users
         SET name = ${updatedName}, email = ${email}, phone = ${phone}, is_retail_allowed = ${isRetailAllowed || false}, r_status = ${userStatus}, updated_at = now()
         WHERE id = ${userId}
       `);
@@ -4216,9 +4148,9 @@ ORDER BY gtb.created_at DESC;
 
       // Get user by username from grab_t_users table
       const userResults = await db.execute(sql`
-        SELECT id, username, password, name, email, is_retail_allowed 
-        FROM grab_t_users 
-        WHERE username = ${username} 
+        SELECT id, username, password, name, email, is_retail_allowed
+        FROM grab_t_users
+        WHERE username = ${username}
         LIMIT 1
       `);
 
@@ -4403,8 +4335,8 @@ ORDER BY gtb.created_at DESC;
 
       // Update user retail access in grab_t_users table
       await db.execute(sql`
-        UPDATE grab_t_users 
-        SET is_retail_allowed = true, updated_at = now() 
+        UPDATE grab_t_users
+        SET is_retail_allowed = true, updated_at = now()
         WHERE username = ${username}
       `);
 
@@ -4446,8 +4378,8 @@ ORDER BY gtb.created_at DESC;
         // Grant retail access if user exists but doesn't have it
         if (!existingUser.is_retail_allowed) {
           await db.execute(sql`
-            UPDATE grab_t_users 
-            SET is_retail_allowed = true, updated_at = now() 
+            UPDATE grab_t_users
+            SET is_retail_allowed = true, updated_at = now()
             WHERE username = 'testuser'
           `);
         }
