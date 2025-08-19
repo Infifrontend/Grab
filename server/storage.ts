@@ -1494,7 +1494,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getRetailBidById(retailBidId: number): Promise<RetailBid | null> {
+  async getRetailBidById(retailBidId: number): Promise<any | null> {
     try {
       console.log(`Fetching retail bid with ID: ${retailBidId}`);
 
