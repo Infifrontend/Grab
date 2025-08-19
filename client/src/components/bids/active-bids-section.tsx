@@ -31,22 +31,32 @@ export default function ActiveBidsSection() {
   const { data: activeBids, isLoading, error } = useQuery<ActiveBid[]>({
     queryKey: ["/api/bids"],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/bids");
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("API error:", errorText);
-          throw new Error(`Failed to fetch bids: ${response.status}`);
-        }
-        const bids = await response.json();
-        console.log("Fetched bids:", bids);
+      const fetchBids = async () => {
+        try {
+          // Get userId from localStorage if available
+          const storedUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
+          const userId = localStorage.getItem("isAuthenticated") === "true" ? storedUserId : null;
 
-        // Since the server now filters for r_status = 4, all returned bids are active/open
-        return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
-      } catch (error) {
-        console.error("Error fetching bids:", error);
-        throw error;
-      }
+          // Build URL with userId if available
+          const url = userId ? `/api/bids?userId=${userId}` : "/api/bids";
+
+          const response = await fetch(url);
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API error:", errorText);
+            throw new Error(`Failed to fetch bids: ${response.status}`);
+          }
+          const bids = await response.json();
+          console.log("Fetched bids:", bids);
+
+          // Since the server now filters for r_status = 4, all returned bids are active/open
+          return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+        } catch (error) {
+          console.error("Error fetching bids:", error);
+          throw error;
+        }
+      };
+      return fetchBids();
     },
   });
 

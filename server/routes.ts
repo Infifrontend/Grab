@@ -850,10 +850,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all bids
   app.get("/api/bids", async (req, res) => {
     try {
-      const { userId } = req.query;
+      let { userId } = req.query;
+
+      // If userId not in query, check headers (if frontend sends it)
+      if (!userId || userId === 'undefined' || userId === 'null') {
+        userId = req.headers['x-user-id'] || req.headers['user-id'];
+      }
 
       // If userId is provided, redirect to the user-specific endpoint
-      if (userId) {
+      if (userId && userId !== 'undefined' && userId !== 'null') {
         // Redirect to the dedicated user-bids endpoint for consistency
         return res.redirect(`/api/user-bids/${userId}`);
       } else {
@@ -3458,7 +3463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Import bidding storage to use status_code lookup
       const { biddingStorage } = await import("./bidding-storage.js");
-      
+
       // Create retail bid submission using the proper method
       const retailBidData = {
         rBidId: parseInt(bidId),
