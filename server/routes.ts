@@ -857,10 +857,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = req.headers['x-user-id'] || req.headers['user-id'];
       }
 
-      // If userId is provided, redirect to the user-specific endpoint
+      console.log(`Fetching bids for userId: ${userId}`);
+
+      // If userId is provided, return user-specific bid data
       if (userId && userId !== 'undefined' && userId !== 'null') {
-        // Redirect to the dedicated user-bids endpoint for consistency
-        return res.redirect(`/api/user-bids/${userId}`);
+        // Fetch ALL bids with user-specific status logic
+        const bidsQuery = sql`
+          SELECT 
+            gtb.id as bid_id,
+            gtb.bid_amount,
+            gtb.notes,
+            gtb.total_seats_available,
+            gtb.min_seats_per_bid,
+            gtb.max_seats_per_bid,
+            gtb.valid_until,
+            gtb.created_at,
+            gtb.r_status as admin_status,
+            gms_admin.status_name as admin_status_name,
+            grb.id as retail_bid_id,
+            grb.r_status as retail_status,
+            grb.submitted_amount,
+            grb.seat_booked as retail_passenger_count,
+            grb.created_at as retail_bid_created_at,
+            gms_retail.status_name as retail_status_name,
+            CASE 
+              WHEN grb.r_status IS NOT NULL THEN gms_retail.status_name
+              ELSE gms_admin.status_name
+            END as display_status
+          FROM grab_t_bids gtb
+          LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.r_bid_id AND grb.r_user_id = ${parseInt(userId as string)}
+          LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
+          LEFT JOIN grab_m_status gms_retail ON grb.r_status = gms_retail.id
+          ORDER BY gtb.created_at DESC
+        `;
+
+        const results = await db.execute(bidsQuery);
+
+        // Transform the results to include parsed configuration data
+        const transformedBids = results.rows.map((row: any) => {
+          // Parse configuration data from notes
+          let configData = {};
+          try {
+            configData = row.notes ? JSON.parse(row.notes) : {};
+          } catch (e) {
+            console.warn(`Could not parse notes for bid ${row.bid_id}:`, e);
+            configData = {};
+          }
+
+          // Get title from config data or use bid_id as fallback
+          const bidTitle = configData.title || `Bid ${row.bid_id}`;
+
+          // Get route information
+          const origin = configData.origin || "Unknown";
+          const destination = configData.destination || "Unknown";
+
+          // Business Rule Implementation:
+          // If record exists in grab_t_retail_bids for this user → use retail status
+          // Otherwise → use master bid status (grab_t_bids.r_status)
+          let displayStatus = row.display_status || "Open";
+          let statusClass = "";
+          let statusSource = row.retail_bid_id ? "retail_bid" : "global_bid";
+
+          // Map status to user-friendly display and CSS classes
+          switch (displayStatus?.toLowerCase()) {
+            case "under review":
+            case "ur":
+              displayStatus = "Under Review";
+              statusClass = "status-under-review";
+              break;
+            case "approved":
+            case "ap":
+              displayStatus = "Approved";
+              statusClass = "status-approved";
+              break;
+            case "rejected":
+            case "r":
+              displayStatus = "Rejected";
+              statusClass = "status-rejected";
+              break;
+            case "open":
+            case "active":
+              displayStatus = "Open";
+              statusClass = "status-open";
+              break;
+            case "closed":
+              displayStatus = "Closed";
+              statusClass = "status-closed";
+              break;
+            default:
+              displayStatus = displayStatus || "Open";
+              statusClass = "status-default";
+          }
+
+          return {
+            id: row.bid_id,
+            bidAmount: row.bid_amount,
+            validUntil: row.valid_until,
+            notes: row.notes,
+            totalSeatsAvailable: row.total_seats_available,
+            minSeatsPerBid: row.min_seats_per_bid,
+            maxSeatsPerBid: row.max_seats_per_bid,
+            rStatus: row.retail_status || row.admin_status || 4,
+            statusName: displayStatus,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            seatAvailability: {
+              paymentStatus: displayStatus.toLowerCase().replace(" ", "_"),
+            },
+          };
+        });
+
+        res.json(transformedBids);
       } else {
         // Default view - fetch ALL bids from grab_t_bids table (not just r_status = 4)
         const bidsQuery = sql`
