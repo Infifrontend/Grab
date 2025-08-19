@@ -17,7 +17,6 @@ export const grabMStatus = pgTable("grab_m_status", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   statusName: text("status_name").notNull(),
   statusCode: text("status_code").notNull().unique(),
-  description: text("description"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
