@@ -13,6 +13,7 @@ interface ActiveBid {
   minSeatsPerBid: number;
   maxSeatsPerBid: number;
   rStatus: number;
+  display_status?: string;
   createdAt?: string;
   created_at?: string;
   updatedAt: string;
@@ -98,7 +99,27 @@ export default function ActiveBidsSection() {
   };
 
   const getBidStatusInfo = (bid: ActiveBid) => {
-    // Check if there are retail bids with payments to determine user-specific status
+    // First priority: Use display_status from user-specific API response
+    if (bid.display_status) {
+      switch (bid.display_status.toLowerCase()) {
+        case "under review":
+          return { status: "Under Review", color: "blue" };
+        case "approved":
+        case "accepted":
+          return { status: "Accepted", color: "green" };
+        case "rejected":
+          return { status: "Rejected", color: "red" };
+        case "closed":
+          return { status: "Closed", color: "gray" };
+        case "completed":
+          return { status: "Completed", color: "green" };
+        case "open":
+        default:
+          return { status: "Open", color: "orange" };
+      }
+    }
+
+    // Second priority: Check if there are retail bids with payments to determine user-specific status
     if (bid.retailBids && bid.retailBids.length > 0) {
       const currentUser = localStorage.getItem("userId");
       const userBid = bid.retailBids.find(rb => String(rb.rUserId) === currentUser);
@@ -115,7 +136,7 @@ export default function ActiveBidsSection() {
       }
     }
 
-    // If no user-specific bid found or no retail bids, check seatAvailability for user-specific status
+    // Third priority: Check seatAvailability for user-specific status
     if (bid.seatAvailability?.paymentStatus) {
       switch (bid.seatAvailability.paymentStatus) {
         case "under_review":
@@ -135,9 +156,7 @@ export default function ActiveBidsSection() {
       }
     }
 
-    // If no user-specific status is determined, default to "Open" for the current user
-    // This assumes the bid itself is open if no specific user action is recorded.
-    // The backend should ideally filter bids to only show relevant ones or provide a default status.
+    // Default fallback: Show as "Open" when no user-specific status is available
     return { status: "Open", color: "orange" };
   };
 

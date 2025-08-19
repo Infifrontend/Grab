@@ -857,11 +857,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = req.headers['x-user-id'] || req.headers['user-id'];
       }
 
-      // If userId is provided, redirect to the user-specific endpoint
+      // If userId is provided, redirect to the user-specific endpoint for proper status resolution
       if (userId && userId !== 'undefined' && userId !== 'null') {
-        // Redirect to the dedicated user-bids endpoint for consistency
+        console.log(`Redirecting to user-specific bids endpoint for user ${userId}`);
         return res.redirect(`/api/user-bids/${userId}`);
       } else {
+        console.log("Fetching all bids with default Open status (no user context)");
+        
         // Default view - fetch ALL bids from grab_t_bids table with default "Open" status
         // Since no user is specified, all bids should show as "Open"
         const bidsQuery = sql`
@@ -873,9 +875,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gtb.total_seats_available,
             gtb.min_seats_per_bid,
             gtb.max_seats_per_bid,
+            gtb.r_status,
             gtb.created_at,
             gtb.updated_at
           FROM grab_t_bids gtb
+          WHERE gtb.r_status = 4
           ORDER BY gtb.created_at DESC
         `;
 
@@ -909,6 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
 
+        console.log(`Returning ${transformedBids.length} bids with default Open status`);
         res.json(transformedBids);
       }
     } catch (error) {
