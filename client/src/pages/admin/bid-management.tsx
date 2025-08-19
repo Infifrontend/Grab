@@ -1023,7 +1023,7 @@ export default function BidManagement() {
             }),
           );
         }
-
+        log;
         setRetailUsersData((prev) => ({
           ...prev,
           [bidId]: transformedData,
