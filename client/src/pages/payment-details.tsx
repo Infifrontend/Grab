@@ -349,6 +349,9 @@ export default function PaymentDetails() {
         setPaymentReference(
           paymentResult.paymentReference || `PAY-${bidId}-${Date.now()}`,
         );
+
+        // Show success modal
+        setShowSuccessModal(true);
       }
     } catch (error) {
       console.error("Payment processing error:", error);

@@ -74,13 +74,19 @@ export function setupBiddingRoutes(app: Express) {
         });
       }
 
+      // Get dynamic status ID for "Under Review" instead of hardcoding
+      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+      if (!underReviewStatusId) {
+        throw new Error("Under Review status not found in status management system");
+      }
+
       // Create retail bid submission
       const retailBid = await biddingStorage.createRetailBid({
         rBidId: parseInt(bidId),
         rUserId: parseInt(userId),
         submittedAmount: submittedAmount.toString(),
         seatBooked: parseInt(seatBooked),
-        rStatus: 1, // Submitted status
+        rStatus: underReviewStatusId, // Use dynamic status instead of hardcoded value
       });
 
       res.json({
@@ -123,6 +129,14 @@ export function setupBiddingRoutes(app: Express) {
         });
       }
 
+      // Get dynamic status IDs instead of hardcoding
+      const processingStatusId = await biddingStorage.getStatusIdByCode("P");
+      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+      
+      if (!processingStatusId || !underReviewStatusId) {
+        throw new Error("Required statuses not found in status management system");
+      }
+
       // Create payment record
       const payment = await biddingStorage.createBidPayment({
         rUserId: parseInt(userId),
@@ -131,11 +145,11 @@ export function setupBiddingRoutes(app: Express) {
         amount: amount.toString(),
         currency: "USD",
         paymentMethod: paymentMethod,
-        rStatus: 2, // Processing status
+        rStatus: processingStatusId, // Use dynamic status instead of hardcoded value
       });
 
       // Update retail bid status to "under review"
-      await biddingStorage.updateRetailBidStatus(userRetailBid.id, 2);
+      await biddingStorage.updateRetailBidStatus(userRetailBid.id, underReviewStatusId);
 
       res.json({
         success: true,
@@ -236,23 +250,30 @@ export function setupBiddingRoutes(app: Express) {
       const { retailBidId } = req.params;
       const { status, adminNote } = req.body; // status: 'approved' | 'rejected'
 
-      // Map status to status ID
-      let statusId: number;
+      // Map status to dynamic status ID
+      let statusId: number | null = null;
       switch (status) {
         case 'approved':
-          statusId = 3; // Approved
+          statusId = await biddingStorage.getStatusIdByCode("AP");
           break;
         case 'rejected':
-          statusId = 4; // Rejected
+          statusId = await biddingStorage.getStatusIdByCode("R");
           break;
         case 'under_review':
-          statusId = 2; // Under Review
+          statusId = await biddingStorage.getStatusIdByCode("UR");
           break;
         default:
           return res.status(400).json({
             success: false,
             message: "Invalid status. Use 'approved', 'rejected', or 'under_review'"
           });
+      }
+
+      if (!statusId) {
+        return res.status(500).json({
+          success: false,
+          message: `Status '${status}' not found in status management system`
+        });
       }
 
       // Update retail bid status
