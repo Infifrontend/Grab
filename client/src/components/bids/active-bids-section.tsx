@@ -3,15 +3,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Plane, Users, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 interface ActiveBid {
-  id: number;
+  id?: number;
+  bid_id?: number;
   bidAmount: string;
-  validUntil: string;
+  validUntil?: string;
+  valid_until?: string;
   notes: string;
   totalSeatsAvailable: number;
   minSeatsPerBid: number;
   maxSeatsPerBid: number;
   rStatus: number;
-  createdAt: string;
+  createdAt?: string;
+  created_at?: string;
   updatedAt: string;
   seatAvailability?: {
     paymentStatus: string;
@@ -69,7 +72,8 @@ export default function ActiveBidsSection() {
     },
   });
 
-  const calculateTimeLeft = (validUntil: string) => {
+  const calculateTimeLeft = (validUntil: string | undefined) => {
+    if (!validUntil) return "No expiry date";
     const now = new Date();
     const expiry = new Date(validUntil);
     const diff = expiry.getTime() - now.getTime();
@@ -96,18 +100,22 @@ export default function ActiveBidsSection() {
   const getBidStatusInfo = (bid: ActiveBid) => {
     // Check if there are retail bids with payments to determine user-specific status
     if (bid.retailBids && bid.retailBids.length > 0) {
-      const hasUnderReview = bid.retailBids.some((rb) => rb.rStatus === 2);
-      const hasApproved = bid.retailBids.some((rb) => rb.rStatus === 3);
+      const currentUser = localStorage.getItem("userId");
+      const userBid = bid.retailBids.find(rb => String(rb.rUserId) === currentUser);
 
-      if (hasApproved) {
-        return { status: "Approved", color: "green" };
-      }
-      if (hasUnderReview) {
-        return { status: "Under Review", color: "blue" };
+      if (userBid) {
+        switch (userBid.rStatus) {
+          case 1: return { status: "Submitted", color: "blue" };
+          case 2: return { status: "Under Review", color: "blue" };
+          case 3: return { status: "Accepted", color: "green" };
+          case 4: return { status: "Completed", color: "green" };
+          case 5: return { status: "Rejected", color: "red" };
+          default: return { status: "Open", color: "orange" };
+        }
       }
     }
 
-    // Use seatAvailability paymentStatus if available (user-specific status)
+    // If no user-specific bid found or no retail bids, check seatAvailability for user-specific status
     if (bid.seatAvailability?.paymentStatus) {
       switch (bid.seatAvailability.paymentStatus) {
         case "under_review":
@@ -127,21 +135,10 @@ export default function ActiveBidsSection() {
       }
     }
 
-    // Use rStatus from grab_t_bids table
-    switch (bid.rStatus) {
-      case 1:
-        return { status: "Submitted", color: "blue" };
-      case 2:
-        return { status: "Under Review", color: "blue" };
-      case 3:
-        return { status: "Approved", color: "green" };
-      case 4:
-        return { status: "Open", color: "orange" };
-      case 5:
-        return { status: "Rejected", color: "red" };
-      default:
-        return { status: "Open", color: "orange" };
-    }
+    // If no user-specific status is determined, default to "Open" for the current user
+    // This assumes the bid itself is open if no specific user action is recorded.
+    // The backend should ideally filter bids to only show relevant ones or provide a default status.
+    return { status: "Open", color: "orange" };
   };
 
   if (isLoading) {
@@ -211,17 +208,18 @@ export default function ActiveBidsSection() {
       {/* Active Bids Content */}
       <div className="p-6 bg-gray-200">
         {activeBids.map((bid, index) => {
-          const timeLeft = calculateTimeLeft(bid.validUntil);
+          const bidId = bid.id || bid.bid_id;
+          const timeLeft = calculateTimeLeft(bid.validUntil || bid.valid_until);
           const bidTitle = getBidTitle(bid);
           const statusInfo = getBidStatusInfo(bid);
-          const createdDate = new Date(bid.createdAt).toLocaleDateString(
+          const createdDate = new Date(bid.createdAt || bid.created_at).toLocaleDateString(
             "en-GB",
             { day: "2-digit", month: "short", year: "numeric" },
           );
 
           return (
             <div
-              key={bid.id}
+              key={bidId}
               className={`p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300 ${
                 activeBids.length !== index + 1 ? "mb-4" : ""
               }`}
@@ -241,9 +239,7 @@ export default function ActiveBidsSection() {
                       <span>
                         {(() => {
                           try {
-                            const configData = bid.notes
-                              ? JSON.parse(bid.notes)
-                              : {};
+                            const configData = bid.notes ? JSON.parse(bid.notes) : {};
                             const origin =
                               configData.origin ||
                               bid.flight?.origin ||
@@ -308,7 +304,7 @@ export default function ActiveBidsSection() {
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
-                      navigate(`/bid-details/${bid.id}`);
+                      navigate(`/bid-details/${bidId}`);
                     }}
                     type="default"
                   >
