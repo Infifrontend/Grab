@@ -852,118 +852,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
 
-      // If userId is provided, use the user-specific logic
+      // If userId is provided, redirect to the user-specific endpoint
       if (userId) {
-        // Use the same logic as /api/user-bids/:userId but with query parameter
-        const bidsQuery = sql`
-          SELECT 
-            gtb.id as bid_id,
-            gtb.bid_amount,
-            gtb.notes,
-            gtb.total_seats_available,
-            gtb.min_seats_per_bid,
-            gtb.max_seats_per_bid,
-            gtb.valid_until,
-            gtb.created_at,
-            gtb.r_status as admin_status,
-            gms_admin.status_name as admin_status_name,
-            grb.id as retail_bid_id,
-            grb.r_status as retail_status,
-            grb.submitted_amount,
-            grb.seat_booked as retail_passenger_count,
-            grb.created_at as retail_bid_created_at,
-            gms_retail.status_name as retail_status_name,
-            CASE 
-              WHEN grb.r_status IS NOT NULL THEN gms_retail.status_name
-              ELSE gms_admin.status_name
-            END as display_status
-          FROM grab_t_bids gtb
-          LEFT JOIN grab_t_retail_bids grb ON gtb.id = grb.r_bid_id AND grb.r_user_id = ${parseInt(userId as string)}
-          LEFT JOIN grab_m_status gms_admin ON gtb.r_status = gms_admin.id
-          LEFT JOIN grab_m_status gms_retail ON grb.r_status = gms_retail.id
-          ORDER BY gtb.created_at DESC
-        `;
-
-        const results = await db.execute(bidsQuery);
-
-        // Transform the results with display_status logic
-        const transformedBids = results.rows.map((row: any) => {
-          let configData = {};
-          try {
-            configData = row.notes ? JSON.parse(row.notes) : {};
-          } catch (e) {
-            configData = {};
-          }
-
-          const bidTitle = configData.title || `Bid ${row.bid_id}`;
-          const origin = configData.origin || "Unknown";
-          const destination = configData.destination || "Unknown";
-
-          // Business Rule Implementation:
-          // If user has placed a retail bid → show retail bid status
-          // Else → show global bid status
-          let displayStatus = row.display_status || "Unknown";
-          let statusSource = row.retail_bid_id ? "retail_bid" : "global_bid";
-
-          switch (displayStatus?.toLowerCase()) {
-            case "under review":
-            case "ur":
-              displayStatus = "Under Review";
-              break;
-            case "approved":
-            case "ap":
-              displayStatus = "Approved";
-              break;
-            case "rejected":
-            case "r":
-              displayStatus = "Rejected";
-              break;
-            case "active":
-            case "open":
-              displayStatus = "Open";
-              break;
-            case "closed":
-              displayStatus = "Closed";
-              break;
-            default:
-              displayStatus = displayStatus || "Open";
-          }
-
-          return {
-            id: row.bid_id,
-            userId: parseInt(userId as string),
-            flightId: row.flight_id,
-            bidAmount: row.bid_amount,
-            passengerCount: row.retail_passenger_count || row.min_seats_per_bid,
-            bidStatus: displayStatus,
-            validUntil: row.valid_until,
-            notes: row.notes,
-            totalSeatsAvailable: row.total_seats_available,
-            minSeatsPerBid: row.min_seats_per_bid,
-            maxSeatsPerBid: row.max_seats_per_bid,
-            createdAt: row.created_at,
-            updatedAt: row.created_at,
-            flight: {
-              id: row.flight_id,
-              origin: origin,
-              destination: destination,
-              departureTime: row.departure_time,
-              airline: row.airline,
-              flightNumber: row.flight_number,
-            },
-            displayStatus: displayStatus,
-            statusSource: statusSource,
-            hasUserBid: row.retail_bid_id !== null,
-            retailBidId: row.retail_bid_id,
-            retailStatus: row.retail_status,
-            retailStatusName: row.retail_status_name,
-            adminStatus: row.admin_status,
-            adminStatusName: row.admin_status_name,
-            submittedAmount: row.submitted_amount,
-          };
-        });
-
-        res.json(transformedBids);
+        // Redirect to the dedicated user-bids endpoint for consistency
+        return res.redirect(`/api/user-bids/${userId}`);
       } else {
         // Default view - fetch ALL bids from grab_t_bids table (not just r_status = 4)
         const bidsQuery = sql`
@@ -4038,6 +3930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Query to get ALL admin bids with user's retail bid status (if any)
       // Business Rule: Show all bids from grab_t_bids, with status based on user participation
+      // If retail bid exists for user → use retail status, else → use master bid status
       const bidsQuery = sql`
         SELECT 
           gtb.id as bid_id,
@@ -4088,9 +3981,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const destination = configData.destination || "Unknown";
         const route = `${origin} → ${destination}`;
 
-        // Business Rule Implementation:
-        // If user has placed a retail bid → show retail bid status
-        // Else → show global bid status
+        // ✅ Business Rule Implementation:
+        // If record exists in grab_t_retail_bids for this user → use retail status
+        // Otherwise → use master bid status (grab_t_bids.r_status)
         let displayStatus = row.display_status || "Unknown";
         let statusClass = "";
         let statusSource = row.retail_bid_id ? "retail_bid" : "global_bid";
