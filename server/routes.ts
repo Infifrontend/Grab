@@ -1113,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update bid status (accept/reject)
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
-      const { r_userId, r_bidId, p_bidId, r_status } = req.body;
+      const { r_userId, r_bidId, p_bidId, r_status, adminNote } = req.body;
 
       console.log("Received request body:", req.body);
 
@@ -1126,16 +1126,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Map action to status ID using bidding storage
       let statusId;
-      if (r_status === "AP") {
+      const status = r_status.toLowerCase(); // Ensure case-insensitive comparison
+
+      if (status === "ap") {
         // Approve
-        statusId = await biddingStorage.getStatusIdByCode("AP"); // Approved
-      } else if (r_status === "R") {
+        statusId = await biddingStorage.getStatusIdByCode("AP"); // Approved (ID typically 9)
+      } else if (status === "r") {
         // Reject
-        statusId = await biddingStorage.getStatusIdByCode("R"); // Rejected
+        statusId = await biddingStorage.getStatusIdByCode("R"); // Rejected (ID typically 7)
       } else {
         return res.status(400).json({
           success: false,
-          message: "Invalid action. Must be 7 (rejected) or 9 (approved).",
+          message: "Invalid status. Must be 'AP' (approved) or 'R' (rejected).",
         });
       }
 
@@ -1143,6 +1145,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({
           success: false,
           message: "Required status not found in database",
+        });
+      }
+
+      // Fetch the retail bid details to get seatBooked and other info
+      const retailBid = await storage.getRetailBidById(parseInt(r_bidId));
+      if (!retailBid) {
+        return res.status(404).json({
+          success: false,
+          message: `Retail bid with ID ${r_bidId} not found.`,
+        });
+      }
+
+      // Ensure the user ID matches for safety
+      if (retailBid.userId !== parseInt(r_userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID mismatch for the retail bid.",
         });
       }
 
@@ -1157,35 +1176,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = ${r_bidId} AND r_user_id = ${r_userId}
       `);
 
-      // If approving, update parent bid to approved and reject other retail bids
-      if (statusId === 9) {
-        // Update parent bid to approved
-        await storage.updateParentBid(p_bidId, { rStatus: statusId });
+      // --- MODIFIED LOGIC START ---
+      if (status === "ap") {
+        // Get bid details to check seat capacity
+        const bidDetails = await biddingStorage.getBidWithDetails(retailBid.rBidId);
 
-        // Get all retail bids for this parent bid
-        const allRetailBids = await storage.getRetailBidsByBid(p_bidId);
-        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+        if (!bidDetails) {
+          return res.status(404).json({
+            success: false,
+            message: "Main bid not found",
+          });
+        }
 
-        if (rejectedStatusId) {
-          // Reject all other retail bids for this parent bid except the one being approved
-          for (const retailBid of allRetailBids) {
-            if (retailBid.id !== parseInt(r_bidId)) {
-              // Compare with retail bid ID
-              await db.execute(sql`
-                UPDATE grab_t_retail_bids
-                SET r_status = ${rejectedStatusId}, updated_at = now()
-                WHERE id = ${retailBid.id}
-              `);
-            }
+        // Calculate current approved seats
+        const allRetailBids = await storage.getRetailBidsByBid(retailBid.rBidId);
+        const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+
+        let currentApprovedSeats = 0;
+        for (const rb of allRetailBids) {
+          if (rb.rStatus === approvedStatusId) {
+            currentApprovedSeats += rb.seatBooked || 0;
           }
         }
-      }
 
-      const actionText = statusId === 9 ? "approved" : "rejected";
-      res.json({
-        success: true,
-        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bidId} ${actionText} successfully`,
-      });
+        // Add the seats from the bid being approved
+        const newApprovedSeats = currentApprovedSeats + (retailBid.seatBooked || 0);
+        const totalSeatsAvailable = bidDetails.totalSeatsAvailable || 50;
+
+        // Check if approving this bid would exceed capacity
+        if (newApprovedSeats > totalSeatsAvailable) {
+          // Revert the status update if it exceeds capacity
+          const previousStatusId = retailBid.rStatus; // Get the status before this update
+          await db.execute(sql`
+            UPDATE grab_t_retail_bids
+            SET r_status = ${previousStatusId}, updated_at = now()
+            WHERE id = ${r_bidId}
+          `);
+          return res.json({
+            success: false,
+            message: `Cannot approve bid. This would exceed seat capacity. Available seats: ${totalSeatsAvailable - currentApprovedSeats}, Requested seats: ${retailBid.seatBooked || 0}`,
+            status: "capacity_exceeded",
+          });
+        }
+
+        // Check if this approval will fill all seats
+        const seatsRemainingAfterApproval = totalSeatsAvailable - newApprovedSeats;
+
+        if (seatsRemainingAfterApproval === 0) {
+          // If no seats remain, update main bid status to 'approved'
+          if (approvedStatusId) {
+            await biddingStorage.updateBidStatus(retailBid.rBidId, approvedStatusId);
+          }
+
+          // Auto-reject only the pending bids that cannot fit in remaining capacity
+          const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+          const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR"); // Assuming 'UR' is for 'Under Review' or 'Submitted'
+
+          if (rejectedStatusId && underReviewStatusId) {
+            for (const otherRetailBid of allRetailBids) {
+              // Check if it's a different retail bid, not the current one being approved
+              // and if it's in a status that should be considered for rejection (e.g., 'under_review' or 'submitted')
+              if (otherRetailBid.id !== parseInt(r_bidId) &&
+                  (otherRetailBid.rStatus === underReviewStatusId || otherRetailBid.rStatus === await biddingStorage.getStatusIdByCode("SUB"))) { // Adjust condition based on actual statuses
+                await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+              }
+            }
+          }
+
+          res.json({
+            success: true,
+            message: `Retail user approved successfully. Bid is now at full capacity (${totalSeatsAvailable} seats). Remaining pending bids have been automatically rejected.`,
+            status: status, // 'ap'
+            adminNote: adminNote,
+            seatsRemaining: 0,
+            totalSeats: totalSeatsAvailable,
+            approvedSeats: newApprovedSeats,
+          });
+        } else {
+          // Seats still available, just approve this user without affecting others
+          res.json({
+            success: true,
+            message: `Retail user approved successfully. ${seatsRemainingAfterApproval} seats remaining out of ${totalSeatsAvailable} total seats.`,
+            status: status, // 'ap'
+            adminNote: adminNote,
+            seatsRemaining: seatsRemainingAfterApproval,
+            totalSeats: totalSeatsAvailable,
+            approvedSeats: newApprovedSeats,
+          });
+        }
+      } else { // Handle rejection ('r') case
+        // If rejecting, we don't need to check capacity or reject others, just confirm rejection
+        res.json({
+          success: true,
+          message: `Retail user ${r_userId} for bid ${p_bidId} rejected successfully.`,
+          status: status, // 'r'
+          adminNote: adminNote,
+        });
+      }
+      // --- MODIFIED LOGIC END ---
+
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       res.status(500).json({
@@ -2557,11 +2646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           payment = await storage.createBidPayment(bidPaymentData);
 
           // Update retail bid status
-          await db.execute(sql`
-            UPDATE grab_t_retail_bids
-            SET r_status = 2, updated_at = now()
-            WHERE id = ${userRetailBid.id}
-          `);
+          await storage.updateRetailBidStatus(userRetailBid.id, "paid"); // Use 'paid' or appropriate status
         } else {
           payment = await storage.createPayment(paymentData);
         }
