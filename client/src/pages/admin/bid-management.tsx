@@ -809,6 +809,17 @@ export default function BidManagement() {
                   console.log(
                     `Expanding row for bid ${record.bidId}, numeric ID: ${numericBidId}`,
                   );
+                  
+                  // Log grab_t_retail_bids unique IDs for this bid
+                  const retailData = retailUsersData[numericBidId];
+                  if (retailData && retailData.retailUsers && retailData.retailUsers.length > 0) {
+                    const retailBidIds = retailData.retailUsers.map(user => user.rUserId || user.userId || user.id);
+                    console.log(`grab_t_retail_bids unique IDs for bid ${record.bidId}:`, retailBidIds);
+                    console.log(`Total retail bids count: ${retailBidIds.length}`);
+                  } else {
+                    console.log(`No retail bids found for bid ${record.bidId} - fetching from server...`);
+                  }
+                  
                   fetchRetailUsers(parseInt(numericBidId));
                 }
               },
@@ -1040,6 +1051,13 @@ export default function BidManagement() {
         };
 
         console.log(`Transformed data for bid ${bidId}:`, transformedData);
+
+        // Log the grab_t_retail_bids unique IDs
+        if (transformedData.retailUsers && transformedData.retailUsers.length > 0) {
+          const retailBidIds = transformedData.retailUsers.map(user => user.rUserId || user.userId || user.id);
+          console.log(`✅ grab_t_retail_bids unique IDs for bid ${bidId}:`, retailBidIds);
+          console.log(`✅ Total retail bids fetched: ${retailBidIds.length}`);
+        }
 
         setRetailUsersData((prev) => ({
           ...prev,
