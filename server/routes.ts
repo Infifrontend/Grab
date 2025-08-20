@@ -2610,14 +2610,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
-      // Parse IDs to ensure they are numbers
-      const numericBidId = parseInt(bidId);
-      const numericUserId = parseInt(userId);
+      // Enhanced parsing with better validation
+      let numericBidId, numericUserId;
 
-      if (isNaN(numericBidId) || isNaN(numericUserId)) {
+      // Parse bidId - handle both string and numeric input
+      if (typeof bidId === 'string') {
+        // Remove any non-numeric characters and parse
+        const cleanBidId = bidId.toString().replace(/[^0-9]/g, '');
+        numericBidId = cleanBidId ? parseInt(cleanBidId, 10) : null;
+      } else {
+        numericBidId = parseInt(bidId, 10);
+      }
+
+      // Parse userId - handle both string and numeric input
+      if (typeof userId === 'string') {
+        const cleanUserId = userId.toString().replace(/[^0-9]/g, '');
+        numericUserId = cleanUserId ? parseInt(cleanUserId, 10) : null;
+      } else {
+        numericUserId = parseInt(userId, 10);
+      }
+
+      // Validate parsed values
+      if (!numericBidId || isNaN(numericBidId) || numericBidId <= 0) {
         return res.status(400).json({
           success: false,
-          message: `Invalid bid ID or user ID format. Bid ID: ${bidId}, User ID: ${userId}`,
+          message: `Invalid bid ID format: ${bidId}. Expected a positive integer.`,
+          receivedValue: bidId,
+          parsedValue: numericBidId
+        });
+      }
+
+      if (!numericUserId || isNaN(numericUserId) || numericUserId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid user ID format: ${userId}. Expected a positive integer.`,
+          receivedValue: userId,
+          parsedValue: numericUserId
         });
       }
 
@@ -2722,12 +2750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Update main bid status to approved
         console.log(`Updating main bid ${bidId} status to approved (${approvedStatusId})`);
-        await biddingStorage.updateBidStatus(parseInt(bidId), approvedStatusId);
+        await biddingStorage.updateBidStatus(numericBidId, approvedStatusId);
         newMainBidStatus = approvedStatusId;
 
         // Reject all other retail bids for this bid
         for (const otherRetailBid of retailBids) {
-          if (otherRetailBid.rUserId !== parseInt(userId)) {
+          if (otherRetailBid.rUserId !== numericUserId) {
             console.log(`Rejecting retail bid ${otherRetailBid.id} for user ${otherRetailBid.rUserId}`);
             await biddingStorage.updateRetailBidStatus(
               otherRetailBid.id,
@@ -2756,7 +2784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if there are any other approved retail bids
         const otherApprovedBids = retailBids.filter(
-          (rb) => rb.rUserId !== parseInt(userId as string) && rb.rStatus === approvedStatusId,
+          (rb) => rb.rUserId !== numericUserId && rb.rStatus === approvedStatusId,
         );
 
         console.log(`Found ${otherApprovedBids.length} other approved retail bids`);
@@ -2765,7 +2793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (otherApprovedBids.length === 0) {
           if (openStatusId) {
             console.log(`Setting main bid ${bidId} status back to open (${openStatusId})`);
-            await biddingStorage.updateBidStatus(parseInt(bidId), openStatusId);
+            await biddingStorage.updateBidStatus(numericBidId, openStatusId);
             newMainBidStatus = openStatusId;
           }
         }
@@ -2777,14 +2805,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       existingNotes.actionHistory = existingNotes.actionHistory || [];
       existingNotes.actionHistory.push({
         action: action,
-        userId: parseInt(userId),
+        userId: numericUserId,
         timestamp: new Date().toISOString(),
         adminUser: "system", // You can get this from session if available
       });
 
       if (action === "approve") {
         const approvedRetailBids = retailBids.filter(
-          (rb) => rb.rUserId === parseInt(userId) || rb.rStatus === approvedStatusId,
+          (rb) => rb.rUserId === numericUserId || rb.rStatus === approvedStatusId,
         );
         const currentApprovedSeats = approvedRetailBids.reduce(
           (total, rb) => total + (rb.seatBooked || 0),
@@ -2809,7 +2837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date(),
       };
 
-      await biddingStorage.updateBidDetails(parseInt(bidId), updateData);
+      await biddingStorage.updateBidDetails(numericBidId, updateData);
 
       // Get the updated bid status name for response
       const statusInfo = await biddingStorage.getStatusById(newMainBidStatus);
@@ -3765,7 +3793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: user.email,
             bookingRef: user.bookingRef,
             seatNumber: user.seatNumber,
-            bidAmount: user.bidAmount,
+            bidAmount:user.bidAmount,
             passengerCount: user.passengerCount || 1,
             differenceFromBase: user.bidAmount - baseBidAmount,
             status: user.status,
