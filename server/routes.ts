@@ -3492,9 +3492,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const retailBid = item.retailBid;
           const user = item.user;
           return {
-            id: retailBid.rUserId,
+            id: retailBid.id, // Use the actual retail bid ID from grab_t_retail_bids table
             userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
             rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table
+            retailBidId: retailBid.id, // Add explicit retail bid ID field
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
@@ -3585,8 +3586,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableSeats: totalSeatsAvailable - bookedSeats,
           highestBidAmount: highestBidAmount,
           retailUsers: retailUsers.map((user) => ({
-            id: user.id,
-            rUserId: user.rUserId, // Include r_userId in the response
+            id: user.retailBidId || user.id, // Use retail bid ID as the primary ID
+            rUserId: user.rUserId, // The user ID who made the bid
+            retailBidId: user.retailBidId || user.id, // Explicit retail bid ID from grab_t_retail_bids
             name: user.name,
             email: user.email,
             bookingRef: user.bookingRef,
