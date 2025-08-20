@@ -20,7 +20,7 @@ import {
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Helper functions (assuming these are defined elsewhere or need to be included if not globally available)
 const formatDateToDDMMMYYYY = (dateString) => {
@@ -40,12 +40,21 @@ export default function BidDetails() {
   const navigate = useNavigate();
   const params = useParams();
   const bidId = params?.id; // Ensure bidId is correctly extracted
+  const queryClient = useQueryClient();
 
   const [passengers, setPassengers] = useState<any>(0);
   const [bidAmount, setBidAmount] = useState(0);
   const [originalBidAmount, setOriginalBidAmount] = useState(0);
   const [error, setError] = useState(null);
   const [submittingBid, setSubmittingBid] = useState(false);
+
+  // Invalidate cache on bidId change to ensure fresh data
+  useEffect(() => {
+    if (bidId) {
+      queryClient.invalidateQueries({ queryKey: ["bid", bidId] });
+      queryClient.invalidateQueries({ queryKey: ["bid-status", bidId] });
+    }
+  }, [bidId, queryClient]);
 
   // Fetch bid details from database using React Query
   const {
@@ -70,6 +79,8 @@ export default function BidDetails() {
     },
     enabled: !!bidId,
     retry: 1,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache for long
   });
 
   // Fetch dynamic status for this user
@@ -93,6 +104,8 @@ export default function BidDetails() {
       return null;
     },
     enabled: !!bidId,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache for long
     refetchInterval: 30000, // Refetch every 30 seconds to keep status current
   });
 
@@ -116,8 +129,12 @@ export default function BidDetails() {
     }
     const bid = { ...bidData.bid };
 
+    // Always use live status from bid-status endpoint if available
     if (bidStatus?.success && bidStatus.bidStatus) {
       bid.bidStatus = bidStatus.bidStatus;
+      console.log(`Using live status from bid-status API: ${bidStatus.bidStatus}`);
+    } else {
+      console.log(`Using static status from bid data: ${bid.bidStatus}`);
     }
     
     let configData = {};
@@ -134,12 +151,13 @@ export default function BidDetails() {
     const destination =
       configData.destination || bid.flight?.destination || "Unknown";
 
-    // Use dynamic status from bid status endpoint if available
+    // Always prioritize live status from bid-status endpoint
     let status = "Open";
     let seatAvailabilityInfo = null;
 
     if (bidStatus?.success) {
-      status = bidStatus.bidStatus || "Open**";
+      // Use the live status as the primary source of truth
+      status = bidStatus.statusForUser || bidStatus.bidStatus || "Open";
       seatAvailabilityInfo = {
         totalSeatsAvailable: bidStatus.totalSeatsAvailable,
         seatsRemaining: bidStatus.availableSeats,
@@ -147,7 +165,7 @@ export default function BidDetails() {
         hasUserPaid: bidStatus.hasUserPaid,
         userRetailBidStatus: bidStatus.userRetailBidStatus,
       };
-      console.log(`Using dynamic status: ${status}`, seatAvailabilityInfo);
+      console.log(`Using live status from bid-status API: ${status}`, seatAvailabilityInfo);
     } else {
       // Fallback to static status determination if bidStatus fetch fails or is not successful
       console.warn(

@@ -1017,6 +1017,28 @@ export default function BidManagement() {
                   return <Tag color={statusColor}>{displayStatus}</Tag>;
                 },
               },
+              {
+                title: "Actions",
+                key: "actions",
+                render: (text, record) => (
+                  <div className="flex gap-2">
+                    <Button
+                      type="link"
+                      icon={<EyeOutlined />}
+                      size="small"
+                      onClick={() => {
+                        // Extract numeric bid ID from record.bidId
+                        const numericBidId =
+                          record.bidId.replace(/^BID0*/, "") ||
+                          record.bidId.replace(/\D/g, "");
+                        handleNavigateToBidDetails(numericBidId);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                ),
+              },
             ]}
             pagination={{ pageSize: 10 }}
             loading={!recentBidsData}
@@ -3623,6 +3645,15 @@ export default function BidManagement() {
         ))}
       </div>
     );
+  };
+
+  // Navigate to bid details page and invalidate cache
+  const handleNavigateToBidDetails = (bidId) => {
+    // Invalidate the cache for the specific bid and bid status
+    queryClient.invalidateQueries(["bid", bidId]);
+    queryClient.invalidateQueries(["bid-status", bidId]);
+    // Navigate to the bid details page
+    navigate(`/admin/bid-management/${bidId}`);
   };
 
   return (
