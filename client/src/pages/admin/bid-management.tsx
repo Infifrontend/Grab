@@ -1253,16 +1253,15 @@ export default function BidManagement() {
     try {
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
-      // Extract numeric bid ID from bidId string (e.g., "BID001" -> "1", "BID3" -> "3")
-      let numericBidId = bidId;
+      // Extract numeric bid ID from bidId string (e.g., "BID001" -> 1, "BID014" -> 14, "014" -> 14)
+      let numericBidId;
       if (typeof bidId === "string") {
-        // Remove "BID" prefix and leading zeros, but keep the actual number
-        numericBidId = bidId.replace(/^BID0*/, "") || bidId;
-        // If it's still not a number, try to extract just the numeric part
-        const match = bidId.match(/\d+/);
-        if (match) {
-          numericBidId = match[0];
-        }
+        // First, remove any "BID" prefix
+        let cleanId = bidId.replace(/^BID/i, "");
+        // Then parse as integer (this will automatically remove leading zeros)
+        numericBidId = parseInt(cleanId, 10);
+      } else {
+        numericBidId = parseInt(bidId, 10);
       }
 
       console.log(
@@ -1270,7 +1269,7 @@ export default function BidManagement() {
       );
 
       // Validate that we have a valid numeric ID
-      if (!numericBidId || isNaN(parseInt(numericBidId))) {
+      if (isNaN(numericBidId) || numericBidId <= 0) {
         message.error(`Invalid bid ID format: ${bidId}`);
         return;
       }
@@ -1280,7 +1279,7 @@ export default function BidManagement() {
         `/api/bids/retail-users/status`,
         { 
           bidId: numericBidId,
-          userId: parseInt(userId),
+          userId: parseInt(userId, 10),
           action 
         },
       );
@@ -1309,7 +1308,7 @@ export default function BidManagement() {
         // Clear retail users data for this bid to force refetch
         setRetailUsersData((prev) => {
           const updated = { ...prev };
-          delete updated[parseInt(numericBidId)];
+          delete updated[numericBidId];
           return updated;
         });
 
@@ -1323,7 +1322,7 @@ export default function BidManagement() {
         // Small delay to ensure data is updated, then force re-expand if expanded
         setTimeout(() => {
           // Force refresh retail users data by fetching again
-          fetchRetailUsers(parseInt(numericBidId));
+          fetchRetailUsers(numericBidId);
         }, 500);
 
       } else {
