@@ -881,9 +881,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gtb.max_seats_per_bid,
             gtb.r_status,
             gtb.created_at,
-            gtb.updated_at
+            gtb.updated_at,
+            gms.status_name
           FROM grab_t_bids gtb
-          WHERE gtb.r_status = 4
+          LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
           ORDER BY gtb.created_at DESC
         `;
 
@@ -898,6 +899,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             configData = {};
           }
 
+          // Map r_status to bidStatus
+          let bidStatus = "active"; // Default status
+          let statusName = "Open"; // Default status name
+          
+          if (row.r_status) {
+            switch (row.r_status) {
+              case 1: // Active
+                bidStatus = "active";
+                statusName = "Active";
+                break;
+              case 2: // Approved 
+                bidStatus = "approved";
+                statusName = "Approved";
+                break;
+              case 3: // Completed
+                bidStatus = "completed";
+                statusName = "Completed";
+                break;
+              case 4: // Open
+                bidStatus = "active";
+                statusName = "Open";
+                break;
+              case 5: // Rejected
+                bidStatus = "rejected";
+                statusName = "Rejected";
+                break;
+              default:
+                bidStatus = "active";
+                statusName = row.status_name || "Open";
+            }
+          }
+
           // When no user is specified, all bids show as "Open"
           return {
             id: row.id,
@@ -907,8 +940,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalSeatsAvailable: row.total_seats_available,
             minSeatsPerBid: row.min_seats_per_bid,
             maxSeatsPerBid: row.max_seats_per_bid,
-            rStatus: 4, // Always show as Open when no user context
-            statusName: "Open",
+            rStatus: row.r_status || 4,
+            statusName: statusName,
+            bidStatus: bidStatus, // Properly mapped status
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             seatAvailability: {
@@ -942,6 +976,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } catch (e) {
             return false;
           }
+        })
+        .map((bid) => {
+          // Ensure proper status mapping
+          let bidStatus = "active"; // Default status
+          
+          // Map rStatus to bidStatus
+          if (bid.rStatus) {
+            switch (bid.rStatus) {
+              case 1: // Active in grab_m_status
+                bidStatus = "active";
+                break;
+              case 2: // Approved 
+                bidStatus = "approved";
+                break;
+              case 3: // Completed
+                bidStatus = "completed";
+                break;
+              case 4: // Open
+                bidStatus = "active";
+                break;
+              case 5: // Rejected
+                bidStatus = "rejected";
+                break;
+              default:
+                bidStatus = "active";
+            }
+          }
+          
+          return {
+            ...bid,
+            bidStatus: bid.bidStatus || bidStatus, // Use existing or mapped status
+          };
         })
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by newest first
 

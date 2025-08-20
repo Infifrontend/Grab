@@ -501,8 +501,8 @@ export default function BidManagement() {
         successRate: "75%", // This could be calculated based on historical data
         timeLeft: timeLeft,
         expiryDate: new Date(bid.validUntil).toLocaleDateString(),
-        status: bid.bidStatus,
-        paymentStatus: bid.bidStatus === "completed" ? "paid" : "pending", // Mock payment status
+        status: bid.bidStatus || bid.rStatus || "active", // Use bidStatus, fallback to rStatus, then default to active
+        paymentStatus: (bid.bidStatus === "completed" || bid.rStatus === 3) ? "paid" : "pending", // Mock payment status
         passengerCount: bid.passengerCount || 1,
         createdAt: bid.createdAt,
       };
@@ -894,9 +894,16 @@ export default function BidManagement() {
                 title: "Status",
                 dataIndex: "status",
                 key: "status",
-                render: (status) => {
+                render: (status, record) => {
+                  console.log("Rendering status for record:", record, "status:", status);
+                  
                   const getStatusDisplay = (status) => {
-                    switch (status?.toLowerCase()) {
+                    if (!status || status === null || status === undefined || status === "NaN") {
+                      return "Open"; // Default status
+                    }
+                    
+                    const statusStr = String(status);
+                    switch (statusStr.toLowerCase()) {
                       case "active":
                         return "Open";
                       case "completed":
@@ -912,14 +919,17 @@ export default function BidManagement() {
                       case "pending":
                         return "Pending";
                       default:
-                        return (
-                          status?.charAt(0)?.toUpperCase() + status?.slice(1)
-                        );
+                        return statusStr.charAt(0)?.toUpperCase() + statusStr.slice(1) || "Open";
                     }
                   };
 
                   const getStatusColor = (status) => {
-                    switch (status?.toLowerCase()) {
+                    if (!status || status === null || status === undefined || status === "NaN") {
+                      return "green"; // Default color for Open status
+                    }
+                    
+                    const statusStr = String(status);
+                    switch (statusStr.toLowerCase()) {
                       case "active":
                         return "green";
                       case "accepted":
@@ -935,13 +945,16 @@ export default function BidManagement() {
                       case "pending":
                         return "yellow";
                       default:
-                        return "default";
+                        return "green";
                     }
                   };
 
+                  const displayStatus = getStatusDisplay(status);
+                  const statusColor = getStatusColor(status);
+
                   return (
-                    <Tag color={getStatusColor(status)}>
-                      {getStatusDisplay(status)}
+                    <Tag color={statusColor}>
+                      {displayStatus}
                     </Tag>
                   );
                 },
