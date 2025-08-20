@@ -753,7 +753,7 @@ export default function BidManagement() {
                                       );
                                       console.log("User object:", user);
                                       console.log("Using rUserId:", retailUserId);
-                                      
+
                                       // Pass the correct rUserId for this specific retail user
                                       handleRetailUserAction(
                                         user.retailBidId, // grab_t_retail_bids.id
@@ -777,7 +777,7 @@ export default function BidManagement() {
                                       );
                                       console.log("User object:", user);
                                       console.log("Using rUserId:", retailUserId);
-                                      
+
                                       // Pass the correct rUserId for this specific retail user
                                       handleRetailUserAction(
                                         user.retailBidId, // grab_t_retail_bids.id
@@ -790,9 +790,6 @@ export default function BidManagement() {
                                   >
                                     Reject
                                   </Button>
-                                </>
-                              )}
-</old_str>
                                 </>
                               )}
                             </div>
@@ -2717,7 +2714,7 @@ export default function BidManagement() {
             originalBid: "$75",
             finalAmount: "$0",
             status: "Rejected",
-            completedDate: "2024-06-21",
+            completedDate: "2021-06-21",
             revenue: "$0",
           },
         ]}
