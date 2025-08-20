@@ -1372,7 +1372,7 @@ export default function BidManagement() {
         {
           r_bidId: retailBidId,
           p_bidId: numericBidId,
-          r_userId: userId,
+          r_userId: userId, // This is the correct mapping from the original code snippet
           action: actionCode,
         },
       );
