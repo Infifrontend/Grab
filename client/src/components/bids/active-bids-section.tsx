@@ -63,7 +63,7 @@ export default function ActiveBidsSection() {
           console.log("Fetched bids:", bids);
 
           // Since the server now filters for r_status = 4, all returned bids are active/open
-          return Array.isArray(bids) ? bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+          return Array.isArray(bids.bids) ? bids.bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
         } catch (error) {
           console.error("Error fetching bids:", error);
           throw error;
