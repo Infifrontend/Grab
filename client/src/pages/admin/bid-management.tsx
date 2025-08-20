@@ -737,7 +737,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.userId || user.rUserId || user.id,
                                         "approve",
-                                        numericBidId,
+                                        record.bidId,
                                       )
                                     }
                                     loading={loading}
@@ -751,7 +751,7 @@ export default function BidManagement() {
                                       handleRetailUserAction(
                                         user.userId || user.rUserId || user.id,
                                         "reject",
-                                        numericBidId,
+                                        record.bidId,
                                       )
                                     }
                                     loading={loading}
@@ -991,27 +991,22 @@ export default function BidManagement() {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: apiData.baseBidAmount || 0,
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
-          retailUsers: retailUsers.map((user, index) => {
-            // Get the actual retail user ID from the retail bid data
-            const actualUserId = user.userId || user.rUserId || user.id;
-            
-            return {
-              id: actualUserId, // Use actual user ID from retail bid
-              userId: actualUserId, // Explicitly store user ID
-              rUserId: actualUserId, // Store retail user ID for consistency
-              name: user.name || `User ${actualUserId}`,
-              email: user.email || `user${actualUserId}@email.com`,
-              bookingRef: user.bookingRef || `GR00${1230 + actualUserId}`,
-              seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
-              bidAmount: parseFloat(user.bidAmount) || 0,
-              passengerCount: user.passengerCount || 1,
-              status: "pending_approval", // Default status
-              differenceFromBase: user.differenceFromBase || 0,
-              isHighestBidder: user.isHighestBidder || false,
-              createdAt: user.createdAt,
-              updatedAt: user.updatedAt,
-            };
-          }),
+          retailUsers: retailUsers.map((user, index) => ({
+            id: user.userId || user.rUserId || (index + 1), // Use actual user ID from retail bid
+            userId: user.userId || user.rUserId, // Explicitly store user ID
+            rUserId: user.rUserId || user.userId, // Store retail user ID
+            name: user.name || `User ${user.userId || user.rUserId || (index + 1)}`,
+            email: user.email || `user${user.userId || user.rUserId || (index + 1)}@email.com`,
+            bookingRef: user.bookingRef || `GR00${1230 + (user.userId || user.rUserId || index)}`,
+            seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
+            bidAmount: parseFloat(user.bidAmount) || 0,
+            passengerCount: user.passengerCount || 1,
+            status: "pending_approval", // Default status
+            differenceFromBase: user.differenceFromBase || 0,
+            isHighestBidder: user.isHighestBidder || false,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          })),
           highestBidAmount: apiData.highestBidAmount || 0,
         };
 
@@ -1256,17 +1251,11 @@ export default function BidManagement() {
 
       console.log(
         `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
-        `User ID: ${userId}`,
       );
 
-      // Validate that we have a valid numeric ID and user ID
+      // Validate that we have a valid numeric ID
       if (!numericBidId || isNaN(parseInt(numericBidId))) {
         message.error(`Invalid bid ID format: ${bidId}`);
-        return;
-      }
-
-      if (!userId || isNaN(parseInt(userId))) {
-        message.error(`Invalid user ID: ${userId}`);
         return;
       }
 

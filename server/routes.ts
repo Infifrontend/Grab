@@ -3637,18 +3637,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const retailBid = item.retailBid;
           const user = item.user;
           return {
-            id: retailBid.rUserId, // Use rUserId which is the actual retail user ID
-            userId: retailBid.rUserId, // Explicitly set userId
-            rUserId: retailBid.rUserId, // Store retail user ID
-            name: user?.name || `User ${retailBid.rUserId}`,
-            email: user?.email || `user${retailBid.rUserId}@email.com`,
-            bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            seatNumber: `1${2 + retailBid.rUserId}${String.fromCharCode(65 + (retailBid.rUserId % 26))}`,
+            id: retailBid.userId,
+            name: user?.name || `User ${retailBid.userId}`,
+            email: user?.email || `user${retailBid.userId}@email.com`,
+            bookingRef: `GR00${1230 + retailBid.userId}`,
+            seatNumber: `1${2 + retailBid.userId}${String.fromCharCode(65 + (retailBid.userId % 26))}`,
             bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked || retailBid.passengerCount,
+            passengerCount: retailBid.passengerCount,
             status: retailBid.status,
-            differenceFromBase: parseFloat(retailBid.submittedAmount) - baseBidAmount,
-            isHighestBidder: parseFloat(retailBid.submittedAmount) === Math.max(...retailBidsWithUsers.map(r => parseFloat(r.retailBid.submittedAmount))),
             createdAt: retailBid.createdAt,
             updatedAt: retailBid.updatedAt,
           };
