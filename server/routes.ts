@@ -3789,15 +3789,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const retailBid = item.retailBid;
           const user = item.user;
           return {
-            id: retailBid.userId,
-            userId: retailBid.userId, // The actual user ID from grab_t_retail_bids
-            rUserId: retailBid.userId, // Same as userId for retail operations
-            name: user?.name || `User ${retailBid.userId}`,
-            email: user?.email || `user${retailBid.userId}@email.com`,
-            bookingRef: `GR00${1230 + retailBid.userId}`,
-            seatNumber: `1${2 + retailBid.userId}${String.fromCharCode(65 + (retailBid.userId % 26))}`,
+            id: retailBid.rUserId,
+            userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
+            rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table
+            name: user?.name || `User ${retailBid.rUserId}`,
+            email: user?.email || `user${retailBid.rUserId}@email.com`,
+            bookingRef: `GR00${1230 + retailBid.rUserId}`,
+            seatNumber: `1${2 + retailBid.rUserId}${String.fromCharCode(65 + (retailBid.rUserId % 26))}`,
             bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.passengerCount,
+            passengerCount: retailBid.seatBooked,
             status: retailBid.status,
             createdAt: retailBid.createdAt,
             updatedAt: retailBid.updatedAt,
@@ -3883,6 +3883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           highestBidAmount: highestBidAmount,
           retailUsers: retailUsers.map((user) => ({
             id: user.id,
+            rUserId: user.rUserId, // Include r_userId in the response
             name: user.name,
             email: user.email,
             bookingRef: user.bookingRef,
