@@ -3512,10 +3512,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         highestBidAmount: highestBidAmount,
       };
 
-      // Log the grab_t_retail_bids unique IDs being returned
-      const retailBidIds = retailUsers.map(user => user.retailBidId);
-      console.log(`🎯 Server: Returning grab_t_retail_bids unique IDs for parent bid ${bidId}:`, retailBidIds);
-
       res.json({
         success: true,
         data: responseData,
