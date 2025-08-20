@@ -601,7 +601,7 @@ export default function BidManagement() {
                 if (!numericBidId) {
                   numericBidId = record.bidId.replace(/\D/g, "");
                 }
-                
+
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
 
@@ -733,13 +733,16 @@ export default function BidManagement() {
                                     type="primary"
                                     size="small"
                                     className="bg-green-600 hover:bg-green-700"
-                                    onClick={() =>
+                                    onClick={() => {
+                                      // Get the actual user ID from the retail bid data
+                                      const actualUserId = user.rUserId || user.userId || user.id;
+                                      console.log(`Approving user with ID: ${actualUserId} for bid: ${record.bidId}`);
                                       handleRetailUserAction(
-                                        user.userId || user.rUserId || user.id,
+                                        actualUserId,
                                         "approve",
                                         record.bidId,
-                                      )
-                                    }
+                                      );
+                                    }}
                                     loading={loading}
                                   >
                                     Approve
@@ -747,13 +750,16 @@ export default function BidManagement() {
                                   <Button
                                     danger
                                     size="small"
-                                    onClick={() =>
+                                    onClick={() => {
+                                      // Get the actual user ID from the retail bid data
+                                      const actualUserId = user.rUserId || user.userId || user.id;
+                                      console.log(`Rejecting user with ID: ${actualUserId} for bid: ${record.bidId}`);
                                       handleRetailUserAction(
-                                        user.userId || user.rUserId || user.id,
+                                        actualUserId,
                                         "reject",
                                         record.bidId,
-                                      )
-                                    }
+                                      );
+                                    }}
                                     loading={loading}
                                   >
                                     Reject
@@ -986,7 +992,7 @@ export default function BidManagement() {
         // Use the data from the API response directly
         const apiData = result.data;
         const retailUsers = apiData.retailUsers || [];
-        
+
         const transformedData = {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: apiData.baseBidAmount || 0,
@@ -1011,7 +1017,7 @@ export default function BidManagement() {
         };
 
         console.log(`Transformed data for bid ${bidId}:`, transformedData);
-        
+
         setRetailUsersData((prev) => ({
           ...prev,
           [bidId]: transformedData,
@@ -1388,7 +1394,7 @@ export default function BidManagement() {
           ),
         );
       } else {
-        message.error(result.message || "Failed to update bid configuration");
+        message.error("Failed to update bid configuration");
       }
     } catch (error) {
       console.error("Error updating bid configuration:", error);
@@ -2723,7 +2729,12 @@ export default function BidManagement() {
           items={[
             {
               key: "overview",
-              label: "Overview",
+              label: (
+                <span className="flex items-center">
+                  <BarChartOutlined className="mr-2" />
+                  Dashboard
+                </span>
+              ),
               children: (
                 <div>
                   {/* Stats Cards Row */}
@@ -2979,7 +2990,12 @@ export default function BidManagement() {
             },
             {
               key: "insights",
-              label: "Insights",
+              label: (
+                <span className="flex items-center">
+                  <InfoCircleOutlined className="mr-2" />
+                  Insights
+                </span>
+              ),
               children: (
                 <div>
                   {/* Insights Alert Cards */}

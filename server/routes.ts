@@ -3638,6 +3638,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = item.user;
           return {
             id: retailBid.userId,
+            userId: retailBid.userId, // The actual user ID from grab_t_retail_bids
+            rUserId: retailBid.userId, // Same as userId for retail operations
             name: user?.name || `User ${retailBid.userId}`,
             email: user?.email || `user${retailBid.userId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.userId}`,
