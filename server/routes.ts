@@ -3494,6 +3494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      // Log the grab_t_retail_bids unique IDs being returned
+      const retailBidIds = retailUsers.map(user => user.retailBidId);
+      console.log(`🎯 Server: Returning grab_t_retail_bids unique IDs for parent bid ${bidId}:`, retailBidIds);
+
       // Find the highest bid amount
       const highestBidAmount =
         retailUsers.length > 0
