@@ -159,7 +159,7 @@ export interface IStorage {
   createRetailBid(bid: InsertRetailBid): Promise<RetailBid>;
   getRetailBidsByBid(bidId: number): Promise<RetailBid[]>;
   getRetailBidsWithUsersByBid(bidId: number): Promise<any[]>;
-  updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
+  updateRetailBidStatus(retailBidId: number, statusId: number): Promise<void>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
   getRetailBidById(retailBidId: number): Promise<any>;
   updateRetailBid(bidId: number, userId: number, updateData: any): Promise<void>;
@@ -1473,42 +1473,6 @@ export class DatabaseStorage implements IStorage {
       return retailBidsWithUsers;
     } catch (error) {
       console.error("Error getting retail bids with users by bid:", error);
-      throw error;
-    }
-  }
-
-  async updateRetailBidStatus(retailBidId: number, status: string): Promise<void> {
-    try {
-      console.log(`Updating retail bid ${retailBidId} status to: ${status}`);
-
-      await db
-        .update(grabTRetailBids)
-        .set({
-          status: status,
-          updatedAt: new Date()
-        })
-        .where(eq(grabTRetailBids.id, retailBidId));
-
-      console.log(`Retail bid ${retailBidId} status updated to: ${status}`);
-    } catch (error) {
-      console.error("Error updating retail bid status:", error);
-      throw error;
-    }
-  }
-
-  async getRetailBidById(retailBidId: number): Promise<RetailBid | null> {
-    try {
-      console.log(`Fetching retail bid with ID: ${retailBidId}`);
-
-      const [retailBid] = await db
-        .select()
-        .from(grabTRetailBids)
-        .where(eq(grabTRetailBids.id, retailBidId))
-        .limit(1);
-
-      return retailBid || null;
-    } catch (error) {
-      console.error("Error getting retail bid by ID:", error);
       throw error;
     }
   }

@@ -1110,12 +1110,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update bid status (accept/reject)
+  // Update retail bid status (accept/reject)
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
       const { r_bidId, r_userId, action, adminNotes, counterOffer, rejectionReason } = req.body;
 
-      console.log("Received request body:", req.body);
+      console.log("Received retail bid status update request:", req.body);
 
       if (!r_bidId || !r_userId || !action) {
         return res.status(400).json({
@@ -1124,12 +1124,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Map action to status ID using bidding storage
+      // Map action to status ID
       let statusId;
       if (action === 9) { // Approve
-        statusId = await biddingStorage.getStatusIdByCode("AP"); // Approved
+        statusId = await storage.getStatusIdByCode("AP"); // Approved
       } else if (action === 7) { // Reject
-        statusId = await biddingStorage.getStatusIdByCode("R"); // Rejected
+        statusId = await storage.getStatusIdByCode("R"); // Rejected
       } else {
         return res.status(400).json({
           success: false,
@@ -1158,7 +1158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get all retail bids for this parent bid
         const allRetailBids = await storage.getRetailBidsByBid(r_bidId);
-        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+        const rejectedStatusId = await storage.getStatusIdByCode("R");
 
         if (rejectedStatusId) {
           // Reject all other retail bids
