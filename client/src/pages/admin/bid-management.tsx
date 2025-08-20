@@ -746,17 +746,15 @@ export default function BidManagement() {
                                     size="small"
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() => {
-                                      // Get the actual retail user ID from the retail bid data
-                                      // Priority: rUserId (from retail bids table) > userId > id
-                                      const retailUserId =
-                                        user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
+                                        `Approving retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
+                                      // user.retailBidId contains the grab_t_retail_bids.id
+                                      // user.rUserId contains the actual user ID
                                       handleRetailUserAction(
-                                        user.retailBidId,
-                                        user.rUserId,
+                                        user.retailBidId, // This is grab_t_retail_bids.id
+                                        user.rUserId,     // This is the actual user ID
                                         "approve",
                                         record.bidId,
                                       );
@@ -769,17 +767,15 @@ export default function BidManagement() {
                                     danger
                                     size="small"
                                     onClick={() => {
-                                      // Get the actual retail user ID from the retail bid data
-                                      // Priority: rUserId (from retail bids table) > userId > id
-                                      const retailUserId =
-                                        user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
+                                        `Rejecting retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
+                                      // user.retailBidId contains the grab_t_retail_bids.id
+                                      // user.rUserId contains the actual user ID
                                       handleRetailUserAction(
-                                        retailUserId,
-                                        user.rUserId,
+                                        user.retailBidId, // This is grab_t_retail_bids.id
+                                        user.rUserId,     // This is the actual user ID
                                         "reject",
                                         record.bidId,
                                       );

@@ -1148,8 +1148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update retail bid status using r_bidId as the grab_t_retail_bids.id
       await db.execute(sql`
-        UPDATE grab_t_retail_bids 
-        SET r_status = ${statusId}, updated_at = now() 
+        UPDATE grab_t_retail_bids
+        SET r_status = ${statusId}, updated_at = now()
         WHERE id = ${r_bidId} AND r_user_id = ${r_userId}
       `);
 
@@ -1167,8 +1167,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           for (const retailBid of allRetailBids) {
             if (retailBid.id !== parseInt(r_bidId)) { // Compare with retail bid ID
               await db.execute(sql`
-                UPDATE grab_t_retail_bids 
-                SET r_status = ${rejectedStatusId}, updated_at = now() 
+                UPDATE grab_t_retail_bids
+                SET r_status = ${rejectedStatusId}, updated_at = now()
                 WHERE id = ${retailBid.id}
               `);
             }
@@ -3304,9 +3304,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passengerCount,
       );
 
-      // Import bidding storage to use status_code lookup
-      const { biddingStorage } = await import("./bidding-storage.js");
-
       // Create retail bid submission using the proper method
       const retailBidData = {
         rBidId: parseInt(bidId),
@@ -3495,21 +3492,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         retailUsers = retailBidsWithUsers.map((item) => {
           const retailBid = item.retailBid;
           const user = item.user;
-          return {
-            id: retailBid.id, // Use the actual retail bid ID from grab_t_retail_bids table
+          const retailUserData = {
+            id: retailBid.id, // Use the retail bid ID as the primary ID
             userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
-            rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table
-            retailBidId: retailBid.id, // Add explicit retail bid ID field
+            rUserId: retailBid.rUserId, // The actual user ID (r_user_id field from grab_t_retail_bids table)
+            retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            seatNumber: `1${2 + retailBid.rUserId}${String.fromCharCode(65 + (retailBid.rUserId % 26))}`,
-            bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked,
-            status: retailBid.status,
-            createdAt: retailBid.createdAt,
-            updatedAt: retailBid.updatedAt,
           };
+          return retailUserData;
         });
       } else {
         // Check if retail users exist in bid notes (legacy data)
