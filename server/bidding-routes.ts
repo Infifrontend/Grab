@@ -164,14 +164,11 @@ export function setupBiddingRoutes(app: Express) {
         rStatus: processingStatusId, // Use dynamic status instead of hardcoded value
       });
 
-      // Update retail bid status
+      // Update retail bid status to "under review"
       await biddingStorage.updateRetailBidStatus(
         userRetailBid.id,
         underReviewStatusId,
       );
-
-      // Sync main bid status based on retail bid payment
-      await biddingStorage.syncBidStatusFromRetailBids(parseInt(bidId));
 
       res.json({
         success: true,
@@ -274,7 +271,7 @@ export function setupBiddingRoutes(app: Express) {
   app.put("/api/admin/retail-bids/:retailBidId/status", async (req, res) => {
     try {
       const { retailBidId } = req.params;
-      const { status, adminNote } = req.body; // status: 'approved' | 'rejected' | 'under_review'
+      const { status, adminNote } = req.body; // status: 'approved' | 'rejected'
 
       // Get the retail bid details first
       const retailBid = await biddingStorage.getRetailBidById(parseInt(retailBidId));
@@ -296,26 +293,15 @@ export function setupBiddingRoutes(app: Express) {
 
       // Map status to dynamic status ID
       let statusId: number | null = null;
-      let newMainBidStatus: number | null = null; // Variable to hold the new status of the main bid
-
-      const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
-      const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
-      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
-      const openStatusId = await biddingStorage.getStatusIdByCode("AC"); // Assuming 'AC' is for Active/Open
-
-      if (!approvedStatusId || !rejectedStatusId || !underReviewStatusId || !openStatusId) {
-        throw new Error("Required statuses not found in status management system.");
-      }
-
       switch (status) {
         case "approved":
-          statusId = approvedStatusId;
+          statusId = await biddingStorage.getStatusIdByCode("AP");
           break;
         case "rejected":
-          statusId = rejectedStatusId;
+          statusId = await biddingStorage.getStatusIdByCode("R");
           break;
         case "under_review":
-          statusId = underReviewStatusId;
+          statusId = await biddingStorage.getStatusIdByCode("UR");
           break;
         default:
           return res.status(400).json({
@@ -325,6 +311,13 @@ export function setupBiddingRoutes(app: Express) {
           });
       }
 
+      if (!statusId) {
+        return res.status(500).json({
+          success: false,
+          message: `Status '${status}' not found in status management system`,
+        });
+      }
+
       // Update retail bid status
       await biddingStorage.updateRetailBidStatus(
         parseInt(retailBidId),
@@ -332,52 +325,42 @@ export function setupBiddingRoutes(app: Express) {
       );
 
       if (status === "approved") {
-        // Sync main bid status based on approval
-        await biddingStorage.syncBidStatusFromRetailBids(retailBid.rBidId);
-
-        // Get the updated status
-        const updatedBid = await biddingStorage.getBidById(retailBid.rBidId);
-        newMainBidStatus = updatedBid?.bid?.rStatus || statusId;
+        // Update main bid status to 'approved'
+        const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+        if (approvedStatusId) {
+          await biddingStorage.updateBidStatus(retailBid.rBidId, approvedStatusId);
+        }
 
         // Reject all other retail bids for this main bid
         const allRetailBids = await biddingStorage.getRetailBidsByBid(retailBid.rBidId);
-        for (const otherRetailBid of allRetailBids) {
-          if (otherRetailBid.id !== parseInt(retailBidId)) {
-            await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+        
+        if (rejectedStatusId) {
+          for (const otherRetailBid of allRetailBids) {
+            if (otherRetailBid.id !== parseInt(retailBidId)) {
+              await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+            }
           }
         }
 
         res.json({
           success: true,
-          message: "Retail user approved successfully. All other users have been automatically rejected and bid status updated accordingly.",
+          message: "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
           status: status,
           adminNote: adminNote,
         });
       } else if (status === "rejected") {
-        // Sync main bid status after rejection
-        await biddingStorage.syncBidStatusFromRetailBids(retailBid.rBidId);
-
-        // Get the updated status
-        const updatedBid = await biddingStorage.getBidById(retailBid.rBidId);
-        newMainBidStatus = updatedBid?.bid?.rStatus || statusId;
-
+        // Just reject this retail bid, don't change main bid status
         res.json({
           success: true,
           message: "Retail user rejected successfully",
           status: status,
           adminNote: adminNote,
         });
-      } else if (status === "under_review") {
-        // Sync main bid status for under review
-        await biddingStorage.syncBidStatusFromRetailBids(retailBid.rBidId);
-
-        // Get the updated status
-        const updatedBid = await biddingStorage.getBidById(retailBid.rBidId);
-        newMainBidStatus = updatedBid?.bid?.rStatus || statusId;
-
+      } else {
         res.json({
           success: true,
-          message: `Bid status set to ${status} successfully`,
+          message: `Bid ${status} successfully`,
           status: status,
           adminNote: adminNote,
         });
@@ -482,11 +465,6 @@ export function setupBiddingRoutes(app: Express) {
             statusName: "Completed",
             statusCode: "C",
             description: "Bid process completed",
-          },
-          {
-            statusName: "Active",
-            statusCode: "AC",
-            description: "Bid is active and open for submissions",
           },
         ];
 
