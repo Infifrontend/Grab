@@ -502,7 +502,10 @@ export default function BidManagement() {
         timeLeft: timeLeft,
         expiryDate: new Date(bid.validUntil).toLocaleDateString(),
         status: bid.bidStatus || bid.rStatus || "active", // Use bidStatus, fallback to rStatus, then default to active
-        paymentStatus: (bid.bidStatus === "completed" || bid.rStatus === 3) ? "paid" : "pending", // Mock payment status
+        paymentStatus:
+          bid.bidStatus === "completed" || bid.rStatus === 3
+            ? "paid"
+            : "pending", // Mock payment status
         passengerCount: bid.passengerCount || 1,
         createdAt: bid.createdAt,
       };
@@ -605,7 +608,12 @@ export default function BidManagement() {
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
 
-                console.log(`Rendering expandable row for bid ${record.bidId}, numericBidId: ${numericBidId}, retailData:`, retailData, 'isLoading:', isLoading);
+                console.log(
+                  `Rendering expandable row for bid ${record.bidId}, numericBidId: ${numericBidId}, retailData:`,
+                  retailData,
+                  "isLoading:",
+                  isLoading,
+                );
 
                 if (isLoading) {
                   return (
@@ -618,7 +626,11 @@ export default function BidManagement() {
                   );
                 }
 
-                if (!retailData || !retailData.retailUsers || retailData.retailUsers.length === 0) {
+                if (
+                  !retailData ||
+                  !retailData.retailUsers ||
+                  retailData.retailUsers.length === 0
+                ) {
                   return (
                     <div className="bg-gray-50 p-4 rounded-lg text-center">
                       <Text className="text-gray-500">
@@ -662,7 +674,7 @@ export default function BidManagement() {
                           </Text>
                         </div>
                       ) : (
-                        retailUsers.map((user) => (
+                        retailUsers.map((user, index) => (
                           // Display each retail user in a card-like format
                           <div
                             key={user.id}
@@ -736,13 +748,17 @@ export default function BidManagement() {
                                     onClick={() => {
                                       // Get the actual retail user ID from the retail bid data
                                       // Priority: rUserId (from retail bids table) > userId > id
-                                      const retailUserId = user.rUserId || user.userId || user.id;
-                                      console.log(`Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
-                                      console.log('User object:', user);
-                                      handleUserAction(
-                                        numericBidId.toString(), // Pass parent bid ID as string
-                                        String(retailUserId), // Pass retail user ID as string
+                                      const retailUserId =
+                                        user.rUserId || user.userId || user.id;
+                                      console.log(
+                                        `Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
+                                      );
+                                      console.log("User object:", user);
+                                      handleRetailUserAction(
+                                        user.retailBidId,
+                                        user.rUserId,
                                         "approve",
+                                        record.bidId,
                                       );
                                     }}
                                     loading={loading}
@@ -755,13 +771,17 @@ export default function BidManagement() {
                                     onClick={() => {
                                       // Get the actual retail user ID from the retail bid data
                                       // Priority: rUserId (from retail bids table) > userId > id
-                                      const retailUserId = user.rUserId || user.userId || user.id;
-                                      console.log(`Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
-                                      console.log('User object:', user);
-                                      handleUserAction(
-                                        numericBidId.toString(), // Pass parent bid ID as string
-                                        String(retailUserId), // Pass retail user ID as string
+                                      const retailUserId =
+                                        user.rUserId || user.userId || user.id;
+                                      console.log(
+                                        `Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
+                                      );
+                                      console.log("User object:", user);
+                                      handleRetailUserAction(
+                                        retailUserId,
+                                        user.rUserId,
                                         "reject",
+                                        record.bidId,
                                       );
                                     }}
                                     loading={loading}
@@ -812,12 +832,25 @@ export default function BidManagement() {
 
                   // Log grab_t_retail_bids unique IDs for this bid
                   const retailData = retailUsersData[numericBidId];
-                  if (retailData && retailData.retailUsers && retailData.retailUsers.length > 0) {
-                    const retailBidIds = retailData.retailUsers.map(user => user.rUserId || user.userId || user.id);
-                    console.log(`grab_t_retail_bids unique IDs for bid ${record.bidId}:`, retailBidIds);
-                    console.log(`Total retail bids count: ${retailBidIds.length}`);
+                  if (
+                    retailData &&
+                    retailData.retailUsers &&
+                    retailData.retailUsers.length > 0
+                  ) {
+                    const retailBidIds = retailData.retailUsers.map(
+                      (user) => user.rUserId || user.userId || user.id,
+                    );
+                    console.log(
+                      `grab_t_retail_bids unique IDs for bid ${record.bidId}:`,
+                      retailBidIds,
+                    );
+                    console.log(
+                      `Total retail bids count: ${retailBidIds.length}`,
+                    );
                   } else {
-                    console.log(`No retail bids found for bid ${record.bidId} - fetching from server...`);
+                    console.log(
+                      `No retail bids found for bid ${record.bidId} - fetching from server...`,
+                    );
                   }
 
                   fetchRetailUsers(parseInt(numericBidId));
@@ -906,10 +939,20 @@ export default function BidManagement() {
                 dataIndex: "status",
                 key: "status",
                 render: (status, record) => {
-                  console.log("Rendering status for record:", record, "status:", status);
+                  console.log(
+                    "Rendering status for record:",
+                    record,
+                    "status:",
+                    status,
+                  );
 
                   const getStatusDisplay = (status) => {
-                    if (!status || status === null || status === undefined || status === "NaN") {
+                    if (
+                      !status ||
+                      status === null ||
+                      status === undefined ||
+                      status === "NaN"
+                    ) {
                       return "Open"; // Default status
                     }
 
@@ -930,12 +973,20 @@ export default function BidManagement() {
                       case "pending":
                         return "Pending";
                       default:
-                        return statusStr.charAt(0)?.toUpperCase() + statusStr.slice(1) || "Open";
+                        return (
+                          statusStr.charAt(0)?.toUpperCase() +
+                            statusStr.slice(1) || "Open"
+                        );
                     }
                   };
 
                   const getStatusColor = (status) => {
-                    if (!status || status === null || status === undefined || status === "NaN") {
+                    if (
+                      !status ||
+                      status === null ||
+                      status === undefined ||
+                      status === "NaN"
+                    ) {
                       return "green"; // Default color for Open status
                     }
 
@@ -963,11 +1014,7 @@ export default function BidManagement() {
                   const displayStatus = getStatusDisplay(status);
                   const statusColor = getStatusColor(status);
 
-                  return (
-                    <Tag color={statusColor}>
-                      {displayStatus}
-                    </Tag>
-                  );
+                  return <Tag color={statusColor}>{displayStatus}</Tag>;
                 },
               },
             ]}
@@ -1006,7 +1053,7 @@ export default function BidManagement() {
     setFetchingRetailUsers((prev) => ({ ...prev, [bidId]: true }));
 
     try {
-      console.log(`Fetching retail users for bid ID: ${bidId}`);
+      console.log(`🔍 Fetching retail bids for parent bid ID: ${bidId}`);
       const response = await apiRequest("GET", `/api/retail-bids/${bidId}`);
 
       if (!response.ok) {
@@ -1014,12 +1061,41 @@ export default function BidManagement() {
       }
 
       const result = await response.json();
-      console.log(`Retail users data received for bid ${bidId}:`, result);
+      console.log(`📥 Raw API response for bid ${bidId}:`, result);
 
       if (result.success && result.data) {
         // Use the data from the API response directly
         const apiData = result.data;
         const retailUsers = apiData.retailUsers || [];
+
+        // Log the grab_t_retail_bids unique IDs immediately after fetching
+        if (retailUsers && retailUsers.length > 0) {
+          const retailBidUniqueIds = retailUsers.map((user) => {
+            // Get the actual ID from grab_t_retail_bids table
+            return user.retailBidId || user.rUserId || user.userId || user.id;
+          });
+
+          console.log(
+            `🎯 grab_t_retail_bids unique IDs for parent bid ${bidId}:`,
+            retailBidUniqueIds,
+          );
+          console.log(
+            `📊 Total grab_t_retail_bids records found: ${retailBidUniqueIds.length}`,
+          );
+
+          // Log individual retail bid details
+          retailUsers.forEach((user, index) => {
+            const uniqueId =
+              user.retailBidId || user.rUserId || user.userId || user.id;
+            console.log(
+              `   └─ Retail Bid #${index + 1}: ID=${uniqueId}, Amount=${user.bidAmount || user.submittedAmount}, User=${user.name || user.rUserId}`,
+            );
+          });
+        } else {
+          console.log(
+            `⚠️ No grab_t_retail_bids records found for parent bid ${bidId}`,
+          );
+        }
 
         const transformedData = {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
@@ -1027,19 +1103,27 @@ export default function BidManagement() {
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
           retailUsers: retailUsers.map((user, index) => {
             // Ensure we get the correct retail user ID from the API response
-            const retailUserId = user.rUserId || user.userId || user.id || (index + 1);
-            console.log(`Mapping retail user: rUserId=${user.rUserId}, userId=${user.userId}, id=${user.id}, final=${retailUserId}`);
+            const retailUserId =
+              user.retailBidId ||
+              user.rUserId ||
+              user.userId ||
+              user.id ||
+              index + 1;
 
             return {
               id: retailUserId, // Use retail user ID as the primary identifier
               userId: retailUserId, // Store as userId for consistency
               rUserId: retailUserId, // Store as rUserId for retail operations
+              retailBidId: user.retailBidId || retailUserId, // Store the actual grab_t_retail_bids.id
               name: user.name || `User ${retailUserId}`,
               email: user.email || `user${retailUserId}@email.com`,
               bookingRef: user.bookingRef || `GR00${1230 + retailUserId}`,
-              seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
-              bidAmount: parseFloat(user.bidAmount) || 0,
-              passengerCount: user.passengerCount || 1,
+              seatNumber:
+                user.seatNumber ||
+                `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
+              bidAmount:
+                parseFloat(user.bidAmount || user.submittedAmount) || 0,
+              passengerCount: user.passengerCount || user.seatBooked || 1,
               status: "pending_approval", // Default status
               differenceFromBase: user.differenceFromBase || 0,
               isHighestBidder: user.isHighestBidder || false,
@@ -1050,14 +1134,9 @@ export default function BidManagement() {
           highestBidAmount: apiData.highestBidAmount || 0,
         };
 
-        console.log(`Transformed data for bid ${bidId}:`, transformedData);
-
-        // Log the grab_t_retail_bids unique IDs
-        if (transformedData.retailUsers && transformedData.retailUsers.length > 0) {
-          const retailBidIds = transformedData.retailUsers.map(user => user.rUserId || user.userId || user.id);
-          console.log(`✅ grab_t_retail_bids unique IDs for bid ${bidId}:`, retailBidIds);
-          console.log(`✅ Total retail bids fetched: ${retailBidIds.length}`);
-        }
+        console.log(
+          `✅ Successfully processed retail bids data for bid ${bidId}`,
+        );
 
         setRetailUsersData((prev) => ({
           ...prev,
@@ -1065,7 +1144,7 @@ export default function BidManagement() {
         }));
       } else {
         console.error(
-          `Failed to fetch retail users for bid ${bidId}:`,
+          `❌ Failed to fetch retail users for bid ${bidId}:`,
           result.message || "No data received",
         );
         // Still set empty data to prevent infinite loading
@@ -1081,7 +1160,7 @@ export default function BidManagement() {
         }));
       }
     } catch (error) {
-      console.error(`Error fetching retail users for bid ${bidId}:`, error);
+      console.error(`💥 Error fetching retail users for bid ${bidId}:`, error);
       message.error("Failed to fetch retail users data");
       // Set empty data to prevent infinite loading
       setRetailUsersData((prev) => ({
@@ -1279,90 +1358,36 @@ export default function BidManagement() {
     }
   };
 
-  const handleUserAction = async (
-    bidId: string,
-    userId: string,
-    action: "approve" | "reject"
-  ) => {
+  const handleRetailUserAction = async (retailBidId, userId, action, bidId) => {
+    console.log(retailBidId, "rrrrrrr");
+    setLoading(true);
     try {
-      console.log(
-        `Handling ${action} action for bid ${bidId}, user ${userId}`
-      );
-
-      // Convert action to numeric value
+      // Convert "approve"/"reject" -> numeric status codes
       const actionCode = action === "approve" ? 9 : 7;
 
-      // Get the retail users data for this bid to find the correct retail bid ID
-      const retailData = retailUsersData[parseInt(bidId)];
-      if (!retailData || !retailData.retailUsers) {
-        message.error("Could not find retail user data for this bid");
-        return;
-      }
+      const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
 
-      // Find the specific retail user to get their retail bid ID
-      const retailUser = retailData.retailUsers.find(
-        (user) => String(user.rUserId || user.userId || user.id) === userId
+      const response = await apiRequest(
+        "PUT",
+        "/api/bids/retail-users/status",
+        {
+          r_bidId: retailBidId,
+          p_bidId: numericBidId,
+          r_userId: userId,
+          action: actionCode,
+        },
       );
-
-      if (!retailUser) {
-        message.error("Could not find retail user information");
-        return;
-      }
-
-      // Use the retail bid ID (grab_t_retail_bids.id) as r_bidId
-      const retailBidId = retailUser.retailBidId || retailUser.id;
-
-      console.log(`Using retail bid ID: ${retailBidId} for user ${userId}, parent bid ID: ${bidId}`);
-
-      const response = await apiRequest("PUT", `/api/bids/retail-users/status`, {
-        r_bidId: retailBidId, // This is the retail bid ID from grab_t_retail_bids.id
-        r_userId: parseInt(userId),
-        p_bid_id: parseInt(bidId), // This is the parent bid ID from grab_t_bids.id
-        action: actionCode,
-      });
 
       const result = await response.json();
 
       if (result.success) {
-        if (action === "approve") {
-          message.success(
-            result.message ||
-              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
-          );
-        } else {
-          message.success(
-            result.message || "Retail user rejected successfully",
-          );
-        }
-
-        // Clear retail users data for this bid to force refetch
-        setRetailUsersData((prev) => {
-          const updated = { ...prev };
-          delete updated[parseInt(bidId)];
-          return updated;
-        });
-
-        // Refresh the data to update the UI with new bid status and retail user statuses
-        await Promise.all([
-          queryClient.invalidateQueries(["recent-bids"]),
-          queryClient.invalidateQueries(["bid-configurations"]),
-          refetchBids()
-        ]);
-
-        // Small delay to ensure data is updated, then force re-expand if expanded
-        setTimeout(() => {
-          // Force refresh retail users data by fetching again
-          fetchRetailUsers(parseInt(bidId));
-        }, 500);
-
+        message.success(result.message);
+        await refetchBids();
       } else {
-        throw new Error(result.message || `Failed to ${action} retail user`);
+        throw new Error(result.message);
       }
     } catch (error) {
-      console.error(`Error ${action}ing retail user:`, error);
-      message.error(
-        error.message || `Failed to ${action} retail user. Please try again.`,
-      );
+      message.error(error.message || "Failed to update retail user status.");
     } finally {
       setLoading(false);
     }
