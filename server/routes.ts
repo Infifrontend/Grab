@@ -1169,7 +1169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = ${r_bidId} AND r_user_id = ${r_userId}
       `);
 
-      // --- MODIFIED LOGIC START ---
+      // --- FIXED LOGIC START ---
       if (status === "ap") {
         // Get bid details to check seat capacity
         const bidDetails = await biddingStorage.getBidWithDetails(retailBid.rBidId);
@@ -1181,92 +1181,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Calculate current approved seats
+        // Get all retail bids for this bid to calculate seat usage
         const allRetailBids = await storage.getRetailBidsByBid(retailBid.rBidId);
         const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+        const totalSeatsAvailable = bidDetails.totalSeatsAvailable || 50;
 
+        // Calculate current approved seats (excluding the current bid being processed)
         let currentApprovedSeats = 0;
         for (const rb of allRetailBids) {
-          if (rb.rStatus === approvedStatusId) {
+          // Only count seats from OTHER approved retail bids (not the current one)
+          if (rb.id !== parseInt(r_bidId) && rb.rStatus === approvedStatusId) {
             currentApprovedSeats += rb.seatBooked || 0;
           }
         }
 
-        // Add the seats from the bid being approved
-        const newApprovedSeats = currentApprovedSeats + (retailBid.seatBooked || 0);
-        const totalSeatsAvailable = bidDetails.totalSeatsAvailable || 50;
+        // Calculate seats after approving this bid
+        const seatsFromThisBid = retailBid.seatBooked || 0;
+        const newApprovedSeats = currentApprovedSeats + seatsFromThisBid;
+
+        console.log(`Approving bid ${r_bidId}: Current approved seats: ${currentApprovedSeats}, This bid seats: ${seatsFromThisBid}, Total after approval: ${newApprovedSeats}, Available seats: ${totalSeatsAvailable}`);
 
         // Check if approving this bid would exceed capacity
         if (newApprovedSeats > totalSeatsAvailable) {
           // Revert the status update if it exceeds capacity
-          const previousStatusId = retailBid.rStatus; // Get the status before this update
+          const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
           await db.execute(sql`
             UPDATE grab_t_retail_bids
-            SET r_status = ${previousStatusId}, updated_at = now()
+            SET r_status = ${underReviewStatusId || 6}, updated_at = now()
             WHERE id = ${r_bidId}
           `);
-          return res.json({
+          return res.status(400).json({
             success: false,
-            message: `Cannot approve bid. This would exceed seat capacity. Available seats: ${totalSeatsAvailable - currentApprovedSeats}, Requested seats: ${retailBid.seatBooked || 0}`,
+            message: `Cannot approve bid. This would exceed seat capacity. Available seats: ${totalSeatsAvailable - currentApprovedSeats}, Requested seats: ${seatsFromThisBid}`,
             status: "capacity_exceeded",
           });
         }
 
-        // Check if this approval will fill all seats
+        // Calculate remaining seats after approval
         const seatsRemainingAfterApproval = totalSeatsAvailable - newApprovedSeats;
 
+        // Auto-reject pending bids that cannot fit in remaining capacity
+        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+        const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+        
+        let rejectedCount = 0;
+        if (rejectedStatusId && underReviewStatusId) {
+          for (const otherRetailBid of allRetailBids) {
+            // Only reject OTHER pending bids that cannot fit in remaining space
+            if (otherRetailBid.id !== parseInt(r_bidId) && 
+                otherRetailBid.rStatus === underReviewStatusId &&
+                (otherRetailBid.seatBooked || 0) > seatsRemainingAfterApproval) {
+              await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+              rejectedCount++;
+            }
+          }
+        }
+
+        // Update main bid status to 'approved' if all seats are filled
         if (seatsRemainingAfterApproval === 0) {
-          // If no seats remain, update main bid status to 'approved'
           if (approvedStatusId) {
             await biddingStorage.updateBidStatus(retailBid.rBidId, approvedStatusId);
           }
-
-          // Auto-reject only the pending bids that cannot fit in remaining capacity
-          const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
-          const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR"); // Assuming 'UR' is for 'Under Review' or 'Submitted'
-
-          if (rejectedStatusId && underReviewStatusId) {
-            for (const otherRetailBid of allRetailBids) {
-              // Check if it's a different retail bid, not the current one being approved
-              // and if it's in a status that should be considered for rejection (e.g., 'under_review' or 'submitted')
-              if (otherRetailBid.id !== parseInt(r_bidId) &&
-                  (otherRetailBid.rStatus === underReviewStatusId || otherRetailBid.rStatus === await biddingStorage.getStatusIdByCode("SUB"))) { // Adjust condition based on actual statuses
-                await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
-              }
-            }
-          }
-
-          res.json({
-            success: true,
-            message: `Retail user approved successfully. Bid is now at full capacity (${totalSeatsAvailable} seats). Remaining pending bids have been automatically rejected.`,
-            status: status, // 'ap'
-            adminNote: adminNote,
-            seatsRemaining: 0,
-            totalSeats: totalSeatsAvailable,
-            approvedSeats: newApprovedSeats,
-          });
-        } else {
-          // Seats still available, just approve this user without affecting others
-          res.json({
-            success: true,
-            message: `Retail user approved successfully. ${seatsRemainingAfterApproval} seats remaining out of ${totalSeatsAvailable} total seats.`,
-            status: status, // 'ap'
-            adminNote: adminNote,
-            seatsRemaining: seatsRemainingAfterApproval,
-            totalSeats: totalSeatsAvailable,
-            approvedSeats: newApprovedSeats,
-          });
         }
+
+        // Send appropriate response message
+        let message = `User approved successfully with ${seatsFromThisBid} seat(s). `;
+        message += `${seatsRemainingAfterApproval} seats remaining out of ${totalSeatsAvailable} total seats.`;
+        
+        if (rejectedCount > 0) {
+          message += ` ${rejectedCount} pending bid(s) were automatically rejected due to insufficient remaining capacity.`;
+        }
+        
+        if (seatsRemainingAfterApproval === 0) {
+          message += ` Bid is now at full capacity.`;
+        }
+
+        res.json({
+          success: true,
+          message: message,
+          status: status, // 'ap'
+          adminNote: adminNote,
+          seatsRemaining: seatsRemainingAfterApproval,
+          totalSeats: totalSeatsAvailable,
+          approvedSeats: newApprovedSeats,
+          userSeats: seatsFromThisBid,
+          rejectedBidsCount: rejectedCount,
+        });
       } else { // Handle rejection ('r') case
         // If rejecting, we don't need to check capacity or reject others, just confirm rejection
         res.json({
           success: true,
-          message: `Retail user ${r_userId} for bid ${p_bidId} rejected successfully.`,
+          message: `User ${r_userId} for bid ${p_bidId} rejected successfully.`,
           status: status, // 'r'
           adminNote: adminNote,
         });
       }
-      // --- MODIFIED LOGIC END ---
+      // --- FIXED LOGIC END ---
 
     } catch (error) {
       console.error("Error updating retail bid status:", error);
