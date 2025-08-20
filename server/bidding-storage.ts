@@ -188,6 +188,34 @@ export class BiddingStorage {
     }
   }
 
+  // Check and update all bids that are fully booked
+  async checkAndCloseFullyBookedBids(): Promise<void> {
+    try {
+      console.log("Checking all bids for full capacity and closing if needed...");
+      
+      const allBids = await this.getAllBids();
+      let closedCount = 0;
+      
+      for (const bid of allBids) {
+        const bidDetails = await this.getBidWithDetails(bid.id);
+        if (bidDetails && bidDetails.availableSeats <= 0) {
+          const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
+          
+          if (closedStatusId && bid.rStatus !== closedStatusId) {
+            await this.updateBidStatus(bid.id, closedStatusId);
+            closedCount++;
+            console.log(`Closed bid ${bid.id} - all ${bidDetails.totalSeatsAvailable} seats are taken`);
+          }
+        }
+      }
+      
+      console.log(`Closed ${closedCount} fully booked bids`);
+    } catch (error) {
+      console.error("Error checking and closing fully booked bids:", error);
+      throw error;
+    }
+  }
+
   // Retail Bids (User bid submissions)
   async createRetailBid(
     retailBidData: InsertGrabTRetailBid,
@@ -669,8 +697,8 @@ export class BiddingStorage {
         }
       }
 
-      // Override status if bid is fully booked and user hasn't paid
-      if (isBidFullyBooked && !hasUserPaid) {
+      // Override status if bid is fully booked - regardless of user payment status
+      if (isBidFullyBooked) {
         displayStatus = "Closed";
         statusForUser = "closed";
         userPaymentStatus = "closed";

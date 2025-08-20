@@ -3782,7 +3782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookedSeats: bookedSeats,
         availableSeats: availableSeats,
         seatsRemaining: availableSeats,
-        isClosed: availableSeats <= 0 && !hasUserPaid,
+        isClosed: availableSeats <= 0, // Always closed when no seats available
         hasUserPaid: hasUserPaid,
         userRetailBidStatus: userRetailBidStatus,
         userRetailBidStatusName: userRetailBidStatusName,
@@ -3920,28 +3920,66 @@ ORDER BY gtb.created_at DESC;
         const destination = configData.destination || "Unknown";
         const route = `${origin} → ${destination}`;
 
-        // Use final_status_name directly
+        // Check if bid is fully booked by getting seat availability
         let displayStatus = row.final_status || "Open";
         let statusClass = "status-default";
-        switch (displayStatus.toLowerCase()) {
-          case "under review":
-            statusClass = "status-under-review";
-            break;
-          case "approved":
-            statusClass = "status-approved";
-            break;
-          case "rejected":
-            statusClass = "status-rejected";
-            break;
-          case "closed":
+        
+        // Override status if all seats are taken
+        const totalSeatsAvailable = row.total_seats_available || 100;
+        const seatsAvailable = totalSeatsAvailable - (totalSeatsAvailable || 0); // This will be calculated properly below
+        
+        // Get actual seat availability for this bid
+        try {
+          const bidDetails = await biddingStorage.getBidWithDetails(row.bid_id, userId ? parseInt(userId as string) : undefined);
+          if (bidDetails && bidDetails.availableSeats <= 0) {
+            displayStatus = "Closed";
             statusClass = "status-closed";
-            break;
-          case "expired":
-            statusClass = "status-expired";
-            break;
-          case "open":
-            statusClass = "status-open";
-            break;
+          } else {
+            // Use the original status mapping
+            switch (displayStatus.toLowerCase()) {
+              case "under review":
+                statusClass = "status-under-review";
+                break;
+              case "approved":
+                statusClass = "status-approved";
+                break;
+              case "rejected":
+                statusClass = "status-rejected";
+                break;
+              case "closed":
+                statusClass = "status-closed";
+                break;
+              case "expired":
+                statusClass = "status-expired";
+                break;
+              case "open":
+                statusClass = "status-open";
+                break;
+            }
+          }
+        } catch (error) {
+          console.warn(`Could not check seat availability for bid ${row.bid_id}:`, error.message);
+          // Fall back to original status mapping
+          switch (displayStatus.toLowerCase()) {
+            case "under review":
+              statusClass = "status-under-review";
+              break;
+            case "approved":
+              statusClass = "status-approved";
+              break;
+            case "rejected":
+              statusClass = "status-rejected";
+              break;
+            case "closed":
+              statusClass = "status-closed";
+              break;
+            case "expired":
+              statusClass = "status-expired";
+              break;
+            case "open":
+              statusClass = "status-open";
+              break;
+          }
         }
 
         return {
@@ -4535,41 +4573,11 @@ ORDER BY gtb.created_at DESC;
     try {
       console.log("Checking and updating all bid statuses based on seat availability...");
 
-      // Get all bids
-      const allBids = await biddingStorage.getAllBids();
-      let updatedCount = 0;
-      const updatedBids = [];
-
-      for (const bid of allBids) {
-        try {
-          const bidDetails = await biddingStorage.getBidWithDetails(bid.id);
-          
-          if (bidDetails && bidDetails.availableSeats <= 0) {
-            const closedStatusId = await biddingStorage.getStatusIdByCode("CL") || await biddingStorage.getStatusIdByCode("C");
-            
-            if (closedStatusId && bid.rStatus !== closedStatusId) {
-              await biddingStorage.updateBidStatus(bid.id, closedStatusId);
-              updatedCount++;
-              updatedBids.push({
-                bidId: bid.id,
-                totalSeats: bidDetails.totalSeatsAvailable,
-                bookedSeats: bidDetails.bookedSeats,
-                availableSeats: bidDetails.availableSeats,
-              });
-              console.log(`Closed bid ${bid.id} - all ${bidDetails.totalSeatsAvailable} seats are taken`);
-            }
-          }
-        } catch (error) {
-          console.error(`Error checking bid ${bid.id}:`, error.message);
-        }
-      }
+      await biddingStorage.checkAndCloseFullyBookedBids();
 
       res.json({
         success: true,
-        message: `Checked ${allBids.length} bids, updated ${updatedCount} to closed status`,
-        totalBids: allBids.length,
-        updatedCount: updatedCount,
-        updatedBids: updatedBids,
+        message: "Successfully checked and updated all fully booked bids to closed status",
       });
     } catch (error) {
       console.error("Error checking and updating bid statuses:", error);
