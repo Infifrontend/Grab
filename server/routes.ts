@@ -1157,13 +1157,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Ensure the user ID matches for safety
-      if (retailBid.userId !== parseInt(r_userId)) {
-        return res.status(400).json({
-          success: false,
-          message: "User ID mismatch for the retail bid.",
-        });
-      }
 
       console.log(
         `Updating retail bid ID=${r_bidId} (grab_t_retail_bids.id) for user=${r_userId} on parent bid=${p_bidId} with statusId=${statusId}`,
