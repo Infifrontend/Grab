@@ -746,15 +746,18 @@ export default function BidManagement() {
                                     size="small"
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() => {
+                                      // Extract the correct retail user ID from the specific user object
+                                      const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Approving retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
+                                        `Approving retail bid ID: ${user.retailBidId} for user: ${retailUserId} on bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
-                                      // user.retailBidId contains the grab_t_retail_bids.id
-                                      // user.rUserId contains the actual user ID
+                                      console.log("Using rUserId:", retailUserId);
+                                      
+                                      // Pass the correct rUserId for this specific retail user
                                       handleRetailUserAction(
-                                        user.retailBidId, // This is grab_t_retail_bids.id
-                                        user.rUserId,     // This is the actual user ID
+                                        user.retailBidId, // grab_t_retail_bids.id
+                                        retailUserId,     // correct r_user_id for this specific user
                                         "approve",
                                         record.bidId,
                                       );
@@ -767,15 +770,18 @@ export default function BidManagement() {
                                     danger
                                     size="small"
                                     onClick={() => {
+                                      // Extract the correct retail user ID from the specific user object
+                                      const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Rejecting retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
+                                        `Rejecting retail bid ID: ${user.retailBidId} for user: ${retailUserId} on bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
-                                      // user.retailBidId contains the grab_t_retail_bids.id
-                                      // user.rUserId contains the actual user ID
+                                      console.log("Using rUserId:", retailUserId);
+                                      
+                                      // Pass the correct rUserId for this specific retail user
                                       handleRetailUserAction(
-                                        user.retailBidId, // This is grab_t_retail_bids.id
-                                        user.rUserId,     // This is the actual user ID
+                                        user.retailBidId, // grab_t_retail_bids.id
+                                        retailUserId,     // correct r_user_id for this specific user
                                         "reject",
                                         record.bidId,
                                       );
@@ -784,6 +790,7 @@ export default function BidManagement() {
                                   >
                                     Reject
                                   </Button>
+</old_str>
                                 </>
                               )}
                             </div>
