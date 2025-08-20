@@ -3495,11 +3495,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         retailUsers = retailBidsWithUsers.map((item) => {
           const retailBid = item.retailBid;
           const user = item.user;
-          return {
-            id: retailBid.id, // Use the actual retail bid ID from grab_t_retail_bids table
+          const retailUserData = {
+            id: retailBid.rUserId, // Use the user ID as the primary ID for user identification
             userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
-            rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table
-            retailBidId: retailBid.id, // Add explicit retail bid ID field
+            rUserId: retailBid.id, // The grab_t_retail_bids.id (this is what should be passed to approval endpoint)
+            retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
@@ -3510,6 +3510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: retailBid.createdAt,
             updatedAt: retailBid.updatedAt,
           };
+          return retailUserData;
         });
       } else {
         // Check if retail users exist in bid notes (legacy data)
