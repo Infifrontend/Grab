@@ -746,15 +746,17 @@ export default function BidManagement() {
                                     size="small"
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() => {
+                                      // Get the actual retail user ID from the retail bid data
+                                      // Priority: rUserId (from retail bids table) > userId > id
+                                      const retailUserId =
+                                        user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Approving retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
+                                        `Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
-                                      // user.retailBidId contains the grab_t_retail_bids.id
-                                      // user.rUserId contains the actual user ID
                                       handleRetailUserAction(
-                                        user.retailBidId, // This is grab_t_retail_bids.id
-                                        user.rUserId,     // This is the actual user ID
+                                        user.retailBidId,
+                                        user.rUserId,
                                         "approve",
                                         record.bidId,
                                       );
@@ -767,15 +769,17 @@ export default function BidManagement() {
                                     danger
                                     size="small"
                                     onClick={() => {
+                                      // Get the actual retail user ID from the retail bid data
+                                      // Priority: rUserId (from retail bids table) > userId > id
+                                      const retailUserId =
+                                        user.rUserId || user.userId || user.id;
                                       console.log(
-                                        `Rejecting retail bid ID: ${user.retailBidId} for user: ${user.rUserId} on bid: ${record.bidId}`,
+                                        `Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
-                                      // user.retailBidId contains the grab_t_retail_bids.id
-                                      // user.rUserId contains the actual user ID
                                       handleRetailUserAction(
-                                        user.retailBidId, // This is grab_t_retail_bids.id
-                                        user.rUserId,     // This is the actual user ID
+                                        user.retailBidId,
+                                        user.rUserId,
                                         "reject",
                                         record.bidId,
                                       );
@@ -1060,17 +1064,13 @@ export default function BidManagement() {
       console.log(`📥 Raw API response for bid ${bidId}:`, result);
 
       if (result.success && result.data) {
-        // Use the data from the API response directly
         const apiData = result.data;
         const retailUsers = apiData.retailUsers || [];
 
-        // Log the grab_t_retail_bids unique IDs immediately after fetching
-        if (retailUsers && retailUsers.length > 0) {
-          const retailBidUniqueIds = retailUsers.map((user) => {
-            // Get the actual ID from grab_t_retail_bids table
-            return user.retailBidId || user.rUserId || user.userId || user.id;
-          });
-
+        if (retailUsers.length > 0) {
+          const retailBidUniqueIds = retailUsers.map(
+            (user) => user.retailBidId || user.id,
+          );
           console.log(
             `🎯 grab_t_retail_bids unique IDs for parent bid ${bidId}:`,
             retailBidUniqueIds,
@@ -1079,12 +1079,10 @@ export default function BidManagement() {
             `📊 Total grab_t_retail_bids records found: ${retailBidUniqueIds.length}`,
           );
 
-          // Log individual retail bid details
           retailUsers.forEach((user, index) => {
-            const uniqueId =
-              user.retailBidId || user.rUserId || user.userId || user.id;
+            const uniqueId = user.retailBidId || user.id;
             console.log(
-              `   └─ Retail Bid #${index + 1}: ID=${uniqueId}, Amount=${user.bidAmount || user.submittedAmount}, User=${user.name || user.rUserId}`,
+              `   └─ Retail Bid #${index + 1}: ID=${uniqueId}, Amount=${user.bidAmount}, User=${user.name}`,
             );
           });
         } else {
@@ -1098,19 +1096,13 @@ export default function BidManagement() {
           baseBidAmount: apiData.baseBidAmount || 0,
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
           retailUsers: retailUsers.map((user, index) => {
-            // Ensure we get the correct retail user ID from the API response
-            const retailUserId =
-              user.retailBidId ||
-              user.rUserId ||
-              user.userId ||
-              user.id ||
-              index + 1;
+            const retailUserId = user.retailBidId || user.id || index + 1;
 
             return {
-              id: retailUserId, // Use retail user ID as the primary identifier
-              userId: retailUserId, // Store as userId for consistency
-              rUserId: retailUserId, // Store as rUserId for retail operations
-              retailBidId: user.retailBidId || retailUserId, // Store the actual grab_t_retail_bids.id
+              id: retailUserId,
+              userId: user.userId || retailUserId, // only fallback if missing
+              rUserId: user.rUserId, // ✅ keep original rUserId from API, don’t overwrite
+              retailBidId: user.retailBidId || retailUserId,
               name: user.name || `User ${retailUserId}`,
               email: user.email || `user${retailUserId}@email.com`,
               bookingRef: user.bookingRef || `GR00${1230 + retailUserId}`,
@@ -1120,7 +1112,7 @@ export default function BidManagement() {
               bidAmount:
                 parseFloat(user.bidAmount || user.submittedAmount) || 0,
               passengerCount: user.passengerCount || user.seatBooked || 1,
-              status: "pending_approval", // Default status
+              status: user.status || "pending_approval",
               differenceFromBase: user.differenceFromBase || 0,
               isHighestBidder: user.isHighestBidder || false,
               createdAt: user.createdAt,
@@ -1143,7 +1135,7 @@ export default function BidManagement() {
           `❌ Failed to fetch retail users for bid ${bidId}:`,
           result.message || "No data received",
         );
-        // Still set empty data to prevent infinite loading
+
         setRetailUsersData((prev) => ({
           ...prev,
           [bidId]: {
@@ -1158,7 +1150,7 @@ export default function BidManagement() {
     } catch (error) {
       console.error(`💥 Error fetching retail users for bid ${bidId}:`, error);
       message.error("Failed to fetch retail users data");
-      // Set empty data to prevent infinite loading
+
       setRetailUsersData((prev) => ({
         ...prev,
         [bidId]: {
@@ -1358,7 +1350,7 @@ export default function BidManagement() {
     setLoading(true);
     try {
       // Convert "approve"/"reject" -> numeric status codes
-      const actionCode = action === "approve" ? 9 : 7;
+      const actionCode = action === "approve" ? "AP" : "R";
 
       const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
 
@@ -1369,7 +1361,7 @@ export default function BidManagement() {
           r_bidId: retailBidId,
           p_bidId: numericBidId,
           r_userId: userId, // This is the correct mapping from the original code snippet
-          action: actionCode,
+          r_status: actionCode,
         },
       );
 

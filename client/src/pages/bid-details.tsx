@@ -114,8 +114,12 @@ export default function BidDetails() {
       console.log("No valid bid data to transform");
       return null;
     }
+    const bid = { ...bidData.bid };
 
-    const bid = bidData.bid;
+    if (bidStatus?.success && bidStatus.bidStatus) {
+      bid.bidStatus = bidStatus.bidStatus;
+    }
+    
     let configData = {};
 
     try {
@@ -400,11 +404,11 @@ export default function BidDetails() {
     );
     navigate(`/payment-details/${bidId}`);
   };
-
-  const currentStatus = getStatusDisplay(
-    transformedBidData.status,
-    transformedBidData.seatAvailability,
-  );
+  console.log(transformedBidData, "transformedBidData");
+  // const currentStatus = getStatusDisplay(
+  //   transformedBidData.status,
+  //   transformedBidData.seatAvailability,
+  // );
   const isBidClosed = transformedBidData.seatAvailability?.isClosed || false;
   const hasUserPaid = transformedBidData.seatAvailability?.hasUserPaid || false;
 
@@ -435,7 +439,7 @@ export default function BidDetails() {
                   <strong>Bid ID:</strong> {transformedBidData.id}
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  {currentStatus}
+                  {transformedBidData.status}
                 </span>
                 <span className="text-gray-600">
                   <strong>Time left:</strong> {transformedBidData.timeLeft}
@@ -862,7 +866,7 @@ export default function BidDetails() {
                     Bid Status
                   </Text>
                   <Input
-                    value={currentStatus}
+                    value={transformedBidData.status}
                     placeholder="Status"
                     size="large"
                     className="rounded-md"
@@ -958,18 +962,20 @@ export default function BidDetails() {
             Cancel
           </Button>
 
-          {!isBidClosed && !hasUserPaid && currentStatus === "Open" && (
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleContinueToPayment}
-              className="bg-blue-600 hover:bg-blue-700 font-semibold"
-            >
-              Continue to Payment
-            </Button>
-          )}
+          {!isBidClosed &&
+            !hasUserPaid &&
+            transformedBidData.status === "Open" && (
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleContinueToPayment}
+                className="bg-blue-600 hover:bg-blue-700 font-semibold"
+              >
+                Continue to Payment
+              </Button>
+            )}
 
-          {hasUserPaid && currentStatus === "Under Review" && (
+          {hasUserPaid && transformedBidData.status === "Under Review" && (
             <Button
               type="default"
               size="large"
@@ -993,7 +999,7 @@ export default function BidDetails() {
           )}
 
           {/* This case might need refinement based on exact 'completed' status meaning */}
-          {currentStatus === "Completed" && (
+          {transformedBidData.status === "Completed" && (
             <div className="flex justify-end">
               <Button
                 size="large"

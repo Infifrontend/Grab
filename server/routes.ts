@@ -1113,38 +1113,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update bid status (accept/reject)
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
-      const { r_bidId, r_userId, p_bid_id, action, adminNotes, counterOffer, rejectionReason } = req.body;
+      const { r_userId, r_bidId, p_bidId, r_status } = req.body;
 
       console.log("Received request body:", req.body);
 
-      if (!r_bidId || !r_userId || !p_bid_id || !action) {
+      if (!r_bidId || !r_userId || !p_bidId || !r_status) {
         return res.status(400).json({
           success: false,
-          message: "Missing r_bidId, r_userId, p_bid_id or action"
+          message: "Missing r_bidId, r_userId, p_bidId or Status",
         });
       }
 
       // Map action to status ID using bidding storage
       let statusId;
-      if (action === 9) { // Approve
+      if (r_status === "AP") {
+        // Approve
         statusId = await biddingStorage.getStatusIdByCode("AP"); // Approved
-      } else if (action === 7) { // Reject
+      } else if (r_status === "R") {
+        // Reject
         statusId = await biddingStorage.getStatusIdByCode("R"); // Rejected
       } else {
         return res.status(400).json({
           success: false,
-          message: "Invalid action. Must be 7 (rejected) or 9 (approved)."
+          message: "Invalid action. Must be 7 (rejected) or 9 (approved).",
         });
       }
 
       if (!statusId) {
         return res.status(500).json({
           success: false,
-          message: "Required status not found in database"
+          message: "Required status not found in database",
         });
       }
 
-      console.log(`Updating retail bid ID=${r_bidId} (grab_t_retail_bids.id) for user=${r_userId} on parent bid=${p_bid_id} with statusId=${statusId}`);
+      console.log(
+        `Updating retail bid ID=${r_bidId} (grab_t_retail_bids.id) for user=${r_userId} on parent bid=${p_bidId} with statusId=${statusId}`,
+      );
 
       // Update retail bid status using r_bidId as the grab_t_retail_bids.id
       await db.execute(sql`
@@ -1154,18 +1158,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `);
 
       // If approving, update parent bid to approved and reject other retail bids
-      if (action === 9) {
+      if (statusId === 9) {
         // Update parent bid to approved
-        await storage.updateParentBid(p_bid_id, { rStatus: statusId });
+        await storage.updateParentBid(p_bidId, { rStatus: statusId });
 
         // Get all retail bids for this parent bid
-        const allRetailBids = await storage.getRetailBidsByBid(p_bid_id);
+        const allRetailBids = await storage.getRetailBidsByBid(p_bidId);
         const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
 
         if (rejectedStatusId) {
           // Reject all other retail bids for this parent bid except the one being approved
           for (const retailBid of allRetailBids) {
-            if (retailBid.id !== parseInt(r_bidId)) { // Compare with retail bid ID
+            if (retailBid.id !== parseInt(r_bidId)) {
+              // Compare with retail bid ID
               await db.execute(sql`
                 UPDATE grab_t_retail_bids
                 SET r_status = ${rejectedStatusId}, updated_at = now()
@@ -1176,18 +1181,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const actionText = action === 9 ? "approved" : "rejected";
+      const actionText = statusId === 9 ? "approved" : "rejected";
       res.json({
         success: true,
-        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`
+        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bidId} ${actionText} successfully`,
       });
-
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to update bid status",
-        error: error.message
+        error: error.message,
       });
     }
   });
