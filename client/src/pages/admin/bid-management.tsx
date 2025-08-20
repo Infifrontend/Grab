@@ -734,11 +734,13 @@ export default function BidManagement() {
                                     size="small"
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() => {
-                                      // Get the actual user ID from the retail bid data
-                                      const actualUserId = user.rUserId || user.userId || user.id;
-                                      console.log(`Approving user with ID: ${actualUserId} for bid: ${record.bidId}`);
+                                      // Get the actual retail user ID from the retail bid data
+                                      // Priority: rUserId (from retail bids table) > userId > id
+                                      const retailUserId = user.rUserId || user.userId || user.id;
+                                      console.log(`Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
+                                      console.log('User object:', user);
                                       handleRetailUserAction(
-                                        actualUserId,
+                                        retailUserId,
                                         "approve",
                                         record.bidId,
                                       );
@@ -751,11 +753,13 @@ export default function BidManagement() {
                                     danger
                                     size="small"
                                     onClick={() => {
-                                      // Get the actual user ID from the retail bid data
-                                      const actualUserId = user.rUserId || user.userId || user.id;
-                                      console.log(`Rejecting user with ID: ${actualUserId} for bid: ${record.bidId}`);
+                                      // Get the actual retail user ID from the retail bid data
+                                      // Priority: rUserId (from retail bids table) > userId > id
+                                      const retailUserId = user.rUserId || user.userId || user.id;
+                                      console.log(`Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
+                                      console.log('User object:', user);
                                       handleRetailUserAction(
-                                        actualUserId,
+                                        retailUserId,
                                         "reject",
                                         record.bidId,
                                       );
@@ -997,22 +1001,28 @@ export default function BidManagement() {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: apiData.baseBidAmount || 0,
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
-          retailUsers: retailUsers.map((user, index) => ({
-            id: user.userId || user.rUserId || (index + 1), // Use actual user ID from retail bid
-            userId: user.userId || user.rUserId, // Explicitly store user ID
-            rUserId: user.rUserId || user.userId, // Store retail user ID
-            name: user.name || `User ${user.userId || user.rUserId || (index + 1)}`,
-            email: user.email || `user${user.userId || user.rUserId || (index + 1)}@email.com`,
-            bookingRef: user.bookingRef || `GR00${1230 + (user.userId || user.rUserId || index)}`,
-            seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
-            bidAmount: parseFloat(user.bidAmount) || 0,
-            passengerCount: user.passengerCount || 1,
-            status: "pending_approval", // Default status
-            differenceFromBase: user.differenceFromBase || 0,
-            isHighestBidder: user.isHighestBidder || false,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-          })),
+          retailUsers: retailUsers.map((user, index) => {
+            // Ensure we get the correct retail user ID from the API response
+            const retailUserId = user.rUserId || user.userId || user.id || (index + 1);
+            console.log(`Mapping retail user: rUserId=${user.rUserId}, userId=${user.userId}, id=${user.id}, final=${retailUserId}`);
+            
+            return {
+              id: retailUserId, // Use retail user ID as the primary identifier
+              userId: retailUserId, // Store as userId for consistency
+              rUserId: retailUserId, // Store as rUserId for retail operations
+              name: user.name || `User ${retailUserId}`,
+              email: user.email || `user${retailUserId}@email.com`,
+              bookingRef: user.bookingRef || `GR00${1230 + retailUserId}`,
+              seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
+              bidAmount: parseFloat(user.bidAmount) || 0,
+              passengerCount: user.passengerCount || 1,
+              status: "pending_approval", // Default status
+              differenceFromBase: user.differenceFromBase || 0,
+              isHighestBidder: user.isHighestBidder || false,
+              createdAt: user.createdAt,
+              updatedAt: user.updatedAt,
+            };
+          }),
           highestBidAmount: apiData.highestBidAmount || 0,
         };
 

@@ -523,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let flightData = null;
       let comprehensiveData = null;
 
-      // Get all flight bookings first for comprehensive search
+      // Get all flight bookings for comprehensive search
       const allFlightBookings = await storage.getFlightBookings();
       console.log(
         `Total flight bookings available: ${allFlightBookings.length}`,
@@ -2690,12 +2690,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let newMainBidStatus = existingBid.bid.rStatus; // Keep current bid status by default
 
       if (action === "approve") {
-        // Update the user's retail bid status to approved
-        console.log(`Updating retail bid ${userRetailBid.id} status to approved (${approvedStatusId})`);
-        await biddingStorage.updateRetailBidStatus(
-          userRetailBid.id,
-          approvedStatusId,
-        );
+        // Update retail bid status to approved (status = 2)
+        await db.execute(sql`
+          UPDATE grab_t_retail_bids
+          SET r_status = 2, updated_at = now()
+          WHERE id = ${userRetailBid.id}
+        `);
+
+        // Also update any payment records for this user and bid
+        await db.execute(sql`
+          UPDATE grab_t_bid_payments
+          SET r_status = 3, updated_at = now()
+          WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
+        `);
 
         // Update main bid status to approved
         console.log(`Updating main bid ${bidId} status to approved (${approvedStatusId})`);
@@ -2717,16 +2724,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `Approved user ${userId} for bid ${bidId}, rejected all others, updated main bid status to approved`,
         );
       } else if (action === "reject") {
-        // Update the user's retail bid status to rejected
-        console.log(`Updating retail bid ${userRetailBid.id} status to rejected (${rejectedStatusId})`);
-        await biddingStorage.updateRetailBidStatus(
-          userRetailBid.id,
-          rejectedStatusId,
-        );
+        // Update retail bid status to rejected (status = 4)
+        await db.execute(sql`
+          UPDATE grab_t_retail_bids
+          SET r_status = 4, updated_at = now()
+          WHERE id = ${userRetailBid.id}
+        `);
+
+        // Update any payment records for this rejected user
+        await db.execute(sql`
+          UPDATE grab_t_bid_payments
+          SET r_status = 4, updated_at = now()
+          WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
+        `);
 
         // Check if there are any other approved retail bids
         const otherApprovedBids = retailBids.filter(
-          (rb) => rb.rUserId !== parseInt(userId) && rb.rStatus === approvedStatusId,
+          (rb) => rb.rUserId !== parseInt(userId as string) && rb.rStatus === approvedStatusId,
         );
 
         console.log(`Found ${otherApprovedBids.length} other approved retail bids`);
