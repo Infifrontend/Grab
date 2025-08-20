@@ -3930,7 +3930,7 @@ ORDER BY gtb.created_at DESC;
         
         // Get actual seat availability for this bid
         try {
-          const bidDetails = await biddingStorage.getBidWithDetails(row.bid_id, userId ? parseInt(userId as string) : undefined);
+          const bidDetails = biddingStorage.getBidWithDetails(row.bid_id, userId ? parseInt(userId as string) : undefined);
           if (bidDetails && bidDetails.availableSeats <= 0) {
             displayStatus = "Closed";
             statusClass = "status-closed";
