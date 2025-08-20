@@ -1371,27 +1371,10 @@ export default function BidManagement() {
   const handleRetailUserAction = async (userId, action, bidId) => {
     setLoading(true);
     try {
-      console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
-
-      // Extract numeric bid ID from bidId string (e.g., "BID001" -> 1)
-      let numericBidId;
-      if (typeof bidId === "string") {
-        let cleanId = bidId.replace(/^BID/i, "");
-        numericBidId = parseInt(cleanId, 10);
-      } else {
-        numericBidId = parseInt(bidId, 10);
-      }
-
-      console.log(`Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`);
-
-      // Validate that we have a valid numeric ID
-      if (isNaN(numericBidId) || numericBidId <= 0) {
-        message.error(`Invalid bid ID format: ${bidId}`);
-        return;
-      }
-
-      // Convert "approve"/"reject" to the correct action codes
+      // Convert "approve"/"reject" -> numeric status codes
       const actionCode = action === "approve" ? 9 : 7;
+
+      const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
 
       const response = await apiRequest("PUT", "/api/bids/retail-users/status", {
         r_bidId: numericBidId,
@@ -1399,55 +1382,16 @@ export default function BidManagement() {
         action: actionCode
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API response error:", errorText);
-        throw new Error(`Failed to update retail user status: ${errorText}`);
-      }
-
       const result = await response.json();
-      console.log("Action result:", result);
 
       if (result.success) {
-        if (action === "approve") {
-          message.success(
-            result.message ||
-              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
-          );
-        } else {
-          message.success(
-            result.message || "Retail user rejected successfully",
-          );
-        }
-
-        // Clear retail users data for this bid to force refetch
-        setRetailUsersData((prev) => {
-          const updated = { ...prev };
-          delete updated[numericBidId];
-          return updated;
-        });
-
-        // Refresh the data to update the UI with new bid status and retail user statuses
-        await Promise.all([
-          queryClient.invalidateQueries(["recent-bids"]),
-          queryClient.invalidateQueries(["bid-configurations"]),
-          refetchBids()
-        ]);
-
-        // Small delay to ensure data is updated, then force re-expand if expanded
-        setTimeout(() => {
-          // Force refresh retail users data by fetching again
-          fetchRetailUsers(numericBidId);
-        }, 500);
-
+        message.success(result.message);
+        await refetchBids();
       } else {
-        throw new Error(result.message || `Failed to ${action} retail user`);
+        throw new Error(result.message);
       }
     } catch (error) {
-      console.error(`Error ${action}ing retail user:`, error);
-      message.error(
-        error.message || `Failed to ${action} retail user. Please try again.`,
-      );
+      message.error(error.message || "Failed to update retail user status.");
     } finally {
       setLoading(false);
     }

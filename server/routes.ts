@@ -1110,12 +1110,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update retail bid status (accept/reject)
+  // Update bid status (accept/reject)
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
       const { r_bidId, r_userId, action, adminNotes, counterOffer, rejectionReason } = req.body;
 
-      console.log("Received retail bid status update request:", req.body);
+      console.log("Received request body:", req.body);
 
       if (!r_bidId || !r_userId || !action) {
         return res.status(400).json({
@@ -1124,12 +1124,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Map action to status ID
+      // Map action to status ID using bidding storage
       let statusId;
       if (action === 9) { // Approve
-        statusId = await storage.getStatusIdByCode("AP"); // Approved
+        statusId = await biddingStorage.getStatusIdByCode("AP"); // Approved
       } else if (action === 7) { // Reject
-        statusId = await storage.getStatusIdByCode("R"); // Rejected
+        statusId = await biddingStorage.getStatusIdByCode("R"); // Rejected
       } else {
         return res.status(400).json({
           success: false,
@@ -1158,7 +1158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get all retail bids for this parent bid
         const allRetailBids = await storage.getRetailBidsByBid(r_bidId);
-        const rejectedStatusId = await storage.getStatusIdByCode("R");
+        const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
 
         if (rejectedStatusId) {
           // Reject all other retail bids
@@ -3577,7 +3577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = {
         success: true,
         data: {
-          p_bidId: `BID${bidId.toString().padStart(3, "0")}`, // Parent bid ID
+          bidId: `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: baseBidAmount,
           totalRetailUsers: retailUsers.length,
           totalSeatsAvailable: totalSeatsAvailable,
@@ -3585,7 +3585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableSeats: totalSeatsAvailable - bookedSeats,
           highestBidAmount: highestBidAmount,
           retailUsers: retailUsers.map((user) => ({
-            r_bidId: user.id, // Retail bid ID from grab_t_retail_bids
+            id: user.id,
             rUserId: user.rUserId, // Include r_userId in the response
             name: user.name,
             email: user.email,
