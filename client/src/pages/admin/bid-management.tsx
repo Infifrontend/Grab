@@ -735,11 +735,10 @@ export default function BidManagement() {
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() => {
                                       // Get the actual retail user ID from the retail bid data
-                                      // Use the user ID that submitted the bid, not the admin ID
+                                      // Priority: rUserId (from retail bids table) > userId > id
                                       const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(`Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
                                       console.log('User object:', user);
-                                      console.log('Available users from API:', retailData?.retailUsers?.map(u => u.rUserId || u.userId || u.id));
                                       handleRetailUserAction(
                                         retailUserId,
                                         "approve",
@@ -755,11 +754,10 @@ export default function BidManagement() {
                                     size="small"
                                     onClick={() => {
                                       // Get the actual retail user ID from the retail bid data
-                                      // Use the user ID that submitted the bid, not the admin ID
+                                      // Priority: rUserId (from retail bids table) > userId > id
                                       const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(`Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
                                       console.log('User object:', user);
-                                      console.log('Available users from API:', retailData?.retailUsers?.map(u => u.rUserId || u.userId || u.id));
                                       handleRetailUserAction(
                                         retailUserId,
                                         "reject",
@@ -773,7 +771,6 @@ export default function BidManagement() {
                                 </>
                               )}
                             </div>
-                          </div></old_str>
                           </div>
                         ))
                       )}
@@ -1006,14 +1003,8 @@ export default function BidManagement() {
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
           retailUsers: retailUsers.map((user, index) => {
             // Ensure we get the correct retail user ID from the API response
-            // The API should provide the actual user ID who submitted the bid
-            const retailUserId = user.rUserId || user.userId || user.id;
+            const retailUserId = user.rUserId || user.userId || user.id || (index + 1);
             console.log(`Mapping retail user: rUserId=${user.rUserId}, userId=${user.userId}, id=${user.id}, final=${retailUserId}`);
-            
-            // Validate that we have a valid user ID
-            if (!retailUserId || retailUserId === 1) {
-              console.warn(`Invalid or admin user ID detected for retail user:`, user);
-            }
             
             return {
               id: retailUserId, // Use retail user ID as the primary identifier
@@ -1021,7 +1012,7 @@ export default function BidManagement() {
               rUserId: retailUserId, // Store as rUserId for retail operations
               name: user.name || `User ${retailUserId}`,
               email: user.email || `user${retailUserId}@email.com`,
-              bookingRef: user.bookingRef || `GR00${1230 + (retailUserId || index)}`,
+              bookingRef: user.bookingRef || `GR00${1230 + retailUserId}`,
               seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
               bidAmount: parseFloat(user.bidAmount) || 0,
               passengerCount: user.passengerCount || 1,
@@ -1033,7 +1024,7 @@ export default function BidManagement() {
             };
           }),
           highestBidAmount: apiData.highestBidAmount || 0,
-        };</old_str>
+        };
 
         console.log(`Transformed data for bid ${bidId}:`, transformedData);
 

@@ -2631,14 +2631,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all retail bids for this bid
       const retailBids = await biddingStorage.getRetailBidsByBid(numericBidId);
       console.log(`Found ${retailBids.length} retail bids for bid ${numericBidId}`);
-      console.log('Retail bids details:', retailBids.map(rb => ({
-        id: rb.id,
-        rUserId: rb.rUserId,
-        rBidId: rb.rBidId,
-        submittedAmount: rb.submittedAmount,
-        seatBooked: rb.seatBooked,
-        rStatus: rb.rStatus
-      })));
 
       // Find the retail bid for this specific user
       const userRetailBid = retailBids.find(
@@ -2646,32 +2638,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (!userRetailBid) {
-        console.log(`User ${numericUserId} not found in retail bids`);
         console.log(`Available retail users for bid ${numericBidId}:`, retailBids.map(rb => ({ id: rb.id, rUserId: rb.rUserId })));
-        
-        // Check if the user exists in the main users table
-        const userExists = await biddingStorage.getGrabUserById(numericUserId);
-        console.log(`User ${numericUserId} exists in users table:`, !!userExists);
-        
         return res.status(404).json({
           success: false,
-          message: `User ${numericUserId} has not submitted a bid for bid ${numericBidId}. Available users: ${retailBids.map(rb => rb.rUserId).join(', ')}`,
+          message: `User ${numericUserId} has not submitted a bid for bid ${numericBidId}`,
           availableUsers: retailBids.map(rb => rb.rUserId),
           debug: {
             searchedUserId: numericUserId,
-            userExistsInSystem: !!userExists,
-            totalRetailBids: retailBids.length,
             availableRetailBids: retailBids.map(rb => ({
               id: rb.id,
               userId: rb.rUserId,
               bidId: rb.rBidId,
-              status: rb.rStatus,
-              submittedAmount: rb.submittedAmount,
-              seatBooked: rb.seatBooked
+              status: rb.rStatus
             }))
           }
         });
-      }</old_str>
+      }
 
       // Parse existing notes to get retail users data and seat availability
       let existingNotes = {};
@@ -3668,27 +3650,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         retailUsers = retailBidsWithUsers.map((item) => {
           const retailBid = item.retailBid;
           const user = item.user;
-          
-          // Use rUserId (from grab_t_retail_bids) as the primary user identifier
-          const actualUserId = retailBid.rUserId || retailBid.userId;
-          
-          console.log(`Processing retail bid for bid ${bidId}: retailBid.rUserId=${retailBid.rUserId}, retailBid.userId=${retailBid.userId}, using=${actualUserId}`);
-          
           return {
-            id: actualUserId,
-            userId: actualUserId, // The actual user ID from grab_t_retail_bids (r_user_id column)
-            rUserId: actualUserId, // Same as userId for retail operations
-            name: user?.name || `User ${actualUserId}`,
-            email: user?.email || `user${actualUserId}@email.com`,
-            bookingRef: `GR00${1230 + actualUserId}`,
-            seatNumber: `1${2 + (actualUserId % 10)}${String.fromCharCode(65 + (actualUserId % 26))}`,
+            id: retailBid.userId,
+            userId: retailBid.userId, // The actual user ID from grab_t_retail_bids
+            rUserId: retailBid.userId, // Same as userId for retail operations
+            name: user?.name || `User ${retailBid.userId}`,
+            email: user?.email || `user${retailBid.userId}@email.com`,
+            bookingRef: `GR00${1230 + retailBid.userId}`,
+            seatNumber: `1${2 + retailBid.userId}${String.fromCharCode(65 + (retailBid.userId % 26))}`,
             bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked || retailBid.passengerCount || 1,
+            passengerCount: retailBid.passengerCount,
             status: retailBid.status,
             createdAt: retailBid.createdAt,
             updatedAt: retailBid.updatedAt,
           };
-        });</old_str>
+        });
       } else {
         // Check if retail users exist in bid notes (legacy data)
         try {
