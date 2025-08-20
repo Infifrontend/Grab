@@ -118,7 +118,6 @@ export default function ActiveBidsSection() {
           return { status: "Open", color: "orange" };
       }
     }
-    console.log(bid.retailBids, "bid.retailBids");
     // Second priority: Check if there are retail bids with payments to determine user-specific status
     if (bid.retailBids && bid.retailBids.length > 0) {
       const currentUser = localStorage.getItem("userId");
