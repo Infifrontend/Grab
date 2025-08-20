@@ -3494,6 +3494,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      // Log the grab_t_retail_bids unique IDs being returned from server
+      const retailBidIds = retailUsers.map(user => user.id);
+      console.log(`🎯 Server: Returning grab_t_retail_bids unique IDs for parent bid ${bidId}:`, retailBidIds);
+      console.log(`📊 Server: Total retail bids count: ${retailBidIds.length}`);
+
       // Log the grab_t_retail_bids unique IDs being returned
       const retailBidIds = retailUsers.map(user => user.retailBidId);
       console.log(`🎯 Server: Returning grab_t_retail_bids unique IDs for parent bid ${bidId}:`, retailBidIds);
