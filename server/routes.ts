@@ -1186,10 +1186,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
         const totalSeatsAvailable = bidDetails.totalSeatsAvailable || 50;
 
-        // Calculate current approved seats (excluding the current bid being processed)
+        // Calculate current approved seats (only counting already approved bids)
         let currentApprovedSeats = 0;
         for (const rb of allRetailBids) {
-          // Only count seats from OTHER approved retail bids (not the current one)
+          // Only count seats from approved retail bids (not including the current one being processed)
           if (rb.id !== parseInt(r_bidId) && rb.rStatus === approvedStatusId) {
             currentApprovedSeats += rb.seatBooked || 0;
           }
@@ -1217,7 +1217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Calculate remaining seats after approval
+        // Calculate remaining seats after approval (only counting approved seats)
         const seatsRemainingAfterApproval = totalSeatsAvailable - newApprovedSeats;
 
         // Auto-reject pending bids that cannot fit in remaining capacity
@@ -1227,7 +1227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let rejectedCount = 0;
         if (rejectedStatusId && underReviewStatusId) {
           for (const otherRetailBid of allRetailBids) {
-            // Only reject OTHER pending bids that cannot fit in remaining space
+            // Only reject OTHER pending bids that cannot fit in remaining space after this approval
             if (otherRetailBid.id !== parseInt(r_bidId) && 
                 otherRetailBid.rStatus === underReviewStatusId &&
                 (otherRetailBid.seatBooked || 0) > seatsRemainingAfterApproval) {
@@ -1239,7 +1239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if all seats are now taken and close the bid if needed
         if (seatsRemainingAfterApproval === 0) {
-          console.log(`All seats taken for bid ${retailBid.rBidId}. Closing bid...`);
+          console.log(`All approved seats taken for bid ${retailBid.rBidId}. Closing bid...`);
           const closedStatusId = await biddingStorage.getStatusIdByCode("CL") || await biddingStorage.getStatusIdByCode("C");
           
           if (closedStatusId) {
@@ -3218,9 +3218,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parseInt(bidId),
       );
 
-      // Calculate available seats = total_seats_available minus sum of seat_booked from retail_bids with status 'under_review' or 'paid'
+      // Calculate available seats = total_seats_available minus sum of seat_booked from approved retail_bids only
+      const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
       const bookedSeats = existingRetailBids
-        .filter((rb) => rb.status === "under_review" || rb.status === "paid")
+        .filter((rb) => rb.rStatus === approvedStatusId)
         .reduce((total, rb) => total + (rb.seatBooked || 0), 0);
 
       const availableSeats = totalSeatsAvailable - bookedSeats;

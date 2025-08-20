@@ -167,7 +167,7 @@ export class BiddingStorage {
 
         // Get "Closed" status ID
         const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
-        
+
         if (!closedStatusId) {
           // Create "Closed" status if it doesn't exist
           const closedStatus = await this.createStatus({
@@ -188,19 +188,19 @@ export class BiddingStorage {
     }
   }
 
-  // Check and update all bids that are fully booked
+  // Check and close all bids that are fully booked
   async checkAndCloseFullyBookedBids(): Promise<void> {
     try {
       console.log("Checking all bids for full capacity and closing if needed...");
-      
+
       const allBids = await this.getAllBids();
       let closedCount = 0;
-      
+
       for (const bid of allBids) {
         const bidDetails = await this.getBidWithDetails(bid.id);
         if (bidDetails && bidDetails.availableSeats <= 0) {
           const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
-          
+
           if (closedStatusId && bid.rStatus !== closedStatusId) {
             await this.updateBidStatus(bid.id, closedStatusId);
             closedCount++;
@@ -208,7 +208,7 @@ export class BiddingStorage {
           }
         }
       }
-      
+
       console.log(`Closed ${closedCount} fully booked bids`);
     } catch (error) {
       console.error("Error checking and closing fully booked bids:", error);
@@ -285,7 +285,7 @@ export class BiddingStorage {
 
       // Get the retail bid details first to know which main bid it belongs to
       const retailBid = await this.getRetailBidById(retailBidId);
-      
+
       const result = await db
         .update(grabTRetailBids)
         .set({
@@ -596,14 +596,14 @@ export class BiddingStorage {
         (configData as any).totalSeatsAvailable ||
         100;
 
-      // Get status IDs for Under Review and Approved
-      const underReviewStatusId = await this.getStatusIdByCode("UR");
+      // Only count approved bids towards booked seats
       const approvedStatusId = await this.getStatusIdByCode("AP");
 
       const bookedSeats = retailBids.reduce((total, rb) => {
         if (!rb) return total;
         const status = rb.rStatus;
-        if (status === underReviewStatusId || status === approvedStatusId) {
+        // Only count seats from approved bids, not under review
+        if (status === approvedStatusId) {
           return total + (rb.seatBooked || 0);
         }
         return total;
@@ -681,7 +681,7 @@ export class BiddingStorage {
 
         const openStatusId = await this.getStatusIdByCode("O");
         const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
-        
+
         if (bid.rStatus === closedStatusId) {
           displayStatus = "Closed";
           statusForUser = "closed";
