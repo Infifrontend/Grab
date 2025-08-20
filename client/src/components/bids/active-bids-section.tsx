@@ -118,28 +118,20 @@ export default function ActiveBidsSection() {
           return { status: "Open", color: "orange" };
       }
     }
-    console.log(bid.retailBids, "bid.retailBids");
+
     // Second priority: Check if there are retail bids with payments to determine user-specific status
     if (bid.retailBids && bid.retailBids.length > 0) {
       const currentUser = localStorage.getItem("userId");
-      const userBid = bid.retailBids.find(
-        (rb) => String(rb.rUserId) === currentUser,
-      );
-      console.log(userBid, "userBid");
+      const userBid = bid.retailBids.find(rb => String(rb.rUserId) === currentUser);
+
       if (userBid) {
         switch (userBid.rStatus) {
-          case 1:
-            return { status: "Submitted", color: "blue" };
-          case 2:
-            return { status: "Under Review", color: "blue" };
-          case 3:
-            return { status: "Accepted", color: "green" };
-          case 4:
-            return { status: "Completed", color: "green" };
-          case 5:
-            return { status: "Rejected", color: "red" };
-          default:
-            return { status: "Open", color: "orange" };
+          case 1: return { status: "Submitted", color: "blue" };
+          case 2: return { status: "Under Review", color: "blue" };
+          case 3: return { status: "Accepted", color: "green" };
+          case 4: return { status: "Completed", color: "green" };
+          case 5: return { status: "Rejected", color: "red" };
+          default: return { status: "Open", color: "orange" };
         }
       }
     }
@@ -239,13 +231,10 @@ export default function ActiveBidsSection() {
           const timeLeft = calculateTimeLeft(bid.validUntil || bid.valid_until);
           const bidTitle = getBidTitle(bid);
           const statusInfo = getBidStatusInfo(bid);
-          const createdDate = new Date(
-            bid.createdAt || bid.created_at,
-          ).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          });
+          const createdDate = new Date(bid.createdAt || bid.created_at).toLocaleDateString(
+            "en-GB",
+            { day: "2-digit", month: "short", year: "numeric" },
+          );
 
           return (
             <div
@@ -269,9 +258,7 @@ export default function ActiveBidsSection() {
                       <span>
                         {(() => {
                           try {
-                            const configData = bid.notes
-                              ? JSON.parse(bid.notes)
-                              : {};
+                            const configData = bid.notes ? JSON.parse(bid.notes) : {};
                             const origin =
                               configData.origin ||
                               bid.flight?.origin ||
