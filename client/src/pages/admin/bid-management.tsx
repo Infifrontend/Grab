@@ -1359,7 +1359,6 @@ export default function BidManagement() {
   };
 
   const handleRetailUserAction = async (retailBidId, userId, action, bidId) => {
-    console.log(retailBidId, "rrrrrrr");
     setLoading(true);
     try {
       // Convert "approve"/"reject" -> numeric status codes
@@ -1791,16 +1790,6 @@ export default function BidManagement() {
                         </Text>
                         <Text className="font-medium">
                           {configData.cancellationTerms || "N/A"}
-                        </Text>
-                      </div>
-                    </Col>
-                    <Col span={12}>
-                      <div>
-                        <Text className="text-gray-500 block mb-1">
-                          Meal Included:
-                        </Text>
-                        <Text className="font-medium">
-                          {configData.mealIncluded ? "Yes" : "No"}
                         </Text>
                       </div>
                     </Col>
