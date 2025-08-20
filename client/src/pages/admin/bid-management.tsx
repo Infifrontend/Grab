@@ -1021,6 +1021,25 @@ export default function BidManagement() {
         const apiData = result.data;
         const retailUsers = apiData.retailUsers || [];
 
+        // Log the grab_t_retail_bids unique IDs immediately after fetching
+        if (retailUsers && retailUsers.length > 0) {
+          const retailBidUniqueIds = retailUsers.map(user => {
+            // Get the actual ID from grab_t_retail_bids table
+            return user.retailBidId || user.rUserId || user.userId || user.id;
+          });
+
+          console.log(`🎯 grab_t_retail_bids unique IDs for parent bid ${bidId}:`, retailBidUniqueIds);
+          console.log(`📊 Total grab_t_retail_bids records found: ${retailBidUniqueIds.length}`);
+
+          // Log individual retail bid details
+          retailUsers.forEach((user, index) => {
+            const uniqueId = user.retailBidId || user.rUserId || user.userId || user.id;
+            console.log(`   └─ Retail Bid #${index + 1}: ID=${uniqueId}, Amount=${user.bidAmount || user.submittedAmount}, User=${user.name || user.rUserId}`);
+          });
+        } else {
+          console.log(`⚠️ No grab_t_retail_bids records found for parent bid ${bidId}`);
+        }
+
         const transformedData = {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: apiData.baseBidAmount || 0,
@@ -1049,24 +1068,6 @@ export default function BidManagement() {
           }),
           highestBidAmount: apiData.highestBidAmount || 0,
         };
-
-        // Log the grab_t_retail_bids unique IDs being returned
-        if (transformedData.retailUsers && transformedData.retailUsers.length > 0) {
-          const retailBidIds = transformedData.retailUsers.map(user => user.id || user.retailBidId || user.rUserId);
-          console.log(`✅ grab_t_retail_bids unique IDs for bid ${bidId}:`, retailBidIds);
-          console.log(`✅ Total retail bids fetched: ${retailBidIds.length}`);
-
-          // Log individual details for debugging
-          transformedData.retailUsers.forEach((user, index) => {
-            console.log(`   └─ Retail Bid #${index + 1}:`, {
-              id: user.id,
-              retailBidId: user.retailBidId,
-              rUserId: user.rUserId,
-              userId: user.userId,
-              name: user.name
-            });
-          });
-        }
 
         console.log(`✅ Successfully processed retail bids data for bid ${bidId}`);
 
