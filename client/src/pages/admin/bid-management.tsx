@@ -772,7 +772,8 @@ export default function BidManagement() {
                                   </Button>
                                 </>
                               )}
-                            </div></old_str>
+                            </div>
+                          </div></old_str>
                           </div>
                         ))
                       )}
