@@ -1144,9 +1144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`Updating retail bid ID=${r_bidId} for user=${r_userId} on parent bid=${p_bid_id} with statusId=${statusId}`);
+      console.log(`Updating retail bid ID=${r_bidId} (grab_t_retail_bids.id) for user=${r_userId} on parent bid=${p_bid_id} with statusId=${statusId}`);
 
-      // Update retail bid status using the correct retail bid ID
+      // Update retail bid status using r_bidId as the grab_t_retail_bids.id
       await db.execute(sql`
         UPDATE grab_t_retail_bids 
         SET r_status = ${statusId}, updated_at = now() 
@@ -1163,9 +1163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
 
         if (rejectedStatusId) {
-          // Reject all other retail bids for this parent bid
+          // Reject all other retail bids for this parent bid except the one being approved
           for (const retailBid of allRetailBids) {
-            if (retailBid.id !== r_bidId) { // Use retail bid ID instead of user ID
+            if (retailBid.id !== parseInt(r_bidId)) { // Compare with retail bid ID
               await db.execute(sql`
                 UPDATE grab_t_retail_bids 
                 SET r_status = ${rejectedStatusId}, updated_at = now() 
@@ -1179,7 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const actionText = action === 9 ? "approved" : "rejected";
       res.json({
         success: true,
-        message: `Retail bid ${r_bidId} for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`
+        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`
       });
 
     } catch (error) {
