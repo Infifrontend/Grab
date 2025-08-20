@@ -161,7 +161,9 @@ export interface IStorage {
   getRetailBidsWithUsersByBid(bidId: number): Promise<any[]>;
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
-  getRetailBidById(retailBidId: number): Promise<any>; // Added this line
+  getRetailBidById(retailBidId: number): Promise<any>;
+  updateRetailBid(bidId: number, userId: number, updateData: any): Promise<void>;
+  updateParentBid(bidId: number, updateData: any): Promise<void>;
 }
 
 // DatabaseStorage is the only storage implementation now
@@ -1507,6 +1509,49 @@ export class DatabaseStorage implements IStorage {
       return retailBid || null;
     } catch (error) {
       console.error("Error getting retail bid by ID:", error);
+      throw error;
+    }
+  }
+
+  // Update retail bid status and details
+  async updateRetailBid(bidId: number, userId: number, updateData: any): Promise<void> {
+    try {
+      console.log(`Updating retail bid for bidId=${bidId}, userId=${userId}`, updateData);
+
+      await db
+        .update(grabTRetailBids)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(grabTRetailBids.rBidId, bidId),
+          eq(grabTRetailBids.rUserId, userId)
+        ));
+
+      console.log(`Successfully updated retail bid for bidId=${bidId}, userId=${userId}`);
+    } catch (error) {
+      console.error("Error updating retail bid:", error);
+      throw error;
+    }
+  }
+
+  // Update parent bid status
+  async updateParentBid(bidId: number, updateData: any): Promise<void> {
+    try {
+      console.log(`Updating parent bid ${bidId}`, updateData);
+
+      await db
+        .update(grabTBids)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
+        .where(eq(grabTBids.id, bidId));
+
+      console.log(`Successfully updated parent bid ${bidId}`);
+    } catch (error) {
+      console.error("Error updating parent bid:", error);
       throw error;
     }
   }
