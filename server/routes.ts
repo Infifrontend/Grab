@@ -2603,15 +2603,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
+      // Parse IDs to ensure they are numbers
+      const numericBidId = parseInt(bidId);
+      const numericUserId = parseInt(userId);
+
+      if (isNaN(numericBidId) || isNaN(numericUserId)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid bid ID or user ID format. Bid ID: ${bidId}, User ID: ${userId}`,
+        });
+      }
+
+      console.log(`Parsed IDs - Bid: ${numericBidId}, User: ${numericUserId} (retail user, not admin)`);
+
       // Import the bidding storage
       const { biddingStorage } = await import("./bidding-storage.js");
 
       // Get existing bid
-      const existingBid = await biddingStorage.getBidById(parseInt(bidId));
+      const existingBid = await biddingStorage.getBidById(numericBidId);
       if (!existingBid) {
         return res.status(404).json({
           success: false,
           message: "Bid not found",
+        });
+      }
+
+      // Get all retail bids for this bid
+      const retailBids = await biddingStorage.getRetailBidsByBid(numericBidId);
+      console.log(`Found ${retailBids.length} retail bids for bid ${numericBidId}`);
+
+      // Find the retail bid for this specific user
+      const userRetailBid = retailBids.find(
+        (rb) => rb.rUserId === numericUserId,
+      );
+
+      if (!userRetailBid) {
+        console.log(`Available retail users for bid ${numericBidId}:`, retailBids.map(rb => ({ id: rb.id, rUserId: rb.rUserId })));
+        return res.status(404).json({
+          success: false,
+          message: `User ${numericUserId} has not submitted a bid for bid ${numericBidId}`,
+          availableUsers: retailBids.map(rb => rb.rUserId),
+          debug: {
+            searchedUserId: numericUserId,
+            availableRetailBids: retailBids.map(rb => ({
+              id: rb.id,
+              userId: rb.rUserId,
+              bidId: rb.rBidId,
+              status: rb.rStatus
+            }))
+          }
         });
       }
 
@@ -2642,22 +2682,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({
           success: false,
           message: "Required statuses not found in database",
-        });
-      }
-
-      // Get all retail bids for this bid
-      const retailBids = await biddingStorage.getRetailBidsByBid(parseInt(bidId));
-      console.log(`Found ${retailBids.length} retail bids for bid ${bidId}`);
-
-      // Find the retail bid for this user
-      const userRetailBid = retailBids.find(
-        (rb) => rb.rUserId === parseInt(userId),
-      );
-
-      if (!userRetailBid) {
-        return res.status(404).json({
-          success: false,
-          message: "User retail bid not found",
         });
       }
 

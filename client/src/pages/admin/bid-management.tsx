@@ -735,7 +735,7 @@ export default function BidManagement() {
                                     className="bg-green-600 hover:bg-green-700"
                                     onClick={() =>
                                       handleRetailUserAction(
-                                        user.id,
+                                        user.userId || user.rUserId || user.id,
                                         "approve",
                                         record.bidId,
                                       )
@@ -749,7 +749,7 @@ export default function BidManagement() {
                                     size="small"
                                     onClick={() =>
                                       handleRetailUserAction(
-                                        user.id,
+                                        user.userId || user.rUserId || user.id,
                                         "reject",
                                         record.bidId,
                                       )
@@ -992,10 +992,12 @@ export default function BidManagement() {
           baseBidAmount: apiData.baseBidAmount || 0,
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
           retailUsers: retailUsers.map((user, index) => ({
-            id: index + 1, // Use index as ID since API doesn't provide ID
-            name: user.name || `User ${index + 1}`,
-            email: user.email || `user${index + 1}@email.com`,
-            bookingRef: user.bookingRef || `GR00${1230 + index}`,
+            id: user.userId || user.rUserId || (index + 1), // Use actual user ID from retail bid
+            userId: user.userId || user.rUserId, // Explicitly store user ID
+            rUserId: user.rUserId || user.userId, // Store retail user ID
+            name: user.name || `User ${user.userId || user.rUserId || (index + 1)}`,
+            email: user.email || `user${user.userId || user.rUserId || (index + 1)}@email.com`,
+            bookingRef: user.bookingRef || `GR00${1230 + (user.userId || user.rUserId || index)}`,
             seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
             bidAmount: parseFloat(user.bidAmount) || 0,
             passengerCount: user.passengerCount || 1,
