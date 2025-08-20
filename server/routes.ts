@@ -2596,10 +2596,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Approve or reject retail user for a bid
-  app.put("/api/bids/:bidId/retail-users/:userId/status", async (req, res) => {
+  app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
-      const { bidId, userId } = req.params;
-      const { action } = req.body; // 'approve' or 'reject'
+      const { bidId, userId, action } = req.body; // Get all values from payload
+
+      // Validate required fields
+      if (!bidId || !userId || !action) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: bidId, userId, and action are required in payload",
+        });
+      }
 
       console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
 
@@ -2611,6 +2618,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: `Invalid bid ID or user ID format. Bid ID: ${bidId}, User ID: ${userId}`,
+        });
+      }
+
+      // Validate action
+      if (!['approve', 'reject'].includes(action)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid action: ${action}. Must be 'approve' or 'reject'`,
         });
       }
 

@@ -1277,8 +1277,12 @@ export default function BidManagement() {
 
       const response = await apiRequest(
         "PUT",
-        `/api/bids/${numericBidId}/retail-users/${userId}/status`,
-        { action },
+        `/api/bids/retail-users/status`,
+        { 
+          bidId: numericBidId,
+          userId: parseInt(userId),
+          action 
+        },
       );
 
       if (!response.ok) {
