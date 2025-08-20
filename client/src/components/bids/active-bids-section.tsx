@@ -63,9 +63,7 @@ export default function ActiveBidsSection() {
           console.log("Fetched bids:", bids);
 
           // Since the server now filters for r_status = 4, all returned bids are active/open
-          return Array.isArray(bids.bids)
-            ? bids.bids.filter((b) => b.display_status === "Open").slice(0, 5)
-            : [];
+          return Array.isArray(bids.bids) ? bids.bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
         } catch (error) {
           console.error("Error fetching bids:", error);
           throw error;
@@ -316,7 +314,7 @@ export default function ActiveBidsSection() {
                     <span className="text-sm">Bid Amount</span>
                   </div>
                   <div className="font-bold text-lg text-green-600">
-                    ${bid.bid_amoun}
+                    ${bid.bidAmount}
                   </div>
                   <div className="text-xs text-gray-500">Min: $750</div>
                 </div>

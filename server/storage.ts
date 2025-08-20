@@ -1459,22 +1459,8 @@ export class DatabaseStorage implements IStorage {
 
       const retailBidsWithUsers = await db
         .select({
-          id: grabTRetailBids.id, // This is the grab_t_retail_bids unique ID
-          rBidId: grabTRetailBids.rBidId,
-          rUserId: grabTRetailBids.rUserId,
-          submittedAmount: grabTRetailBids.submittedAmount,
-          seatBooked: grabTRetailBids.seatBooked,
-          rStatus: grabTRetailBids.rStatus,
-          createdAt: grabTRetailBids.createdAt,
-          updatedAt: grabTRetailBids.updatedAt,
-          user_name: grabTUsers.name,
-          email: grabTUsers.email,
-          retail_status_name: sql`CASE 
-            WHEN ${grabTRetailBids.rStatus} = 6 THEN 'Under Review'
-            WHEN ${grabTRetailBids.rStatus} = 2 THEN 'Approved' 
-            WHEN ${grabTRetailBids.rStatus} = 7 THEN 'Rejected'
-            ELSE 'Pending'
-          END`.as('retail_status_name')
+          retailBid: grabTRetailBids,
+          user: grabTUsers
         })
         .from(grabTRetailBids)
         .leftJoin(grabTUsers, eq(grabTRetailBids.rUserId, grabTUsers.id))
@@ -1482,11 +1468,6 @@ export class DatabaseStorage implements IStorage {
         .orderBy(desc(grabTRetailBids.createdAt));
 
       console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
-      
-      // Log the actual grab_t_retail_bids unique IDs being returned
-      const retailBidIds = retailBidsWithUsers.map(rb => rb.id);
-      console.log(`🎯 Storage: grab_t_retail_bids unique IDs for bid ${bidId}:`, retailBidIds);
-      
       return retailBidsWithUsers;
     } catch (error) {
       console.error("Error getting retail bids with users by bid:", error);
