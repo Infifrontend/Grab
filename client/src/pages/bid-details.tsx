@@ -132,11 +132,13 @@ export default function BidDetails() {
     // Always use live status from bid-status endpoint if available
     if (bidStatus?.success && bidStatus.bidStatus) {
       bid.bidStatus = bidStatus.bidStatus;
-      console.log(`Using live status from bid-status API: ${bidStatus.bidStatus}`);
+      console.log(
+        `Using live status from bid-status API: ${bidStatus.bidStatus}`,
+      );
     } else {
       console.log(`Using static status from bid data: ${bid.bidStatus}`);
     }
-    
+
     let configData = {};
 
     try {
@@ -165,7 +167,10 @@ export default function BidDetails() {
         hasUserPaid: bidStatus.hasUserPaid,
         userRetailBidStatus: bidStatus.userRetailBidStatus,
       };
-      console.log(`Using live status from bid-status API: ${status}`, seatAvailabilityInfo);
+      console.log(
+        `Using live status from bid-status API: ${status}`,
+        seatAvailabilityInfo,
+      );
     } else {
       // Fallback to static status determination if bidStatus fetch fails or is not successful
       console.warn(
@@ -457,7 +462,8 @@ export default function BidDetails() {
                   <strong>Bid ID:</strong> {transformedBidData.id}
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  {transformedBidData.status}
+                  {transformedBidData.status.charAt(0).toUpperCase() +
+                    transformedBidData.status.slice(1)}
                 </span>
                 <span className="text-gray-600">
                   <strong>Time left:</strong> {transformedBidData.timeLeft}
@@ -982,7 +988,7 @@ export default function BidDetails() {
 
           {!isBidClosed &&
             !hasUserPaid &&
-            transformedBidData.status === "Open" && (
+            transformedBidData.status.toLocaleLowerCase() === "open" && (
               <Button
                 type="primary"
                 size="large"
@@ -1017,7 +1023,7 @@ export default function BidDetails() {
           )}
 
           {/* This case might need refinement based on exact 'completed' status meaning */}
-          {transformedBidData.status === "Completed" && (
+          {transformedBidData.status.toLocaleLowerCase() === "completed" && (
             <div className="flex justify-end">
               <Button
                 size="large"
