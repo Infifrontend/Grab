@@ -1110,97 +1110,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update bid status (accept/reject)
+  // app.put("/api/bids/retail-users/status", async (req, res) => {
+  //   try {
+  //     const {
+  //       bidId,
+  //       userId,
+  //       action,
+  //       adminNotes,
+  //       counterOffer,
+  //       rejectionReason,
+  //     } = req.body;
+
+  //     if (!bidId || isNaN(parseInt(bidId))) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "Invalid or missing bidId",
+  //       });
+  //     }
+
+  //     console.log(
+  //       `Updating retail bid ${bidId} for user ${userId} with action ${action}`,
+  //     );
+
+  //     // Normalize action -> status
+  //     let status = null;
+  //     if (action === "approve") status = "approved";
+  //     if (action === "reject") status = "rejected";
+
+  //     if (!status) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "Invalid action. Must be 'approve' or 'reject'.",
+  //       });
+  //     }
+
+  //     const updateData = {
+  //       bidStatus: status,
+  //       updatedAt: new Date(),
+  //     };
+
+  //     // Handle notes
+  //     if (adminNotes || counterOffer || rejectionReason) {
+  //       const existingBid = await storage.getBidById(parseInt(bidId));
+  //       let existingNotes = {};
+
+  //       try {
+  //         existingNotes = existingBid?.bid?.notes
+  //           ? JSON.parse(existingBid.bid.notes)
+  //           : {};
+  //       } catch (e) {
+  //         existingNotes = {};
+  //       }
+
+  //       const adminData = {
+  //         ...existingNotes,
+  //         adminReview: {
+  //           status,
+  //           adminNotes: adminNotes || "",
+  //           counterOffer: counterOffer || null,
+  //           rejectionReason: rejectionReason || null,
+  //           reviewedAt: new Date().toISOString(),
+  //           reviewedBy: "Admin", // could come from session/user
+  //         },
+  //       };
+
+  //       updateData.notes = JSON.stringify(adminData);
+  //     }
+
+  //     // Update bid in DB
+  //     await storage.updateBidDetails(parseInt(bidId), updateData);
+
+  //     // Get updated bid
+  //     const updatedBid = await storage.getBidById(parseInt(bidId));
+
+  //     if (!updatedBid) {
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: "Bid not found",
+  //       });
+  //     }
+
+  //     res.json({
+  //       success: true,
+  //       message: `Retail bid ${status} successfully`,
+  //       bid: updatedBid,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error updating retail bid status:", error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: "Failed to update bid status",
+  //       error: error.message,
+  //     });
+  //   }
+  // });
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
-      const {
-        bidId,
-        userId,
-        action,
-        adminNotes,
-        counterOffer,
-        rejectionReason,
-      } = req.body;
+      const { r_bidId, r_userId, action, adminNotes, counterOffer, rejectionReason } = req.body;
 
-      if (!bidId || isNaN(parseInt(bidId))) {
+      if (!r_bidId || !r_userId || !action) {
         return res.status(400).json({
           success: false,
-          message: "Invalid or missing bidId",
+          message: "Missing r_bidId, r_userId or action"
         });
       }
 
-      console.log(
-        `Updating retail bid ${bidId} for user ${userId} with action ${action}`,
-      );
-
-      // Normalize action -> status
-      let status = null;
-      if (action === "approve") status = "approved";
-      if (action === "reject") status = "rejected";
-
-      if (!status) {
+      // Only allow numeric status codes 7 (rejected), 9 (approved)
+      if (![7, 9].includes(action)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid action. Must be 'approve' or 'reject'.",
+          message: "Invalid action. Must be 7 (rejected) or 9 (approved)."
         });
       }
 
-      const updateData = {
-        bidStatus: status,
-        updatedAt: new Date(),
-      };
+      console.log(`Updating retail bid for parentBid=${r_bidId}, user=${r_userId} with status=${action}`);
 
-      // Handle notes
-      if (adminNotes || counterOffer || rejectionReason) {
-        const existingBid = await storage.getBidById(parseInt(bidId));
-        let existingNotes = {};
+      // Update retail bid status
+      await storage.updateRetailBid(r_bidId, r_userId, {
+        r_status: action,
+        updatedAt: new Date()
+      });
 
-        try {
-          existingNotes = existingBid?.bid?.notes
-            ? JSON.parse(existingBid.bid.notes)
-            : {};
-        } catch (e) {
-          existingNotes = {};
-        }
-
-        const adminData = {
-          ...existingNotes,
-          adminReview: {
-            status,
-            adminNotes: adminNotes || "",
-            counterOffer: counterOffer || null,
-            rejectionReason: rejectionReason || null,
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: "Admin", // could come from session/user
-          },
-        };
-
-        updateData.notes = JSON.stringify(adminData);
-      }
-
-      // Update bid in DB
-      await storage.updateBidDetails(parseInt(bidId), updateData);
-
-      // Get updated bid
-      const updatedBid = await storage.getBidById(parseInt(bidId));
-
-      if (!updatedBid) {
-        return res.status(404).json({
-          success: false,
-          message: "Bid not found",
-        });
-      }
+      // Optionally update parent bid status if needed
+      await storage.updateParentBid(r_bidId, { r_status: action, updatedAt: new Date() });
 
       res.json({
         success: true,
-        message: `Retail bid ${status} successfully`,
-        bid: updatedBid,
+        message: `Retail user ${r_userId} for bid ${r_bidId} updated to status ${action}`
       });
+
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       res.status(500).json({
         success: false,
         message: "Failed to update bid status",
-        error: error.message,
+        error: error.message
       });
     }
   });
@@ -2689,240 +2733,240 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Approve or reject retail user for a bid
-  app.put("/api/bids/retail-users/status", async (req, res) => {
-    try {
-      const { bidId, userId, action } = req.body;
+  // app.put("/api/bids/retail-users/status", async (req, res) => {
+  //   try {
+  //     const { bidId, userId, action } = req.body;
 
-      console.log("Received payload:", { bidId, userId, action });
+  //     console.log("Received payload:", { bidId, userId, action });
 
-      // Validate required fields with proper type checking
-      if (bidId === undefined || bidId === null || bidId === "") {
-        return res.status(400).json({
-          success: false,
-          message: "bidId is required and cannot be empty",
-        });
-      }
+  //     // Validate required fields with proper type checking
+  //     if (bidId === undefined || bidId === null || bidId === "") {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "bidId is required and cannot be empty",
+  //       });
+  //     }
 
-      if (userId === undefined || userId === null || userId === "") {
-        return res.status(400).json({
-          success: false,
-          message: "userId is required and cannot be empty",
-        });
-      }
+  //     if (userId === undefined || userId === null || userId === "") {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "userId is required and cannot be empty",
+  //       });
+  //     }
 
-      if (!action || typeof action !== "string") {
-        return res.status(400).json({
-          success: false,
-          message: "action is required and must be a string",
-        });
-      }
+  //     if (!action || typeof action !== "string") {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "action is required and must be a string",
+  //       });
+  //     }
 
-      // Parse IDs to ensure they are numbers with proper error handling
-      const numericBidId = parseInt(String(bidId), 10);
-      const numericUserId = parseInt(String(userId), 10);
+  //     // Parse IDs to ensure they are numbers with proper error handling
+  //     const numericBidId = parseInt(String(bidId), 10);
+  //     const numericUserId = parseInt(String(userId), 10);
 
-      if (isNaN(numericBidId) || numericBidId <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid bid ID format. Received: ${bidId}, parsed as: ${numericBidId}`,
-        });
-      }
+  //     if (isNaN(numericBidId) || numericBidId <= 0) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: `Invalid bid ID format. Received: ${bidId}, parsed as: ${numericBidId}`,
+  //       });
+  //     }
 
-      if (isNaN(numericUserId) || numericUserId <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid user ID format. Received: ${userId}, parsed as: ${numericUserId}`,
-        });
-      }
+  //     if (isNaN(numericUserId) || numericUserId <= 0) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: `Invalid user ID format. Received: ${userId}, parsed as: ${numericUserId}`,
+  //       });
+  //     }
 
-      // Validate action
-      if (!["approve", "reject", "underReview"].includes(action)) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid action: ${action}. Must be 'approve', 'reject', or 'underReview'`,
-        });
-      }
+  //     // Validate action
+  //     if (!["approve", "reject", "underReview"].includes(action)) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: `Invalid action: ${action}. Must be 'approve', 'reject', or 'underReview'`,
+  //       });
+  //     }
 
-      console.log(`Processing ${action} for user ${numericUserId} on bid ${numericBidId}`);
+  //     console.log(`Processing ${action} for user ${numericUserId} on bid ${numericBidId}`);
 
-      // Import the bidding storage
-      const { biddingStorage } = await import("./bidding-storage.js");
+  //     // Import the bidding storage
+  //     const { biddingStorage } = await import("./bidding-storage.js");
 
-      // First, validate that the bid exists
-      const existingBid = await biddingStorage.getBidById(numericBidId);
-      if (!existingBid) {
-        return res.status(404).json({
-          success: false,
-          message: "Bid not found",
-        });
-      }
+  //     // First, validate that the bid exists
+  //     const existingBid = await biddingStorage.getBidById(numericBidId);
+  //     if (!existingBid) {
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: "Bid not found",
+  //       });
+  //     }
 
-      // REQUIREMENT: Validate if the given userId is associated with that bidId
-      const retailBids = await biddingStorage.getRetailBidsByBid(numericBidId);
-      console.log(`Found ${retailBids.length} retail bids for bid ${numericBidId}`);
+  //     // REQUIREMENT: Validate if the given userId is associated with that bidId
+  //     const retailBids = await biddingStorage.getRetailBidsByBid(numericBidId);
+  //     console.log(`Found ${retailBids.length} retail bids for bid ${numericBidId}`);
 
-      // Find the retail bid for this specific user
-      const userRetailBid = retailBids.find((rb) => rb.rUserId === numericUserId);
+  //     // Find the retail bid for this specific user
+  //     const userRetailBid = retailBids.find((rb) => rb.rUserId === numericUserId);
 
-      if (!userRetailBid) {
-        console.log(`User ${numericUserId} not associated with bid ${numericBidId}`);
-        return res.status(404).json({
-          success: false,
-          message: "User not associated with this bid",
-          availableUsers: retailBids.map((rb) => rb.rUserId),
-        });
-      }
+  //     if (!userRetailBid) {
+  //       console.log(`User ${numericUserId} not associated with bid ${numericBidId}`);
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: "User not associated with this bid",
+  //         availableUsers: retailBids.map((rb) => rb.rUserId),
+  //       });
+  //     }
 
-      console.log(`User ${numericUserId} is associated with bid ${numericBidId} via retail bid ${userRetailBid.id}`);
+  //     console.log(`User ${numericUserId} is associated with bid ${numericBidId} via retail bid ${userRetailBid.id}`);
 
-      // Get status IDs for different statuses
-      const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
-      const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
-      const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
-      const openStatusId = await biddingStorage.getStatusIdByCode("O");
+  //     // Get status IDs for different statuses
+  //     const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
+  //     const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
+  //     const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+  //     const openStatusId = await biddingStorage.getStatusIdByCode("O");
 
-      if (!approvedStatusId || !rejectedStatusId || !underReviewStatusId) {
-        return res.status(500).json({
-          success: false,
-          message: "Required statuses not found in database",
-        });
-      }
+  //     if (!approvedStatusId || !rejectedStatusId || !underReviewStatusId) {
+  //       return res.status(500).json({
+  //         success: false,
+  //         message: "Required statuses not found in database",
+  //       });
+  //     }
 
-      let newRetailBidStatus;
-      let newMainBidStatus = existingBid.bid.rStatus;
+  //     let newRetailBidStatus;
+  //     let newMainBidStatus = existingBid.bid.rStatus;
 
-      // Update status based on action
-      switch (action) {
-        case "approve":
-          newRetailBidStatus = approvedStatusId;
-          newMainBidStatus = approvedStatusId;
+  //     // Update status based on action
+  //     switch (action) {
+  //       case "approve":
+  //         newRetailBidStatus = approvedStatusId;
+  //         newMainBidStatus = approvedStatusId;
           
-          // Update retail bid status to approved
-          await db.execute(sql`
-            UPDATE grab_t_retail_bids
-            SET r_status = ${approvedStatusId}, updated_at = now()
-            WHERE id = ${userRetailBid.id}
-          `);
+  //         // Update retail bid status to approved
+  //         await db.execute(sql`
+  //           UPDATE grab_t_retail_bids
+  //           SET r_status = ${approvedStatusId}, updated_at = now()
+  //           WHERE id = ${userRetailBid.id}
+  //         `);
 
-          // Update any payment records for this user
-          await db.execute(sql`
-            UPDATE grab_t_bid_payments
-            SET r_status = ${approvedStatusId}, updated_at = now()
-            WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
-          `);
+  //         // Update any payment records for this user
+  //         await db.execute(sql`
+  //           UPDATE grab_t_bid_payments
+  //           SET r_status = ${approvedStatusId}, updated_at = now()
+  //           WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
+  //         `);
 
-          // Update main bid status to approved
-          await biddingStorage.updateBidStatus(numericBidId, approvedStatusId);
+  //         // Update main bid status to approved
+  //         await biddingStorage.updateBidStatus(numericBidId, approvedStatusId);
 
-          // Reject all other retail bids for this bid
-          for (const otherRetailBid of retailBids) {
-            if (otherRetailBid.rUserId !== numericUserId) {
-              await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
-            }
-          }
-          break;
+  //         // Reject all other retail bids for this bid
+  //         for (const otherRetailBid of retailBids) {
+  //           if (otherRetailBid.rUserId !== numericUserId) {
+  //             await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+  //           }
+  //         }
+  //         break;
 
-        case "reject":
-          newRetailBidStatus = rejectedStatusId;
+  //       case "reject":
+  //         newRetailBidStatus = rejectedStatusId;
           
-          // Update retail bid status to rejected
-          await db.execute(sql`
-            UPDATE grab_t_retail_bids
-            SET r_status = ${rejectedStatusId}, updated_at = now()
-            WHERE id = ${userRetailBid.id}
-          `);
+  //         // Update retail bid status to rejected
+  //         await db.execute(sql`
+  //           UPDATE grab_t_retail_bids
+  //           SET r_status = ${rejectedStatusId}, updated_at = now()
+  //           WHERE id = ${userRetailBid.id}
+  //         `);
 
-          // Update any payment records for this rejected user
-          await db.execute(sql`
-            UPDATE grab_t_bid_payments
-            SET r_status = ${rejectedStatusId}, updated_at = now()
-            WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
-          `);
+  //         // Update any payment records for this rejected user
+  //         await db.execute(sql`
+  //           UPDATE grab_t_bid_payments
+  //           SET r_status = ${rejectedStatusId}, updated_at = now()
+  //           WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
+  //         `);
 
-          // Check if there are any other approved retail bids
-          const otherApprovedBids = retailBids.filter(
-            (rb) => rb.rUserId !== numericUserId && rb.rStatus === approvedStatusId,
-          );
+  //         // Check if there are any other approved retail bids
+  //         const otherApprovedBids = retailBids.filter(
+  //           (rb) => rb.rUserId !== numericUserId && rb.rStatus === approvedStatusId,
+  //         );
 
-          // If no other approved bids, keep bid open
-          if (otherApprovedBids.length === 0 && openStatusId) {
-            await biddingStorage.updateBidStatus(numericBidId, openStatusId);
-            newMainBidStatus = openStatusId;
-          }
-          break;
+  //         // If no other approved bids, keep bid open
+  //         if (otherApprovedBids.length === 0 && openStatusId) {
+  //           await biddingStorage.updateBidStatus(numericBidId, openStatusId);
+  //           newMainBidStatus = openStatusId;
+  //         }
+  //         break;
 
-        case "underReview":
-          newRetailBidStatus = underReviewStatusId;
+  //       case "underReview":
+  //         newRetailBidStatus = underReviewStatusId;
           
-          // Update retail bid status to under review
-          await db.execute(sql`
-            UPDATE grab_t_retail_bids
-            SET r_status = ${underReviewStatusId}, updated_at = now()
-            WHERE id = ${userRetailBid.id}
-          `);
+  //         // Update retail bid status to under review
+  //         await db.execute(sql`
+  //           UPDATE grab_t_retail_bids
+  //           SET r_status = ${underReviewStatusId}, updated_at = now()
+  //           WHERE id = ${userRetailBid.id}
+  //         `);
 
-          // Update any payment records for this user
-          await db.execute(sql`
-            UPDATE grab_t_bid_payments
-            SET r_status = ${underReviewStatusId}, updated_at = now()
-            WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
-          `);
-          break;
-      }
+  //         // Update any payment records for this user
+  //         await db.execute(sql`
+  //           UPDATE grab_t_bid_payments
+  //           SET r_status = ${underReviewStatusId}, updated_at = now()
+  //           WHERE r_user_id = ${numericUserId} AND r_retail_bid_id = ${userRetailBid.id}
+  //         `);
+  //         break;
+  //     }
 
-      // Update bid notes with action history
-      let existingNotes = {};
-      try {
-        existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
-      } catch (e) {
-        existingNotes = {};
-      }
+  //     // Update bid notes with action history
+  //     let existingNotes = {};
+  //     try {
+  //       existingNotes = existingBid.bid.notes ? JSON.parse(existingBid.bid.notes) : {};
+  //     } catch (e) {
+  //       existingNotes = {};
+  //     }
 
-      existingNotes.actionHistory = existingNotes.actionHistory || [];
-      existingNotes.actionHistory.push({
-        action: action,
-        userId: numericUserId,
-        retailBidId: userRetailBid.id,
-        timestamp: new Date().toISOString(),
-        adminUser: "system",
-      });
+  //     existingNotes.actionHistory = existingNotes.actionHistory || [];
+  //     existingNotes.actionHistory.push({
+  //       action: action,
+  //       userId: numericUserId,
+  //       retailBidId: userRetailBid.id,
+  //       timestamp: new Date().toISOString(),
+  //       adminUser: "system",
+  //     });
 
-      // Update the bid with new notes and status
-      const updateData = {
-        notes: JSON.stringify(existingNotes),
-        rStatus: newMainBidStatus,
-        updatedAt: new Date(),
-      };
+  //     // Update the bid with new notes and status
+  //     const updateData = {
+  //       notes: JSON.stringify(existingNotes),
+  //       rStatus: newMainBidStatus,
+  //       updatedAt: new Date(),
+  //     };
 
-      await biddingStorage.updateBidDetails(numericBidId, updateData);
+  //     await biddingStorage.updateBidDetails(numericBidId, updateData);
 
-      // Get updated bid and status information
-      const updatedBid = await biddingStorage.getBidById(numericBidId);
-      const statusInfo = await biddingStorage.getStatusById(newMainBidStatus);
-      const retailStatusInfo = await biddingStorage.getStatusById(newRetailBidStatus);
+  //     // Get updated bid and status information
+  //     const updatedBid = await biddingStorage.getBidById(numericBidId);
+  //     const statusInfo = await biddingStorage.getStatusById(newMainBidStatus);
+  //     const retailStatusInfo = await biddingStorage.getStatusById(newRetailBidStatus);
 
-      console.log(`Successfully updated bid ${numericBidId} and user ${numericUserId} status to ${action}`);
+  //     console.log(`Successfully updated bid ${numericBidId} and user ${numericUserId} status to ${action}`);
 
-      res.json({
-        success: true,
-        message: `Retail bid ${action}d successfully`,
-        bid: updatedBid,
-        bidStatus: statusInfo?.statusName || "Unknown",
-        retailBidStatus: retailStatusInfo?.statusName || "Unknown",
-        rStatusId: newMainBidStatus,
-        retailBidStatusId: newRetailBidStatus,
-        userRetailBidId: userRetailBid.id,
-      });
+  //     res.json({
+  //       success: true,
+  //       message: `Retail bid ${action}d successfully`,
+  //       bid: updatedBid,
+  //       bidStatus: statusInfo?.statusName || "Unknown",
+  //       retailBidStatus: retailStatusInfo?.statusName || "Unknown",
+  //       rStatusId: newMainBidStatus,
+  //       retailBidStatusId: newRetailBidStatus,
+  //       userRetailBidId: userRetailBid.id,
+  //     });
 
-    } catch (error) {
-      console.error(`Error updating retail user status:`, error);
-      res.status(500).json({
-        success: false,
-        message: `Failed to update retail user status`,
-        error: error.message,
-      });
-    }
-  });
+  //   } catch (error) {
+  //     console.error(`Error updating retail user status:`, error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: `Failed to update retail user status`,
+  //       error: error.message,
+  //     });
+  //   }
+  // });
 
   // Insert bid data endpoint
   app.post("/api/insert-bid-data", async (_req, res) => {
