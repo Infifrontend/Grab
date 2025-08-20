@@ -3577,7 +3577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = {
         success: true,
         data: {
-          bidId: `BID${bidId.toString().padStart(3, "0")}`,
+          p_bidId: `BID${bidId.toString().padStart(3, "0")}`, // Parent bid ID
           baseBidAmount: baseBidAmount,
           totalRetailUsers: retailUsers.length,
           totalSeatsAvailable: totalSeatsAvailable,
@@ -3585,7 +3585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableSeats: totalSeatsAvailable - bookedSeats,
           highestBidAmount: highestBidAmount,
           retailUsers: retailUsers.map((user) => ({
-            id: user.id,
+            r_bidId: user.id, // Retail bid ID from grab_t_retail_bids
             rUserId: user.rUserId, // Include r_userId in the response
             name: user.name,
             email: user.email,
