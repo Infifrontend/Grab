@@ -1176,41 +1176,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Get the updated retail user data in the same format as /api/retail-bids/:bidId
-      const updatedRetailBidsWithUsers = await storage.getRetailBidsWithUsersByBid(parseInt(p_bid_id));
-
-      // Find the specific updated retail user by matching both retail bid ID and user ID
-      const updatedRetailUser = updatedRetailBidsWithUsers.find(item => 
-        item.retailBid.id === parseInt(r_bidId) && item.retailBid.rUserId === parseInt(r_userId)
-      );
-
-      let retailUserData = null;
-      if (updatedRetailUser) {
-        const retailBid = updatedRetailUser.retailBid;
-        const user = updatedRetailUser.user;
-
-        retailUserData = {
-          id: retailBid.rUserId, // Use the user ID as the primary ID for user identification
-          userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
-          rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table (correct user ID)
-          retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
-          name: user?.name || `User ${retailBid.rUserId}`,
-          email: user?.email || `user${retailBid.rUserId}@email.com`,
-          bookingRef: `GR00${1230 + retailBid.rUserId}`,
-          seatNumber: `1${2 + retailBid.rUserId}${String.fromCharCode(65 + (retailBid.rUserId % 26))}`,
-          bidAmount: parseFloat(retailBid.submittedAmount),
-          passengerCount: retailBid.seatBooked,
-          status: action === 9 ? "approved" : "rejected",
-          createdAt: retailBid.createdAt,
-          updatedAt: new Date().toISOString(),
-        };
-      }
-
       const actionText = action === 9 ? "approved" : "rejected";
       res.json({
         success: true,
-        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`,
-        retailUser: retailUserData
+        message: `Retail bid ${r_bidId} (grab_t_retail_bids.id) for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`
       });
 
     } catch (error) {
@@ -3526,17 +3495,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const retailUserData = {
             id: retailBid.id, // Use the retail bid ID as the primary ID
             userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
-            rUserId: retailBid.rUserId, // The r_user_id field from grab_t_retail_bids table
-            retailBidId: retailBid.id, // Add explicit retail bid ID field
+            rUserId: retailBid.rUserId, // The actual user ID (r_user_id field from grab_t_retail_bids table)
+            retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            seatNumber: `1${2 + retailBid.rUserId}${String.fromCharCode(65 + (retailBid.rUserId % 26))}`,
-            bidAmount: parseFloat(retailBid.submittedAmount),
-            passengerCount: retailBid.seatBooked,
-            status: retailBid.status,
-            createdAt: retailBid.createdAt,
-            updatedAt: retailBid.updatedAt,
           };
           return retailUserData;
         });
