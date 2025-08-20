@@ -2648,6 +2648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Found ${retailBids.length} retail bids for bid ${numericBidId}`);
 
       // Find the retail bid for this specific user
+      console.log(`Looking for retail bid with rUserId: ${numericUserId} among ${retailBids.length} retail bids`);
       const userRetailBid = retailBids.find(
         (rb) => rb.rUserId === numericUserId,
       );
