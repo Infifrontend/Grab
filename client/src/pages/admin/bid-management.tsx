@@ -601,7 +601,7 @@ export default function BidManagement() {
                 if (!numericBidId) {
                   numericBidId = record.bidId.replace(/\D/g, "");
                 }
-                
+
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
 
@@ -986,30 +986,28 @@ export default function BidManagement() {
         // Use the data from the API response directly
         const apiData = result.data;
         const retailUsers = apiData.retailUsers || [];
-        
+
         const transformedData = {
           bidId: apiData.bidId || `BID${bidId.toString().padStart(3, "0")}`,
           baseBidAmount: apiData.baseBidAmount || 0,
           totalRetailUsers: apiData.totalRetailUsers || retailUsers.length,
           retailUsers: retailUsers.map((user, index) => ({
-            id: index + 1, // Use index as ID since API doesn't provide ID
-            name: user.name || `User ${index + 1}`,
-            email: user.email || `user${index + 1}@email.com`,
-            bookingRef: user.bookingRef || `GR00${1230 + index}`,
+            id: user.id || (index + 1), // Use retail bid ID as primary ID
+            userId: user.rUserId || user.userId, // Store actual user ID
+            rUserId: user.rUserId || user.userId, // Store retail user ID  
+            retailBidId: user.retailBidId || user.id, // Store retail bid ID for actions
+            name: user.name || `User ${user.rUserId || user.userId || (index + 1)}`,
+            email: user.email || `user${user.rUserId || user.userId || (index + 1)}@email.com`,
+            bookingRef: user.bookingRef || `GR00${1230 + (user.rUserId || user.userId || index)}`,
             seatNumber: user.seatNumber || `1${2 + index}${String.fromCharCode(65 + (index % 26))}`,
             bidAmount: parseFloat(user.bidAmount) || 0,
             passengerCount: user.passengerCount || 1,
-            status: "pending_approval", // Default status
-            differenceFromBase: user.differenceFromBase || 0,
-            isHighestBidder: user.isHighestBidder || false,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
           })),
           highestBidAmount: apiData.highestBidAmount || 0,
         };
 
         console.log(`Transformed data for bid ${bidId}:`, transformedData);
-        
+
         setRetailUsersData((prev) => ({
           ...prev,
           [bidId]: transformedData,
@@ -2399,14 +2397,12 @@ export default function BidManagement() {
           </Card>
         </Col>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="Pending Refunds"
-              value={1}
-              suffix="Require processing"
-              valueStyle={{ color: "var(--ant-color-warning)" }}
-            />
-          </Card>
+          <Statistic
+            title="Pending Refunds"
+            value={1}
+            suffix="Require processing"
+            valueStyle={{ color: "var(--ant-color-warning)" }}
+          />
         </Col>
         <Col xs={24} sm={6}>
           <Card>
@@ -2721,7 +2717,12 @@ export default function BidManagement() {
           items={[
             {
               key: "overview",
-              label: "Overview",
+              label: (
+                <span className="flex items-center">
+                  <DashboardOutlined className="mr-2" />
+                  Overview
+                </span>
+              ),
               children: (
                 <div>
                   {/* Stats Cards Row */}
@@ -2977,7 +2978,12 @@ export default function BidManagement() {
             },
             {
               key: "insights",
-              label: "Insights",
+              label: (
+                <span className="flex items-center">
+                  <InfoCircleOutlined className="mr-2" />
+                  Insights
+                </span>
+              ),
               children: (
                 <div>
                   {/* Insights Alert Cards */}
