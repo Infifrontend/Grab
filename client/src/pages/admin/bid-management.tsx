@@ -790,6 +790,8 @@ export default function BidManagement() {
                                   >
                                     Reject
                                   </Button>
+                                </>
+                              )}
 </old_str>
                                 </>
                               )}
