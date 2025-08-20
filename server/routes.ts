@@ -1237,10 +1237,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Update main bid status to 'approved' if all seats are filled
+        // Check if all seats are now taken and close the bid if needed
         if (seatsRemainingAfterApproval === 0) {
-          if (approvedStatusId) {
-            await biddingStorage.updateBidStatus(retailBid.rBidId, approvedStatusId);
+          console.log(`All seats taken for bid ${retailBid.rBidId}. Closing bid...`);
+          const closedStatusId = await biddingStorage.getStatusIdByCode("CL") || await biddingStorage.getStatusIdByCode("C");
+          
+          if (closedStatusId) {
+            await biddingStorage.updateBidStatus(retailBid.rBidId, closedStatusId);
           }
         }
 
@@ -1253,7 +1256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (seatsRemainingAfterApproval === 0) {
-          message += ` Bid is now at full capacity.`;
+          message += ` Bid is now closed - all seats are taken.`;
         }
 
         res.json({
@@ -1266,6 +1269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           approvedSeats: newApprovedSeats,
           userSeats: seatsFromThisBid,
           rejectedBidsCount: rejectedCount,
+          bidClosed: seatsRemainingAfterApproval === 0,
         });
       } else { // Handle rejection ('r') case
         // If rejecting, we don't need to check capacity or reject others, just confirm rejection
@@ -4521,6 +4525,57 @@ ORDER BY gtb.created_at DESC;
       res.status(500).json({
         success: false,
         message: "Failed to create test bid data",
+        error: error.message,
+      });
+    }
+  });
+
+  // Check and update all bid statuses based on seat availability
+  app.post("/api/check-and-update-all-bid-statuses", async (req, res) => {
+    try {
+      console.log("Checking and updating all bid statuses based on seat availability...");
+
+      // Get all bids
+      const allBids = await biddingStorage.getAllBids();
+      let updatedCount = 0;
+      const updatedBids = [];
+
+      for (const bid of allBids) {
+        try {
+          const bidDetails = await biddingStorage.getBidWithDetails(bid.id);
+          
+          if (bidDetails && bidDetails.availableSeats <= 0) {
+            const closedStatusId = await biddingStorage.getStatusIdByCode("CL") || await biddingStorage.getStatusIdByCode("C");
+            
+            if (closedStatusId && bid.rStatus !== closedStatusId) {
+              await biddingStorage.updateBidStatus(bid.id, closedStatusId);
+              updatedCount++;
+              updatedBids.push({
+                bidId: bid.id,
+                totalSeats: bidDetails.totalSeatsAvailable,
+                bookedSeats: bidDetails.bookedSeats,
+                availableSeats: bidDetails.availableSeats,
+              });
+              console.log(`Closed bid ${bid.id} - all ${bidDetails.totalSeatsAvailable} seats are taken`);
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking bid ${bid.id}:`, error.message);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Checked ${allBids.length} bids, updated ${updatedCount} to closed status`,
+        totalBids: allBids.length,
+        updatedCount: updatedCount,
+        updatedBids: updatedBids,
+      });
+    } catch (error) {
+      console.error("Error checking and updating bid statuses:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to check and update bid statuses",
         error: error.message,
       });
     }

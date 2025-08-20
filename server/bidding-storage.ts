@@ -145,6 +145,49 @@ export class BiddingStorage {
     }
   }
 
+  // Check and update bid status based on seat availability
+  async checkAndUpdateBidStatusBasedOnSeats(bidId: number): Promise<void> {
+    try {
+      console.log(`Checking seat availability for bid ${bidId}`);
+
+      // Get bid details
+      const bidDetails = await this.getBidWithDetails(bidId);
+      if (!bidDetails) {
+        console.log(`Bid ${bidId} not found`);
+        return;
+      }
+
+      const { totalSeatsAvailable, availableSeats } = bidDetails;
+
+      console.log(`Bid ${bidId}: ${availableSeats}/${totalSeatsAvailable} seats available`);
+
+      // If no seats are available, close the bid
+      if (availableSeats <= 0) {
+        console.log(`Bid ${bidId} is fully booked. Closing bid...`);
+
+        // Get "Closed" status ID
+        const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
+        
+        if (!closedStatusId) {
+          // Create "Closed" status if it doesn't exist
+          const closedStatus = await this.createStatus({
+            statusName: "Closed",
+            statusCode: "CL",
+            description: "Bid closed - all seats taken"
+          });
+          await this.updateBidStatus(bidId, closedStatus.id);
+        } else {
+          await this.updateBidStatus(bidId, closedStatusId);
+        }
+
+        console.log(`Bid ${bidId} status updated to Closed due to full capacity`);
+      }
+    } catch (error) {
+      console.error(`Error checking and updating bid status for bid ${bidId}:`, error);
+      throw error;
+    }
+  }
+
   // Retail Bids (User bid submissions)
   async createRetailBid(
     retailBidData: InsertGrabTRetailBid,
@@ -166,6 +209,10 @@ export class BiddingStorage {
         .insert(grabTRetailBids)
         .values(bidDataWithStatus)
         .returning();
+
+      // After creating the retail bid, check if the main bid should be closed
+      await this.checkAndUpdateBidStatusBasedOnSeats(retailBidData.rBidId);
+
       return retailBid;
     } catch (error) {
       console.error("Error creating retail bid:", error);
@@ -208,6 +255,9 @@ export class BiddingStorage {
     try {
       console.log(`Updating retail bid ${retailBidId} to status ${statusId}`);
 
+      // Get the retail bid details first to know which main bid it belongs to
+      const retailBid = await this.getRetailBidById(retailBidId);
+      
       const result = await db
         .update(grabTRetailBids)
         .set({
@@ -221,6 +271,11 @@ export class BiddingStorage {
 
       if (result.length === 0) {
         throw new Error(`No retail bid found with ID ${retailBidId}`);
+      }
+
+      // After updating retail bid status, check if the main bid should be closed
+      if (retailBid) {
+        await this.checkAndUpdateBidStatusBasedOnSeats(retailBid.rBidId);
       }
     } catch (error) {
       console.error(`Error updating retail bid status:`, error);
@@ -432,6 +487,11 @@ export class BiddingStorage {
           statusName: "Completed",
           statusCode: "C",
         },
+        {
+          statusName: "Closed",
+          statusCode: "CL",
+          description: "Bid closed - all seats taken"
+        },
       ];
 
       for (const statusData of requiredStatuses) {
@@ -592,7 +652,13 @@ export class BiddingStorage {
         statusSource = "global_bid";
 
         const openStatusId = await this.getStatusIdByCode("O");
-        if (availableSeats > 0 && bid.rStatus === openStatusId) {
+        const closedStatusId = await this.getStatusIdByCode("CL") || await this.getStatusIdByCode("C");
+        
+        if (bid.rStatus === closedStatusId) {
+          displayStatus = "Closed";
+          statusForUser = "closed";
+          userPaymentStatus = "closed";
+        } else if (availableSeats > 0 && bid.rStatus === openStatusId) {
           displayStatus = "Open";
           statusForUser = "open";
           userPaymentStatus = "open";
