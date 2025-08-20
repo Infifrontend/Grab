@@ -145,6 +145,54 @@ export class BiddingStorage {
     }
   }
 
+  // Sync main bid status based on retail bid statuses
+  async syncBidStatusFromRetailBids(bidId: number): Promise<void> {
+    try {
+      console.log(`Syncing main bid ${bidId} status based on retail bids`);
+      
+      // Get all retail bids for this main bid
+      const retailBids = await this.getRetailBidsByBid(bidId);
+      
+      if (retailBids.length === 0) {
+        // No retail bids, keep as Open
+        const openStatusId = await this.getStatusIdByCode("O");
+        if (openStatusId) {
+          await this.updateBidStatus(bidId, openStatusId);
+        }
+        return;
+      }
+
+      // Get status IDs
+      const underReviewStatusId = await this.getStatusIdByCode("UR");
+      const approvedStatusId = await this.getStatusIdByCode("AP");
+      const rejectedStatusId = await this.getStatusIdByCode("R");
+
+      // Check if any retail bid is approved
+      const hasApprovedBid = retailBids.some(rb => rb.rStatus === approvedStatusId);
+      if (hasApprovedBid) {
+        await this.updateBidStatus(bidId, approvedStatusId);
+        return;
+      }
+
+      // Check if any retail bid is under review (payment done)
+      const hasUnderReviewBid = retailBids.some(rb => rb.rStatus === underReviewStatusId);
+      if (hasUnderReviewBid) {
+        await this.updateBidStatus(bidId, underReviewStatusId);
+        return;
+      }
+
+      // If all retail bids are rejected, keep as Open for new submissions
+      const openStatusId = await this.getStatusIdByCode("O");
+      if (openStatusId) {
+        await this.updateBidStatus(bidId, openStatusId);
+      }
+
+    } catch (error) {
+      console.error(`Error syncing bid status from retail bids:`, error);
+      throw error;
+    }
+  }
+
   // Retail Bids (User bid submissions)
   async createRetailBid(
     retailBidData: InsertGrabTRetailBid,

@@ -2485,8 +2485,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         payment = await storage.createPayment(paymentData);
       }
 
-      // Update bid notes
+      // Update bid notes and sync bid status
       if (bidId) {
+        const { biddingStorage } = await import("./bidding-storage.js");
+        
         const bidDetails = await storage.getBidById(parseInt(bidId));
         let existingNotes = {};
         try {
@@ -2513,6 +2515,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notes: JSON.stringify({ ...existingNotes, userPayments }),
           updatedAt: new Date(),
         });
+
+        // Update main bid status to "Under Review" when any user makes payment
+        const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+        if (underReviewStatusId) {
+          console.log(`Updating main bid ${bidId} status to Under Review after payment by user ${currentUserId}`);
+          await biddingStorage.updateBidStatus(parseInt(bidId), underReviewStatusId);
+        }
       }
 
       res.json({
@@ -3456,11 +3465,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         seatBooked: parseInt(passengerCount),
       };
 
-      // Use bidding storage method which properly sets UR status
+      // Use bidding storage method which properly sets submitted status initially
       const newRetailBid = await biddingStorage.createRetailBid(retailBidData);
 
       console.log(
-        `Created retail bid ${newRetailBid.id} with r_status=6 (under_review)`,
+        `Created retail bid ${newRetailBid.id} with submitted status`,
       );
 
       // Create notification
@@ -3530,6 +3539,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parseInt(retailBidId),
           "under_review",
         );
+
+        // Sync main bid status based on retail bid changes
+        const { biddingStorage } = await import("./bidding-storage.js");
+        await biddingStorage.syncBidStatusFromRetailBids(retailBid.bidId);
 
         // Get the main bid configuration to check seat availability
         const bidDetails = await storage.getBidById(retailBid.bidId);
@@ -4288,6 +4301,76 @@ ORDER BY gtb.created_at DESC;
         success: false,
         message: "Internal server error",
         error: error.message,
+      });
+    }
+  });
+
+  // Sync bid status based on retail bids (manual fix endpoint)
+  app.post("/api/admin/sync-bid-status/:bidId", async (req, res) => {
+    try {
+      const { bidId } = req.params;
+      
+      if (!bidId || isNaN(parseInt(bidId))) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid bid ID is required"
+        });
+      }
+
+      const { biddingStorage } = await import("./bidding-storage.js");
+      
+      // Sync the bid status
+      await biddingStorage.syncBidStatusFromRetailBids(parseInt(bidId));
+      
+      // Get updated bid details
+      const updatedBid = await biddingStorage.getBidWithDetails(parseInt(bidId));
+      
+      res.json({
+        success: true,
+        message: `Bid ${bidId} status synced successfully`,
+        bidStatus: updatedBid?.displayStatus || "Unknown",
+        retailBidsCount: updatedBid?.retailBids?.length || 0
+      });
+    } catch (error) {
+      console.error("Error syncing bid status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to sync bid status",
+        error: error.message
+      });
+    }
+  });
+
+  // Sync all bid statuses (bulk fix endpoint)
+  app.post("/api/admin/sync-all-bid-statuses", async (req, res) => {
+    try {
+      const { biddingStorage } = await import("./bidding-storage.js");
+      
+      // Get all bids
+      const allBids = await biddingStorage.getAllBids();
+      let syncedCount = 0;
+      
+      for (const bid of allBids) {
+        try {
+          await biddingStorage.syncBidStatusFromRetailBids(bid.id);
+          syncedCount++;
+        } catch (error) {
+          console.error(`Error syncing bid ${bid.id}:`, error);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Successfully synced ${syncedCount} bid statuses`,
+        totalBids: allBids.length,
+        syncedBids: syncedCount
+      });
+    } catch (error) {
+      console.error("Error syncing all bid statuses:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to sync all bid statuses",
+        error: error.message
       });
     }
   });
