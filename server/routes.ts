@@ -1113,14 +1113,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update bid status (accept/reject)
   app.put("/api/bids/retail-users/status", async (req, res) => {
     try {
-      const { r_bidId, r_userId, action, adminNotes, counterOffer, rejectionReason } = req.body;
+      const { r_bidId, r_userId, p_bid_id, action, adminNotes, counterOffer, rejectionReason } = req.body;
 
       console.log("Received request body:", req.body);
 
-      if (!r_bidId || !r_userId || !action) {
+      if (!r_bidId || !r_userId || !p_bid_id || !action) {
         return res.status(400).json({
           success: false,
-          message: "Missing r_bidId, r_userId or action"
+          message: "Missing r_bidId, r_userId, p_bid_id or action"
         });
       }
 
@@ -1144,29 +1144,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`Updating retail bid for parentBid=${r_bidId}, user=${r_userId} with statusId=${statusId}`);
+      console.log(`Updating retail bid ID=${r_bidId} for user=${r_userId} on parent bid=${p_bid_id} with statusId=${statusId}`);
 
-      // Update retail bid status
-      await storage.updateRetailBid(r_bidId, r_userId, {
-        rStatus: statusId
-      });
+      // Update retail bid status using the correct retail bid ID
+      await db.execute(sql`
+        UPDATE grab_t_retail_bids 
+        SET r_status = ${statusId}, updated_at = now() 
+        WHERE id = ${r_bidId} AND r_user_id = ${r_userId}
+      `);
 
       // If approving, update parent bid to approved and reject other retail bids
       if (action === 9) {
         // Update parent bid to approved
-        await storage.updateParentBid(r_bidId, { rStatus: statusId });
+        await storage.updateParentBid(p_bid_id, { rStatus: statusId });
 
         // Get all retail bids for this parent bid
-        const allRetailBids = await storage.getRetailBidsByBid(r_bidId);
+        const allRetailBids = await storage.getRetailBidsByBid(p_bid_id);
         const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
 
         if (rejectedStatusId) {
-          // Reject all other retail bids
+          // Reject all other retail bids for this parent bid
           for (const retailBid of allRetailBids) {
-            if (retailBid.rUserId !== r_userId) {
-              await storage.updateRetailBid(r_bidId, retailBid.rUserId, {
-                rStatus: rejectedStatusId
-              });
+            if (retailBid.id !== r_bidId) { // Use retail bid ID instead of user ID
+              await db.execute(sql`
+                UPDATE grab_t_retail_bids 
+                SET r_status = ${rejectedStatusId}, updated_at = now() 
+                WHERE id = ${retailBid.id}
+              `);
             }
           }
         }
@@ -1175,7 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const actionText = action === 9 ? "approved" : "rejected";
       res.json({
         success: true,
-        message: `Retail user ${r_userId} for bid ${r_bidId} ${actionText} successfully`
+        message: `Retail bid ${r_bidId} for user ${r_userId} on parent bid ${p_bid_id} ${actionText} successfully`
       });
 
     } catch (error) {

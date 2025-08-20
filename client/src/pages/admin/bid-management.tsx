@@ -739,10 +739,10 @@ export default function BidManagement() {
                                       const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(`Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
                                       console.log('User object:', user);
-                                      handleRetailUserAction(
-                                        retailUserId,
+                                      handleUserAction(
+                                        numericBidId.toString(), // Pass parent bid ID as string
+                                        String(retailUserId), // Pass retail user ID as string
                                         "approve",
-                                        record.bidId,
                                       );
                                     }}
                                     loading={loading}
@@ -758,10 +758,10 @@ export default function BidManagement() {
                                       const retailUserId = user.rUserId || user.userId || user.id;
                                       console.log(`Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`);
                                       console.log('User object:', user);
-                                      handleRetailUserAction(
-                                        retailUserId,
+                                      handleUserAction(
+                                        numericBidId.toString(), // Pass parent bid ID as string
+                                        String(retailUserId), // Pass retail user ID as string
                                         "reject",
-                                        record.bidId,
                                       );
                                     }}
                                     loading={loading}
@@ -809,7 +809,7 @@ export default function BidManagement() {
                   console.log(
                     `Expanding row for bid ${record.bidId}, numeric ID: ${numericBidId}`,
                   );
-                  
+
                   // Log grab_t_retail_bids unique IDs for this bid
                   const retailData = retailUsersData[numericBidId];
                   if (retailData && retailData.retailUsers && retailData.retailUsers.length > 0) {
@@ -819,7 +819,7 @@ export default function BidManagement() {
                   } else {
                     console.log(`No retail bids found for bid ${record.bidId} - fetching from server...`);
                   }
-                  
+
                   fetchRetailUsers(parseInt(numericBidId));
                 }
               },
@@ -907,12 +907,12 @@ export default function BidManagement() {
                 key: "status",
                 render: (status, record) => {
                   console.log("Rendering status for record:", record, "status:", status);
-                  
+
                   const getStatusDisplay = (status) => {
                     if (!status || status === null || status === undefined || status === "NaN") {
                       return "Open"; // Default status
                     }
-                    
+
                     const statusStr = String(status);
                     switch (statusStr.toLowerCase()) {
                       case "active":
@@ -938,7 +938,7 @@ export default function BidManagement() {
                     if (!status || status === null || status === undefined || status === "NaN") {
                       return "green"; // Default color for Open status
                     }
-                    
+
                     const statusStr = String(status);
                     switch (statusStr.toLowerCase()) {
                       case "active":
@@ -1029,7 +1029,7 @@ export default function BidManagement() {
             // Ensure we get the correct retail user ID from the API response
             const retailUserId = user.rUserId || user.userId || user.id || (index + 1);
             console.log(`Mapping retail user: rUserId=${user.rUserId}, userId=${user.userId}, id=${user.id}, final=${retailUserId}`);
-            
+
             return {
               id: retailUserId, // Use retail user ID as the primary identifier
               userId: retailUserId, // Store as userId for consistency
@@ -1279,119 +1279,90 @@ export default function BidManagement() {
     }
   };
 
-  // const handleRetailUserAction = async (userId, action, bidId) => {
-  //   setLoading(true);
-  //   try {
-  //     console.log(`${action}ing retail user ${userId} for bid ${bidId}`);
-
-  //     // Extract numeric bid ID from bidId string (e.g., "BID001" -> 1, "BID014" -> 14, "014" -> 14)
-  //     let numericBidId;
-  //     if (typeof bidId === "string") {
-  //       // First, remove any "BID" prefix
-  //       let cleanId = bidId.replace(/^BID/i, "");
-  //       // Then parse as integer (this will automatically remove leading zeros)
-  //       numericBidId = parseInt(cleanId, 10);
-  //     } else {
-  //       numericBidId = parseInt(bidId, 10);
-  //     }
-
-  //     console.log(
-  //       `Converting bid ID "${bidId}" to numeric ID "${numericBidId}"`,
-  //     );
-
-  //     // Validate that we have a valid numeric ID
-  //     if (isNaN(numericBidId) || numericBidId <= 0) {
-  //       message.error(`Invalid bid ID format: ${bidId}`);
-  //       return;
-  //     }
-
-  //     const response = await apiRequest(
-  //       "PUT",
-  //       `/api/bids/retail-users/status`,
-  //       { 
-  //         bidId: numericBidId,
-  //         userId: parseInt(userId, 10),
-  //         action 
-  //       },
-  //     );
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       console.error("API response error:", errorText);
-  //       throw new Error(`Failed to update retail user status: ${errorText}`);
-  //     }
-
-  //     const result = await response.json();
-  //     console.log("Action result:", result);
-
-  //     if (result.success) {
-  //       if (action === "approve") {
-  //         message.success(
-  //           result.message ||
-  //             "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
-  //         );
-  //       } else {
-  //         message.success(
-  //           result.message || "Retail user rejected successfully",
-  //         );
-  //       }
-
-  //       // Clear retail users data for this bid to force refetch
-  //       setRetailUsersData((prev) => {
-  //         const updated = { ...prev };
-  //         delete updated[numericBidId];
-  //         return updated;
-  //       });
-
-  //       // Refresh the data to update the UI with new bid status and retail user statuses
-  //       await Promise.all([
-  //         queryClient.invalidateQueries(["recent-bids"]),
-  //         queryClient.invalidateQueries(["bid-configurations"]),
-  //         refetchBids()
-  //       ]);
-
-  //       // Small delay to ensure data is updated, then force re-expand if expanded
-  //       setTimeout(() => {
-  //         // Force refresh retail users data by fetching again
-  //         fetchRetailUsers(numericBidId);
-  //       }, 500);
-
-  //     } else {
-  //       throw new Error(result.message || `Failed to ${action} retail user`);
-  //     }
-  //   } catch (error) {
-  //     console.error(`Error ${action}ing retail user:`, error);
-  //     message.error(
-  //       error.message || `Failed to ${action} retail user. Please try again.`,
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  const handleRetailUserAction = async (userId, action, bidId) => {
-    setLoading(true);
+  const handleUserAction = async (
+    bidId: string,
+    userId: string,
+    action: "approve" | "reject"
+  ) => {
     try {
-      // Convert "approve"/"reject" -> numeric status codes
+      console.log(
+        `Handling ${action} action for bid ${bidId}, user ${userId}`
+      );
+
+      // Convert action to numeric value
       const actionCode = action === "approve" ? 9 : 7;
 
-      const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
+      // Get the retail users data for this bid to find the correct retail bid ID
+      const retailData = retailUsersData[parseInt(bidId)];
+      if (!retailData || !retailData.retailUsers) {
+        message.error("Could not find retail user data for this bid");
+        return;
+      }
 
-      const response = await apiRequest("PUT", "/api/bids/retail-users/status", {
-        r_bidId: numericBidId,
-        r_userId: parseInt(userId, 10),
-        action: actionCode
+      // Find the specific retail user to get their retail bid ID
+      const retailUser = retailData.retailUsers.find(
+        (user) => String(user.rUserId || user.userId || user.id) === userId
+      );
+
+      if (!retailUser) {
+        message.error("Could not find retail user information");
+        return;
+      }
+
+      // Use the retail bid ID (grab_t_retail_bids.id) as r_bidId
+      const retailBidId = retailUser.retailBidId || retailUser.id;
+
+      console.log(`Using retail bid ID: ${retailBidId} for user ${userId}, parent bid ID: ${bidId}`);
+
+      const response = await apiRequest("PUT", `/api/bids/retail-users/status`, {
+        r_bidId: retailBidId, // This is the retail bid ID from grab_t_retail_bids.id
+        r_userId: parseInt(userId),
+        p_bid_id: parseInt(bidId), // This is the parent bid ID from grab_t_bids.id
+        action: actionCode,
       });
 
       const result = await response.json();
 
       if (result.success) {
-        message.success(result.message);
-        await refetchBids();
+        if (action === "approve") {
+          message.success(
+            result.message ||
+              "Retail user approved successfully. All other users have been automatically rejected and bid status updated to 'Approved'.",
+          );
+        } else {
+          message.success(
+            result.message || "Retail user rejected successfully",
+          );
+        }
+
+        // Clear retail users data for this bid to force refetch
+        setRetailUsersData((prev) => {
+          const updated = { ...prev };
+          delete updated[parseInt(bidId)];
+          return updated;
+        });
+
+        // Refresh the data to update the UI with new bid status and retail user statuses
+        await Promise.all([
+          queryClient.invalidateQueries(["recent-bids"]),
+          queryClient.invalidateQueries(["bid-configurations"]),
+          refetchBids()
+        ]);
+
+        // Small delay to ensure data is updated, then force re-expand if expanded
+        setTimeout(() => {
+          // Force refresh retail users data by fetching again
+          fetchRetailUsers(parseInt(bidId));
+        }, 500);
+
       } else {
-        throw new Error(result.message);
+        throw new Error(result.message || `Failed to ${action} retail user`);
       }
     } catch (error) {
-      message.error(error.message || "Failed to update retail user status.");
+      console.error(`Error ${action}ing retail user:`, error);
+      message.error(
+        error.message || `Failed to ${action} retail user. Please try again.`,
+      );
     } finally {
       setLoading(false);
     }
@@ -2479,14 +2450,12 @@ export default function BidManagement() {
           </Card>
         </Col>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="Pending Refunds"
-              value={1}
-              suffix="Require processing"
-              valueStyle={{ color: "var(--ant-color-warning)" }}
-            />
-          </Card>
+          <Statistic
+            title="Pending Refunds"
+            value={1}
+            suffix="Require processing"
+            valueStyle={{ color: "var(--ant-color-warning)" }}
+          />
         </Col>
         <Col xs={24} sm={6}>
           <Card>
