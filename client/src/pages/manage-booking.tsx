@@ -39,12 +39,16 @@ export default function ManageBooking() {
     localStorage.getItem("isAuthenticated") || "false",
   );
   const { data: bookings, isLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
+    queryKey: ["/api/flight-bookings"],
   });
 
-  // Fetch real data from API
-  const { data: flightBookingsData = [] } = useQuery({
-    queryKey: ["flight-bookings"],
+  // Fetch flight bookings data from API
+  const {
+    data: flightBookings = [],
+    refetch: refetchFlightBookings,
+    isLoading: isFlightBookingsLoading,
+  } = useQuery({
+    queryKey: ["/api/flight-bookings"],
     queryFn: async () => {
       // Get current user ID if logged in as retail user
       const currentUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
@@ -56,17 +60,14 @@ export default function ManageBooking() {
         url += `?userId=${currentUserId}`;
       }
       
+      console.log("Fetching flight bookings from URL:", url);
       const response = await apiRequest("GET", url);
-      return response.json();
+      const data = await response.json();
+      console.log("Flight bookings response:", data);
+      
+      // Ensure we return an array
+      return Array.isArray(data) ? data : [];
     },
-  });
-
-  const {
-    data: flightBookings,
-    refetch: refetchFlightBookings,
-    isLoading: isFlightBookingsLoading,
-  } = useQuery({
-    queryKey: ["/api/flight-bookings"],
   });
 
   // Refresh data when component mounts
@@ -184,8 +185,8 @@ export default function ManageBooking() {
 
   // Transform real booking data for table and sort by creation date (latest first)
   const bookingsTableData =
-    flightBookingsData && flightBookingsData.length > 0
-      ? flightBookingsData
+    flightBookings && flightBookings.length > 0
+      ? flightBookings
           .sort((a, b) => {
             const dateA = new Date(a.bookedAt || a.createdAt || 0);
             const dateB = new Date(b.bookedAt || b.createdAt || 0);
