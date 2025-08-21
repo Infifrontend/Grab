@@ -56,6 +56,11 @@ export default function ManageBookingDetail() {
   // const bookingId = params?.id;
   const bookingId = params.id;
 
+  // State for update functionality
+  const [updating, setUpdating] = useState(false);
+  const [passengers, setPassengers] = useState([]);
+
+
   // Fetch booking details from API
   const {
     data: bookingDetails,
@@ -74,9 +79,9 @@ export default function ManageBookingDetail() {
   });
 
   // Initialize passengers state with fetched data
-  const [passengers, setPassengers] = useState([
-    { firstName: "", lastName: "" },
-  ]);
+  // const [passengers, setPassengers] = useState([
+  //   { firstName: "", lastName: "" },
+  // ]); // This state is now managed above
 
   // State for group leader information
   const [groupLeaderInfo, setGroupLeaderInfo] = useState({
@@ -158,6 +163,48 @@ export default function ManageBookingDetail() {
     setCurrentGroupSize(confirmedPassengersCount);
   }, [confirmedPassengersCount]);
 
+  // Handler for updating passenger details
+  const handleUpdatePassenger = async () => {
+    if (!bookingId) {
+      message.error("No PNR provided");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      console.log(`Updating passenger details for PNR: ${bookingId}`);
+
+      // Fetch current booking details to get booking info and passengers
+      const bookingResponse = await fetch(`/api/booking-details/${bookingId}`);
+
+      if (!bookingResponse.ok) {
+        throw new Error("Failed to fetch booking details");
+      }
+
+      const bookingData = await bookingResponse.json();
+      console.log("Fetched booking data:", bookingData);
+
+      if (!bookingData.booking) {
+        throw new Error("Booking not found");
+      }
+
+      // Update passengers state with fetched data
+      setPassengers(bookingData.passengers || []);
+
+      // Update booking state (optional, if you need to refresh other booking details)
+      // setBooking(bookingData.booking); // If you have a separate booking state
+
+      message.success(`Successfully updated passenger details for PNR ${bookingId}`);
+
+    } catch (error) {
+      console.error("Error updating passenger details:", error);
+      message.error(`Failed to update passenger details: ${error.message}`);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-center items-center">
@@ -218,7 +265,7 @@ export default function ManageBookingDetail() {
 
   const {
     booking,
-    passengers: fetchedPassengers,
+    // passengers: fetchedPassengers, // This is now managed by setPassengers
     flightData,
     comprehensiveData,
   } = bookingDetails;
@@ -930,6 +977,17 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
             </Text>
           </div>
 
+          {/* Update Passenger Button */}
+          <div className="flex justify-end mb-6">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              loading={updating}
+              onClick={handleUpdatePassenger}
+            >
+              Update Passenger Details
+            </Button>
+          </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
             <Text className="text-blue-700">
