@@ -643,6 +643,19 @@ export default function BidManagement() {
                   highestBidAmount,
                 } = retailData;
 
+                // Filter out dummy/placeholder users who haven't actually placed bids
+                const realRetailUsers = retailUsers.filter((user) => {
+                  // Check if user has valid bid data (not dummy/placeholder)
+                  const hasValidBidAmount = user.bidAmount && user.bidAmount > 0;
+                  const hasValidUserId = user.rUserId && user.rUserId > 0;
+                  const hasRetailBidId = user.retailBidId && user.retailBidId > 0;
+                  const isNotDummyUser = !user.name?.includes("User ") || hasValidBidAmount;
+                  
+                  return hasValidBidAmount && hasValidUserId && hasRetailBidId && isNotDummyUser;
+                });
+
+                const realTotalUsers = realRetailUsers.length;
+
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
@@ -652,18 +665,18 @@ export default function BidManagement() {
                       <Text className="text-gray-600 text-sm">
                         Base Bid Amount:{" "}
                         <span className="font-semibold">${baseBidAmount}</span>{" "}
-                        | Total Retail Users: {totalRetailUsers}
+                        | Total Retail Users: {realTotalUsers}
                       </Text>
                     </div>
                     <div className="space-y-3">
-                      {retailUsers.length === 0 ? (
+                      {realRetailUsers.length === 0 ? (
                         <div className="text-center py-4">
                           <Text className="text-gray-500">
-                            No retail users found for this bid
+                            No retail users have placed bids for this bid configuration yet
                           </Text>
                         </div>
                       ) : (
-                        retailUsers.map((user, index) => (
+                        realRetailUsers.map((user, index) => (
                           // Display each retail user in a card-like format
                           <div
                             key={user.id}
@@ -784,16 +797,16 @@ export default function BidManagement() {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {totalRetailUsers} | Pending
+                        Total retail users: {realTotalUsers} | Pending
                         approval:{" "}
                         {
-                          retailUsers.filter(
+                          realRetailUsers.filter(
                             (u) => u.status === "pending_approval",
                           ).length
                         }{" "}
                         | Approved:{" "}
                         {
-                          retailUsers.filter((u) => u.status === "approved")
+                          realRetailUsers.filter((u) => u.status === "approved")
                             .length
                         }
                       </Text>
@@ -802,8 +815,25 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Allow expansion for all bids to see retail users
-                return true;
+                // Only allow expansion if there are real retail users with actual bids
+                const numericBidId = record.bidId.replace(/^BID0*/, "") || record.bidId.replace(/\D/g, "");
+                const retailData = retailUsersData[numericBidId];
+                
+                if (!retailData || !retailData.retailUsers) {
+                  return false;
+                }
+                
+                // Check if there are real retail users (not dummy/placeholder users)
+                const realRetailUsers = retailData.retailUsers.filter((user) => {
+                  const hasValidBidAmount = user.bidAmount && user.bidAmount > 0;
+                  const hasValidUserId = user.rUserId && user.rUserId > 0;
+                  const hasRetailBidId = user.retailBidId && user.retailBidId > 0;
+                  const isNotDummyUser = !user.name?.includes("User ") || hasValidBidAmount;
+                  
+                  return hasValidBidAmount && hasValidUserId && hasRetailBidId && isNotDummyUser;
+                });
+                
+                return realRetailUsers.length > 0;
               },
               onExpand: (expanded, record) => {
                 if (expanded) {
