@@ -33,7 +33,7 @@ export default function ManageBooking() {
   const [bookingId, setBookingId] = useState("");
   const navigate = useNavigate();
   const adminMode = JSON.parse(
-    localStorage.getItem("adminLoggedIn") || "false",
+    localStorage.getItem("adminMode") || "false",
   );
   const userMode = JSON.parse(
     localStorage.getItem("isAuthenticated") || "false",
@@ -42,31 +42,33 @@ export default function ManageBooking() {
     queryKey: ["/api/bookings"],
   });
 
-  // Fetch real data from API
-  const { data: flightBookingsData = [] } = useQuery({
+  // Fetch flight bookings data from API
+  const {
+    data: flightBookingsData = [],
+    refetch: refetchFlightBookings,
+    isLoading: isFlightBookingsLoading,
+  } = useQuery({
     queryKey: ["flight-bookings"],
     queryFn: async () => {
       // Get current user ID if logged in as retail user
       const currentUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
       const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-      
+
       let url = "/api/flight-bookings";
       if (isAuthenticated && currentUserId && !adminMode) {
         // Filter bookings for retail users
         url += `?userId=${currentUserId}`;
       }
-      
-      const response = await apiRequest("GET", url);
-      return response.json();
-    },
-  });
 
-  const {
-    data: flightBookings,
-    refetch: refetchFlightBookings,
-    isLoading: isFlightBookingsLoading,
-  } = useQuery({
-    queryKey: ["/api/flight-bookings"],
+      console.log("Fetching flight bookings from URL:", url);
+      const response = await apiRequest("GET", url);
+      const data = await response.json();
+      console.log("Flight bookings response:", data);
+      console.log("Number of bookings returned:", Array.isArray(data) ? data.length : 0);
+
+      // Ensure we return an array
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   // Refresh data when component mounts
@@ -76,7 +78,7 @@ export default function ManageBooking() {
 
   // Get recent flight bookings sorted by created_at/bookedAt
   const recentBookings =
-    flightBookings
+    flightBookingsData
       ?.slice()
       .sort((a: any, b: any) => {
         const dateA = new Date(a.bookedAt || a.createdAt || 0);
@@ -146,8 +148,8 @@ export default function ManageBooking() {
   const handleManageBooking = (booking: Booking) => {
     navigate(
       adminMode
-        ? `/admin/manage-booking/${bookingId}`
-        : `/manage-booking/${bookingId}`,
+        ? `/admin/manage-booking/${booking.id}`
+        : `/manage-booking/${booking.id}`,
     );
   };
 
@@ -445,8 +447,8 @@ export default function ManageBooking() {
                     width: 120,
                     render: (text) => (
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        text === "Approved Bid" 
-                          ? "bg-green-100 text-green-700" 
+                        text === "Approved Bid"
+                          ? "bg-green-100 text-green-700"
                           : "bg-blue-100 text-blue-700"
                       }`}>
                         {text}
