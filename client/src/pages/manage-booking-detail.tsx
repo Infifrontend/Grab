@@ -731,6 +731,17 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     >
                       Add More Passengers
                     </Button>
+
+                    {/* Update Passenger Button */}
+                    <Button
+                      type="primary"
+                      icon={<EditOutlined />}
+                      loading={updating}
+                      onClick={handleUpdatePassenger}
+                      className="w-full mt-3"
+                    >
+                      Update Passenger Details
+                    </Button>
                   </div>
                 </div>
               </Space>
@@ -975,18 +986,6 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
             <Text className="text-gray-600">
               Request changes to your flight details
             </Text>
-          </div>
-
-          {/* Update Passenger Button */}
-          <div className="flex justify-end mb-6">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              loading={updating}
-              onClick={handleUpdatePassenger}
-            >
-              Update Passenger Details
-            </Button>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
