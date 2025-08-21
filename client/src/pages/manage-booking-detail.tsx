@@ -60,7 +60,6 @@ export default function ManageBookingDetail() {
   const [updating, setUpdating] = useState(false);
   const [passengers, setPassengers] = useState([]);
 
-
   // Fetch booking details from API
   const {
     data: bookingDetails,
@@ -110,7 +109,7 @@ export default function ManageBookingDetail() {
       );
       setPassengers(emptyPassengers);
     }
-    console.log(bookingDetails, 'bookingDetails');
+    console.log(bookingDetails, "bookingDetails");
   }, [bookingDetails]);
 
   // Update group leader info when booking data is loaded
@@ -194,8 +193,9 @@ export default function ManageBookingDetail() {
       // Update booking state (optional, if you need to refresh other booking details)
       // setBooking(bookingData.booking); // If you have a separate booking state
 
-      message.success(`Successfully updated passenger details for PNR ${bookingId}`);
-
+      message.success(
+        `Successfully updated passenger details for PNR ${bookingId}`,
+      );
     } catch (error) {
       console.error("Error updating passenger details:", error);
       message.error(`Failed to update passenger details: ${error.message}`);
@@ -203,7 +203,6 @@ export default function ManageBookingDetail() {
       setUpdating(false);
     }
   };
-
 
   if (isLoading) {
     return (
@@ -244,9 +243,14 @@ export default function ManageBookingDetail() {
         {debugInfo && (
           <Card className="mt-4">
             <Title level={5}>Debug Information</Title>
-            <Text>Available PNRs: {debugInfo.availablePNRs?.join(", ") || "None"}</Text>
+            <Text>
+              Available PNRs: {debugInfo.availablePNRs?.join(", ") || "None"}
+            </Text>
             <br />
-            <Text>Available References: {debugInfo.availableReferences?.join(", ") || "None"}</Text>
+            <Text>
+              Available References:{" "}
+              {debugInfo.availableReferences?.join(", ") || "None"}
+            </Text>
           </Card>
         )}
         <div className="mt-4">
@@ -315,9 +319,9 @@ export default function ManageBookingDetail() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            groupLeaderName: groupLeaderInfo.name || '',
-            groupLeaderEmail: groupLeaderInfo.email || '',
-            groupLeaderPhone: groupLeaderInfo.phone || '',
+            groupLeaderName: groupLeaderInfo.name || "",
+            groupLeaderEmail: groupLeaderInfo.email || "",
+            groupLeaderPhone: groupLeaderInfo.phone || "",
           }),
         },
       );
@@ -328,12 +332,17 @@ export default function ManageBookingDetail() {
       } catch (parseError) {
         const textResult = await groupLeaderResponse.text();
         console.error("Failed to parse group leader response:", textResult);
-        throw new Error("Invalid response from server when updating group leader");
+        throw new Error(
+          "Invalid response from server when updating group leader",
+        );
       }
 
       if (!groupLeaderResponse.ok) {
         console.error("Group leader update failed:", groupLeaderResult);
-        throw new Error(groupLeaderResult.message || "Failed to update group leader information");
+        throw new Error(
+          groupLeaderResult.message ||
+            "Failed to update group leader information",
+        );
       }
 
       console.log("Group leader information saved successfully");
@@ -341,7 +350,9 @@ export default function ManageBookingDetail() {
       // Save passenger information
       console.log("Saving passenger information...");
       const validPassengers = passengers.filter(
-        (p) => p.firstName && p.firstName.trim() || p.lastName && p.lastName.trim(),
+        (p) =>
+          (p.firstName && p.firstName.trim()) ||
+          (p.lastName && p.lastName.trim()),
       );
 
       console.log(
@@ -369,12 +380,17 @@ export default function ManageBookingDetail() {
         } catch (parseError) {
           const textResult = await passengersResponse.text();
           console.error("Failed to parse passengers response:", textResult);
-          throw new Error("Invalid response from server when updating passengers");
+          throw new Error(
+            "Invalid response from server when updating passengers",
+          );
         }
 
         if (!passengersResponse.ok) {
           console.error("Passenger update failed:", passengersResult);
-          throw new Error(passengersResult.message || "Failed to update passenger information");
+          throw new Error(
+            passengersResult.message ||
+              "Failed to update passenger information",
+          );
         }
 
         console.log("Passenger information saved successfully");
@@ -388,16 +404,20 @@ export default function ManageBookingDetail() {
       console.log("Refetching booking details...");
       await refetch();
       console.log("Booking details refetched successfully");
-
     } catch (error) {
       console.error("Error saving changes:", error);
 
       let errorMessage = "Failed to save changes. Please try again.";
       if (error instanceof Error) {
         if (error.message.includes("Booking not found")) {
-          errorMessage = "Booking not found. Please check the booking reference.";
-        } else if (error.message.includes("network") || error.message.includes("fetch")) {
-          errorMessage = "Network error. Please check your connection and try again.";
+          errorMessage =
+            "Booking not found. Please check the booking reference.";
+        } else if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
         } else {
           errorMessage = error.message;
         }
@@ -735,7 +755,6 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                     {/* Update Passenger Button */}
                     <Button
                       type="primary"
-                      icon={<EditOutlined />}
                       loading={updating}
                       onClick={handleUpdatePassenger}
                       className="w-full mt-3"
@@ -1221,7 +1240,6 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                   Make Payment
                 </Button>
               </Col>
-
             </Row>
           </Card>
         </div>
@@ -1245,14 +1263,16 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
       )} */}
 
       <Modal
-        title={<Row className="mb-5">
-          <Col className="w-full text-lg">
-            {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} Group`}
-          </Col>
-          <Col className="w-full text-gray-400">
-            Add more passengers to your group booking
-          </Col>
-        </Row>}
+        title={
+          <Row className="mb-5">
+            <Col className="w-full text-lg">
+              {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)} Group`}
+            </Col>
+            <Col className="w-full text-gray-400">
+              Add more passengers to your group booking
+            </Col>
+          </Row>
+        }
         centered
         open={modal2Open}
         onOk={() => submitGroupSize()}
@@ -1261,35 +1281,77 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
           <Button key="cancel" onClick={() => setModal2Open(false)}>
             Cancel
           </Button>,
-          <Button disabled={bookingDetails?.booking?.passengerCount == newGroupSize} key="confirm" type="primary" onClick={submitGroupSize}>
-            Confirm {groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}
+          <Button
+            disabled={bookingDetails?.booking?.passengerCount == newGroupSize}
+            key="confirm"
+            type="primary"
+            onClick={submitGroupSize}
+          >
+            Confirm{" "}
+            {groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}
           </Button>,
         ]}
       >
         <Form form={groupSizeForm}>
           <Row className="gap-5">
-
             <Col xl={11}>
               <Text className="block mb-2 text-gray-700 font-semibold">
                 Current size
               </Text>
               <Form.Item name="current_size">
-                <InputNumber disabled defaultValue={bookingDetails?.booking?.passengerCount} className="w-full" maxLength={2}></InputNumber>
+                <InputNumber
+                  disabled
+                  defaultValue={bookingDetails?.booking?.passengerCount}
+                  className="w-full"
+                  maxLength={2}
+                ></InputNumber>
               </Form.Item>
             </Col>
 
             <Col xl={11}>
               <Text className="block mb-2 text-gray-700 font-semibold">
-                New size ( {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}` === "Downsize" ? "Min 1" : "Max 50"})
+                New size ({" "}
+                {`${groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1)}` ===
+                "Downsize"
+                  ? "Min 1"
+                  : "Max 50"}
+                )
               </Text>
 
               <Form.Item name="new_size">
-                <InputNumber onChange={(value) => setNewGroupSize(value)} min={groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1) === "Downsize" ? 1 : bookingDetails?.booking?.passengerCount} max={groupSizeAction.charAt(0).toUpperCase() + groupSizeAction.slice(1) === "Downsize" ? bookingDetails?.booking?.passengerCount : 50} defaultValue={bookingDetails?.booking?.passengerCount} className="w-full" maxLength={2} ></InputNumber>
+                <InputNumber
+                  onChange={(value) => setNewGroupSize(value)}
+                  min={
+                    groupSizeAction.charAt(0).toUpperCase() +
+                      groupSizeAction.slice(1) ===
+                    "Downsize"
+                      ? 1
+                      : bookingDetails?.booking?.passengerCount
+                  }
+                  max={
+                    groupSizeAction.charAt(0).toUpperCase() +
+                      groupSizeAction.slice(1) ===
+                    "Downsize"
+                      ? bookingDetails?.booking?.passengerCount
+                      : 50
+                  }
+                  defaultValue={bookingDetails?.booking?.passengerCount}
+                  className="w-full"
+                  maxLength={2}
+                ></InputNumber>
               </Form.Item>
             </Col>
           </Row>
         </Form>
-        {bookingDetails?.booking?.passengerCount == newGroupSize ? <Alert message="Please select a different group size" type="error" showIcon /> : <></>}
+        {bookingDetails?.booking?.passengerCount == newGroupSize ? (
+          <Alert
+            message="Please select a different group size"
+            type="error"
+            showIcon
+          />
+        ) : (
+          <></>
+        )}
       </Modal>
     </div>
   );
