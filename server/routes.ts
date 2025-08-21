@@ -403,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
       let bookings;
-      
+
       if (userId) {
         // Filter bookings for specific user (retail user flow)
         const allBookings = await storage.getFlightBookings();
@@ -411,14 +411,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Check if booking was created from an approved bid for this user
             const specialRequests = JSON.parse(booking.specialRequests || "{}");
-            if (specialRequests.bookingSource === "approved_bid" && 
-                specialRequests.userId === parseInt(userId as string)) {
+            if (
+              specialRequests.bookingSource === "approved_bid" &&
+              specialRequests.userId === parseInt(userId as string)
+            ) {
               return true;
             }
           } catch (e) {
             // If parsing fails, ignore this booking for user filtering
           }
-          
+
           // Also include bookings directly associated with the user
           return booking.userId === parseInt(userId as string);
         });
@@ -426,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Return all bookings (admin view)
         bookings = await storage.getFlightBookings();
       }
-      
+
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch flight bookings" });
@@ -1383,7 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const otherUser = otherUserDetails.rows[0];
 
             const otherBookingReference = `BID-${retailBid.rBidId}-${nanoid(6).toUpperCase()}`;
-            const otherPnr = `PNR${nanoid(6).toUpperCase()}`;
+            const otherPnr = `${nanoid(6).toUpperCase()}`;
 
             const otherBookingData = {
               bookingReference: otherBookingReference,
@@ -2448,9 +2450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Delete all existing passengers first to avoid conflicts
       if (existingPassengers.length > 0) {
-        await db
-          .delete(passengers)
-          .where(eq(passengers.bookingId, booking.id));
+        await db.delete(passengers).where(eq(passengers.bookingId, booking.id));
         console.log(`Deleted ${existingPassengers.length} existing passengers`);
       }
 
@@ -2483,7 +2483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log(`Creating new passenger ${i + 1}:`, passengerInfo);
-        
+
         await db.insert(passengers).values(passengerInfo);
         validPassengerCount++;
       }
