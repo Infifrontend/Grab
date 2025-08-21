@@ -1138,7 +1138,10 @@ export default function BidManagement() {
               bidAmount:
                 parseFloat(user.bidAmount || user.submittedAmount) || 0,
               passengerCount: user.passengerCount || user.seatBooked || 1,
-              status: user.status || "pending_approval",
+              status:
+                user.status === "under_review"
+                  ? "pending_approval"
+                  : user.status,
               differenceFromBase: user.differenceFromBase || 0,
               isHighestBidder: user.isHighestBidder || false,
               createdAt: user.createdAt,
@@ -1376,7 +1379,7 @@ export default function BidManagement() {
     setLoading(true);
     try {
       // Convert "approve"/"reject" -> numeric status codes
-      const actionCode = action === "approve" ? "AP" : "R";
+      const actionCode = action === "approved" ? "AP" : "R";
 
       const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
 
