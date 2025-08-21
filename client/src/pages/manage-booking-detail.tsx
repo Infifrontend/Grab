@@ -177,29 +177,59 @@ export default function ManageBookingDetail() {
     try {
       console.log(`Updating passenger details for PNR: ${bookingId}`);
 
-      // Fetch current booking details to get booking info and passengers
-      const bookingResponse = await fetch(`/api/booking-details/${bookingId}`);
-
-      if (!bookingResponse.ok) {
-        throw new Error("Failed to fetch booking details");
-      }
-
-      const bookingData = await bookingResponse.json();
-      console.log("Fetched booking data:", bookingData);
-
-      if (!bookingData.booking) {
-        throw new Error("Booking not found");
-      }
-
-      // Update passengers state with fetched data
-      setPassengers(bookingData.passengers || []);
-
-      // Update booking state (optional, if you need to refresh other booking details)
-      // setBooking(bookingData.booking); // If you have a separate booking state
-
-      message.success(
-        `Successfully updated passenger details for PNR ${bookingId}`,
+      // Filter out passengers with valid data (at least first or last name)
+      const validPassengers = passengers.filter(
+        (p) =>
+          (p.firstName && p.firstName.trim()) ||
+          (p.lastName && p.lastName.trim()),
       );
+
+      console.log(
+        `Saving ${validPassengers.length} passengers:`,
+        validPassengers,
+      );
+
+      if (validPassengers.length === 0) {
+        message.warning("Please enter at least one passenger's name");
+        return;
+      }
+
+      // Save passenger information to database
+      const passengersResponse = await fetch(
+        `/api/booking-passengers/${bookingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            passengers: validPassengers,
+          }),
+        },
+      );
+
+      if (!passengersResponse.ok) {
+        const errorData = await passengersResponse.json().catch(() => ({ message: "Unknown error" }));
+        console.error("Passenger update failed:", errorData);
+        console.error("Response status:", passengersResponse.status);
+        
+        if (passengersResponse.status === 404) {
+          throw new Error(`Booking not found with ID: ${bookingId}. The booking may have expired or been cancelled.`);
+        }
+        
+        throw new Error(errorData.message || "Failed to update passenger information");
+      }
+
+      const responseData = await passengersResponse.json();
+      console.log("Passenger information saved successfully:", responseData);
+
+      message.success("Passenger information saved successfully");
+
+      // Refresh the booking details to reflect the changes
+      console.log("Refetching booking details...");
+      await refetch();
+      console.log("Booking details refetched successfully");
+
     } catch (error) {
       console.error("Error updating passenger details:", error);
       message.error(`Failed to update passenger details: ${error.message}`);
