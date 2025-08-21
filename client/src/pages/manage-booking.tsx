@@ -56,13 +56,8 @@ export default function ManageBooking() {
         url += `?userId=${currentUserId}`;
       }
       
-      console.log("Fetching flight bookings from URL:", url);
       const response = await apiRequest("GET", url);
-      const data = await response.json();
-      console.log("Flight bookings response:", data);
-      
-      // Ensure we return an array
-      return Array.isArray(data) ? data : [];
+      return response.json();
     },
   });
 
