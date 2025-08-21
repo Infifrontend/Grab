@@ -3606,89 +3606,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let retailUsers = [];
       if (retailBidsWithUsers.length > 0) {
         // Convert database retail bids to the expected format
-        retailUsers = await Promise.all(retailBidsWithUsers.map(async (item) => {
-          const retailBid = item.retailBid;
-          const user = item.user;
-          
-          // Get the status name from grab_m_status table
-          let statusName = "Unknown";
-          let statusCode = null;
-          if (retailBid.rStatus) {
-            try {
-              const statusInfo = await biddingStorage.getStatusById(retailBid.rStatus);
-              if (statusInfo) {
-                statusName = statusInfo.statusName;
-                statusCode = statusInfo.statusCode;
-              }
-            } catch (error) {
-              console.error(`Error fetching status for retail bid ${retailBid.id}:`, error);
-            }
-          }
-          
-          const retailUserData = {
-            id: retailBid.id, // Use the retail bid ID as the primary ID
-            userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
-            rUserId: retailBid.rUserId, // The actual user ID (r_user_id field from grab_t_retail_bids table)
-            retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
-            name: user?.name || `User ${retailBid.rUserId}`,
-            email: user?.email || `user${retailBid.rUserId}@email.com`,
-            bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            status: statusName.toLowerCase().replace(/\s+/g, '_'), // Convert to snake_case for consistency
-            statusName: statusName, // Human readable status name
-            statusCode: statusCode, // Status code from grab_m_status
-            rStatus: retailBid.rStatus, // Raw status ID
-            submittedAmount: retailBid.submittedAmount,
-            seatBooked: retailBid.seatBooked,
-            bidAmount: parseFloat(retailBid.submittedAmount || "0"),
-            passengerCount: retailBid.seatBooked || 1,
-            createdAt: retailBid.createdAt,
-            updatedAt: retailBid.updatedAt,
-          };
-          return retailUserData;
-        }));
-      } else {
-        // Check if retail users exist in bid notes (legacy data)
-        try {
-          const notesRetailUsers = configData.retailUsers || [];
-          if (notesRetailUsers.length > 0) {
-            retailUsers = notesRetailUsers;
-          } else {
-            // Generate some sample data if none exists (for development)
-            const names = [
-              "John Smith",
-              "Sarah Johnson",
-              "Mike Wilson",
-              "Emma Davis",
-              "David Brown",
-            ];
-            const domains = [
-              "gmail.com",
-              "yahoo.com",
-              "email.com",
-              "outlook.com",
-            ];
-            const userCount = Math.max(Math.floor(Math.random() * 4) + 2, 3); // 3-5 users
+        retailUsers = await Promise.all(
+          retailBidsWithUsers.map(async (item) => {
+            const retailBid = item.retailBid;
+            const user = item.user;
 
-            for (let i = 0; i < userCount; i++) {
-              const randomIncrement = Math.floor(Math.random() * 100) + 20; // $20-$120 above base
-              retailUsers.push({
-                id: i + 1,
-                name: names[i] || `User ${i + 1}`,
-                email:
-                  `${names[i]?.toLowerCase().replace(" ", ".")}@${domains[i % domains.length]}` ||
-                  `user${i + 1}@email.com`,
-                bookingRef: `GR00123${i + 4}`,
-                seatNumber: `1${2 + i}${String.fromCharCode(65 + i)}`, // 12A, 13B, etc.
-                bidAmount: baseBidAmount + randomIncrement,
-                passengerCount: Math.floor(Math.random() * 3) + 1, // 1-3 passengers
-                status: i === 0 ? "approved" : "pending_approval",
-              });
+            // Get the status name from grab_m_status table
+            let statusName = "Unknown";
+            let statusCode = null;
+            if (retailBid.rStatus) {
+              try {
+                const statusInfo = await biddingStorage.getStatusById(
+                  retailBid.rStatus,
+                );
+                if (statusInfo) {
+                  statusName = statusInfo.statusName;
+                  statusCode = statusInfo.statusCode;
+                }
+              } catch (error) {
+                console.error(
+                  `Error fetching status for retail bid ${retailBid.id}:`,
+                  error,
+                );
+              }
             }
-          }
-        } catch (e) {
-          console.log("Error parsing retail users from notes:", e.message);
-          retailUsers = [];
-        }
+
+            const retailUserData = {
+              id: retailBid.id, // Use the retail bid ID as the primary ID
+              userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
+              rUserId: retailBid.rUserId, // The actual user ID (r_user_id field from grab_t_retail_bids table)
+              retailBidId: retailBid.id, // The grab_t_retail_bids.id for the retail bid record
+              name: user?.name || `User ${retailBid.rUserId}`,
+              email: user?.email || `user${retailBid.rUserId}@email.com`,
+              bookingRef: `GR00${1230 + retailBid.rUserId}`,
+              status: statusName.toLowerCase().replace(/\s+/g, "_"), // Convert to snake_case for consistency
+              statusName: statusName, // Human readable status name
+              statusCode: statusCode, // Status code from grab_m_status
+              rStatus: retailBid.rStatus, // Raw status ID
+              submittedAmount: retailBid.submittedAmount,
+              seatBooked: retailBid.seatBooked,
+              bidAmount: parseFloat(retailBid.submittedAmount || "0"),
+              passengerCount: retailBid.seatBooked || 1,
+              createdAt: retailBid.createdAt,
+              updatedAt: retailBid.updatedAt,
+            };
+            return retailUserData;
+          }),
+        );
+      } else {
+        retailUsers = [];
       }
 
       // Calculate total seats available and booked
