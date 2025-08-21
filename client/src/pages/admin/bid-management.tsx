@@ -598,6 +598,7 @@ export default function BidManagement() {
                 if (!numericBidId) {
                   numericBidId = record.bidId.replace(/\D/g, "");
                 }
+                console.log(record);
 
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
