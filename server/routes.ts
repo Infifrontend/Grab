@@ -2364,13 +2364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/booking-passengers/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { passengers } = req.body;
+      const { passengers: passengerList } = req.body;
 
       console.log(`Updating passengers for booking: ${id}`);
-      console.log(`Passenger data received:`, passengers);
+      console.log(`Passenger data received:`, passengerList);
 
       // Validate input
-      if (!passengers || !Array.isArray(passengers)) {
+      if (!passengerList || !Array.isArray(passengerList)) {
         return res.status(400).json({
           success: false,
           message: "Invalid passenger data provided",
@@ -2438,7 +2438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Found booking with ID: ${booking.id}`);
 
-      // Get existing passengers using direct database query
+      // Get existing passengers using proper table reference
       const existingPassengers = await db
         .select()
         .from(passengers)
@@ -2446,9 +2446,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Found ${existingPassengers.length} existing passengers`);
 
-      // Update existing passengers or create new ones
-      for (let i = 0; i < passengers.length; i++) {
-        const passengerData = passengers[i];
+      // Delete all existing passengers first to avoid conflicts
+      if (existingPassengers.length > 0) {
+        await db
+          .delete(passengers)
+          .where(eq(passengers.bookingId, booking.id));
+        console.log(`Deleted ${existingPassengers.length} existing passengers`);
+      }
+
+      // Insert new passengers
+      let validPassengerCount = 0;
+      for (let i = 0; i < passengerList.length; i++) {
+        const passengerData = passengerList[i];
 
         // Skip empty passenger entries
         if (!passengerData.firstName && !passengerData.lastName) {
@@ -2456,6 +2465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const passengerInfo = {
+          bookingId: booking.id,
           title: passengerData.title || "Mr",
           firstName: passengerData.firstName || "",
           lastName: passengerData.lastName || "",
@@ -2472,40 +2482,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           specialAssistance: passengerData.specialRequests || null,
         };
 
-        if (existingPassengers[i]) {
-          // Update existing passenger using direct database query
-          console.log(`Updating existing passenger ${i + 1}`);
-          await db
-            .update(passengers)
-            .set(passengerInfo)
-            .where(eq(passengers.id, existingPassengers[i].id));
-        } else {
-          // Create new passenger using direct database query
-          console.log(`Creating new passenger ${i + 1}`);
-          await db.insert(passengers).values({
-            bookingId: booking.id,
-            ...passengerInfo,
-          });
-        }
+        console.log(`Creating new passenger ${i + 1}:`, passengerInfo);
+        
+        await db.insert(passengers).values(passengerInfo);
+        validPassengerCount++;
       }
 
-      // Remove excess passengers if the new list is shorter
-      if (existingPassengers.length > passengers.length) {
-        console.log(
-          `Removing ${existingPassengers.length - passengers.length} excess passengers`,
-        );
-        for (let i = passengers.length; i < existingPassengers.length; i++) {
-          await db
-            .delete(passengers)
-            .where(eq(passengers.id, existingPassengers[i].id));
-        }
-      }
-
-      // Update the booking's passenger count to match the actual number of passengers
-      const validPassengerCount = passengers.filter(
-        (p) => p.firstName || p.lastName,
-      ).length;
-
+      // Update the booking's passenger count
       await db
         .update(flightBookings)
         .set({
