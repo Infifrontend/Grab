@@ -1157,7 +1157,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-
       console.log(
         `Updating retail bid ID=${r_bidId} (grab_t_retail_bids.id) for user=${r_userId} on parent bid=${p_bidId} with statusId=${statusId}`,
       );
@@ -1172,7 +1171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // --- FIXED LOGIC START ---
       if (status === "ap") {
         // Get bid details to check seat capacity
-        const bidDetails = await biddingStorage.getBidWithDetails(retailBid.rBidId);
+        const bidDetails = await biddingStorage.getBidWithDetails(
+          retailBid.rBidId,
+        );
 
         if (!bidDetails) {
           return res.status(404).json({
@@ -1182,7 +1183,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Get all retail bids for this bid to calculate seat usage
-        const allRetailBids = await storage.getRetailBidsByBid(retailBid.rBidId);
+        const allRetailBids = await storage.getRetailBidsByBid(
+          retailBid.rBidId,
+        );
         const approvedStatusId = await biddingStorage.getStatusIdByCode("AP");
         const totalSeatsAvailable = bidDetails.totalSeatsAvailable || 50;
 
@@ -1199,12 +1202,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const seatsFromThisBid = retailBid.seatBooked || 0;
         const newApprovedSeats = currentApprovedSeats + seatsFromThisBid;
 
-        console.log(`Approving bid ${r_bidId}: Current approved seats: ${currentApprovedSeats}, This bid seats: ${seatsFromThisBid}, Total after approval: ${newApprovedSeats}, Available seats: ${totalSeatsAvailable}`);
+        console.log(
+          `Approving bid ${r_bidId}: Current approved seats: ${currentApprovedSeats}, This bid seats: ${seatsFromThisBid}, Total after approval: ${newApprovedSeats}, Available seats: ${totalSeatsAvailable}`,
+        );
 
         // Check if approving this bid would exceed capacity
         if (newApprovedSeats > totalSeatsAvailable) {
           // Revert the status update if it exceeds capacity
-          const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
+          const underReviewStatusId =
+            await biddingStorage.getStatusIdByCode("UR");
           await db.execute(sql`
             UPDATE grab_t_retail_bids
             SET r_status = ${underReviewStatusId || 6}, updated_at = now()
@@ -1218,20 +1224,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Calculate remaining seats after approval (only counting approved seats)
-        const seatsRemainingAfterApproval = totalSeatsAvailable - newApprovedSeats;
+        const seatsRemainingAfterApproval =
+          totalSeatsAvailable - newApprovedSeats;
 
         // Auto-reject pending bids that cannot fit in remaining capacity
         const rejectedStatusId = await biddingStorage.getStatusIdByCode("R");
-        const underReviewStatusId = await biddingStorage.getStatusIdByCode("UR");
-        
+        const underReviewStatusId =
+          await biddingStorage.getStatusIdByCode("UR");
+
         let rejectedCount = 0;
         if (rejectedStatusId && underReviewStatusId) {
           for (const otherRetailBid of allRetailBids) {
             // Only reject OTHER pending bids that cannot fit in remaining space after this approval
-            if (otherRetailBid.id !== parseInt(r_bidId) && 
-                otherRetailBid.rStatus === underReviewStatusId &&
-                (otherRetailBid.seatBooked || 0) > seatsRemainingAfterApproval) {
-              await biddingStorage.updateRetailBidStatus(otherRetailBid.id, rejectedStatusId);
+            if (
+              otherRetailBid.id !== parseInt(r_bidId) &&
+              otherRetailBid.rStatus === underReviewStatusId &&
+              (otherRetailBid.seatBooked || 0) > seatsRemainingAfterApproval
+            ) {
+              await biddingStorage.updateRetailBidStatus(
+                otherRetailBid.id,
+                rejectedStatusId,
+              );
               rejectedCount++;
             }
           }
@@ -1239,22 +1252,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if all seats are now taken and close the bid if needed
         if (seatsRemainingAfterApproval === 0) {
-          console.log(`All approved seats taken for bid ${retailBid.rBidId}. Closing bid...`);
-          const closedStatusId = await biddingStorage.getStatusIdByCode("CL") || await biddingStorage.getStatusIdByCode("C");
-          
+          console.log(
+            `All approved seats taken for bid ${retailBid.rBidId}. Closing bid...`,
+          );
+          const closedStatusId =
+            (await biddingStorage.getStatusIdByCode("CL")) ||
+            (await biddingStorage.getStatusIdByCode("C"));
+
           if (closedStatusId) {
-            await biddingStorage.updateBidStatus(retailBid.rBidId, closedStatusId);
+            await biddingStorage.updateBidStatus(
+              retailBid.rBidId,
+              closedStatusId,
+            );
           }
         }
 
         // Send appropriate response message
         let message = `User approved successfully with ${seatsFromThisBid} seat(s). `;
         message += `${seatsRemainingAfterApproval} seats remaining out of ${totalSeatsAvailable} total seats.`;
-        
+
         if (rejectedCount > 0) {
           message += ` ${rejectedCount} pending bid(s) were automatically rejected due to insufficient remaining capacity.`;
         }
-        
+
         if (seatsRemainingAfterApproval === 0) {
           message += ` Bid is now closed - all seats are taken.`;
         }
@@ -1271,7 +1291,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rejectedBidsCount: rejectedCount,
           bidClosed: seatsRemainingAfterApproval === 0,
         });
-      } else { // Handle rejection ('r') case
+      } else {
+        // Handle rejection ('r') case
         // If rejecting, we don't need to check capacity or reject others, just confirm rejection
         res.json({
           success: true,
@@ -1281,7 +1302,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       // --- FIXED LOGIC END ---
-
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       res.status(500).json({
@@ -3597,6 +3617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
+            status: retailBid.status || user.status,
           };
           return retailUserData;
         });
@@ -3924,14 +3945,17 @@ ORDER BY gtb.created_at DESC;
         // Check if bid is fully booked by getting seat availability
         let displayStatus = row.final_status || "Open";
         let statusClass = "status-default";
-        
+
         // Override status if all seats are taken
         const totalSeatsAvailable = row.total_seats_available || 100;
         const seatsAvailable = totalSeatsAvailable - (totalSeatsAvailable || 0); // This will be calculated properly below
-        
+
         // Get actual seat availability for this bid
         try {
-          const bidDetails = biddingStorage.getBidWithDetails(row.bid_id, userId ? parseInt(userId as string) : undefined);
+          const bidDetails = biddingStorage.getBidWithDetails(
+            row.bid_id,
+            userId ? parseInt(userId as string) : undefined,
+          );
           if (bidDetails && bidDetails.availableSeats <= 0) {
             displayStatus = "Closed";
             statusClass = "status-closed";
@@ -3959,7 +3983,10 @@ ORDER BY gtb.created_at DESC;
             }
           }
         } catch (error) {
-          console.warn(`Could not check seat availability for bid ${row.bid_id}:`, error.message);
+          console.warn(
+            `Could not check seat availability for bid ${row.bid_id}:`,
+            error.message,
+          );
           // Fall back to original status mapping
           switch (displayStatus.toLowerCase()) {
             case "under review":
@@ -4572,13 +4599,16 @@ ORDER BY gtb.created_at DESC;
   // Check and update all bid statuses based on seat availability
   app.post("/api/check-and-update-all-bid-statuses", async (req, res) => {
     try {
-      console.log("Checking and updating all bid statuses based on seat availability...");
+      console.log(
+        "Checking and updating all bid statuses based on seat availability...",
+      );
 
       await biddingStorage.checkAndCloseFullyBookedBids();
 
       res.json({
         success: true,
-        message: "Successfully checked and updated all fully booked bids to closed status",
+        message:
+          "Successfully checked and updated all fully booked bids to closed status",
       });
     } catch (error) {
       console.error("Error checking and updating bid statuses:", error);

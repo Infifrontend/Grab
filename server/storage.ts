@@ -50,7 +50,7 @@ import {
   type InsertGrabTBidPayment,
   type GrabTUser,
   type InsertGrabTUser,
-  type GrabMStatus
+  type GrabMStatus,
 } from "../shared/schema.js";
 import { eq, and, gte, lte, like, or, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -82,7 +82,11 @@ export interface IStorage {
   createSearchRequest(request: InsertSearchRequest): Promise<void>;
 
   // Flights
-  getFlights(origin?: string, destination?: string, departureDate?: Date): Promise<Flight[]>;
+  getFlights(
+    origin?: string,
+    destination?: string,
+    departureDate?: Date,
+  ): Promise<Flight[]>;
   getFlight(id: number): Promise<Flight | undefined>;
   createFlight(flight: InsertFlight): Promise<Flight>;
   updateFlightSeats(flightId: number, seatsBooked: number): Promise<void>;
@@ -90,17 +94,29 @@ export interface IStorage {
   // Flight Bookings
   getFlightBookings(userId?: number): Promise<FlightBooking[]>;
   getFlightBooking(id: number): Promise<FlightBooking | undefined>;
-  getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined>;
+  getFlightBookingByReference(
+    reference: string,
+  ): Promise<FlightBooking | undefined>;
   getFlightBookingByPNR(pnr: string): Promise<any>;
   createFlightBooking(booking: InsertFlightBooking): Promise<FlightBooking>;
-  updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void>;
-  updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void>;
+  updateFlightBookingStatus(
+    id: number,
+    status: string,
+    paymentStatus?: string,
+  ): Promise<void>;
+  updateBookingDetails(
+    bookingId: number,
+    updates: { specialRequests?: string },
+  ): Promise<void>;
   getRecentFlightBookings(limit?: number): Promise<FlightBooking[]>;
 
   // Passengers
   getPassengersByBooking(bookingId: number): Promise<Passenger[]>;
   createPassenger(passenger: InsertPassenger): Promise<Passenger>;
-  updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void>;
+  updatePassenger(
+    id: number,
+    passenger: Partial<InsertPassenger>,
+  ): Promise<void>;
 
   // Bids
   getBids(userId?: number): Promise<Bid[]>;
@@ -115,7 +131,12 @@ export interface IStorage {
   getPayment(id: number): Promise<Payment | undefined>;
   getPaymentByReference(reference: string): Promise<Payment | undefined>;
   createPayment(payment: InsertPayment): Promise<Payment>;
-  updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void>;
+  updatePaymentStatus(
+    id: number,
+    status: string,
+    transactionId?: string,
+    failureReason?: string,
+  ): Promise<void>;
 
   // Refunds
   getRefundsByPayment(paymentId: number): Promise<Refund[]>;
@@ -124,21 +145,21 @@ export interface IStorage {
 
   // Bids Statistics
   getBidStatistics(userId?: number): Promise<{
-        totalBids: number;
-        activeBids: number;
-        acceptedBids: number;
-        rejectedBids: number;
-        completedBids: number;
-        totalBidAmount: number;
-        avgBidAmount: number;
+    totalBids: number;
+    activeBids: number;
+    acceptedBids: number;
+    rejectedBids: number;
+    completedBids: number;
+    totalBidAmount: number;
+    avgBidAmount: number;
   }>;
 
   // Payments Statistics
   getPaymentStatistics(userId?: number): Promise<{
-        totalPayments: number;
-        pendingPayments: number;
-        upcomingPayments: number;
-        refundsProcessed: number;
+    totalPayments: number;
+    pendingPayments: number;
+    upcomingPayments: number;
+    refundsProcessed: number;
   }>;
 
   // Payment Management
@@ -150,7 +171,9 @@ export interface IStorage {
   getPaymentsByBidId(bidId: number): Promise<Payment[]>;
 
   // Bid Payment Management (using grab_t_bid_payments)
-  createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment>;
+  createBidPayment(
+    paymentData: InsertGrabTBidPayment,
+  ): Promise<GrabTBidPayment>;
   getBidPaymentsByUser(userId: number): Promise<GrabTBidPayment[]>;
   getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]>;
   updateBidPaymentStatus(paymentId: number, status: number): Promise<void>;
@@ -162,21 +185,27 @@ export interface IStorage {
   updateRetailBidStatus(retailBidId: number, status: string): Promise<any>;
   hasUserPaidForBid(bidId: number, userId: number): Promise<boolean>;
   getRetailBidById(retailBidId: number): Promise<any>;
-  updateRetailBid(bidId: number, userId: number, updateData: any): Promise<void>;
+  updateRetailBid(
+    bidId: number,
+    userId: number,
+    updateData: any,
+  ): Promise<void>;
   updateParentBid(bidId: number, updateData: any): Promise<void>;
 }
 
 // DatabaseStorage is the only storage implementation now
 
 export class DatabaseStorage implements IStorage {
-
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user || undefined;
   }
 
@@ -186,10 +215,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
@@ -199,7 +225,7 @@ export class DatabaseStorage implements IStorage {
 
       const userResults = await db
         .select({
-          isRetailAllowed: grabTUsers.isRetailAllowed
+          isRetailAllowed: grabTUsers.isRetailAllowed,
         })
         .from(grabTUsers)
         .where(eq(grabTUsers.id, userId))
@@ -262,9 +288,10 @@ export class DatabaseStorage implements IStorage {
     }
 
     const allPackages = await db.select().from(packages);
-    return allPackages.filter(pkg =>
-      pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
-      pkg.title.toLowerCase().includes(destination.toLowerCase())
+    return allPackages.filter(
+      (pkg) =>
+        pkg.location.toLowerCase().includes(destination.toLowerCase()) ||
+        pkg.title.toLowerCase().includes(destination.toLowerCase()),
     );
   }
 
@@ -277,7 +304,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBooking(id: number): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id));
     return booking || undefined;
   }
 
@@ -299,12 +329,15 @@ export class DatabaseStorage implements IStorage {
         returnDate: request.returnDate,
         passengers: request.passengers,
         cabin: request.cabin,
-        tripType: request.tripType
+        tripType: request.tripType,
       });
     } catch (error) {
       // If we get a duplicate key error, try to fix the sequence
-      if (error.code === '23505' && error.constraint === 'search_requests_pkey') {
-        console.log('Fixing search_requests sequence...');
+      if (
+        error.code === "23505" &&
+        error.constraint === "search_requests_pkey"
+      ) {
+        console.log("Fixing search_requests sequence...");
 
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
@@ -319,7 +352,7 @@ export class DatabaseStorage implements IStorage {
           returnDate: request.returnDate,
           passengers: request.passengers,
           cabin: request.cabin,
-          tripType: request.tripType
+          tripType: request.tripType,
         });
       } else {
         throw error;
@@ -328,9 +361,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Flights
-  async getFlights(origin?: string, destination?: string, departureDate?: Date) {
+  async getFlights(
+    origin?: string,
+    destination?: string,
+    departureDate?: Date,
+  ) {
     try {
-      console.log(`Searching flights with params:`, { origin, destination, departureDate });
+      console.log(`Searching flights with params:`, {
+        origin,
+        destination,
+        departureDate,
+      });
 
       let conditions = [];
 
@@ -354,8 +395,8 @@ export class DatabaseStorage implements IStorage {
         conditions.push(
           and(
             gte(flights.departureTime, startOfDay),
-            lte(flights.departureTime, endOfDay)
-          )
+            lte(flights.departureTime, endOfDay),
+          ),
         );
       }
 
@@ -375,7 +416,7 @@ export class DatabaseStorage implements IStorage {
           origin: result[0].origin,
           destination: result[0].destination,
           departureTime: result[0].departureTime,
-          price: result[0].price
+          price: result[0].price,
         });
       }
 
@@ -386,7 +427,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getReturnFlights(destination: string, origin: string, returnDate?: Date) {
+  async getReturnFlights(
+    destination: string,
+    origin: string,
+    returnDate?: Date,
+  ) {
     // For return flights, origin and destination are swapped
     return this.getFlights(destination, origin, returnDate);
   }
@@ -401,11 +446,15 @@ export class DatabaseStorage implements IStorage {
     return newFlight;
   }
 
-  async updateFlightSeats(flightId: number, seatsBooked: number): Promise<void> {
+  async updateFlightSeats(
+    flightId: number,
+    seatsBooked: number,
+  ): Promise<void> {
     const flight = await this.getFlight(flightId);
     if (flight) {
       const newAvailableSeats = flight.availableSeats - seatsBooked;
-      await db.update(flights)
+      await db
+        .update(flights)
         .set({ availableSeats: newAvailableSeats })
         .where(eq(flights.id, flightId));
     }
@@ -416,7 +465,10 @@ export class DatabaseStorage implements IStorage {
     if (!userId) {
       return await db.select().from(flightBookings);
     }
-    return await db.select().from(flightBookings).where(eq(flightBookings.userId, userId));
+    return await db
+      .select()
+      .from(flightBookings)
+      .where(eq(flightBookings.userId, userId));
   }
 
   async getRecentFlightBookings(limit: number = 5): Promise<FlightBooking[]> {
@@ -428,12 +480,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFlightBooking(id: number): Promise<FlightBooking | undefined> {
-    const [booking] = await db.select().from(flightBookings).where(eq(flightBookings.id, id));
+    const [booking] = await db
+      .select()
+      .from(flightBookings)
+      .where(eq(flightBookings.id, id));
     return booking || undefined;
   }
 
-  async getFlightBookingByReference(reference: string): Promise<FlightBooking | undefined> {
-    const [booking] = await db.select().from(flightBookings).where(eq(flightBookings.bookingReference, reference));
+  async getFlightBookingByReference(
+    reference: string,
+  ): Promise<FlightBooking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(flightBookings)
+      .where(eq(flightBookings.bookingReference, reference));
     return booking || undefined;
   }
 
@@ -448,11 +508,11 @@ export class DatabaseStorage implements IStorage {
 
   // Generate unique PNR (Passenger Name Record)
   private generatePNR(): string {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const digits = '0123456789';
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const digits = "0123456789";
 
     // Generate format: A1B2C3 (letter-digit-letter-digit-letter-digit)
-    let pnr = '';
+    let pnr = "";
     for (let i = 0; i < 3; i++) {
       const letter = letters[Math.floor(Math.random() * letters.length)];
       const digit = digits[Math.floor(Math.random() * digits.length)];
@@ -462,7 +522,9 @@ export class DatabaseStorage implements IStorage {
     return pnr;
   }
 
-  async createFlightBooking(bookingData: InsertFlightBooking): Promise<FlightBooking> {
+  async createFlightBooking(
+    bookingData: InsertFlightBooking,
+  ): Promise<FlightBooking> {
     // Generate unique PNR if not provided
     let pnr = bookingData.pnr;
     if (!pnr) {
@@ -485,12 +547,18 @@ export class DatabaseStorage implements IStorage {
     const bookingWithPNR = { ...bookingData, pnr };
 
     try {
-      const [newBooking] = await db.insert(flightBookings).values(bookingWithPNR).returning();
+      const [newBooking] = await db
+        .insert(flightBookings)
+        .values(bookingWithPNR)
+        .returning();
       return newBooking;
     } catch (error) {
       // If we get a duplicate key error, try to fix the sequence
-      if (error.code === '23505' && error.constraint === 'flight_bookings_pkey') {
-        console.log('Fixing flight_bookings sequence...');
+      if (
+        error.code === "23505" &&
+        error.constraint === "flight_bookings_pkey"
+      ) {
+        console.log("Fixing flight_bookings sequence...");
 
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
@@ -498,7 +566,10 @@ export class DatabaseStorage implements IStorage {
         `);
 
         // Try the insert again
-        const [newBooking] = await db.insert(flightBookings).values(bookingWithPNR).returning();
+        const [newBooking] = await db
+          .insert(flightBookings)
+          .values(bookingWithPNR)
+          .returning();
         return newBooking;
       } else {
         throw error;
@@ -506,22 +577,33 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFlightBookingStatus(id: number, status: string, paymentStatus?: string): Promise<void> {
+  async updateFlightBookingStatus(
+    id: number,
+    status: string,
+    paymentStatus?: string,
+  ): Promise<void> {
     const updateData: any = { bookingStatus: status, updatedAt: new Date() };
     if (paymentStatus) {
       updateData.paymentStatus = paymentStatus;
     }
-    await db.update(flightBookings).set(updateData).where(eq(flightBookings.id, id));
+    await db
+      .update(flightBookings)
+      .set(updateData)
+      .where(eq(flightBookings.id, id));
   }
 
-  async updateBookingDetails(bookingId: number, updates: { specialRequests?: string }): Promise<void> {
+  async updateBookingDetails(
+    bookingId: number,
+    updates: { specialRequests?: string },
+  ): Promise<void> {
     try {
       console.log(`Updating booking ${bookingId} with:`, updates);
 
-      const result = await db.update(flightBookings)
+      const result = await db
+        .update(flightBookings)
         .set({
           ...updates,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(flightBookings.id, bookingId))
         .returning();
@@ -542,24 +624,30 @@ export class DatabaseStorage implements IStorage {
       .update(flightBookings)
       .set({
         passengerCount: passengerCount,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(flightBookings.id, bookingId));
   }
 
   // Passengers
-  async getPassengersByBooking(bookingId: number): Promise<Passenger[]>{
-    return await db.select().from(passengers).where(eq(passengers.bookingId, bookingId));
+  async getPassengersByBooking(bookingId: number): Promise<Passenger[]> {
+    return await db
+      .select()
+      .from(passengers)
+      .where(eq(passengers.bookingId, bookingId));
   }
 
   async createPassenger(passenger: InsertPassenger): Promise<Passenger> {
     try {
-      const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+      const [newPassenger] = await db
+        .insert(passengers)
+        .values(passenger)
+        .returning();
       return newPassenger;
     } catch (error) {
       // If we get a duplicate key error, try to fix the sequence
-      if (error.code === '23505' && error.constraint === 'passengers_pkey') {
-        console.log('Fixing passengers sequence...');
+      if (error.code === "23505" && error.constraint === "passengers_pkey") {
+        console.log("Fixing passengers sequence...");
 
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
@@ -567,7 +655,10 @@ export class DatabaseStorage implements IStorage {
         `);
 
         // Try the insert again
-        const [newPassenger] = await db.insert(passengers).values(passenger).returning();
+        const [newPassenger] = await db
+          .insert(passengers)
+          .values(passenger)
+          .returning();
         return newPassenger;
       } else {
         throw error;
@@ -575,7 +666,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updatePassenger(id: number, passenger: Partial<InsertPassenger>): Promise<void> {
+  async updatePassenger(
+    id: number,
+    passenger: Partial<InsertPassenger>,
+  ): Promise<void> {
     await db.update(passengers).set(passenger).where(eq(passengers.id, id));
   }
 
@@ -622,7 +716,7 @@ export class DatabaseStorage implements IStorage {
         rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const [bid] = await db
@@ -640,7 +734,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateBidStatus(id: number, status: string): Promise<void> {
     console.log(`Updating bid ${id} status to ${status}`);
-    await db.update(grabTBids).set({ bidStatus: status, updatedAt: new Date() }).where(eq(grabTBids.id, id));
+    await db
+      .update(grabTBids)
+      .set({ bidStatus: status, updatedAt: new Date() })
+      .where(eq(grabTBids.id, id));
   }
 
   async deleteBid(id: number): Promise<void> {
@@ -649,16 +746,25 @@ export class DatabaseStorage implements IStorage {
 
   // Payments
   async getPaymentsByBooking(bookingId: number): Promise<Payment[]> {
-    return await db.select().from(payments).where(eq(payments.bookingId, bookingId));
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.bookingId, bookingId));
   }
 
   async getPayment(id: number): Promise<Payment | undefined> {
-    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, id));
     return payment || undefined;
   }
 
   async getPaymentByReference(reference: string): Promise<Payment | undefined> {
-    const [payment] = await db.select().from(payments).where(eq(payments.paymentReference, reference));
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.paymentReference, reference));
     return payment || undefined;
   }
 
@@ -667,9 +773,14 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async updatePaymentStatus(id: number, status: string, transactionId?: string, failureReason?: string): Promise<void> {
+  async updatePaymentStatus(
+    id: number,
+    status: string,
+    transactionId?: string,
+    failureReason?: string,
+  ): Promise<void> {
     const updateData: any = { paymentStatus: status };
-    if (status === 'completed') {
+    if (status === "completed") {
       updateData.processedAt = new Date();
     }
     if (transactionId) {
@@ -683,7 +794,10 @@ export class DatabaseStorage implements IStorage {
 
   // Refunds
   async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
-    return await db.select().from(refunds).where(eq(refunds.paymentId, paymentId));
+    return await db
+      .select()
+      .from(refunds)
+      .where(eq(refunds.paymentId, paymentId));
   }
 
   async createRefund(refund: InsertRefund): Promise<Refund> {
@@ -693,20 +807,20 @@ export class DatabaseStorage implements IStorage {
 
   async updateRefundStatus(id: number, status: string): Promise<void> {
     const updateData: any = { refundStatus: status };
-    if (status === 'completed') {
+    if (status === "completed") {
       updateData.processedAt = new Date();
     }
     await db.update(refunds).set(updateData).where(eq(refunds.id, id));
   }
 
   async getBidStatistics(userId?: number): Promise<{
-        totalBids: number;
-        activeBids: number;
-        acceptedBids: number;
-        rejectedBids: number;
-        completedBids: number;
-        totalBidAmount: number;
-        avgBidAmount: number;
+    totalBids: number;
+    activeBids: number;
+    acceptedBids: number;
+    rejectedBids: number;
+    completedBids: number;
+    totalBidAmount: number;
+    avgBidAmount: number;
   }> {
     try {
       let query = db.select().from(grabTBids);
@@ -718,13 +832,21 @@ export class DatabaseStorage implements IStorage {
       const allBids = await query;
 
       const totalBids = allBids.length;
-      const activeBids = allBids.filter(bid => bid.bidStatus === 'active').length;
-      const acceptedBids = allBids.filter(bid => bid.bidStatus === 'accepted' || bid.bidStatus === 'approved').length;
-      const rejectedBids = allBids.filter(bid => bid.bidStatus === 'rejected').length;
-      const completedBids = allBids.filter(bid => bid.bidStatus === 'completed').length;
+      const activeBids = allBids.filter(
+        (bid) => bid.bidStatus === "active",
+      ).length;
+      const acceptedBids = allBids.filter(
+        (bid) => bid.bidStatus === "accepted" || bid.bidStatus === "approved",
+      ).length;
+      const rejectedBids = allBids.filter(
+        (bid) => bid.bidStatus === "rejected",
+      ).length;
+      const completedBids = allBids.filter(
+        (bid) => bid.bidStatus === "completed",
+      ).length;
 
       const totalBidAmount = allBids.reduce((sum, bid) => {
-        return sum + (parseFloat(bid.bidAmount?.toString() || "0"));
+        return sum + parseFloat(bid.bidAmount?.toString() || "0");
       }, 0);
 
       const avgBidAmount = totalBids > 0 ? totalBidAmount / totalBids : 0;
@@ -736,7 +858,7 @@ export class DatabaseStorage implements IStorage {
         rejectedBids,
         completedBids,
         totalBidAmount,
-        avgBidAmount
+        avgBidAmount,
       };
     } catch (error) {
       console.error("Error getting bid statistics:", error);
@@ -752,7 +874,7 @@ export class DatabaseStorage implements IStorage {
           amount: payments.amount,
           status: payments.paymentStatus,
           createdAt: payments.createdAt,
-          bookingId: payments.bookingId
+          bookingId: payments.bookingId,
         })
         .from(payments);
 
@@ -766,46 +888,62 @@ export class DatabaseStorage implements IStorage {
 
       // Calculate totals
       const totalPayments = allPayments
-        .filter(p => p.status === 'completed')
-        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
+        .filter((p) => p.status === "completed")
+        .reduce(
+          (sum, payment) => sum + parseFloat(payment.amount.toString()),
+          0,
+        );
 
       const pendingPayments = allPayments
-        .filter(p => p.status === 'pending')
-        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
+        .filter((p) => p.status === "pending")
+        .reduce(
+          (sum, payment) => sum + parseFloat(payment.amount.toString()),
+          0,
+        );
 
       // Calculate upcoming payments (next 30 days)
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
       const upcomingPayments = allPayments
-        .filter(p => p.status === 'pending' && new Date(p.createdAt) <= thirtyDaysFromNow)
-        .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
+        .filter(
+          (p) =>
+            p.status === "pending" &&
+            new Date(p.createdAt) <= thirtyDaysFromNow,
+        )
+        .reduce(
+          (sum, payment) => sum + parseFloat(payment.amount.toString()),
+          0,
+        );
 
       // Get refunds
       const allRefunds = await db
         .select({
           amount: refunds.refundAmount,
-          status: refunds.refundStatus
+          status: refunds.refundStatus,
         })
         .from(refunds);
 
       const refundsProcessed = allRefunds
-        .filter(r => r.status === 'completed')
-        .reduce((sum, refund) => sum + parseFloat(refund.refundAmount.toString()), 0);
+        .filter((r) => r.status === "completed")
+        .reduce(
+          (sum, refund) => sum + parseFloat(refund.refundAmount.toString()),
+          0,
+        );
 
       return {
         totalPayments,
         pendingPayments,
         upcomingPayments,
-        refundsProcessed
+        refundsProcessed,
       };
     } catch (error) {
-      console.error('Error calculating payment statistics:', error);
+      console.error("Error calculating payment statistics:", error);
       return {
         totalPayments: 0,
         pendingPayments: 0,
         upcomingPayments: 0,
-        refundsProcessed: 0
+        refundsProcessed: 0,
       };
     }
   }
@@ -822,7 +960,7 @@ export class DatabaseStorage implements IStorage {
           transactionId: payments.transactionId,
           createdAt: payments.createdAt,
           bookingReference: flightBookings.bookingReference,
-          bookingId: flightBookings.id
+          bookingId: flightBookings.id,
         })
         .from(payments)
         .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id));
@@ -835,26 +973,26 @@ export class DatabaseStorage implements IStorage {
 
       // Filter by status if provided
       let filteredPayments = allPayments;
-      if (statusFilter && statusFilter !== 'All Status') {
-        filteredPayments = allPayments.filter(p =>
-          p.paymentStatus.toLowerCase() === statusFilter.toLowerCase()
+      if (statusFilter && statusFilter !== "All Status") {
+        filteredPayments = allPayments.filter(
+          (p) => p.paymentStatus.toLowerCase() === statusFilter.toLowerCase(),
         );
       }
 
       // Transform to match frontend expectations
-      return filteredPayments.map(payment => ({
+      return filteredPayments.map((payment) => ({
         key: payment.id.toString(),
         paymentId: payment.paymentReference,
         bookingId: payment.bookingReference,
-        date: payment.createdAt.toISOString().split('T')[0],
-        amount: `₹${parseFloat(payment.amount.toString()).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+        date: payment.createdAt.toISOString().split("T")[0],
+        amount: `₹${parseFloat(payment.amount.toString()).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
         type: this.getPaymentType(parseFloat(payment.amount.toString())),
         status: this.capitalizeFirst(payment.paymentStatus),
         method: this.formatPaymentMethod(payment.paymentMethod),
-        transactionId: payment.transactionId || 'N/A'
+        transactionId: payment.transactionId || "N/A",
       }));
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      console.error("Error fetching payments:", error);
       return [];
     }
   }
@@ -868,7 +1006,7 @@ export class DatabaseStorage implements IStorage {
           bookingReference: flightBookings.bookingReference,
           totalAmount: flightBookings.totalAmount,
           paymentStatus: flightBookings.paymentStatus,
-          bookedAt: flightBookings.bookedAt
+          bookedAt: flightBookings.bookedAt,
         })
         .from(flightBookings);
 
@@ -883,7 +1021,7 @@ export class DatabaseStorage implements IStorage {
       let scheduleId = 1000;
 
       for (const booking of bookings) {
-        if (booking.paymentStatus === 'pending') {
+        if (booking.paymentStatus === "pending") {
           const totalAmount = parseFloat(booking.totalAmount.toString());
           const firstPayment = totalAmount * 0.3; // 30% deposit
           const secondPayment = totalAmount * 0.7; // Remaining 70%
@@ -893,9 +1031,9 @@ export class DatabaseStorage implements IStorage {
             key: scheduleId++,
             paymentId: `SCH-${scheduleId}`,
             bookingId: booking.bookingReference,
-            dueDate: new Date().toISOString().split('T')[0],
-            amount: `₹${firstPayment.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-            status: 'Due'
+            dueDate: new Date().toISOString().split("T")[0],
+            amount: `₹${firstPayment.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+            status: "Due",
           });
 
           // Second payment due 30 days later
@@ -905,16 +1043,16 @@ export class DatabaseStorage implements IStorage {
             key: scheduleId++,
             paymentId: `SCH-${scheduleId}`,
             bookingId: booking.bookingReference,
-            dueDate: futureDate.toISOString().split('T')[0],
-            amount: `₹${secondPayment.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-            status: 'Upcoming'
+            dueDate: futureDate.toISOString().split("T")[0],
+            amount: `₹${secondPayment.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+            status: "Upcoming",
           });
         }
       }
 
       return scheduleData;
     } catch (error) {
-      console.error('Error fetching payment schedule:', error);
+      console.error("Error fetching payment schedule:", error);
       return [];
     }
   }
@@ -922,27 +1060,32 @@ export class DatabaseStorage implements IStorage {
   async createPayment(paymentData: any) {
     try {
       // Generate payment reference if not provided
-      const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+      const paymentReference =
+        paymentData.paymentReference ||
+        `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
-      const [payment] = await db.insert(payments).values({
-        bookingId: paymentData.bookingId || null,
-        userId: paymentData.userId || 1,
-        paymentReference: paymentReference,
-        amount: paymentData.amount,
-        currency: paymentData.currency || 'USD',
-        paymentMethod: paymentData.paymentMethod,
-        paymentStatus: paymentData.paymentStatus || 'pending',
-        transactionId: paymentData.transactionId,
-        paymentGateway: paymentData.paymentGateway,
-        processedAt: paymentData.processedAt || new Date(),
-        createdAt: paymentData.createdAt || new Date()
-      }).returning();
+      const [payment] = await db
+        .insert(payments)
+        .values({
+          bookingId: paymentData.bookingId || null,
+          userId: paymentData.userId || 1,
+          paymentReference: paymentReference,
+          amount: paymentData.amount,
+          currency: paymentData.currency || "USD",
+          paymentMethod: paymentData.paymentMethod,
+          paymentStatus: paymentData.paymentStatus || "pending",
+          transactionId: paymentData.transactionId,
+          paymentGateway: paymentData.paymentGateway,
+          processedAt: paymentData.processedAt || new Date(),
+          createdAt: paymentData.createdAt || new Date(),
+        })
+        .returning();
 
       return payment;
     } catch (error) {
       // If we get a duplicate key error, try to fix the sequence
-      if (error.code === '23505' && error.constraint === 'payments_pkey') {
-        console.log('Fixing payments sequence...');
+      if (error.code === "23505" && error.constraint === "payments_pkey") {
+        console.log("Fixing payments sequence...");
 
         // Reset the sequence to the maximum ID + 1
         await db.execute(`
@@ -950,34 +1093,39 @@ export class DatabaseStorage implements IStorage {
         `);
 
         // Try the insert again
-        const paymentReference = paymentData.paymentReference || `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
+        const paymentReference =
+          paymentData.paymentReference ||
+          `PAY-${new Date().getFullYear()}-${nanoid(6)}`;
 
-        const [payment] = await db.insert(payments).values({
-          bookingId: paymentData.bookingId || null,
-          userId: paymentData.userId || 1,
-          paymentReference: paymentReference,
-          amount: paymentData.amount,
-          currency: paymentData.currency || 'USD',
-          paymentMethod: paymentData.paymentMethod,
-          paymentStatus: paymentData.paymentStatus || 'pending',
-          transactionId: paymentData.transactionId,
-          paymentGateway: paymentData.paymentGateway,
-          processedAt: paymentData.processedAt || new Date(),
-          createdAt: paymentData.createdAt || new Date()
-        }).returning();
+        const [payment] = await db
+          .insert(payments)
+          .values({
+            bookingId: paymentData.bookingId || null,
+            userId: paymentData.userId || 1,
+            paymentReference: paymentReference,
+            amount: paymentData.amount,
+            currency: paymentData.currency || "USD",
+            paymentMethod: paymentData.paymentMethod,
+            paymentStatus: paymentData.paymentStatus || "pending",
+            transactionId: paymentData.transactionId,
+            paymentGateway: paymentData.paymentGateway,
+            processedAt: paymentData.processedAt || new Date(),
+            createdAt: paymentData.createdAt || new Date(),
+          })
+          .returning();
 
         return payment;
       } else {
-        console.error('Error creating payment:', error);
+        console.error("Error creating payment:", error);
         throw error;
       }
     }
   }
 
   private getPaymentType(amount: number): string {
-    if (amount < 1000) return 'Deposit';
-    if (amount < 3000) return 'Partial Payment';
-    return 'Full Payment';
+    if (amount < 1000) return "Deposit";
+    if (amount < 3000) return "Partial Payment";
+    return "Full Payment";
   }
 
   private capitalizeFirst(str: string): string {
@@ -986,10 +1134,10 @@ export class DatabaseStorage implements IStorage {
 
   private formatPaymentMethod(method: string): string {
     const methodMap: { [key: string]: string } = {
-      'credit_card': 'Credit Card',
-      'debit_card': 'Debit Card',
-      'bank_transfer': 'Bank Transfer',
-      'paypal': 'PayPal'
+      credit_card: "Credit Card",
+      debit_card: "Debit Card",
+      bank_transfer: "Bank Transfer",
+      paypal: "PayPal",
     };
     return methodMap[method] || method;
   }
@@ -1000,7 +1148,7 @@ export class DatabaseStorage implements IStorage {
       const existingBookings = await db.select().from(flightBookings).limit(5);
 
       if (existingBookings.length === 0) {
-        console.log('No bookings found to create payments for');
+        console.log("No bookings found to create payments for");
         return;
       }
 
@@ -1008,39 +1156,39 @@ export class DatabaseStorage implements IStorage {
         {
           bookingId: existingBookings[0].id,
           paymentReference: `PAY-2024-${nanoid(6)}`,
-          amount: '2500.00',
-          currency: 'INR',
-          paymentMethod: 'credit_card',
-          paymentStatus: 'completed',
-          transactionId: 'txn_' + nanoid(8),
-          paymentGateway: 'stripe'
+          amount: "2500.00",
+          currency: "INR",
+          paymentMethod: "credit_card",
+          paymentStatus: "completed",
+          transactionId: "txn_" + nanoid(8),
+          paymentGateway: "stripe",
         },
         {
           bookingId: existingBookings[1]?.id || existingBookings[0].id,
           paymentReference: `PAY-2024-${nanoid(6)}`,
-          amount: '1500.00',
-          currency: 'INR',
-          paymentMethod: 'bank_transfer',
-          paymentStatus: 'completed',
-          transactionId: 'txn_' + nanoid(8),
-          paymentGateway: 'bank'
+          amount: "1500.00",
+          currency: "INR",
+          paymentMethod: "bank_transfer",
+          paymentStatus: "completed",
+          transactionId: "txn_" + nanoid(8),
+          paymentGateway: "bank",
         },
         {
           bookingId: existingBookings[2]?.id || existingBookings[0].id,
           paymentReference: `PAY-2024-${nanoid(6)}`,
-          amount: '3200.00',
-          currency: 'INR',
-          paymentMethod: 'credit_card',
-          paymentStatus: 'pending',
-          transactionId: 'txn_' + nanoid(8),
-          paymentGateway: 'stripe'
-        }
+          amount: "3200.00",
+          currency: "INR",
+          paymentMethod: "credit_card",
+          paymentStatus: "pending",
+          transactionId: "txn_" + nanoid(8),
+          paymentGateway: "stripe",
+        },
       ];
 
       for (const payment of samplePayments) {
         await db.insert(payments).values({
           ...payment,
-          createdAt: new Date()
+          createdAt: new Date(),
         });
       }
 
@@ -1049,22 +1197,22 @@ export class DatabaseStorage implements IStorage {
         {
           paymentId: 1, // Assuming first payment ID
           refundReference: `REF-2024-${nanoid(6)}`,
-          refundAmount: '500.00',
-          refundReason: 'Cancellation',
-          refundStatus: 'completed'
-        }
+          refundAmount: "500.00",
+          refundReason: "Cancellation",
+          refundStatus: "completed",
+        },
       ];
 
       for (const refund of sampleRefunds) {
         await db.insert(refunds).values({
           ...refund,
-          createdAt: new Date()
+          createdAt: new Date(),
         });
       }
 
-      console.log('Sample payment data seeded successfully');
+      console.log("Sample payment data seeded successfully");
     } catch (error) {
-      console.error('Error seeding payment data:', error);
+      console.error("Error seeding payment data:", error);
     }
   }
 
@@ -1117,7 +1265,7 @@ export class DatabaseStorage implements IStorage {
         rStatus: bidData.rStatus || 4, // Default to 4 (Open)
         notes: bidData.notes,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const [bid] = await db
@@ -1148,7 +1296,7 @@ export class DatabaseStorage implements IStorage {
           maxSeatsPerBid: grabTBids.maxSeatsPerBid,
           rStatus: grabTBids.rStatus,
           createdAt: grabTBids.createdAt,
-          updatedAt: grabTBids.updatedAt
+          updatedAt: grabTBids.updatedAt,
         })
         .from(grabTBids)
         .where(eq(grabTBids.id, bidId))
@@ -1168,7 +1316,7 @@ export class DatabaseStorage implements IStorage {
         const statusResults = await db
           .select({
             id: grabMStatus.id,
-            statusName: grabMStatus.statusName
+            statusName: grabMStatus.statusName,
           })
           .from(grabMStatus)
           .where(eq(grabMStatus.id, bid.rStatus))
@@ -1190,60 +1338,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async migrateToDomesticFlights() {
-    console.log('Starting migration to domestic flights only...');
+    console.log("Starting migration to domestic flights only...");
 
     try {
       // Delete all existing flights
       await db.delete(flights);
-      console.log('Cleared existing flights');
+      console.log("Cleared existing flights");
 
       // Insert only domestic Indian flights
       const domesticFlights = [
         {
-          flightNumber: 'AI101',
-          airline: 'Air India',
-          aircraft: 'Boeing 737',
-          origin: 'Delhi',
-          destination: 'Mumbai',
-          departureTime: new Date('2024-01-20T06:00:00'),
-          arrivalTime: new Date('2024-01-20T08:30:00'),
-          duration: '2h 30m',
-          price: '4500',
+          flightNumber: "AI101",
+          airline: "Air India",
+          aircraft: "Boeing 737",
+          origin: "Delhi",
+          destination: "Mumbai",
+          departureTime: new Date("2024-01-20T06:00:00"),
+          arrivalTime: new Date("2024-01-20T08:30:00"),
+          duration: "2h 30m",
+          price: "4500",
           availableSeats: 180,
           totalSeats: 180,
-          cabin: 'economy',
-          stops: 0
+          cabin: "economy",
+          stops: 0,
         },
         {
-          flightNumber: 'SG201',
-          airline: 'SpiceJet',
-          aircraft: 'Boeing 737',
-          origin: 'Mumbai',
-          destination: 'Bangalore',
-          departureTime: new Date('2024-01-20T09:00:00'),
-          arrivalTime: new Date('2024-01-20T11:00:00'),
-          duration: '2h 0m',
-          price: '3800',
+          flightNumber: "SG201",
+          airline: "SpiceJet",
+          aircraft: "Boeing 737",
+          origin: "Mumbai",
+          destination: "Bangalore",
+          departureTime: new Date("2024-01-20T09:00:00"),
+          arrivalTime: new Date("2024-01-20T11:00:00"),
+          duration: "2h 0m",
+          price: "3800",
           availableSeats: 189,
           totalSeats: 189,
-          cabin: 'economy',
-          stops: 0
+          cabin: "economy",
+          stops: 0,
         },
         {
-          flightNumber: 'UK301',
-          airline: 'Vistara',
-          aircraft: 'Airbus A320',
-          origin: 'Delhi',
-          destination: 'Bangalore',
-          departureTime: new Date('2024-01-20T10:30:00'),
-          arrivalTime: new Date('2024-01-20T13:00:00'),
-          duration: '2h 30m',
-          price: '5200',
+          flightNumber: "UK301",
+          airline: "Vistara",
+          aircraft: "Airbus A320",
+          origin: "Delhi",
+          destination: "Bangalore",
+          departureTime: new Date("2024-01-20T10:30:00"),
+          arrivalTime: new Date("2024-01-20T13:00:00"),
+          duration: "2h 30m",
+          price: "5200",
           availableSeats: 164,
           totalSeats: 164,
-          cabin: 'economy',
-          stops: 0
-        }
+          cabin: "economy",
+          stops: 0,
+        },
       ];
 
       // Insert domestic flights
@@ -1251,28 +1399,30 @@ export class DatabaseStorage implements IStorage {
         await db.insert(flights).values(flight);
       }
 
-      console.log(`Successfully inserted ${domesticFlights.length} domestic flights`);
-
+      console.log(
+        `Successfully inserted ${domesticFlights.length} domestic flights`,
+      );
     } catch (error) {
-      console.error('Migration failed:', error);
+      console.error("Migration failed:", error);
       throw error;
     }
   }
 
   async deletePassenger(passengerId: number): Promise<void> {
-    await db.delete(passengers)
-      .where(eq(passengers.id, passengerId));
+    await db.delete(passengers).where(eq(passengers.id, passengerId));
   }
 
   async updateBookingPassengerCount(bookingId: number, passengerCount: number) {
     try {
-      console.log(`Updating passenger count for booking ${bookingId} to ${passengerCount}`);
+      console.log(
+        `Updating passenger count for booking ${bookingId} to ${passengerCount}`,
+      );
 
       const result = await db
         .update(flightBookings)
         .set({
           passengerCount: passengerCount,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(flightBookings.id, bookingId))
         .returning();
@@ -1281,10 +1431,15 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`No booking found with ID ${bookingId}`);
       }
 
-      console.log(`Successfully updated passenger count for booking ${bookingId}`);
+      console.log(
+        `Successfully updated passenger count for booking ${bookingId}`,
+      );
       return result[0];
     } catch (error) {
-      console.error(`Error updating passenger count for booking ${bookingId}:`, error);
+      console.error(
+        `Error updating passenger count for booking ${bookingId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -1295,7 +1450,7 @@ export class DatabaseStorage implements IStorage {
       ...updateData,
       totalSeatsAvailable: updateData.totalSeatsAvailable || undefined,
       minSeatsPerBid: updateData.minSeatsPerBid || undefined,
-      maxSeatsPerBid: updateData.maxSeatsPerBid || undefined
+      maxSeatsPerBid: updateData.maxSeatsPerBid || undefined,
     };
 
     const [updatedBid] = await db
@@ -1314,9 +1469,9 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(flightBookings, eq(payments.bookingId, flightBookings.id))
         .where(eq(flightBookings.userId, userId));
 
-      return userPayments.map(payment => ({
+      return userPayments.map((payment) => ({
         ...payment.payments,
-        booking: payment.flight_bookings
+        booking: payment.flight_bookings,
       }));
     } catch (error) {
       console.error("Error getting payments by user ID:", error);
@@ -1330,17 +1485,26 @@ export class DatabaseStorage implements IStorage {
 
       // First try to get payments from grab_t_bid_payments table
       try {
-        const bidPayments = await db.select()
+        const bidPayments = await db
+          .select()
           .from(grabTBidPayments)
-          .innerJoin(grabTRetailBids, eq(grabTBidPayments.rRetailBidId, grabTRetailBids.id))
+          .innerJoin(
+            grabTRetailBids,
+            eq(grabTBidPayments.rRetailBidId, grabTRetailBids.id),
+          )
           .where(eq(grabTRetailBids.rBidId, bidId));
 
         if (bidPayments.length > 0) {
-          console.log(`Found ${bidPayments.length} bid payments for bid ${bidId}`);
-          return bidPayments.map(bp => bp.grab_t_bid_payments);
+          console.log(
+            `Found ${bidPayments.length} bid payments for bid ${bidId}`,
+          );
+          return bidPayments.map((bp) => bp.grab_t_bid_payments);
         }
       } catch (bidPaymentError) {
-        console.log("Could not fetch from grab_t_bid_payments:", bidPaymentError.message);
+        console.log(
+          "Could not fetch from grab_t_bid_payments:",
+          bidPaymentError.message,
+        );
       }
 
       // Fallback to legacy payments table if it exists
@@ -1348,24 +1512,33 @@ export class DatabaseStorage implements IStorage {
         const allPayments = await db.select().from(payments);
 
         // Filter payments that are related to this bid
-        const bidRelatedPayments = allPayments.filter(payment => {
+        const bidRelatedPayments = allPayments.filter((payment) => {
           // Check if payment reference or transaction ID contains the bid ID
-          const paymentRef = payment.paymentReference || '';
-          const transactionId = payment.transactionId || '';
+          const paymentRef = payment.paymentReference || "";
+          const transactionId = payment.transactionId || "";
 
           // Also check if bookingId matches (in case bid ID was used as booking ID)
-          const bookingMatches = payment.bookingId && payment.bookingId.toString() === bidId.toString();
+          const bookingMatches =
+            payment.bookingId &&
+            payment.bookingId.toString() === bidId.toString();
 
           // Check if payment reference contains the bid ID
-          const refMatches = paymentRef.includes(bidId.toString()) || transactionId.includes(bidId.toString());
+          const refMatches =
+            paymentRef.includes(bidId.toString()) ||
+            transactionId.includes(bidId.toString());
 
           return bookingMatches || refMatches;
         });
 
-        console.log(`Found ${bidRelatedPayments.length} legacy payments for bid ${bidId}`);
+        console.log(
+          `Found ${bidRelatedPayments.length} legacy payments for bid ${bidId}`,
+        );
         return bidRelatedPayments;
       } catch (paymentsError) {
-        console.log("Could not fetch from payments table:", paymentsError.message);
+        console.log(
+          "Could not fetch from payments table:",
+          paymentsError.message,
+        );
         return [];
       }
     } catch (error) {
@@ -1377,21 +1550,21 @@ export class DatabaseStorage implements IStorage {
   // Fix database sequences to prevent duplicate key errors
   async fixDatabaseSequences() {
     try {
-      console.log('Fixing database sequences...');
+      console.log("Fixing database sequences...");
 
       const sequences = [
-        { name: 'search_requests_id_seq', table: 'search_requests' },
-        { name: 'flights_id_seq', table: 'flights' },
-        { name: 'flight_bookings_id_seq', table: 'flight_bookings' },
-        { name: 'grab_t_bids_id_seq', table: 'grab_t_bids' },
-        { name: 'payments_id_seq', table: 'payments' },
-        { name: 'passengers_id_seq', table: 'passengers' },
-        { name: 'users_id_seq', table: 'users' },
-        { name: 'deals_id_seq', table: 'deals' },
-        { name: 'packages_id_seq', table: 'packages' },
-        { name: 'bookings_id_seq', table: 'bookings' },
-        { name: 'refunds_id_seq', table: 'refunds' },
-        { name: 'notifications_id_seq', table: 'notifications' }
+        { name: "search_requests_id_seq", table: "search_requests" },
+        { name: "flights_id_seq", table: "flights" },
+        { name: "flight_bookings_id_seq", table: "flight_bookings" },
+        { name: "grab_t_bids_id_seq", table: "grab_t_bids" },
+        { name: "payments_id_seq", table: "payments" },
+        { name: "passengers_id_seq", table: "passengers" },
+        { name: "users_id_seq", table: "users" },
+        { name: "deals_id_seq", table: "deals" },
+        { name: "packages_id_seq", table: "packages" },
+        { name: "bookings_id_seq", table: "bookings" },
+        { name: "refunds_id_seq", table: "refunds" },
+        { name: "notifications_id_seq", table: "notifications" },
       ];
 
       for (const seq of sequences) {
@@ -1418,9 +1591,9 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      console.log('Database sequences fixed successfully');
+      console.log("Database sequences fixed successfully");
     } catch (error) {
-      console.error('Error fixing database sequences:', error);
+      console.error("Error fixing database sequences:", error);
       throw error;
     }
   }
@@ -1439,7 +1612,7 @@ export class DatabaseStorage implements IStorage {
           seatBooked: grabTRetailBids.seatBooked,
           rStatus: grabTRetailBids.rStatus,
           createdAt: grabTRetailBids.createdAt,
-          updatedAt: grabTRetailBids.updatedAt
+          updatedAt: grabTRetailBids.updatedAt,
         })
         .from(grabTRetailBids)
         .where(eq(grabTRetailBids.rBidId, bidId))
@@ -1462,14 +1635,17 @@ export class DatabaseStorage implements IStorage {
       const retailBidsWithUsers = await db
         .select({
           retailBid: grabTRetailBids,
-          user: grabTUsers
+          user: grabTUsers,
+          status: grabMStatus,
         })
         .from(grabTRetailBids)
         .leftJoin(grabTUsers, eq(grabTRetailBids.rUserId, grabTUsers.id))
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 
-      console.log(`Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`);
+      console.log(
+        `Found ${retailBidsWithUsers.length} retail bids with user info for bid ${bidId}`,
+      );
       return retailBidsWithUsers;
     } catch (error) {
       console.error("Error getting retail bids with users by bid:", error);
@@ -1477,7 +1653,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateRetailBidStatus(retailBidId: number, status: string): Promise<void> {
+  async updateRetailBidStatus(
+    retailBidId: number,
+    status: string,
+  ): Promise<void> {
     try {
       console.log(`Updating retail bid ${retailBidId} status to: ${status}`);
 
@@ -1485,7 +1664,7 @@ export class DatabaseStorage implements IStorage {
         .update(grabTRetailBids)
         .set({
           status: status,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(grabTRetailBids.id, retailBidId));
 
@@ -1514,22 +1693,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Update retail bid status and details
-  async updateRetailBid(bidId: number, userId: number, updateData: any): Promise<void> {
+  async updateRetailBid(
+    bidId: number,
+    userId: number,
+    updateData: any,
+  ): Promise<void> {
     try {
-      console.log(`Updating retail bid for bidId=${bidId}, userId=${userId}`, updateData);
+      console.log(
+        `Updating retail bid for bidId=${bidId}, userId=${userId}`,
+        updateData,
+      );
 
       await db
         .update(grabTRetailBids)
         .set({
           ...updateData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
-        .where(and(
-          eq(grabTRetailBids.rBidId, bidId),
-          eq(grabTRetailBids.rUserId, userId)
-        ));
+        .where(
+          and(
+            eq(grabTRetailBids.rBidId, bidId),
+            eq(grabTRetailBids.rUserId, userId),
+          ),
+        );
 
-      console.log(`Successfully updated retail bid for bidId=${bidId}, userId=${userId}`);
+      console.log(
+        `Successfully updated retail bid for bidId=${bidId}, userId=${userId}`,
+      );
     } catch (error) {
       console.error("Error updating retail bid:", error);
       throw error;
@@ -1545,7 +1735,7 @@ export class DatabaseStorage implements IStorage {
         .update(grabTBids)
         .set({
           ...updateData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(grabTBids.id, bidId));
 
@@ -1558,7 +1748,9 @@ export class DatabaseStorage implements IStorage {
 
   // Retail Bids
   // Bid Payment Management using grab_t_bid_payments table
-  async createBidPayment(paymentData: InsertGrabTBidPayment): Promise<GrabTBidPayment> {
+  async createBidPayment(
+    paymentData: InsertGrabTBidPayment,
+  ): Promise<GrabTBidPayment> {
     try {
       console.log("Creating bid payment with data:", paymentData);
 
@@ -1590,7 +1782,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBidPaymentsByRetailBid(retailBidId: number): Promise<GrabTBidPayment[]> {
+  async getBidPaymentsByRetailBid(
+    retailBidId: number,
+  ): Promise<GrabTBidPayment[]> {
     try {
       if (!retailBidId || isNaN(retailBidId)) {
         console.warn(`Invalid retail bid ID provided: ${retailBidId}`);
@@ -1611,7 +1805,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateBidPaymentStatus(paymentId: number, status: number): Promise<void> {
+  async updateBidPaymentStatus(
+    paymentId: number,
+    status: number,
+  ): Promise<void> {
     try {
       await db
         .update(grabTBidPayments)
@@ -1644,20 +1841,27 @@ export class DatabaseStorage implements IStorage {
       // Parse configuration data for seat limits
       let configData = {};
       try {
-        configData = bidConfiguration.bid.notes ? JSON.parse(bidConfiguration.bid.notes) : {};
+        configData = bidConfiguration.bid.notes
+          ? JSON.parse(bidConfiguration.bid.notes)
+          : {};
       } catch (e) {
         console.log("Could not parse bid configuration notes, using defaults");
         configData = {};
       }
 
       // Get seat limits from bid configuration
-      const totalSeatsAvailable = bidConfiguration.bid.totalSeatsAvailable || configData.totalSeatsAvailable || 100;
-      const maxSeatsPerUser = bidConfiguration.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
+      const totalSeatsAvailable =
+        bidConfiguration.bid.totalSeatsAvailable ||
+        configData.totalSeatsAvailable ||
+        100;
+      const maxSeatsPerUser =
+        bidConfiguration.bid.maxSeatsPerBid || configData.maxSeatsPerUser || 10;
 
       // Calculate seats already under review or paid for this bid
       const existingRetailBids = await this.getRetailBidsByBid(bid.bidId);
       const seatsUnderReviewOrPaid = existingRetailBids.reduce((sum, rb) => {
-        if (rb.rStatus === 2 || rb.rStatus === 3 || rb.rStatus === 4) { // Assuming 2=under_review, 3=paid, 4=approved
+        if (rb.rStatus === 2 || rb.rStatus === 3 || rb.rStatus === 4) {
+          // Assuming 2=under_review, 3=paid, 4=approved
           return sum + (rb.seatBooked || 0);
         }
         return sum;
@@ -1667,16 +1871,24 @@ export class DatabaseStorage implements IStorage {
 
       // Validation checks
       if (bid.passengerCount > maxSeatsPerUser) {
-        throw new Error(`Passenger count (${bid.passengerCount}) exceeds maximum allowed per user (${maxSeatsPerUser}).`);
+        throw new Error(
+          `Passenger count (${bid.passengerCount}) exceeds maximum allowed per user (${maxSeatsPerUser}).`,
+        );
       }
       if (bid.passengerCount > availableSeats) {
-        throw new Error(`Not enough seats available. ${availableSeats} seats remaining.`);
+        throw new Error(
+          `Not enough seats available. ${availableSeats} seats remaining.`,
+        );
       }
 
       // Check if user has already submitted a bid for this configuration
-      const userExistingBid = existingRetailBids.find(rb => rb.rUserId === bid.userId);
+      const userExistingBid = existingRetailBids.find(
+        (rb) => rb.rUserId === bid.userId,
+      );
       if (userExistingBid) {
-        throw new Error("You have already submitted a bid for this configuration");
+        throw new Error(
+          "You have already submitted a bid for this configuration",
+        );
       }
 
       console.log("Creating retail bid with validation:", {
@@ -1686,7 +1898,7 @@ export class DatabaseStorage implements IStorage {
         submittedAmount: bid.submittedAmount,
         totalSeatsAvailable: totalSeatsAvailable,
         availableSeats: availableSeats,
-        maxSeatsPerUser: maxSeatsPerUser
+        maxSeatsPerUser: maxSeatsPerUser,
       });
 
       // Ensure proper data types before insertion
@@ -1695,7 +1907,7 @@ export class DatabaseStorage implements IStorage {
         rUserId: parseInt(bid.userId),
         submittedAmount: parseFloat(bid.submittedAmount).toString(), // Ensure decimal format
         seatBooked: parseInt(bid.passengerCount),
-        rStatus: 1 // Set initial status (1 = submitted)
+        rStatus: 1, // Set initial status (1 = submitted)
       };
 
       console.log("Validated retail bid data for insertion:", validatedBid);
@@ -1712,8 +1924,11 @@ export class DatabaseStorage implements IStorage {
       console.error("Error creating retail bid:", error);
 
       // Handle potential sequence errors for grab_t_retail_bids table
-      if (error.code === '23505' || error.message.includes('grab_t_retail_bids_id_seq')) {
-        console.log('Fixing grab_t_retail_bids sequence...');
+      if (
+        error.code === "23505" ||
+        error.message.includes("grab_t_retail_bids_id_seq")
+      ) {
+        console.log("Fixing grab_t_retail_bids sequence...");
         try {
           // Create sequence if it doesn't exist
           await db.execute(`
@@ -1730,7 +1945,7 @@ export class DatabaseStorage implements IStorage {
             ALTER TABLE grab_t_retail_bids ALTER COLUMN id SET DEFAULT nextval('grab_t_retail_bids_id_seq');
           `);
 
-          console.log('Retrying retail bid creation after sequence fix...');
+          console.log("Retrying retail bid creation after sequence fix...");
           // Try the insert again without recursion to avoid infinite loops
           const [newRetailBid] = await db
             .insert(grabTRetailBids)
@@ -1739,14 +1954,20 @@ export class DatabaseStorage implements IStorage {
               rUserId: bid.userId, // Use rUserId instead of userId
               submittedAmount: bid.submittedAmount.toString(), // Ensure string format for decimal
               seatBooked: bid.passengerCount, // Use seatBooked instead of passengerCount
-              rStatus: 1 // Set initial status (assuming 1 = submitted)
+              rStatus: 1, // Set initial status (assuming 1 = submitted)
             })
             .returning();
 
-          console.log("Retail bid created successfully after sequence fix:", newRetailBid);
+          console.log(
+            "Retail bid created successfully after sequence fix:",
+            newRetailBid,
+          );
           return newRetailBid;
         } catch (retryError) {
-          console.error("Failed to create retail bid even after sequence fix:", retryError);
+          console.error(
+            "Failed to create retail bid even after sequence fix:",
+            retryError,
+          );
           throw new Error("Failed to submit retail bid due to database issues");
         }
       } else {

@@ -679,13 +679,15 @@ export default function BidManagement() {
                           <div
                             key={user.id}
                             className={`p-4 rounded-md border transition-all shadow-sm grid grid-cols-1 sm:grid-cols-5 gap-4 items-center
-                              ${
-                                user.status === "approved"
-                                  ? "border-green-500 bg-green-50"
-                                  : user.isHighestBidder
-                                    ? "border-yellow-500 bg-yellow-50"
-                                    : "bg-white border"
-                              }
+                             ${
+                               user.status === "approved"
+                                 ? "border-green-500 bg-green-50"
+                                 : user.status === "rejected"
+                                   ? "border-red-500 bg-red-50"
+                                   : user.isHighestBidder
+                                     ? "border-yellow-500 bg-yellow-50"
+                                     : "bg-white border"
+                             }
                             `}
                           >
                             {/* Column 1: User Info */}
@@ -754,10 +756,11 @@ export default function BidManagement() {
                                         `Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
+                                      user.status = "approved";
                                       handleRetailUserAction(
                                         user.retailBidId,
                                         user.rUserId,
-                                        "approve",
+                                        "approved",
                                         record.bidId,
                                       );
                                     }}
@@ -777,10 +780,11 @@ export default function BidManagement() {
                                         `Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
                                       );
                                       console.log("User object:", user);
+                                      user.status = "rejected";
                                       handleRetailUserAction(
                                         user.retailBidId,
                                         user.rUserId,
-                                        "reject",
+                                        "rejected",
                                         record.bidId,
                                       );
                                     }}
