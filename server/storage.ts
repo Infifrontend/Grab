@@ -1640,6 +1640,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(grabTRetailBids)
         .leftJoin(grabTUsers, eq(grabTRetailBids.rUserId, grabTUsers.id))
+        .leftJoin(grabMStatus, eq(grabTRetailBids.rStatus, grabMStatus.id))
         .where(eq(grabTRetailBids.rBidId, bidId))
         .orderBy(desc(grabTRetailBids.createdAt));
 

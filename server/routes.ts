@@ -3606,9 +3606,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let retailUsers = [];
       if (retailBidsWithUsers.length > 0) {
         // Convert database retail bids to the expected format
-        retailUsers = retailBidsWithUsers.map((item) => {
+        retailUsers = await Promise.all(retailBidsWithUsers.map(async (item) => {
           const retailBid = item.retailBid;
           const user = item.user;
+          
+          // Get the status name from grab_m_status table
+          let statusName = "Unknown";
+          let statusCode = null;
+          if (retailBid.rStatus) {
+            try {
+              const statusInfo = await biddingStorage.getStatusById(retailBid.rStatus);
+              if (statusInfo) {
+                statusName = statusInfo.statusName;
+                statusCode = statusInfo.statusCode;
+              }
+            } catch (error) {
+              console.error(`Error fetching status for retail bid ${retailBid.id}:`, error);
+            }
+          }
+          
           const retailUserData = {
             id: retailBid.id, // Use the retail bid ID as the primary ID
             userId: retailBid.rUserId, // The actual user ID from grab_t_retail_bids
@@ -3617,10 +3633,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: user?.name || `User ${retailBid.rUserId}`,
             email: user?.email || `user${retailBid.rUserId}@email.com`,
             bookingRef: `GR00${1230 + retailBid.rUserId}`,
-            status: retailBid.status || user.status,
+            status: statusName.toLowerCase().replace(/\s+/g, '_'), // Convert to snake_case for consistency
+            statusName: statusName, // Human readable status name
+            statusCode: statusCode, // Status code from grab_m_status
+            rStatus: retailBid.rStatus, // Raw status ID
+            submittedAmount: retailBid.submittedAmount,
+            seatBooked: retailBid.seatBooked,
+            bidAmount: parseFloat(retailBid.submittedAmount || "0"),
+            passengerCount: retailBid.seatBooked || 1,
+            createdAt: retailBid.createdAt,
+            updatedAt: retailBid.updatedAt,
           };
           return retailUserData;
-        });
+        }));
       } else {
         // Check if retail users exist in bid notes (legacy data)
         try {
@@ -3710,7 +3735,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bidAmount: user.bidAmount,
             passengerCount: user.passengerCount || 1,
             differenceFromBase: user.bidAmount - baseBidAmount,
-            status: user.status,
+            status: user.status, // Current status (snake_case format)
+            statusName: user.statusName, // Human readable status name
+            statusCode: user.statusCode, // Status code from grab_m_status
+            rStatus: user.rStatus, // Raw status ID
+            submittedAmount: user.submittedAmount,
+            seatBooked: user.seatBooked,
             isHighestBidder: user.bidAmount === highestBidAmount,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
