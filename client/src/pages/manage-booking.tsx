@@ -42,31 +42,33 @@ export default function ManageBooking() {
     queryKey: ["/api/bookings"],
   });
 
-  // Fetch real data from API
-  const { data: flightBookingsData = [] } = useQuery({
+  // Fetch flight bookings data from the database
+  const {
+    data: flightBookingsData = [],
+    refetch: refetchFlightBookings,
+    isLoading: isFlightBookingsLoading,
+  } = useQuery({
     queryKey: ["flight-bookings"],
     queryFn: async () => {
       // Get current user ID if logged in as retail user
       const currentUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
       const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-      
+
       let url = "/api/flight-bookings";
       if (isAuthenticated && currentUserId && !adminMode) {
         // Filter bookings for retail users
         url += `?userId=${currentUserId}`;
       }
-      
-      const response = await apiRequest("GET", url);
-      return response.json();
-    },
-  });
 
-  const {
-    data: flightBookings,
-    refetch: refetchFlightBookings,
-    isLoading: isFlightBookingsLoading,
-  } = useQuery({
-    queryKey: ["/api/flight-bookings"],
+      console.log("Fetching flight bookings from URL:", url);
+      const response = await apiRequest("GET", url);
+      const data = await response.json();
+      console.log("Flight bookings response:", data);
+      console.log("Flight bookings count:", Array.isArray(data) ? data.length : 0);
+
+      // Ensure we return an array
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   // Refresh data when component mounts
@@ -445,8 +447,8 @@ export default function ManageBooking() {
                     width: 120,
                     render: (text) => (
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        text === "Approved Bid" 
-                          ? "bg-green-100 text-green-700" 
+                        text === "Approved Bid"
+                          ? "bg-green-100 text-green-700"
                           : "bg-blue-100 text-blue-700"
                       }`}>
                         {text}

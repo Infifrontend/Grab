@@ -403,32 +403,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
       let bookings;
-      
+
+      console.log(`Fetching flight bookings for userId: ${userId}`);
+
       if (userId) {
         // Filter bookings for specific user (retail user flow)
         const allBookings = await storage.getFlightBookings();
+        console.log(`Total bookings in database: ${allBookings.length}`);
+
         bookings = allBookings.filter((booking) => {
           try {
             // Check if booking was created from an approved bid for this user
             const specialRequests = JSON.parse(booking.specialRequests || "{}");
-            if (specialRequests.bookingSource === "approved_bid" && 
-                specialRequests.userId === parseInt(userId as string)) {
+            if (specialRequests.bookingSource === "approved_bid" &&
+              specialRequests.userId === parseInt(userId as string)) {
+              console.log(`Found approved bid booking for user ${userId}: ${booking.pnr}`);
               return true;
             }
           } catch (e) {
-            // If parsing fails, ignore this booking for user filtering
+            // If parsing fails, continue to check direct booking
           }
-          
+
           // Also include bookings directly associated with the user
-          return booking.userId === parseInt(userId as string);
+          const isDirectBooking = booking.userId === parseInt(userId as string);
+          if (isDirectBooking) {
+            console.log(`Found direct booking for user ${userId}: ${booking.pnr}`);
+          }
+          return isDirectBooking;
         });
+
+        console.log(`Filtered bookings for user ${userId}: ${bookings.length} bookings found`);
+        bookings.forEach(b => console.log(`- ${b.pnr || b.bookingReference}: ${b.bookingStatus}`));
       } else {
-        // Return all bookings (admin view)
+        // Return all bookings (admin view) - fetch directly from database
         bookings = await storage.getFlightBookings();
+        console.log(`Returning all bookings from database: ${bookings.length}`);
+
+        // Log sample booking data for debugging
+        if (bookings.length > 0) {
+          console.log("Sample booking:", {
+            id: bookings[0].id,
+            pnr: bookings[0].pnr,
+            bookingReference: bookings[0].bookingReference,
+            bookingStatus: bookings[0].bookingStatus,
+            createdAt: bookings[0].bookedAt || bookings[0].createdAt
+          });
+        }
       }
-      
+
       res.json(bookings);
     } catch (error) {
+      console.error("Error fetching flight bookings:", error);
       res.status(500).json({ message: "Failed to fetch flight bookings" });
     }
   });
@@ -2483,7 +2508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log(`Creating new passenger ${i + 1}:`, passengerInfo);
-        
+
         await db.insert(passengers).values(passengerInfo);
         validPassengerCount++;
       }

@@ -462,13 +462,26 @@ export class DatabaseStorage implements IStorage {
 
   // Flight Bookings
   async getFlightBookings(userId?: number): Promise<FlightBooking[]> {
-    if (!userId) {
-      return await db.select().from(flightBookings);
+    try {
+      if (!userId) {
+        console.log("Fetching all flight bookings from database...");
+        const results = await db.select().from(flightBookings).orderBy(desc(flightBookings.bookedAt));
+        console.log(`Retrieved ${results.length} total flight bookings from database`);
+        return results;
+      }
+      
+      console.log(`Fetching flight bookings for user ${userId}...`);
+      const results = await db
+        .select()
+        .from(flightBookings)
+        .where(eq(flightBookings.userId, userId))
+        .orderBy(desc(flightBookings.bookedAt));
+      console.log(`Retrieved ${results.length} flight bookings for user ${userId}`);
+      return results;
+    } catch (error) {
+      console.error("Error fetching flight bookings from database:", error);
+      throw error;
     }
-    return await db
-      .select()
-      .from(flightBookings)
-      .where(eq(flightBookings.userId, userId));
   }
 
   async getRecentFlightBookings(limit: number = 5): Promise<FlightBooking[]> {
