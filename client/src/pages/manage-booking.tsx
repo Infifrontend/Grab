@@ -50,18 +50,7 @@ export default function ManageBooking() {
   } = useQuery({
     queryKey: ["/api/flight-bookings"],
     queryFn: async () => {
-      // Get current user ID if logged in as retail user
-      const currentUserId =
-        localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-      const isAuthenticated =
-        localStorage.getItem("isAuthenticated") === "true";
-
-      let url = "/api/flight-bookings";
-      if (isAuthenticated && currentUserId && !adminMode) {
-        // Filter bookings for retail users
-        url += `?userId=${currentUserId}`;
-      }
-
+      const url = "/api/flight-bookings";
       console.log("Fetching flight bookings from URL:", url);
       const response = await apiRequest("GET", url);
       const data = await response.json();
