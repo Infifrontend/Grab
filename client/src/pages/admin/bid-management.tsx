@@ -643,19 +643,6 @@ export default function BidManagement() {
                   highestBidAmount,
                 } = retailData;
 
-                // Filter out dummy/placeholder users who haven't actually placed bids
-                const realRetailUsers = retailUsers.filter((user) => {
-                  // Check if user has valid bid data (not dummy/placeholder)
-                  const hasValidBidAmount = user.bidAmount && user.bidAmount > 0;
-                  const hasValidUserId = user.rUserId && user.rUserId > 0;
-                  const hasRetailBidId = user.retailBidId && user.retailBidId > 0;
-                  const isNotDummyUser = !user.name?.includes("User ") || hasValidBidAmount;
-                  
-                  return hasValidBidAmount && hasValidUserId && hasRetailBidId && isNotDummyUser;
-                });
-
-                const realTotalUsers = realRetailUsers.length;
-
                 return (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Title level={5} className="!mb-4 text-blue-600">
@@ -665,18 +652,18 @@ export default function BidManagement() {
                       <Text className="text-gray-600 text-sm">
                         Base Bid Amount:{" "}
                         <span className="font-semibold">${baseBidAmount}</span>{" "}
-                        | Total Retail Users: {realTotalUsers}
+                        | Total Retail Users: {totalRetailUsers}
                       </Text>
                     </div>
                     <div className="space-y-3">
-                      {realRetailUsers.length === 0 ? (
+                      {retailUsers.length === 0 ? (
                         <div className="text-center py-4">
                           <Text className="text-gray-500">
-                            No retail users have placed bids for this bid configuration yet
+                            No retail users found for this bid
                           </Text>
                         </div>
                       ) : (
-                        realRetailUsers.map((user, index) => (
+                        retailUsers.map((user, index) => (
                           // Display each retail user in a card-like format
                           <div
                             key={user.id}
@@ -797,16 +784,16 @@ export default function BidManagement() {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-200">
                       <Text className="text-gray-500 text-sm">
-                        Total retail users: {realTotalUsers} | Pending
+                        Total retail users: {totalRetailUsers} | Pending
                         approval:{" "}
                         {
-                          realRetailUsers.filter(
+                          retailUsers.filter(
                             (u) => u.status === "pending_approval",
                           ).length
                         }{" "}
                         | Approved:{" "}
                         {
-                          realRetailUsers.filter((u) => u.status === "approved")
+                          retailUsers.filter((u) => u.status === "approved")
                             .length
                         }
                       </Text>
@@ -815,25 +802,8 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Only allow expansion if there are real retail users with actual bids
-                const numericBidId = record.bidId.replace(/^BID0*/, "") || record.bidId.replace(/\D/g, "");
-                const retailData = retailUsersData[numericBidId];
-                
-                if (!retailData || !retailData.retailUsers) {
-                  return false;
-                }
-                
-                // Check if there are real retail users (not dummy/placeholder users)
-                const realRetailUsers = retailData.retailUsers.filter((user) => {
-                  const hasValidBidAmount = user.bidAmount && user.bidAmount > 0;
-                  const hasValidUserId = user.rUserId && user.rUserId > 0;
-                  const hasRetailBidId = user.retailBidId && user.retailBidId > 0;
-                  const isNotDummyUser = !user.name?.includes("User ") || hasValidBidAmount;
-                  
-                  return hasValidBidAmount && hasValidUserId && hasRetailBidId && isNotDummyUser;
-                });
-                
-                return realRetailUsers.length > 0;
+                // Allow expansion for all bids to see retail users
+                return true;
               },
               onExpand: (expanded, record) => {
                 if (expanded) {
@@ -1109,8 +1079,8 @@ export default function BidManagement() {
 
             return {
               id: retailUserId,
-              userId: user.userId || retailUserId,
-              rUserId: user.rUserId,
+              userId: user.userId || retailUserId, // only fallback if missing
+              rUserId: user.rUserId, // ✅ keep original rUserId from API, don’t overwrite
               retailBidId: user.retailBidId || retailUserId,
               name: user.name || `User ${retailUserId}`,
               email: user.email || `user${retailUserId}@email.com`,
@@ -1121,10 +1091,7 @@ export default function BidManagement() {
               bidAmount:
                 parseFloat(user.bidAmount || user.submittedAmount) || 0,
               passengerCount: user.passengerCount || user.seatBooked || 1,
-              status:
-                user.status === "under_review"
-                  ? "pending_approval"
-                  : user.status,
+              status: user.status || "pending_approval",
               differenceFromBase: user.differenceFromBase || 0,
               isHighestBidder: user.isHighestBidder || false,
               createdAt: user.createdAt,
@@ -1356,7 +1323,7 @@ export default function BidManagement() {
     setLoading(true);
     try {
       // Convert "approve"/"reject" -> numeric status codes
-      const actionCode = action === "approved" ? "AP" : "R";
+      const actionCode = action === "approve" ? "AP" : "R";
 
       const numericBidId = parseInt(bidId.replace(/^BID/i, ""), 10);
 
