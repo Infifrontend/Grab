@@ -403,49 +403,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.query;
       let bookings;
-
+      
       if (userId) {
         // Filter bookings for specific user (retail user flow)
         const allBookings = await storage.getFlightBookings();
-        console.log(`Total bookings in database: ${allBookings.length}`);
-
         bookings = allBookings.filter((booking) => {
-          // Check direct user association first
-          const isDirectBooking = booking.userId === parseInt(userId as string);
-          if (isDirectBooking) {
-            console.log(`Found direct booking for user ${userId}: ${booking.pnr || booking.bookingReference}`);
-            return true;
-          }
-
-          // Check if booking was created from an approved bid for this user
           try {
+            // Check if booking was created from an approved bid for this user
             const specialRequests = JSON.parse(booking.specialRequests || "{}");
-            if (specialRequests.bookingSource === "approved_bid" &&
+            if (specialRequests.bookingSource === "approved_bid" && 
                 specialRequests.userId === parseInt(userId as string)) {
-              console.log(`Found approved bid booking for user ${userId}: ${booking.pnr || booking.bookingReference}`);
               return true;
             }
           } catch (e) {
-            // If parsing fails, ignore this condition but don't exclude the booking
+            // If parsing fails, ignore this booking for user filtering
           }
-
-          // Check if the booking reference or PNR contains user information (fallback)
-          const bookingRef = booking.bookingReference || booking.pnr || '';
-          if (bookingRef.includes(userId as string)) {
-            console.log(`Found booking with user reference for user ${userId}: ${booking.pnr || booking.bookingReference}`);
-            return true;
-          }
-
-          return false;
+          
+          // Also include bookings directly associated with the user
+          return booking.userId === parseInt(userId as string);
         });
-
-        console.log(`Filtered bookings for user ${userId}: ${bookings.length} bookings found`);
-        bookings.forEach(b => console.log(`- ${b.pnr || b.bookingReference}: ${b.bookingStatus} (userId: ${b.userId})`));
       } else {
         // Return all bookings (admin view)
         bookings = await storage.getFlightBookings();
       }
-
+      
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch flight bookings" });
@@ -982,7 +963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalSeatsAvailable: row.total_seats_available,
             minSeatsPerBid: row.min_seats_per_bid,
             maxSeatsPerBid: row.max_seats_per_bid,
-            rStatus: row.r_status,
+            rStatus: row.r_status || 4,
             statusName: statusName,
             bidStatus: bidStatus, // Properly mapped status
             createdAt: row.created_at,
@@ -1402,7 +1383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const otherUser = otherUserDetails.rows[0];
 
             const otherBookingReference = `BID-${retailBid.rBidId}-${nanoid(6).toUpperCase()}`;
-            const otherPnr = `${nanoid(6).toUpperCase()}`;
+            const otherPnr = `PNR${nanoid(6).toUpperCase()}`;
 
             const otherBookingData = {
               bookingReference: otherBookingReference,
@@ -2467,7 +2448,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Delete all existing passengers first to avoid conflicts
       if (existingPassengers.length > 0) {
-        await db.delete(passengers).where(eq(passengers.bookingId, booking.id));
+        await db
+          .delete(passengers)
+          .where(eq(passengers.bookingId, booking.id));
         console.log(`Deleted ${existingPassengers.length} existing passengers`);
       }
 
@@ -2500,7 +2483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log(`Creating new passenger ${i + 1}:`, passengerInfo);
-
+        
         await db.insert(passengers).values(passengerInfo);
         validPassengerCount++;
       }
@@ -3873,7 +3856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bookingRef: user.bookingRef,
             seatNumber: user.seatNumber,
             bidAmount: user.bidAmount,
-            passengerCount: user.passengerCount,
+            passengerCount: user.passengerCount || 1,
             differenceFromBase: user.bidAmount - baseBidAmount,
             status: user.status, // Current status (snake_case format)
             statusName: user.statusName, // Human readable status name
@@ -4789,94 +4772,6 @@ ORDER BY gtb.created_at DESC;
       });
     }
   });
-
-  // Debug endpoint to check bookings for specific user
-  app.get("/api/debug/user-bookings/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
-      console.log(`Debug: Fetching bookings for user ${userId}`);
-      const allBookings = await storage.getFlightBookings();
-
-      const userBookings = allBookings.filter((booking) => {
-        const isDirectBooking = booking.userId === parseInt(userId as string);
-        let isBidBooking = false;
-        let hasUserRef = false;
-
-        try {
-          const specialRequests = JSON.parse(booking.specialRequests || "{}");
-          isBidBooking = specialRequests.bookingSource === "approved_bid" &&
-                        specialRequests.userId === parseInt(userId as string);
-        } catch (e) {}
-
-        const bookingRef = booking.bookingReference || booking.pnr || '';
-        hasUserRef = bookingRef.includes(userId as string);
-
-        return isDirectBooking || isBidBooking || hasUserRef;
-      });
-
-      const detailedBookings = userBookings.map((booking) => ({
-        id: booking.id,
-        pnr: booking.pnr,
-        bookingReference: booking.bookingReference,
-        userId: booking.userId,
-        bookingStatus: booking.bookingStatus,
-        paymentStatus: booking.paymentStatus,
-        passengerCount: booking.passengerCount,
-        totalAmount: booking.totalAmount,
-        createdAt: booking.createdAt,
-        specialRequests: booking.specialRequests ? "Has special requests" : "No special requests"
-      }));
-
-      res.json({
-        success: true,
-        userId: parseInt(userId as string),
-        totalBookingsInDb: allBookings.length,
-        userBookingsFound: userBookings.length,
-        bookings: detailedBookings,
-      });
-    } catch (error) {
-      console.error("Debug user bookings error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch debug user booking data",
-        error: error.message,
-      });
-    }
-  });
-
-  // Debug endpoint to check all bookings in database
-  app.get("/api/debug/bookings", async (req, res) => {
-    try {
-      console.log("Debug: Fetching all bookings from database");
-      const allBookings = await storage.getFlightBookings();
-
-      const bookingSummary = allBookings.map((booking) => ({
-        id: booking.id,
-        pnr: booking.pnr,
-        bookingReference: booking.bookingReference,
-        userId: booking.userId,
-        bookingStatus: booking.bookingStatus,
-        paymentStatus: booking.paymentStatus,
-        passengerCount: booking.passengerCount,
-        totalAmount: booking.totalAmount,
-        createdAt: booking.createdAt,
-      }));
-
-      res.json({
-        success: true,
-        totalBookings: allBookings.length,
-        bookings: bookingSummary.slice(0, 20), // Return a sample of 20 bookings
-      });
-    } catch (error) {
-      console.error("Debug bookings error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch debug booking data",
-        error: error.message,
-      });
-    }
-  });
-
 
   const httpServer = createServer(app);
   return httpServer;
