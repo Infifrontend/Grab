@@ -12,16 +12,20 @@ import {
   Progress,
   Upload,
   message,
+  Collapse,
 } from "antd";
 import {
   ArrowLeftOutlined,
   UploadOutlined,
   PlusOutlined,
+  UpOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import BookingSteps from "@/components/booking/booking-steps";
 import BookingSummary from "@/components/booking-summary/booking-summary";
+import { motion } from "framer-motion";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -379,196 +383,229 @@ export default function PassengerInfo() {
 
         {/* Passenger Forms */}
         <div className="space-y-6">
-          {passengers.map((passenger, index) => (
-            <Card key={index} className="passenger-card">
-              <Title level={4} className="!mb-6 text-gray-800">
-                Passenger {index + 1}
-              </Title>
+          {passengers.map((passenger, index) => {
+            const collapseElement = (
+              <Collapse
+                key={`collapse-passenger-${index}`}
+                size="large"
+                expandIconPosition="end"
+                expandIcon={({ isActive }) =>
+                  isActive ? <UpOutlined /> : <DownOutlined />
+                }
+                className="custom-collapse"
+                defaultActiveKey={['passenger1']}
+                destroyInactivePanel
+                items={[
+                  {
+                    key: `passenger${index + 1}`,
+                    label: (<Title level={4} className="!mb-0 text-gray-800">
+                      Passenger {index + 1}
+                    </Title>
+                    ),
+                    children: (
+                      <Form layout="vertical" className="passenger-form">
+                        <Row gutter={24}>
+                          {/* Title */}
+                          <Col xs={24} md={8}>
+                            <Form.Item label="Title" required>
+                              <Select
+                                size="large"
+                                placeholder="Select"
+                                value={passenger.title}
+                                onChange={(value) =>
+                                  handlePassengerChange(index, "title", value)
+                                }
+                              >
+                                <Option value="mr">Mr.</Option>
+                                <Option value="mrs">Mrs.</Option>
+                                <Option value="ms">Ms.</Option>
+                                <Option value="dr">Dr.</Option>
+                                <Option value="prof">Prof.</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
 
-              <Form layout="vertical" className="passenger-form">
-                <Row gutter={24}>
-                  {/* Title */}
-                  <Col xs={24} md={8}>
-                    <Form.Item label="Title" required>
-                      <Select
-                        size="large"
-                        placeholder="Select"
-                        value={passenger.title}
-                        onChange={(value) =>
-                          handlePassengerChange(index, "title", value)
-                        }
-                      >
-                        <Option value="mr">Mr.</Option>
-                        <Option value="mrs">Mrs.</Option>
-                        <Option value="ms">Ms.</Option>
-                        <Option value="dr">Dr.</Option>
-                        <Option value="prof">Prof.</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
+                          {/* First Name */}
+                          <Col xs={24} md={8}>
+                            <Form.Item label="First Name" required>
+                              <Input
+                                size="large"
+                                placeholder="First name"
+                                value={passenger.firstName}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "firstName",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
 
-                  {/* First Name */}
-                  <Col xs={24} md={8}>
-                    <Form.Item label="First Name" required>
-                      <Input
-                        size="large"
-                        placeholder="First name"
-                        value={passenger.firstName}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "firstName",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
+                          {/* Last Name */}
+                          <Col xs={24} md={8}>
+                            <Form.Item label="Last Name" required>
+                              <Input
+                                size="large"
+                                placeholder="Last name"
+                                value={passenger.lastName}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "lastName",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-                  {/* Last Name */}
-                  <Col xs={24} md={8}>
-                    <Form.Item label="Last Name" required>
-                      <Input
-                        size="large"
-                        placeholder="Last name"
-                        value={passenger.lastName}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "lastName",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                        <Row gutter={24}>
+                          {/* Date of Birth */}
+                          <Col xs={24} md={12}>
+                            <Form.Item label="Date of Birth" required>
+                              <DatePicker
+                                size="large"
+                                placeholder="DD MMM YYYY"
+                                format="DD MMM YYYY"
+                                className="w-full"
+                                value={
+                                  passenger.dateOfBirth
+                                    ? dayjs(passenger.dateOfBirth)
+                                    : null
+                                }
+                                onChange={(date) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "dateOfBirth",
+                                    date ? date.toISOString() : ""
+                                  )
+                                }
+                                disabledDate={(current) =>
+                                  current && current.isAfter(dayjs(), "day")
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
 
-                <Row gutter={24}>
-                  {/* Date of Birth */}
-                  <Col xs={24} md={12}>
-                    <Form.Item label="Date of Birth" required>
-                      <DatePicker
-                        size="large"
-                        placeholder="DD MMM YYYY"
-                        format="DD MMM YYYY"
-                        className="w-full"
-                        value={
-                          passenger.dateOfBirth
-                            ? dayjs(passenger.dateOfBirth)
-                            : null
-                        }
-                        onChange={(date) =>
-                          handlePassengerChange(
-                            index,
-                            "dateOfBirth",
-                            date ? date.toISOString() : ""
-                          )
-                        }
-                        disabledDate={(current) =>
-                          current && current.isAfter(dayjs(), "day")
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
+                          {/* Nationality */}
+                          <Col xs={24} md={12}>
+                            <Form.Item label="Nationality" required>
+                              <Select
+                                size="large"
+                                placeholder="Select nationality"
+                                showSearch
+                                value={passenger.nationality}
+                                onChange={(value) =>
+                                  handlePassengerChange(index, "nationality", value)
+                                }
+                              >
+                                <Option value="us">United States</Option>
+                                <Option value="uk">United Kingdom</Option>
+                                <Option value="ca">Canada</Option>
+                                <Option value="au">Australia</Option>
+                                <Option value="de">Germany</Option>
+                                <Option value="fr">France</Option>
+                                <Option value="jp">Japan</Option>
+                                <Option value="in">India</Option>
+                                <Option value="br">Brazil</Option>
+                                <Option value="mx">Mexico</Option>
+                                <Option value="it">Italy</Option>
+                                <Option value="es">Spain</Option>
+                                <Option value="other">Other</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-                  {/* Nationality */}
-                  <Col xs={24} md={12}>
-                    <Form.Item label="Nationality" required>
-                      <Select
-                        size="large"
-                        placeholder="Select nationality"
-                        showSearch
-                        value={passenger.nationality}
-                        onChange={(value) =>
-                          handlePassengerChange(index, "nationality", value)
-                        }
-                      >
-                        <Option value="us">United States</Option>
-                        <Option value="uk">United Kingdom</Option>
-                        <Option value="ca">Canada</Option>
-                        <Option value="au">Australia</Option>
-                        <Option value="de">Germany</Option>
-                        <Option value="fr">France</Option>
-                        <Option value="jp">Japan</Option>
-                        <Option value="in">India</Option>
-                        <Option value="br">Brazil</Option>
-                        <Option value="mx">Mexico</Option>
-                        <Option value="it">Italy</Option>
-                        <Option value="es">Spain</Option>
-                        <Option value="other">Other</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
+                        <Row gutter={24}>
+                          {/* Passport Number */}
+                          <Col xs={24} md={12}>
+                            <Form.Item label="Passport Number" required>
+                              <Input
+                                size="large"
+                                placeholder="Passport number"
+                                value={passenger.passportNumber}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "passportNumber",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
 
-                <Row gutter={24}>
-                  {/* Passport Number */}
-                  <Col xs={24} md={12}>
-                    <Form.Item label="Passport Number" required>
-                      <Input
-                        size="large"
-                        placeholder="Passport number"
-                        value={passenger.passportNumber}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "passportNumber",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
+                          {/* Passport Expiry */}
+                          <Col xs={24} md={12}>
+                            <Form.Item label="Passport Expiry" required>
+                              <DatePicker
+                                size="large"
+                                placeholder="DD MMM YYYY"
+                                format="DD MMM YYYY"
+                                className="w-full"
+                                value={
+                                  passenger.passportExpiry
+                                    ? dayjs(passenger.passportExpiry)
+                                    : null
+                                }
+                                onChange={(date) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "passportExpiry",
+                                    date ? date.toISOString() : ""
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-                  {/* Passport Expiry */}
-                  <Col xs={24} md={12}>
-                    <Form.Item label="Passport Expiry" required>
-                      <DatePicker
-                        size="large"
-                        placeholder="DD MMM YYYY"
-                        format="DD MMM YYYY"
-                        className="w-full"
-                        value={
-                          passenger.passportExpiry
-                            ? dayjs(passenger.passportExpiry)
-                            : null
-                        }
-                        onChange={(date) =>
-                          handlePassengerChange(
-                            index,
-                            "passportExpiry",
-                            date ? date.toISOString() : ""
-                          )
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                        {/* Special Requests */}
+                        <Row gutter={24}>
+                          <Col xs={24}>
+                            <Form.Item label="Special Requests">
+                              <TextArea
+                                rows={4}
+                                placeholder="Any special dietary requirements, accessibility needs, etc."
+                                value={passenger.specialRequests}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "specialRequests",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </Form>
 
-                {/* Special Requests */}
-                <Row gutter={24}>
-                  <Col xs={24}>
-                    <Form.Item label="Special Requests">
-                      <TextArea
-                        rows={4}
-                        placeholder="Any special dietary requirements, accessibility needs, etc."
-                        value={passenger.specialRequests}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "specialRequests",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </Form>
-            </Card>
-          ))}
+                    ),
+                  },
+                ]}
+              />
+            )
+            if (index === 0) {
+              return collapseElement;
+            }
 
+            return (
+              <motion.div
+                key={`motion-collapse-${index}`}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                {collapseElement}
+              </motion.div>
+            );
+          })}
           {/* Add Another Passenger Button */}
           <div className="text-center">
             <Button

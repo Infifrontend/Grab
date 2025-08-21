@@ -61,7 +61,9 @@
         "colorErrorActive": "rgba(255,38,5,0.06)",
         "colorWarningActive": "rgba(255,215,5,0.1)",
         "hoverBg": "#ffffff",
-        "activeBg": "#ffffff"
+        "activeBg": "#ffffff",
+        "hoverBorderColor": "#80206a",
+        "activeBorderColor":"#80206a"
       },
       "Radio": {
         "colorPrimary": "#2a0a22",
@@ -106,7 +108,9 @@
         "multipleItemBorderColorDisabled": "transparent",
         "colorPrimaryHover": "#36152c",
         "colorPrimary": "#2a0a22",
-        "colorPrimaryActive": "rgba(13,2,8,0.62)"
+        "colorPrimaryActive": "rgba(13,2,8,0.62)",
+        "hoverBorderColor": "#80206a",
+        "activeBorderColor":"#80206a"
       },
       "DatePicker": {
         "paddingBlock": 8,
@@ -128,10 +132,14 @@
         "multipleItemBorderColor": "transparent",
         "multipleItemColorDisabled": "rgba(0,0,0,0.25)",
         "multipleItemBorderColorDisabled": "transparent",
-        "multipleSelectorBgDisabled": "rgba(0,0,0,0.04)"
+        "multipleSelectorBgDisabled": "rgba(0,0,0,0.04)",
+        "hoverBorderColor": "#80206a",
+        "activeBorderColor":"#80206a"
       },
-      "InputNumber": {
-        "paddingBlock": 8
+       "InputNumber": {
+        "paddingBlock": 8,
+        "hoverBorderColor": "#80206a",
+        "activeBorderColor":"#80206a"
       }
     },
     "token": {

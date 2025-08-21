@@ -269,7 +269,8 @@ export default function GroupLeader() {
             {/* Personal Information */}
             <div>
               <Title level={4} className="!mb-6 text-gray-800">
-                Personal Information
+                <em className="infi-icon_3_Adult text-[var(--ant-color-primary)] mr-2"></em>
+                Personal Information 
               </Title>
 
               <Row gutter={24}>
@@ -346,6 +347,7 @@ export default function GroupLeader() {
 
         <Card className="mb-6">
           <Title level={4} className="!mb-6 text-gray-800">
+          <em className="infi-icon_8_flightInfo text-[var(--ant-color-primary)] mr-2"></em>
             Review Your Booking
           </Title>
 
@@ -443,9 +445,10 @@ export default function GroupLeader() {
 
           {/* Selected Services */}
           <div className="mb-4">
-            <Text className="text-gray-500 text-sm block mb-3">
+            <Title level={4} className="!mb-6 text-gray-800">
+            <em className="infi-icon_9_meal text-[var(--ant-color-primary)] mr-2"></em>
               Selected Services
-            </Text>
+            </Title>
             <Space direction="vertical" size="small" className="w-full">
               {selectedServices.length > 0 ? (
                 selectedServices.map((service, index) => (
@@ -520,7 +523,7 @@ export default function GroupLeader() {
             onClick={handleBack}
             className="text-gray-600 hover:text-gray-800"
           >
-            Back
+            Back to Add Services
           </Button>
 
           <Button

@@ -463,6 +463,8 @@ export default function Bids() {
         return "orange";
       case "Under Review":
         return "blue";
+      case "Closed":
+        return "volcano";
       case "Accepted":
         return "green";
       case "Declined":
@@ -477,10 +479,12 @@ export default function Bids() {
         return "blue";
       case "Approved":
         return "green";
-      case "Rejected":
-        return "red";
+      case "Reject":
+        return "error";
       case "Completed":
         return "blue";
+      case "Processing":
+        return "processing"
       default:
         return "default";
     }
@@ -493,13 +497,13 @@ export default function Bids() {
       case "Accepted for Booking":
         return "green";
       case "Payment Completed":
-        return "blue";
+        return "success";
       case "Converted to Booking":
-        return "green";
+        return "blue";
       case "Refunded":
         return "orange";
       case "Pending":
-        return "orange";
+        return "processing";
       case "Open":
         return "orange";
       default:
@@ -620,7 +624,7 @@ export default function Bids() {
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag color={getStatusColor(status)}>{status}</Tag>
+        <Tag color={getPaymentColor(status)}>{status}</Tag>
       ),
     },
     {
@@ -762,7 +766,7 @@ export default function Bids() {
           {/* Search and Filter */}
           <Card>
             <Title level={4} className="!mb-4 flex items-center">
-              <FilterOutlined className="mr-2" />
+              <em className="infi-icon_6_filter text-2xl text-[var(--ant-color-primary)] mr-2"></em>
               Search & Filter Bids
             </Title>
 

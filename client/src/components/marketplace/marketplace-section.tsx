@@ -81,10 +81,9 @@ export default function MarketplaceSection() {
             </Col>
             <Col xs={24} sm={3}>
               <Button
-                type="primary"
+                style={{ backgroundColor: "var(--infiniti-primary-header)" }}
                 onClick={handleSearch}
-                className="infiniti-btn-primary w-full"
-              >
+                className="infiniti-btn-primary w-full text-white hover:!text-white" >
                 Search
               </Button>
             </Col>

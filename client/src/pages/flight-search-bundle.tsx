@@ -22,6 +22,7 @@ import {
   ArrowLeftOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
+  ClearOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
@@ -210,6 +211,8 @@ export default function FlightSearchBundle() {
   const [kids, setKids] = useState(0);
   const [infants, setInfants] = useState(0);
   const [cabin, setCabin] = useState("economy");
+  //button loading control
+  const [btnLoading, setBtnLoading] = useState(false);
 
   // Get trip type from bookingFormData (from QuickBooking form)
   const [tripType, setTripType] = useState<string>("roundTrip");
@@ -347,6 +350,7 @@ export default function FlightSearchBundle() {
   // Initial flight search if no results are loaded
   const handleInitialFlightSearch = async (criteria: any) => {
     try {
+       setBtnLoading(true);
       console.log("Performing initial flight search with criteria:", criteria);
       
       const searchData = {
@@ -419,6 +423,8 @@ export default function FlightSearchBundle() {
       }
     } catch (error) {
       console.error("Error in initial flight search:", error);
+    } finally {
+      setBtnLoading(false); // remove loading state
     }
   };
 
@@ -692,7 +698,7 @@ export default function FlightSearchBundle() {
   ]);
 
   const handleBackToTripDetails = () => {
-    navigate("/");
+    adminMode ? navigate("/admin/bookings", { state: { activeTab: "create-booking" } }) :navigate("/");
   };
 
   const handleContinue = () => {
@@ -760,6 +766,7 @@ export default function FlightSearchBundle() {
     }
 
     try {
+      setBtnLoading(true);
       const totalPassengers = adults + kids + infants;
 
       if (totalPassengers <= 0) {
@@ -975,6 +982,8 @@ export default function FlightSearchBundle() {
     } catch (error) {
       console.error("Error searching flights:", error);
       // Keep existing flights if API call fails
+    } finally {
+      setBtnLoading(false); // remove loading state
     }
   };
 
@@ -1099,10 +1108,10 @@ export default function FlightSearchBundle() {
     onSelect: () => void;
   }) => (
     <div
-      className={`p-4 border rounded-lg cursor-pointer transition-all mb-3 ${
+      className={`p-4 border rounded-lg cursor-pointer transition-all mb-3 border-gray-300 ${
         isSelected
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 hover:border-gray-300"
+          ? "border-blue-500 bg-blue-50 shadow-md"
+          : "border-gray-200 hover:border-transparent hover:shadow-xl"
       }`}
       onClick={onSelect}
     >
@@ -1339,9 +1348,7 @@ export default function FlightSearchBundle() {
                           .toLowerCase()
                           .includes(input.toLowerCase())
                       }
-                      suffixIcon={
-                        <EnvironmentOutlined className="text-gray-400" />
-                      }
+                     suffixIcon={<em className="infi-icon_1_departure text-gray-400 text-xl"></em>}
                       notFoundContent="No locations found"
                       className="w-full"
                     >
@@ -1369,9 +1376,7 @@ export default function FlightSearchBundle() {
                           .toLowerCase()
                           .includes(input.toLowerCase())
                       }
-                      suffixIcon={
-                        <EnvironmentOutlined className="text-gray-400" />
-                      }
+                      suffixIcon={<em className="infi-icon_2_arrival text-gray-400 text-xl"></em>}
                       notFoundContent="No locations found"
                       className="w-full"
                     >
@@ -1386,7 +1391,7 @@ export default function FlightSearchBundle() {
                 <Col xs={24} md={6}>
                   <div>
                     <Text className="text-gray-600 text-sm block mb-1">
-                      Departure Date
+                      Departure Date *
                     </Text>
                     <DatePicker
                       value={departureDate}
@@ -1442,56 +1447,7 @@ export default function FlightSearchBundle() {
 
               {/* Passengers and Cabin Row */}
               <Row gutter={[16, 16]} className="mb-4">
-                <Col xs={24} md={18}>
-                  <Text className="text-gray-600 text-sm block mb-2">
-                    Passengers
-                  </Text>
-                  <Row gutter={[16, 8]}>
-                    <Col xs={8} md={6}>
-                      <div>
-                        <Text className="text-gray-700 text-sm block mb-1">
-                          Adults (12+ years)
-                        </Text>
-                        <InputNumber
-                          min={0}
-                          value={adults}
-                          onChange={(value) => setAdults(value || 0)}
-                          className="w-full"
-                          placeholder="0"
-                        />
-                      </div>
-                    </Col>
-                    <Col xs={8} md={6}>
-                      <div>
-                        <Text className="text-gray-700 text-sm block mb-1">
-                          Kids (2-11 years)
-                        </Text>
-                        <InputNumber
-                          min={0}
-                          value={kids}
-                          onChange={(value) => setKids(value || 0)}
-                          className="w-full"
-                          placeholder="0"
-                        />
-                      </div>
-                    </Col>
-                    <Col xs={8} md={6}>
-                      <div>
-                        <Text className="text-gray-700 text-sm block mb-1">
-                          Infants (0-2 years)
-                        </Text>
-                        <InputNumber
-                          min={0}
-                          value={infants}
-                          onChange={(value) => setInfants(value || 0)}
-                          className="w-full"
-                          placeholder="0"
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Col>
-                <Col xs={24} md={6}>
+               <Col xs={24} md={6}>
                   <div>
                     <Text className="text-gray-600 text-sm block mb-1">
                       Cabin *
@@ -1508,6 +1464,61 @@ export default function FlightSearchBundle() {
                     </Select>
                   </div>
                 </Col>
+                <Col xs={24} md={18}>
+                  <Text className="text-gray-600 text-sm block mb-1">
+                    Passengers *
+                  </Text>
+                  <Row gutter={[16, 8]}>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <InputNumber
+                          min={0}
+                          value={adults}
+                          onChange={(value) => setAdults(value || 0)}
+                          className="w-full"
+                          placeholder="0"
+                          controls={false}
+                          suffix={<em className="infi-icon_3_Adult text-gray-400 text-xl"></em>}
+                        />
+                        <Text className="text-gray-700 text-sm block mt-1">
+                          Adults (12+ years)
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <InputNumber
+                          min={0}
+                          value={kids}
+                          onChange={(value) => setKids(value || 0)}
+                          className="w-full"
+                          placeholder="0"
+                          controls={false}
+                          suffix={<em className="infi-icon_4_Children text-gray-400 text-xl"></em>}
+                        />
+                        <Text className="text-gray-700 text-sm block mt-1">
+                          Kids (2-11 years)
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col xs={8} md={6}>
+                      <div>
+                        <InputNumber
+                          min={0}
+                          value={infants}
+                          onChange={(value) => setInfants(value || 0)}
+                          className="w-full"
+                          placeholder="0"
+                          controls={false}
+                          suffix={<em className="infi-icon_5_Infant text-gray-400 text-xl"></em>}
+                        />
+                        <Text className="text-gray-700 text-sm block mt-1">
+                          Infants (0-2 years)
+                        </Text>
+                      </div>
+                    </Col>
+                  </Row>
+                </Col>
               </Row>
 
               {/* Action Buttons */}
@@ -1517,8 +1528,9 @@ export default function FlightSearchBundle() {
                     type="primary"
                     onClick={handleSearchFlights}
                     className="infiniti-btn-primary"
+                     loading={btnLoading}
                   >
-                    Search Flights
+                    {btnLoading? "Searching Flights...": "Search Flight"}
                   </Button>
                 </Col>
                 <Col>
@@ -1535,8 +1547,8 @@ export default function FlightSearchBundle() {
             <div className="sticky top-6">
               <Card>
                 <div className="mb-6">
-                  <Title level={4} className="!mb-4 text-gray-800">
-                    🔍 Search & Filters
+                  <Title level={4} className="!mb-4 text-gray-800 ">
+                     <em className="infi-icon_6_filter text-2xl text-[var(--ant-color-primary)] mr-2"></em>Search & Filters
                   </Title>
 
                   {/* Sort By */}
@@ -1562,7 +1574,7 @@ export default function FlightSearchBundle() {
                   {/* Price Range */}
                   <div className="mb-6">
                     <Text className="text-gray-700 font-medium block mb-3">
-                      💰 Price Range
+                       Price Range
                     </Text>
                     <Slider
                       range
@@ -1610,7 +1622,7 @@ export default function FlightSearchBundle() {
                   {/* Departure Time */}
                   <div className="mb-6">
                     <Text className="text-gray-700 font-medium block mb-3">
-                      🕐 Departure Time
+                      Departure Time
                     </Text>
                     <Select
                       value={departureTime}
@@ -1637,7 +1649,7 @@ export default function FlightSearchBundle() {
                   {/* Max Stops */}
                   <div className="mb-6">
                     <Text className="text-gray-700 font-medium block mb-3">
-                      ✈️ Stops
+                      Stops
                     </Text>
                     <Select
                       value={maxStops}
@@ -1656,7 +1668,7 @@ export default function FlightSearchBundle() {
                   {/* Max Duration */}
                   <div className="mb-6">
                     <Text className="text-gray-700 font-medium block mb-3">
-                      ⏱️ Flight Duration
+                       Flight Duration
                     </Text>
                     <Select
                       value={maxDuration}
@@ -1678,7 +1690,7 @@ export default function FlightSearchBundle() {
                     className="p-0 text-blue-600"
                     onClick={handleClearFilters}
                   >
-                    Clear All Filters
+                  <ClearOutlined />  Clear All Filters
                   </Button>
                 </div>
               </Card>
@@ -1693,7 +1705,6 @@ export default function FlightSearchBundle() {
                   level={3}
                   className="!mb-2 text-gray-900 flex items-center gap-2"
                 >
-                  <span className="text-blue-600">✈️</span>
                   Available Flights
                 </Title>
                 <Text className="text-gray-600">
@@ -1712,12 +1723,17 @@ export default function FlightSearchBundle() {
                       key: "outbound",
                       label: (
                         <span className="flex items-center gap-2">
-                          <span>🛫</span>
+                         <em className="infi-icon_1_departure text-[var(--ant-color-primary)] text-xl"></em>
                           Outbound Flight
                           <Badge
                             count={filteredFlights.length}
                             style={{
                               backgroundColor: "var(--ant-color-success)",
+                                  borderRadius: 100,     
+                                  padding: "0",   
+                                  height: "20px",
+                                  width:"20px",     
+                                  lineHeight: "20px", 
                             }}
                           />
                         </span>
@@ -1743,6 +1759,7 @@ export default function FlightSearchBundle() {
                                 No outbound flights found for your search
                                 criteria. Try adjusting your filters or search parameters.
                               </Text>
+                              <em className="infi-icon_7_noFlight text-5xl text-[var(--infiniti-primary-header)] mt-2 block"></em>
                             </div>
                           )}
                         </div>
@@ -1752,12 +1769,16 @@ export default function FlightSearchBundle() {
                       key: "return",
                       label: (
                         <span className="flex items-center gap-2">
-                          <span>🛬</span>
+                         <em className="infi-icon_2_arrival text-[var(--ant-color-primary)] text-xl"></em>
                           Return Flight
                           <Badge
                             count={filteredReturnFlights.length}
                             style={{
-                              backgroundColor: "var(--ant-color-success)",
+                                backgroundColor: "var(--ant-color-success)",
+                                  padding: "0",   
+                                  height: "20px",
+                                  width:"20px",     
+                                  lineHeight: "20px",  
                             }}
                           />
                         </span>
@@ -1793,6 +1814,7 @@ export default function FlightSearchBundle() {
                                   </Text>
                                 </div>
                               )}
+                              <em className="infi-icon_7_noFlight text-5xl text-[var(--infiniti-primary-header)] mt-2 block"></em>
                             </div>
                           )}
                         </div>
@@ -1821,71 +1843,55 @@ export default function FlightSearchBundle() {
                           ? "No flights found for your search criteria. Try adjusting your search parameters."
                           : "No flights match your current filters. Try adjusting your filters."}
                       </Text>
+                      <em className="infi-icon_7_noFlight text-5xl text-[var(--infiniti-primary-header)] mt-2 block"></em>
                     </div>
                   )}
                 </div>
               )}
-            </Card>
-
-            {/* Booking Summary */}
-            {selectedOutboundFlight && (
-              <Card className="mt-6">
-                <Title level={4} className="!mb-4 text-gray-800">
-                  Booking Summary
-                </Title>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <Text>
-                      Flight ({passengerCount} passenger
-                      {passengerCount > 1 ? "s" : ""})
-                    </Text>
-                    <Text className="font-medium">${baseCost.toFixed(2)}</Text>
-                  </div>
-                  {bundleCost > 0 && (
-                    <div className="flex justify-between">
-                      <Text>Extras & Services</Text>
-                      <Text className="font-medium">
-                        ${bundleCost.toFixed(2)}
-                      </Text>
-                    </div>
-                  )}
-                  <Divider />
-                  <div className="flex justify-between text-lg font-bold">
-                    <Text>Total</Text>
-                    <Text className="text-blue-600">
-                      ${totalCost.toFixed(2)}
-                    </Text>
-                  </div>
-                </div>
-              </Card>
-            )}
+            </Card> 
           </Col>
         </Row>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-8">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBackToTripDetails}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            Back to Trip Details
-          </Button>
 
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleContinue}
-            disabled={
-              !selectedOutboundFlight ||
-              (tripType === "roundTrip" && !selectedReturnFlight)
-            }
-            className="infiniti-btn-primary px-8"
-          >
-            Continue
-          </Button>
-        </div>
+ <div className="mb-8 sticky custom-sticky-bottom bottom-0 z-[2] mt-8">
+        <Card className="bg-white rounded-xl border-1 border-gray-300">
+          {selectedOutboundFlight &&
+            <Row className="flex justify-between">
+              <div>
+                <Title level={4} className="!mb-1 text-black"> Booking Summary  </Title>
+                <Text className="text-gray-600">Flight ({passengerCount} passenger
+                      {passengerCount > 1 ? "s" : ""})</Text>
+              </div>
+              <Title level={3}>${totalCost.toFixed(2)}</Title>
+            </Row>
+          }
+          {/* Navigation Buttons */}
+            <div className="flex justify-between items-center">
+              <Button
+                type="text"
+                icon={<ArrowLeftOutlined />}
+                onClick={handleBackToTripDetails}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                Back to Trip Details
+              </Button>
+
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleContinue}
+                disabled={
+                  !selectedOutboundFlight ||
+                  (tripType === "roundTrip" && !selectedReturnFlight)
+                }
+                className="infiniti-btn-primary px-8"
+              >
+                Continue
+              </Button>
+            </div>
+        </Card>
+      </div>
+
       </div>
 
       <style jsx>{`

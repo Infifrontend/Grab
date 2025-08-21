@@ -48,7 +48,22 @@
         "radioColor": "#fff",
         "radioBg": "rgb(253,150,70)"
       },
-      "select": {}
+      "select": {
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
+      },
+       "Input": {
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
+       },
+       "InputNumber": {
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
+      },
+      "DatePicker": {
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
+      }
     },
     "custom": {
       "--infiniti-primary": "#133769",

@@ -31,7 +31,7 @@ import {
   DollarOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import QuickBookingForm from "@/components/booking/quick-booking-form";
 import ManageBooking from "../manage-booking";
@@ -42,12 +42,13 @@ const { RangePicker } = DatePicker;
 
 export default function Bookings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || "dashboard");
 
   useEffect(() => {
     // Check if admin is logged in

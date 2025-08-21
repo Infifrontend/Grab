@@ -8,6 +8,7 @@ import AppRoute from "./routes/index.route";
 import { ErrorBoundary } from "react-error-boundary";
 import ServerError from "./pages/server-error";
 import ThemeManager from "./components/ThemeManager/ThemeManager";
+import '../src/assets/scss/icons.css';
 
 function App() {
   return (

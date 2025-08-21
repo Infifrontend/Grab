@@ -13,7 +13,6 @@ import {
   Col,
 } from "antd";
 import { EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useNavigate } from "react-router-dom";
 const { Option } = Select;
@@ -40,7 +39,8 @@ export default function QuickBookingForm() {
   // State for dynamic location options
   const [originOptions, setOriginOptions] = useState<string[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<string[]>([]);
-
+  //button loading control
+  const [btnLoading, setBtnLoading] = useState(false);
   // Fetch flight locations on component mount
   useEffect(() => {
     const fetchFlightLocations = async () => {
@@ -68,58 +68,6 @@ export default function QuickBookingForm() {
     fetchFlightLocations();
   }, []);
 
-  const searchMutation = useMutation({
-    mutationFn: async (searchData: SearchFormData) => {
-      // Convert Date objects to ISO strings for API
-      const totalPassengers =
-        searchData.adults + searchData.kids + searchData.infants;
-      const apiData = {
-        origin: searchData.origin,
-        destination: searchData.destination,
-        departureDate: searchData.departureDate.toISOString(),
-        returnDate: searchData.returnDate?.toISOString(),
-        passengers: totalPassengers,
-        cabin: searchData.cabin,
-        tripType: searchData.tripType,
-      };
-      const response = await apiRequest("POST", "/api/search", apiData);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log("Search results:", data);
-      // Store search results in localStorage for the results page
-      localStorage.setItem("searchResults", JSON.stringify(data.flights || []));
-      message.success(`Found ${data.flights?.length || 0} flights!`);
-      navigate("/flight-search-bundle");
-    },
-    onError: (error: any) => {
-      console.error("Search error:", error);
-      const errorMessage = error?.message || "Search failed. Please try again.";
-      message.error(errorMessage);
-    },
-  });
-
-  const quickBookMutation = useMutation({
-    mutationFn: async (bookingData: any) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/flight-bookings",
-        bookingData,
-      );
-      return response.json();
-    },
-    onSuccess: (data) => {
-      message.success(
-        `Booking created! Reference: ${data.booking.bookingReference}`,
-      );
-      navigate(`/booking-details?ref=${data.booking.bookingReference}`);
-    },
-    onError: (error) => {
-      console.error("Booking error:", error);
-      message.error("Booking failed. Please try again.");
-    },
-  });
-
   const handleSubmit = async (values: any) => {
     values.tripType = tripType
     localStorage.setItem("bookingFormData", JSON.stringify(values));
@@ -137,6 +85,7 @@ export default function QuickBookingForm() {
     }
 
     try {
+      setBtnLoading(true);
       // First search for available flights from database
       const totalPassengers =
         (values.adults || 1) + (values.kids || 0) + (values.infants || 0);
@@ -187,15 +136,17 @@ export default function QuickBookingForm() {
       message.success(`Found ${searchResult.flights.length} flights`);
 
       // Navigate to flight search bundle page
-      navigate("/flight-search-bundle");
+      navigate(adminMode ? "/admin/flight-search-bundle" : "/flight-search-bundle");
     } catch (error) {
       console.error("Search and book error:", error);
       message.error("Flight search failed. Please try again.");
+    } finally {
+      setBtnLoading(false); // remove loading state
     }
   };
 
   return (
-    <Card className="h-fit">
+    <Card className="h-fit shadow-md">
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">
           Quick Booking
@@ -245,7 +196,7 @@ export default function QuickBookingForm() {
                     .toLowerCase()
                     .includes(input.toLowerCase())
                 }
-                suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                suffixIcon={<em className="infi-icon_1_departure text-gray-400 text-xl"></em>}
                 notFoundContent="No locations found"
               >
                 {originOptions.map((location) => (
@@ -272,7 +223,7 @@ export default function QuickBookingForm() {
                     .toLowerCase()
                     .includes(input.toLowerCase())
                 }
-                suffixIcon={<EnvironmentOutlined className="text-gray-400" />}
+                suffixIcon={<em className="infi-icon_2_arrival text-gray-400 text-xl"></em>}
                 notFoundContent="No locations found"
               >
                 {destinationOptions.map((location) => (
@@ -333,7 +284,8 @@ export default function QuickBookingForm() {
                   Adults (12+ years)
                 </label>
                 <Form.Item name="adults" initialValue={0} className="mb-0">
-                  <InputNumber min={0} className="w-full" placeholder="0" />
+                  <InputNumber min={0}  controls={false}  className="w-full" placeholder="0" 
+                  suffix={<em className="infi-icon_3_Adult text-gray-400 text-xl"></em>} />
                 </Form.Item>
               </div>
             </Col>
@@ -343,7 +295,8 @@ export default function QuickBookingForm() {
                   Kids (2-11 years)
                 </label>
                 <Form.Item name="kids" initialValue={0} className="mb-0">
-                  <InputNumber min={0} className="w-full" placeholder="0" />
+                  <InputNumber min={0}  controls={false}  className="w-full" placeholder="0"
+                  suffix={<em className="infi-icon_4_Children text-gray-400 text-xl"></em>}/>
                 </Form.Item>
               </div>
             </Col>
@@ -353,38 +306,40 @@ export default function QuickBookingForm() {
                   Infants (0-2 years)
                 </label>
                 <Form.Item name="infants" initialValue={0} className="mb-0">
-                  <InputNumber min={0} className="w-full" placeholder="0" />
+                  <InputNumber min={0}  controls={false}  className="w-full" placeholder="0"                   
+                  suffix={<em className="infi-icon_5_Infant text-gray-400 text-xl"></em>}/>
                 </Form.Item>
               </div>
             </Col>
           </Row>
         </div>
-
-        {/* Cabin */}
-        <Form.Item
-          label="Cabin *"
-          name="cabin"
-          initialValue="economy"
-          className="mb-6"
-        >
-          <Select placeholder="Select cabin class">
-            <Option value="economy">Economy</Option>
-            <Option value="business">Business</Option>
-            <Option value="first">First Class</Option>
-          </Select>
-        </Form.Item>
-
+        
+          {/* Cabin */}
+          <Row gutter={16}>
+          <Col span={12}>
+           <Form.Item
+            label="Cabin *"
+            name="cabin"
+            initialValue="economy"
+            className="mb-6"
+          >
+            <Select placeholder="Select cabin class">
+              <Option value="economy">Economy</Option>
+              <Option value="business">Business</Option>
+              <Option value="first">First Class</Option>
+            </Select>
+          </Form.Item>
+          </Col>
+          </Row>
+          
         <Button
           type="primary"
           htmlType="submit"
           size="large"
-          loading={searchMutation.isPending || quickBookMutation.isPending}
+          loading={btnLoading}
           className="w-full infiniti-btn-primary"
-        >
-          {searchMutation.isPending
+        >{btnLoading
             ? "Searching Flights..."
-            : quickBookMutation.isPending
-              ? "Creating Booking..."
               : "Search Flight"}
         </Button>
       </Form>

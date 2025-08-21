@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 
 const { Footer } = Layout;
 const navigationItems: any[] = [
-    { key: "home", label: "Home", path: "/" },
-    { key: "manage-booking", label: "Manage Booking", path: "/" },
-    { key: "bids", label: "Bids", path: "/" },
+    // { key: "home", label: "Home", path: "/" },
+    // { key: "manage-booking", label: "Manage Booking", path: "/" },
+    // { key: "bids", label: "Bids", path: "/" },
 ];
 
 export default function AppFooter() {
@@ -15,7 +15,7 @@ export default function AppFooter() {
             <Row className="max-w-7x flex  justify-between">
                 <Col>
                     <ul className="flex">
-                        <li className="text-sm ">@ 2024 GroupRM all rights reserved</li>
+                        <li className="text-sm ">@ 2025 GroupRM all rights reserved</li>
                         {navigationItems.length > 0 && navigationItems.map((item) => (
                             <li className="text-sm ">
                                 <Link

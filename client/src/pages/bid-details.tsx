@@ -354,7 +354,7 @@ export default function BidDetails() {
     }
   };
 
-  const getTimeLeft = (validUntil) => {
+  const getTimeLeft = (validUntil:any) => {
     const now = dayjs();
     const expiry = dayjs(validUntil);
     const diffInHours = expiry.diff(now, "hour");
@@ -466,7 +466,7 @@ export default function BidDetails() {
                     transformedBidData.status.slice(1)}
                 </span>
                 <span className="text-gray-600">
-                  <strong>Time left:</strong> {transformedBidData.timeLeft}
+                  <strong>Time left:</strong> {getTimeLeft(transformedBidData.bidEndTime)}
                 </span>
               </div>
             </div>

@@ -77,7 +77,7 @@ const BookingSummary = ({
               <div>
                 <Text className="text-gray-600 text-sm">Route</Text>
                 <Text className="block font-medium">
-                  {searchCriteria?.origin || origin} →{" "}
+                  {searchCriteria?.origin || origin} {searchCriteria?.tripType === "roundTrip" ? "↔" : "→"}{" "}
                   {searchCriteria?.destination || destination}
                 </Text>
               </div>

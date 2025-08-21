@@ -111,7 +111,9 @@
         "activeBg": "#ffffff",
         "fontSize": 14,
         "fontSizeLG": 16,
-        "fontSizeSM": 14
+        "fontSizeSM": 14,
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
       },
       "Tabs": {
         "itemSelectedColor": "#2a0a22",
@@ -151,7 +153,9 @@
         "colorPrimaryActive": "rgba(13,2,8,0.62)",
         "controlHeightLG": 40,
         "zIndexPopup": 1050,
-        "controlHeight": 40
+        "controlHeight": 40,
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
       },
       "DatePicker": {
         "borderRadius": 6,
@@ -195,10 +199,14 @@
         "multipleSelectorBgDisabled": "rgba(0,0,0,0.04)",
         "zIndexPopup": 1050,
         "presetsWidth": 120,
-        "presetsMaxWidth": 200
+        "presetsMaxWidth": 200,
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
       },
       "InputNumber": {
-        "paddingBlock": 8
+        "paddingBlock": 8,
+        "hoverBorderColor": "rgb(253,150,70)",
+        "activeBorderColor":"rgb(253,150,70)"
       }
     },
     "custom": {

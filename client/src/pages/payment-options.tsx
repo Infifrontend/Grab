@@ -57,6 +57,8 @@ export default function PaymentOptions() {
   >("roundTrip");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [bookingReference, setBookingReference] = useState("");
+  //button loader
+  const [btnloading, setBtnLoading] = useState(false);
 
   // Load booking data on component mount
   useEffect(() => {
@@ -272,6 +274,7 @@ export default function PaymentOptions() {
 
   const handleSubmitBooking = async () => {
     try {
+      setBtnLoading(true);
       // Only validate form fields if credit card is selected
       if (paymentMethod === "creditCard") {
         await form.validateFields();
@@ -490,6 +493,8 @@ export default function PaymentOptions() {
         }
       }
       alert(errorMessage);
+    }finally {
+      setBtnLoading(false); // remove loading state
     }
   };
 
@@ -529,7 +534,7 @@ export default function PaymentOptions() {
             {/* Payment Schedule */}
             <Card className="mb-6">
               <div className="flex items-center gap-2 mb-4">
-                <CalendarOutlined className="text-blue-600" />
+                <em className="infi-icon_10_pending text-[var(--ant-color-primary)] mr-2 text-xl"></em>
                 <Title level={4} className="!mb-0 text-gray-800">
                   Payment Schedule
                 </Title>
@@ -693,7 +698,7 @@ export default function PaymentOptions() {
             {/* Payment Method */}
             <Card>
               <div className="flex items-center gap-2 mb-4">
-                <CreditCardOutlined className="text-blue-600" />
+                <em className="infi-icon_11_loader_money text-[var(--ant-color-primary)] mr-2 text-xl"></em>
                 <Title level={4} className="!mb-0 text-gray-800">
                   Payment Method
                 </Title>
@@ -824,13 +829,14 @@ export default function PaymentOptions() {
           <Col xs={24} lg={10}>
             <Card className="sticky top-6">
               <Title level={4} className="!mb-4 text-gray-800">
+               <em className="infi-icon_12_booking text-[var(--ant-color-primary)] mr-2 text-2xl"></em>
                 Booking Summary
-              </Title>
+            </Title>
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm">✈️</span>
+                  <em className="infi-icon_14_flight text-[var(--ant-color-primary)]"></em>
                   </div>
                   <Text className="text-gray-900 font-medium">
                     {bookingData
@@ -854,7 +860,7 @@ export default function PaymentOptions() {
 
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <UserOutlined className="text-blue-600 text-sm" />
+                  <em className="infi-icon_13_people text-[var(--ant-color-primary)] text-xl"></em>
                   </div>
                   <Text className="text-gray-900">
                     {passengerCount} passenger{passengerCount > 1 ? "s" : ""}
@@ -1121,7 +1127,7 @@ export default function PaymentOptions() {
             className="text-gray-600 hover:text-gray-800 flex items-center"
             size="large"
           >
-            Back
+            Back to Group Leader
           </Button>
 
           <Button
@@ -1129,6 +1135,7 @@ export default function PaymentOptions() {
             size="large"
             onClick={handleSubmitBooking}
             className="px-8"
+            loading={btnloading}
             // style={{
             //   backgroundColor: "#2a0a22",
             //   borderColor: "#2a0a22",

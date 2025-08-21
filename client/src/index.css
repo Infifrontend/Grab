@@ -564,3 +564,8 @@
     border: 0px;
   }
 }
+.custom-sticky-bottom{
+  .ant-card-body{
+    padding: 20px;
+  }
+}
