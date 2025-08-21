@@ -803,7 +803,23 @@ export default function BidManagement() {
                 );
               },
               rowExpandable: (record) => {
-                // Allow expansion for all bids to see retail users
+                // Extract numeric bid ID and check the original bid data
+                let numericBidId = record.bidId.replace(/^BID0*/, "");
+                if (!numericBidId) {
+                  numericBidId = record.bidId.replace(/\D/g, "");
+                }
+
+                // Find the original bid data to check rStatus
+                const originalBid = (recentBidsData || []).find(
+                  (bid) => bid.id.toString() === numericBidId
+                );
+
+                // If rStatus is 4, do not allow expansion
+                if (originalBid && originalBid.rStatus === 4) {
+                  return false;
+                }
+
+                // Allow expansion for all other bids to see retail users
                 return true;
               },
               onExpand: (expanded, record) => {
