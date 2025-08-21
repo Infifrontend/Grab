@@ -51,20 +51,22 @@ export default function ManageBooking() {
     queryKey: ["/api/flight-bookings"],
     queryFn: async () => {
       // Get current user ID if logged in as retail user
-      const currentUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
-      const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-      
+      const currentUserId =
+        localStorage.getItem("userId") || localStorage.getItem("currentUserId");
+      const isAuthenticated =
+        localStorage.getItem("isAuthenticated") === "true";
+
       let url = "/api/flight-bookings";
       if (isAuthenticated && currentUserId && !adminMode) {
         // Filter bookings for retail users
         url += `?userId=${currentUserId}`;
       }
-      
+
       console.log("Fetching flight bookings from URL:", url);
       const response = await apiRequest("GET", url);
       const data = await response.json();
       console.log("Flight bookings response:", data);
-      
+
       // Ensure we return an array
       return Array.isArray(data) ? data : [];
     },
@@ -217,7 +219,10 @@ export default function ManageBooking() {
 
                 // Check for bid-based booking data first
                 if (comprehensiveData.bookingSource === "approved_bid") {
-                  if (comprehensiveData.origin && comprehensiveData.destination) {
+                  if (
+                    comprehensiveData.origin &&
+                    comprehensiveData.destination
+                  ) {
                     route = `${comprehensiveData.origin} → ${comprehensiveData.destination}`;
                   }
                   if (comprehensiveData.approvalDate) {
@@ -229,7 +234,10 @@ export default function ManageBooking() {
                 }
 
                 // Check for trip details (fallback for other booking types)
-                if (comprehensiveData.tripDetails && route === "Route not available") {
+                if (
+                  comprehensiveData.tripDetails &&
+                  route === "Route not available"
+                ) {
                   const tripDetails = comprehensiveData.tripDetails;
                   if (tripDetails.origin && tripDetails.destination) {
                     route = `${tripDetails.origin} → ${tripDetails.destination}`;
@@ -247,7 +255,10 @@ export default function ManageBooking() {
                 }
 
                 // Check for flight details (fallback)
-                if (comprehensiveData.flightDetails && route === "Route not available") {
+                if (
+                  comprehensiveData.flightDetails &&
+                  route === "Route not available"
+                ) {
                   const flightDetails = comprehensiveData.flightDetails;
                   if (flightDetails.outbound) {
                     if (
@@ -445,13 +456,15 @@ export default function ManageBooking() {
                     key: "groupType",
                     width: 120,
                     render: (text) => (
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        text === "Approved Bid" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-blue-100 text-blue-700"
-                      }`}>
+                      <Tag
+                        className={`text-xs px-2 py-1 font-medium ${
+                          text === "Approved Bid"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
                         {text}
-                      </span>
+                      </Tag>
                     ),
                     filters: [
                       { text: "Group Travel", value: "Group Travel" },
