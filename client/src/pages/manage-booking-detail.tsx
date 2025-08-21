@@ -209,15 +209,21 @@ export default function ManageBookingDetail() {
       );
 
       if (!passengersResponse.ok) {
-        const errorData = await passengersResponse.json().catch(() => ({ message: "Unknown error" }));
+        const errorData = await passengersResponse
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
         console.error("Passenger update failed:", errorData);
         console.error("Response status:", passengersResponse.status);
-        
+
         if (passengersResponse.status === 404) {
-          throw new Error(`Booking not found with ID: ${bookingId}. The booking may have expired or been cancelled.`);
+          throw new Error(
+            `Booking not found with ID: ${bookingId}. The booking may have expired or been cancelled.`,
+          );
         }
-        
-        throw new Error(errorData.message || "Failed to update passenger information");
+
+        throw new Error(
+          errorData.message || "Failed to update passenger information",
+        );
       }
 
       const responseData = await passengersResponse.json();
@@ -229,7 +235,6 @@ export default function ManageBookingDetail() {
       console.log("Refetching booking details...");
       await refetch();
       console.log("Booking details refetched successfully");
-
     } catch (error) {
       console.error("Error updating passenger details:", error);
       message.error(`Failed to update passenger details: ${error.message}`);
@@ -313,7 +318,10 @@ export default function ManageBookingDetail() {
   const selectedServices = comprehensiveData?.selectedServices || [];
 
   const handleAddPassenger = () => {
-    setPassengers([...passengers, { firstName: "", lastName: "", title: "", nationality: "" }]);
+    setPassengers([
+      ...passengers,
+      { firstName: "", lastName: "", title: "", nationality: "" },
+    ]);
   };
 
   const handlePassengerChange = (
@@ -769,33 +777,6 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
                                 handlePassengerChange(
                                   index,
                                   "lastName",
-                                  e.target.value,
-                                )
-                              }
-                              className="flex-1"
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <Select
-                              placeholder="Title"
-                              value={passenger.title}
-                              onChange={(value) =>
-                                handlePassengerChange(index, "title", value)
-                              }
-                              className="w-24"
-                            >
-                              <Option value="Mr">Mr.</Option>
-                              <Option value="Mrs">Mrs.</Option>
-                              <Option value="Ms">Ms.</Option>
-                              <Option value="Dr">Dr.</Option>
-                            </Select>
-                            <Input
-                              placeholder="Nationality"
-                              value={passenger.nationality}
-                              onChange={(e) =>
-                                handlePassengerChange(
-                                  index,
-                                  "nationality",
                                   e.target.value,
                                 )
                               }
