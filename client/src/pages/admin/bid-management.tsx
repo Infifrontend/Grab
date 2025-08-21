@@ -277,7 +277,6 @@ export default function BidManagement() {
       }
       setCurrentStep(currentStep + 1);
     } catch (error) {
-      console.log("Validation failed:", error);
       // Form validation will show the error messages automatically
     }
   };
@@ -289,15 +288,12 @@ export default function BidManagement() {
   const handleFinish = async (values: any) => {
     setLoading(true);
     try {
-      console.log("Form values from handleFinish:", values);
 
       // Get ALL current form values to ensure we have complete data
       const allFormValues = form.getFieldsValue(true); // Get all fields including empty ones
-      console.log("All form values:", allFormValues);
 
       // Merge with current values, giving priority to handleFinish values
       const finalValues = { ...allFormValues, ...values };
-      console.log("Final merged values:", finalValues);
 
       // Validate required fields with final values
       const errors = [];
@@ -358,7 +354,6 @@ export default function BidManagement() {
           : null,
       };
 
-      console.log("Formatted data for submission:", formattedData);
 
       const response = await apiRequest(
         "POST",
@@ -373,7 +368,6 @@ export default function BidManagement() {
       }
 
       const result = await response.json();
-      console.log("API response result:", result);
 
       if (result.success) {
         // Show success message
@@ -608,12 +602,7 @@ export default function BidManagement() {
                 const retailData = retailUsersData[numericBidId];
                 const isLoading = fetchingRetailUsers[numericBidId];
 
-                console.log(
-                  `Rendering expandable row for bid ${record.bidId}, numericBidId: ${numericBidId}, retailData:`,
-                  retailData,
-                  "isLoading:",
-                  isLoading,
-                );
+               
 
                 if (isLoading) {
                   return (
@@ -752,10 +741,7 @@ export default function BidManagement() {
                                       // Priority: rUserId (from retail bids table) > userId > id
                                       const retailUserId =
                                         user.rUserId || user.userId || user.id;
-                                      console.log(
-                                        `Approving retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
-                                      );
-                                      console.log("User object:", user);
+                                    
                                       user.status = "approved";
                                       handleRetailUserAction(
                                         user.retailBidId,
@@ -776,10 +762,7 @@ export default function BidManagement() {
                                       // Priority: rUserId (from retail bids table) > userId > id
                                       const retailUserId =
                                         user.rUserId || user.userId || user.id;
-                                      console.log(
-                                        `Rejecting retail user with ID: ${retailUserId} for bid: ${record.bidId}`,
-                                      );
-                                      console.log("User object:", user);
+                                     
                                       user.status = "rejected";
                                       handleRetailUserAction(
                                         user.retailBidId,
@@ -830,9 +813,7 @@ export default function BidManagement() {
                   if (!numericBidId) {
                     numericBidId = record.bidId.replace(/\D/g, "");
                   }
-                  console.log(
-                    `Expanding row for bid ${record.bidId}, numeric ID: ${numericBidId}`,
-                  );
+               
 
                   // Log grab_t_retail_bids unique IDs for this bid
                   const retailData = retailUsersData[numericBidId];
@@ -844,17 +825,7 @@ export default function BidManagement() {
                     const retailBidIds = retailData.retailUsers.map(
                       (user) => user.rUserId || user.userId || user.id,
                     );
-                    console.log(
-                      `grab_t_retail_bids unique IDs for bid ${record.bidId}:`,
-                      retailBidIds,
-                    );
-                    console.log(
-                      `Total retail bids count: ${retailBidIds.length}`,
-                    );
-                  } else {
-                    console.log(
-                      `No retail bids found for bid ${record.bidId} - fetching from server...`,
-                    );
+                 
                   }
 
                   fetchRetailUsers(parseInt(numericBidId));
@@ -943,13 +914,7 @@ export default function BidManagement() {
                 dataIndex: "status",
                 key: "status",
                 render: (status, record) => {
-                  console.log(
-                    "Rendering status for record:",
-                    record,
-                    "status:",
-                    status,
-                  );
-
+                
                   const getStatusDisplay = (status) => {
                     if (
                       !status ||
@@ -1079,7 +1044,6 @@ export default function BidManagement() {
     setFetchingRetailUsers((prev) => ({ ...prev, [bidId]: true }));
 
     try {
-      console.log(`🔍 Fetching retail bids for parent bid ID: ${bidId}`);
       const response = await apiRequest("GET", `/api/retail-bids/${bidId}`);
 
       if (!response.ok) {
@@ -1087,7 +1051,6 @@ export default function BidManagement() {
       }
 
       const result = await response.json();
-      console.log(`📥 Raw API response for bid ${bidId}:`, result);
 
       if (result.success && result.data) {
         const apiData = result.data;
@@ -1097,24 +1060,14 @@ export default function BidManagement() {
           const retailBidUniqueIds = retailUsers.map(
             (user) => user.retailBidId || user.id,
           );
-          console.log(
-            `🎯 grab_t_retail_bids unique IDs for parent bid ${bidId}:`,
-            retailBidUniqueIds,
-          );
-          console.log(
-            `📊 Total grab_t_retail_bids records found: ${retailBidUniqueIds.length}`,
-          );
+        
 
           retailUsers.forEach((user, index) => {
             const uniqueId = user.retailBidId || user.id;
-            console.log(
-              `   └─ Retail Bid #${index + 1}: ID=${uniqueId}, Amount=${user.bidAmount}, User=${user.name}`,
-            );
+           
           });
         } else {
-          console.log(
-            `⚠️ No grab_t_retail_bids records found for parent bid ${bidId}`,
-          );
+         
         }
 
         const transformedData = {
@@ -1148,9 +1101,7 @@ export default function BidManagement() {
           highestBidAmount: apiData.highestBidAmount || 0,
         };
 
-        console.log(
-          `✅ Successfully processed retail bids data for bid ${bidId}`,
-        );
+       
 
         setRetailUsersData((prev) => ({
           ...prev,
@@ -1198,15 +1149,12 @@ export default function BidManagement() {
   };
 
   const handleReviewBid = (bidRecord) => {
-    console.log("handleReviewBid called with:", bidRecord);
-    console.log("recentBidsData:", recentBidsData);
-
+  
     // Find the actual bid data from recentBidsData
     const bidData = (recentBidsData || []).find(
       (bid) => `BID${bid.id.toString().padStart(3, "0")}` === bidRecord.bidId,
     );
 
-    console.log("Found bidData:", bidData);
 
     if (bidData) {
       // Parse configuration data from notes to get flight information
@@ -1253,7 +1201,6 @@ export default function BidManagement() {
         configData: configData,
       };
 
-      console.log("Setting selectedBidForReview to:", reviewData);
 
       setSelectedBidForReview(reviewData);
       setReviewBidModalVisible(true);
@@ -1411,8 +1358,7 @@ export default function BidManagement() {
 
     setLoading(true);
     try {
-      console.log("Submitting edit form with values:", values);
-      console.log("Selected bid ID:", selectedBid.id);
+     
 
       // Prepare the update data with all fields
       const updateData = {
@@ -1444,7 +1390,6 @@ export default function BidManagement() {
       }
 
       const result = await response.json();
-      console.log("Update response:", result);
 
       if (result.success) {
         message.success("Bid configuration updated successfully");
