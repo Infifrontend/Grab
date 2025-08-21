@@ -96,6 +96,8 @@ export default function ManageBookingDetail() {
         bookingDetails.passengers.map((p) => ({
           firstName: p.firstName || "",
           lastName: p.lastName || "",
+          title: p.title || "",
+          nationality: p.nationality || "",
         })),
       );
     } else if (bookingDetails?.booking?.passengerCount) {
@@ -105,6 +107,8 @@ export default function ManageBookingDetail() {
         () => ({
           firstName: "",
           lastName: "",
+          title: "",
+          nationality: "",
         }),
       );
       setPassengers(emptyPassengers);
@@ -279,7 +283,7 @@ export default function ManageBookingDetail() {
   const selectedServices = comprehensiveData?.selectedServices || [];
 
   const handleAddPassenger = () => {
-    setPassengers([...passengers, { firstName: "", lastName: "" }]);
+    setPassengers([...passengers, { firstName: "", lastName: "", title: "", nationality: "" }]);
   };
 
   const handlePassengerChange = (
@@ -714,31 +718,60 @@ David,Brown,1983-12-05,E99887766,US,Male,Extra legroom`;
 
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {passengers.map((passenger, index) => (
-                        <div key={index} className="flex gap-3">
-                          <Input
-                            placeholder={`Passenger ${index + 1} - First Name`}
-                            value={passenger.firstName}
-                            onChange={(e) =>
-                              handlePassengerChange(
-                                index,
-                                "firstName",
-                                e.target.value,
-                              )
-                            }
-                            className="flex-1"
-                          />
-                          <Input
-                            placeholder={`Passenger ${index + 1} - Last Name`}
-                            value={passenger.lastName}
-                            onChange={(e) =>
-                              handlePassengerChange(
-                                index,
-                                "lastName",
-                                e.target.value,
-                              )
-                            }
-                            className="flex-1"
-                          />
+                        <div key={index} className="space-y-2">
+                          <div className="flex gap-3">
+                            <Input
+                              placeholder={`Passenger ${index + 1} - First Name`}
+                              value={passenger.firstName}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "firstName",
+                                  e.target.value,
+                                )
+                              }
+                              className="flex-1"
+                            />
+                            <Input
+                              placeholder={`Passenger ${index + 1} - Last Name`}
+                              value={passenger.lastName}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "lastName",
+                                  e.target.value,
+                                )
+                              }
+                              className="flex-1"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Select
+                              placeholder="Title"
+                              value={passenger.title}
+                              onChange={(value) =>
+                                handlePassengerChange(index, "title", value)
+                              }
+                              className="w-24"
+                            >
+                              <Option value="Mr">Mr.</Option>
+                              <Option value="Mrs">Mrs.</Option>
+                              <Option value="Ms">Ms.</Option>
+                              <Option value="Dr">Dr.</Option>
+                            </Select>
+                            <Input
+                              placeholder="Nationality"
+                              value={passenger.nationality}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "nationality",
+                                  e.target.value,
+                                )
+                              }
+                              className="flex-1"
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
