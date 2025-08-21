@@ -46,7 +46,17 @@ export default function ManageBooking() {
   const { data: flightBookingsData = [] } = useQuery({
     queryKey: ["flight-bookings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/flight-bookings");
+      // Get current user ID if logged in as retail user
+      const currentUserId = localStorage.getItem("userId") || localStorage.getItem("currentUserId");
+      const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+      
+      let url = "/api/flight-bookings";
+      if (isAuthenticated && currentUserId && !adminMode) {
+        // Filter bookings for retail users
+        url += `?userId=${currentUserId}`;
+      }
+      
+      const response = await apiRequest("GET", url);
       return response.json();
     },
   });
@@ -186,6 +196,7 @@ export default function ManageBooking() {
             let route = "Route not available";
             let departureDate = "Date not available";
             let returnDate = null;
+            let groupType = "Group Travel";
 
             if (booking.flight) {
               // Use flight data if available
@@ -203,8 +214,21 @@ export default function ManageBooking() {
               try {
                 const comprehensiveData = JSON.parse(booking.specialRequests);
 
-                // Check for trip details
-                if (comprehensiveData.tripDetails) {
+                // Check for bid-based booking data first
+                if (comprehensiveData.bookingSource === "approved_bid") {
+                  if (comprehensiveData.origin && comprehensiveData.destination) {
+                    route = `${comprehensiveData.origin} → ${comprehensiveData.destination}`;
+                  }
+                  if (comprehensiveData.approvalDate) {
+                    departureDate = new Date(comprehensiveData.approvalDate)
+                      .toISOString()
+                      .split("T")[0];
+                  }
+                  groupType = "Approved Bid";
+                }
+
+                // Check for trip details (fallback for other booking types)
+                if (comprehensiveData.tripDetails && route === "Route not available") {
                   const tripDetails = comprehensiveData.tripDetails;
                   if (tripDetails.origin && tripDetails.destination) {
                     route = `${tripDetails.origin} → ${tripDetails.destination}`;
@@ -221,8 +245,8 @@ export default function ManageBooking() {
                   }
                 }
 
-                // Check for flight details
-                if (comprehensiveData.flightDetails) {
+                // Check for flight details (fallback)
+                if (comprehensiveData.flightDetails && route === "Route not available") {
                   const flightDetails = comprehensiveData.flightDetails;
                   if (flightDetails.outbound) {
                     if (
@@ -257,7 +281,7 @@ export default function ManageBooking() {
             return {
               key: booking.id,
               pnr: booking.pnr || `BOOKING-${booking.id}`,
-              groupType: "Group Travel", // Default since we don't have this field
+              groupType: groupType,
               route: route,
               date: departureDate,
               returnDate: returnDate,
@@ -414,21 +438,28 @@ export default function ManageBooking() {
                     ),
                     sorter: (a, b) => a.pnr.localeCompare(b.pnr),
                   },
-                  // {
-                  //   title: "Group Type",
-                  //   dataIndex: "groupType",
-                  //   key: "groupType",
-                  //   width: 120,
-                  //   render: (text) => (
-                  //     <span className="text-gray-700 capitalize">{text}</span>
-                  //   ),
-                  //   filters: [
-                  //     { text: "Group Travel", value: "Group Travel" },
-                  //     { text: "Corporate", value: "Corporate" },
-                  //     { text: "Family", value: "Family" },
-                  //   ],
-                  //   onFilter: (value, record) => record.groupType === value,
-                  // },
+                  {
+                    title: "Group Type",
+                    dataIndex: "groupType",
+                    key: "groupType",
+                    width: 120,
+                    render: (text) => (
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        text === "Approved Bid" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {text}
+                      </span>
+                    ),
+                    filters: [
+                      { text: "Group Travel", value: "Group Travel" },
+                      { text: "Approved Bid", value: "Approved Bid" },
+                      { text: "Corporate", value: "Corporate" },
+                      { text: "Family", value: "Family" },
+                    ],
+                    onFilter: (value, record) => record.groupType === value,
+                  },
                   {
                     title: "Route",
                     dataIndex: "route",

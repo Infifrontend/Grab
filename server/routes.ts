@@ -402,9 +402,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/flight-bookings", async (req, res) => {
     try {
       const { userId } = req.query;
-      const bookings = await storage.getFlightBookings(
-        userId ? parseInt(userId as string) : undefined,
-      );
+      let bookings;
+      
+      if (userId) {
+        // Filter bookings for specific user (retail user flow)
+        const allBookings = await storage.getFlightBookings();
+        bookings = allBookings.filter((booking) => {
+          try {
+            // Check if booking was created from an approved bid for this user
+            const specialRequests = JSON.parse(booking.specialRequests || "{}");
+            if (specialRequests.bookingSource === "approved_bid" && 
+                specialRequests.userId === parseInt(userId as string)) {
+              return true;
+            }
+          } catch (e) {
+            // If parsing fails, ignore this booking for user filtering
+          }
+          
+          // Also include bookings directly associated with the user
+          return booking.userId === parseInt(userId as string);
+        });
+      } else {
+        // Return all bookings (admin view)
+        bookings = await storage.getFlightBookings();
+      }
+      
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch flight bookings" });
@@ -1168,7 +1190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = ${r_bidId} AND r_user_id = ${r_userId}
       `);
 
-      // --- FIXED LOGIC START ---
+      // --- BOOKING CREATION LOGIC START ---
       if (status === "ap") {
         // Get bid details to check seat capacity
         const bidDetails = await biddingStorage.getBidWithDetails(
@@ -1181,6 +1203,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: "Main bid not found",
           });
         }
+
+        // Get user details for booking creation
+        const userDetails = await db.execute(sql`
+          SELECT id, name, email, phone FROM grab_t_users WHERE id = ${r_userId} LIMIT 1
+        `);
+
+        const user = userDetails.rows[0];
+
+        // Parse bid configuration data to get flight details
+        let configData = {};
+        try {
+          configData = bidDetails.bid.notes
+            ? JSON.parse(bidDetails.bid.notes)
+            : {};
+        } catch (e) {
+          configData = {};
+        }
+
+        const origin = configData.origin || "Unknown";
+        const destination = configData.destination || "Unknown";
+        const bidTitle = configData.title || `Bid ${retailBid.rBidId}`;
+
+        // Create booking for the approved user
+        const bookingReference = `BID-${retailBid.rBidId}-${nanoid(6).toUpperCase()}`;
+        const pnr = `PNR${nanoid(6).toUpperCase()}`;
+
+        const bookingData = {
+          bookingReference,
+          pnr,
+          flightId: 1, // Default flight ID
+          passengerCount: retailBid.seatBooked || 1,
+          totalAmount: retailBid.submittedAmount || "0",
+          bookingStatus: "confirmed",
+          paymentStatus: "completed", // Since payment was already processed
+          specialRequests: JSON.stringify({
+            bidId: retailBid.rBidId,
+            retailBidId: r_bidId,
+            userId: r_userId,
+            bidTitle: bidTitle,
+            origin: origin,
+            destination: destination,
+            approvedSeats: retailBid.seatBooked || 1,
+            approvedAmount: retailBid.submittedAmount || "0",
+            approvalDate: new Date().toISOString(),
+            bookingSource: "approved_bid",
+            groupLeaderInfo: {
+              name: user?.name || "",
+              email: user?.email || "",
+              phone: user?.phone || "",
+            },
+          }),
+        };
+
+        console.log("Creating booking for approved user:", bookingData);
+
+        const booking = await storage.createFlightBooking(bookingData);
+
+        console.log("Booking created successfully:", booking);
 
         // Get all retail bids for this bid to calculate seat usage
         const allRetailBids = await storage.getRetailBidsByBid(
@@ -1253,7 +1333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if all seats are now taken and close the bid if needed
         if (seatsRemainingAfterApproval === 0) {
           console.log(
-            `All approved seats taken for bid ${retailBid.rBidId}. Closing bid...`,
+            `All approved seats taken for bid ${retailBid.rBidId}. Closing bid and creating bookings for all approved users...`,
           );
           const closedStatusId =
             (await biddingStorage.getStatusIdByCode("CL")) ||
@@ -1265,10 +1345,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
               closedStatusId,
             );
           }
+
+          // Create bookings for all other approved users if not already created
+          const approvedRetailBids = allRetailBids.filter(
+            (rb) => rb.rStatus === approvedStatusId,
+          );
+
+          for (const approvedBid of approvedRetailBids) {
+            if (approvedBid.id === parseInt(r_bidId)) continue; // Skip current user, already created
+
+            // Check if booking already exists for this user and bid
+            const existingBookings = await storage.getFlightBookings();
+            const existingBooking = existingBookings.find((b) => {
+              try {
+                const specialRequests = JSON.parse(b.specialRequests || "{}");
+                return (
+                  specialRequests.retailBidId === approvedBid.id &&
+                  specialRequests.userId === approvedBid.rUserId
+                );
+              } catch (e) {
+                return false;
+              }
+            });
+
+            if (existingBooking) {
+              console.log(
+                `Booking already exists for user ${approvedBid.rUserId}, bid ${approvedBid.id}`,
+              );
+              continue;
+            }
+
+            // Get user details for this approved bid
+            const otherUserDetails = await db.execute(sql`
+              SELECT id, name, email, phone FROM grab_t_users WHERE id = ${approvedBid.rUserId} LIMIT 1
+            `);
+
+            const otherUser = otherUserDetails.rows[0];
+
+            const otherBookingReference = `BID-${retailBid.rBidId}-${nanoid(6).toUpperCase()}`;
+            const otherPnr = `PNR${nanoid(6).toUpperCase()}`;
+
+            const otherBookingData = {
+              bookingReference: otherBookingReference,
+              pnr: otherPnr,
+              flightId: 1, // Default flight ID
+              passengerCount: approvedBid.seatBooked || 1,
+              totalAmount: approvedBid.submittedAmount || "0",
+              bookingStatus: "confirmed",
+              paymentStatus: "completed",
+              specialRequests: JSON.stringify({
+                bidId: retailBid.rBidId,
+                retailBidId: approvedBid.id,
+                userId: approvedBid.rUserId,
+                bidTitle: bidTitle,
+                origin: origin,
+                destination: destination,
+                approvedSeats: approvedBid.seatBooked || 1,
+                approvedAmount: approvedBid.submittedAmount || "0",
+                approvalDate: new Date().toISOString(),
+                bookingSource: "approved_bid",
+                groupLeaderInfo: {
+                  name: otherUser?.name || "",
+                  email: otherUser?.email || "",
+                  phone: otherUser?.phone || "",
+                },
+              }),
+            };
+
+            console.log(
+              `Creating booking for other approved user ${approvedBid.rUserId}:`,
+              otherBookingData,
+            );
+
+            await storage.createFlightBooking(otherBookingData);
+          }
         }
 
+        // Create notification for booking creation
+        await createNotification(
+          "booking_created_from_bid",
+          "Booking Created from Approved Bid",
+          `A booking has been automatically created for user ${user?.name || r_userId} for the approved bid "${bidTitle}" (${origin} → ${destination}). Booking Reference: ${bookingReference}`,
+          "high",
+          {
+            bookingReference: bookingReference,
+            pnr: pnr,
+            bidId: retailBid.rBidId,
+            userId: r_userId,
+            origin: origin,
+            destination: destination,
+            seats: seatsFromThisBid,
+          },
+        );
+
         // Send appropriate response message
-        let message = `User approved successfully with ${seatsFromThisBid} seat(s). `;
+        let message = `User approved successfully with ${seatsFromThisBid} seat(s). Booking created with reference ${bookingReference}. `;
         message += `${seatsRemainingAfterApproval} seats remaining out of ${totalSeatsAvailable} total seats.`;
 
         if (rejectedCount > 0) {
@@ -1276,7 +1447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (seatsRemainingAfterApproval === 0) {
-          message += ` Bid is now closed - all seats are taken.`;
+          message += ` Bid is now closed - all seats are taken. Bookings created for all approved users.`;
         }
 
         res.json({
@@ -1284,6 +1455,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: message,
           status: status, // 'ap'
           adminNote: adminNote,
+          bookingCreated: true,
+          bookingReference: bookingReference,
+          pnr: pnr,
           seatsRemaining: seatsRemainingAfterApproval,
           totalSeats: totalSeatsAvailable,
           approvedSeats: newApprovedSeats,
@@ -1301,7 +1475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           adminNote: adminNote,
         });
       }
-      // --- FIXED LOGIC END ---
+      // --- BOOKING CREATION LOGIC END ---
     } catch (error) {
       console.error("Error updating retail bid status:", error);
       res.status(500).json({
