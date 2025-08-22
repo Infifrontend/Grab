@@ -53,8 +53,16 @@ export default function ActiveBidsSection() {
           const bids = await response.json();
           console.log("Fetched bids:", bids);
 
+          // Handle both response formats: direct array or wrapped in { bids: [...] }
+          let bidsList = [];
+          if (Array.isArray(bids)) {
+            bidsList = bids;
+          } else if (bids && Array.isArray(bids.bids)) {
+            bidsList = bids.bids;
+          }
+
           // Since the server now filters for r_status = 4, all returned bids are active/open
-          return Array.isArray(bids.bids) ? bids.bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+          return bidsList.slice(0, 5); // Show only the 5 most recent active/open bids
         } catch (error) {
           console.error("Error fetching bids:", error);
           throw error;
