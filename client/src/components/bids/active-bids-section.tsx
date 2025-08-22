@@ -27,6 +27,11 @@ interface ActiveBid {
     seatBooked: number;
     rStatus: number;
   }>;
+  flight?: { // Added for flight details
+    origin: string;
+    destination: string;
+  };
+  bidStatus?: string; // Added for bid status
 }
 
 export default function ActiveBidsSection() {
@@ -53,8 +58,22 @@ export default function ActiveBidsSection() {
           const bids = await response.json();
           console.log("Fetched bids:", bids);
 
-          // Since the server now filters for r_status = 4, all returned bids are active/open
-          return Array.isArray(bids.bids) ? bids.bids.slice(0, 5) : []; // Show only the 5 most recent active/open bids
+          // Handle both response formats: direct array or wrapped in { bids: [...] }
+          let bidsList = [];
+          if (Array.isArray(bids)) {
+            bidsList = bids;
+          } else if (bids && Array.isArray(bids.bids)) {
+            bidsList = bids.bids;
+          }
+
+          // Filter for active/open bids and limit to 5 most recent
+          const activeBids = bidsList.filter(bid => {
+            // Check if bid is active based on rStatus (4 = Open) or bidStatus
+            return bid.rStatus === 4 || bid.bidStatus === 'active' ||
+                   (bid.seatAvailability && bid.seatAvailability.paymentStatus === 'open');
+          });
+
+          return activeBids.slice(0, 5); // Show only the 5 most recent active/open bids
         } catch (error) {
           console.error("Error fetching bids:", error);
           throw error;
@@ -260,15 +279,13 @@ export default function ActiveBidsSection() {
                       <span>
                         {(() => {
                           try {
-                            const configData = bid.notes
-                              ? JSON.parse(bid.notes)
-                              : {};
+                            const notesData = bid.notes ? JSON.parse(bid.notes) : {};
                             const origin =
-                              configData.origin ||
+                              notesData.origin ||
                               bid.flight?.origin ||
                               "Unknown";
                             const destination =
-                              configData.destination ||
+                              notesData.destination ||
                               bid.flight?.destination ||
                               "Unknown";
                             return `${origin} → ${destination}`;

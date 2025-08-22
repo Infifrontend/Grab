@@ -891,8 +891,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Fetching all bids with default Open status (no user context)",
         );
 
-        // Default view - fetch ALL bids from grab_t_bids table with default "Open" status
-        // Since no user is specified, all bids should show as "Open"
+        // Default view - fetch active bids from grab_t_bids table (r_status = 4 for Open)
+        // Filter for active bids that should be displayed on homepage
         const bidsQuery = sql`
           SELECT
             gtb.id,
@@ -908,7 +908,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gms.status_name
           FROM grab_t_bids gtb
           LEFT JOIN grab_m_status gms ON gtb.r_status = gms.id
+          WHERE gtb.r_status = 4 OR gtb.r_status IS NULL
           ORDER BY gtb.created_at DESC
+          LIMIT 10
         `;
 
         const bidsResults = await db.execute(bidsQuery);
