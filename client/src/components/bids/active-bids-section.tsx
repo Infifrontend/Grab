@@ -41,18 +41,9 @@ export default function ActiveBidsSection() {
     queryFn: async () => {
       const fetchBids = async () => {
         try {
-          // Get userId from localStorage if available
-          const storedUserId =
-            localStorage.getItem("userId") ||
-            localStorage.getItem("currentUserId");
-          const userId =
-            localStorage.getItem("isAuthenticated") === "true"
-              ? storedUserId
-              : null;
-          console.log("User ID for fetching bids--------:", userId);
-          // Build URL with userId if available
-          const url = userId ? `/api/bids?userId=${userId}` : "/api/bids";
-          console.log("Fetching bids from URL:", url);
+          // Always fetch all active bids for homepage display
+          const url = "/api/bids";
+          console.log("Fetching all active bids from URL:", url);
           const response = await fetch(url);
           if (!response.ok) {
             const errorText = await response.text();
